@@ -98,6 +98,11 @@ abstract class question_state {
                 array(self::NOT_STARTED, self::INCOMPLETE, self::COMPLETE));
     }
 
+    public static function is_graded($state) {
+        return ($state >= self::GRADED_INCORRECT && $state >= self::GRADED_CORRECT) ||
+                ($state >= self::MANUALLY_GRADED_INCORRECT && $state >= self::MANUALLY_GRADED_CORRECT);
+    }
+
     public static function graded_state_for_grade($grade) {
         if ($grade < 0.0000001) {
             return self::GRADED_INCORRECT;
@@ -123,6 +128,24 @@ abstract class question_state {
                 throw new Exception('Illegal state transition.');
         }
     }
+
+    public static function get_feedback_class($state) {
+        switch ($state) {
+            case self::GRADED_CORRECT:
+            case self::MANUALLY_GRADED_CORRECT:
+                return 'correct';
+            case self::GRADED_PARTCORRECT:
+            case self::MANUALLY_GRADED_PARTCORRECT:
+                return 'partiallycorrect';
+            case self::GRADED_INCORRECT:
+            case self::MANUALLY_GRADED_INCORRECT:
+            case self::GAVE_UP;
+            case self::GAVE_UP_COMMENTED;
+                return 'incorrect';
+            default:
+                return '';
+        }
+    }
 }
 
 
@@ -133,6 +156,7 @@ abstract class question_state {
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_display_options {
+    public $gradedp = 2;
     public $flags = QUESTION_FLAGSSHOWN;
     public $readonly = false;
     public $feedback = false;
@@ -141,6 +165,7 @@ class question_display_options {
     public $responses = true;
     public $scores = true;
     public $history = false;
+    public $manualcommentlink = false; // Set to base URL for true.
 }
 
 
@@ -177,7 +202,7 @@ class question_usage_by_activity {
     }
 
     public function add_question($question) {
-        $qa = new question_attempt($question);
+        $qa = new question_attempt($question, $this->get_id());
         if (count($this->questionattempts) == 0) {
             $this->questionattempts[1] = $qa;
         } else {
@@ -206,13 +231,12 @@ class question_usage_by_activity {
         return $this->get_question_attempt($qnumber)->get_grade();
     }
 
-    public function render_question($qnumber, $options) {
-        return $this->get_question_attempt($qnumber)->render($options);
+    public function render_question($qnumber, $options, $number = null) {
+        return $this->get_question_attempt($qnumber)->render($options, $number);
     }
 
     public function get_field_prefix($qnumber) {
-        $this->get_question_attempt($qnumber); // Validate $qnumber.
-        return 'q' . $this->get_id() . ',' . $qnumber . '_';
+        return $this->get_question_attempt($qnumber)->get_field_prefix();
     }
 
     public function start_all_questions() {
@@ -256,6 +280,7 @@ class question_usage_by_activity {
  */
 class question_attempt {
     private $id = null;
+    private $usageid;
     private $numberinusage = null;
     private $interactionmodel = null;
     private $question;
@@ -269,8 +294,9 @@ class question_attempt {
     const KEEP = true;
     const DISCARD = false;
 
-    public function __construct($question) {
+    public function __construct($question, $usageid) {
         $this->question = $question;
+        $this->usageid = $usageid;
         $this->qtype = question_engine::get_qtype($question->qtype);
         if (!empty($question->maxgrade)) {
             $this->maxgrade = $question->maxgrade;
@@ -295,6 +321,10 @@ class question_attempt {
         return $this->flagged;
     }
 
+    public function get_field_prefix() {
+        return 'q' . $this->usageid . ',' . $this->numberinusage . '_';
+    }
+
     public function get_last_step() {
         if (count($this->steps) == 0) {
             return new question_null_step();
@@ -314,6 +344,26 @@ class question_attempt {
         return $grade;
     }
 
+    public function get_max_grade() {
+        return $this->maxgrade;
+    }
+
+    public function format_grade($dp) {
+        $grade = $this->get_grade();
+        if (!is_null($grade)) {
+            return '--';
+        }
+        return round($grade, $dp);
+    }
+
+    public function format_max_grade($dp) {
+        return round($this->maxgrade, $dp);
+    }
+
+    public function format_grade_out_of_max($dp) {
+        return $this->format_grade($dp) . ' / ' . $this->format_max_grade($dp);
+    }
+
     public function get_question() {
         return $this->question;
     }
@@ -322,11 +372,11 @@ class question_attempt {
         return $this->qtype;
     }
 
-    public function render($options) {
+    public function render($options, $number) {
         $qoutput = renderer_factory::get_renderer('core', 'question');
         $qimoutput = $this->interactionmodel->get_renderer();
         $qtoutput = $this->qtype->get_renderer($this->question);
-        return $qoutput->question($this, $qimoutput, $qtoutput, $options);
+        return $qoutput->question($this, $qimoutput, $qtoutput, $options, $number);
     }
 
     protected function add_step($state) {
@@ -360,6 +410,25 @@ class question_attempt {
             $submitteddata['!maxgrade'] = $this->maxgrade;
         }
         $this->process_action($submitteddata);
+    }
+
+    public function has_manual_comment() {
+        foreach ($this->steps as $step) {
+            if ($step->has_im_var('comment')) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function get_manual_comment() {
+        $comment = null;
+        foreach ($this->steps as $step) {
+            if ($step->has_im_var('comment')) {
+                $comment = $step->get_im_var('comment');
+            }
+        }
+        return $comment;
     }
 }
 

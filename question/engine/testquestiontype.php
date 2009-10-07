@@ -65,6 +65,93 @@ class test_question_type {
 
 
 class qtype_truefalse_renderer extends qtype_renderer {
+    public function formulation_and_controls(question_attempt $qa,
+            question_display_options $options) {
+        $readonly = $options->readonly ? ' disabled="disabled"' : '';
+
+        $question = $qa->get_question();
+        $answers = $question->options->answers;
+        $trueanswer = $answers[$question->options->trueanswer];
+        $falseanswer = $answers[$question->options->falseanswer];
+        $correctanswer = ($trueanswer->fraction == 1) ? $trueanswer : $falseanswer;
+
+        $trueclass = '';
+        $falseclass = '';
+        $truefeedbackimg = '';
+        $falsefeedbackimg = '';
+
+        // Work out which radio button to select (if any)
+        if (isset($state->responses[''])) {
+            $response = $state->responses[''];
+        } else {
+            $response = '';
+        }
+        $truechecked = ($response == $trueanswer->id) ? ' checked="checked"' : '';
+        $falsechecked = ($response == $falseanswer->id) ? ' checked="checked"' : '';
+
+        // Work out visual feedback for answer correctness.
+        if ($options->feedback) {
+            if ($truechecked) {
+                $trueclass = question_get_feedback_class($trueanswer->fraction);
+            } else if ($falsechecked) {
+                $falseclass = question_get_feedback_class($falseanswer->fraction);
+            }
+        }
+        if ($options->feedback || $options->correct_responses) {
+            if (isset($answers[$response])) {
+                $truefeedbackimg = question_get_feedback_image($trueanswer->fraction, !empty($truechecked) && $options->feedback);
+                $falsefeedbackimg = question_get_feedback_image($falseanswer->fraction, !empty($falsechecked) && $options->feedback);
+            }
+        }
+
+        $inputname = ' name="'.$qa->get_field_prefix().'true" ';
+        $trueid    = $qa->get_field_prefix().'true';
+        $falseid   = $qa->get_field_prefix().'false';
+
+        $radiotrue = '<input type="radio"' . $truechecked . $readonly . $inputname
+            . 'id="'.$trueid . '" value="' . $trueanswer->id . '" /><label for="'.$trueid . '">'
+            . s($trueanswer->answer) . '</label>';
+        $radiofalse = '<input type="radio"' . $falsechecked . $readonly . $inputname
+            . 'id="'.$falseid . '" value="' . $falseanswer->id . '" /><label for="'.$falseid . '">'
+            . s($falseanswer->answer) . '</label>';
+
+        $feedback = '';
+        if ($options->feedback and isset($answers[$response])) {
+            $chosenanswer = $answers[$response];
+            $feedback = format_text($chosenanswer->feedback, true, $formatoptions, $cmoptions->course);
+        }
+
+        ob_start();
+?>
+<div class="qtext">
+  <?php echo $qa->get_question()->questiontext; ?>
+</div>
+
+<div class="ablock clearfix">
+  <div class="prompt">
+    <?php print_string('answer', 'question') ?>:
+  </div>
+
+  <div class="answer">
+    <span <?php echo 'class="r0 '.$trueclass.'"'; ?>>
+        <?php echo $radiotrue ?>
+        <?php echo $truefeedbackimg; ?>
+    </span>
+    <span <?php echo 'class="r1 '.$falseclass.'"'; ?>>
+        <?php echo $radiofalse ?>
+        <?php echo $falsefeedbackimg; ?>
+    </span>
+  </div>
+    <?php if ($feedback) { ?>
+        <div class="feedback">
+            <?php echo $feedback ?>
+        </div>
+    <?php } ?>
+</div>
+<?php
+        $result = ob_get_clean();
+        return $result;
+    }
 }
 
 
