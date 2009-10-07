@@ -47,9 +47,9 @@ class question_deferredfeedback_model extends question_interaction_model_base {
     }
 
     public function process_save(question_attempt $qa, array $submitteddata) {
-        $currentstate = $qa->get_current_question_state();
+        $currentstate = $qa->get_last_step();
 
-        if (!question_states::is_active($currentstate->get_state())) {
+        if (!question_state::is_active($currentstate->get_state())) {
             throw new Exception('Question is already closed, cannot process_actions.');
         }
         if ($qa->get_qtype()->is_same_response(
@@ -57,28 +57,28 @@ class question_deferredfeedback_model extends question_interaction_model_base {
             return;
         }
 
-        $newstate = new question_state();
+        $newstate = new question_attempt_step();
         $newstate->set_response($submitteddata);
         if ($qa->get_qtype()->is_complete_response($submitteddata)) {
-            $newstate->set_state(question_states::COMPLETE);
+            $newstate->set_state(question_state::COMPLETE);
         } else {
-            $newstate->set_state(question_states::INCOMPLETE);
+            $newstate->set_state(question_state::INCOMPLETE);
         }
         $qa->add_state($newstate);
     }
 
     public function process_finish(question_attempt $qa, array $submitteddata) {
-        $currentstate = $qa->get_current_question_state();
+        $currentstate = $qa->get_last_step();
 
-        if (question_states::is_finished($currentstate->get_state())) {
+        if (question_state::is_finished($currentstate->get_state())) {
             return;
         }
 
-        $newstate = new question_state();
+        $newstate = new question_attempt_step();
         $newstate->set_response(array('!submit' => 1));
 
         if (!$qa->get_qtype()->is_gradable_response($currentstate->get_response())) {
-            $newstate->set_state(question_states::GAVE_UP);
+            $newstate->set_state(question_state::GAVE_UP);
         } else {
             list($grade, $state) = $qa->get_qtype()->
                     grade_response($currentstate->get_response());

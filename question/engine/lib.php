@@ -64,7 +64,7 @@ abstract class question_engine {
 }
 
 
-abstract class question_states {
+abstract class question_state {
     const UNPROCESSED = 0;
     const NOT_STARTED = 1;
     const INCOMPLETE = 2;
@@ -283,7 +283,7 @@ class question_attempt {
         return $this->flagged;
     }
 
-    public function get_current_question_state() {
+    public function get_last_step() {
         if (count($this->states) == 0) {
             return new question_null_state();
         }
@@ -291,11 +291,11 @@ class question_attempt {
     }
 
     public function get_state() {
-        return $this->get_current_question_state()->get_state();
+        return $this->get_last_step()->get_state();
     }
 
     public function get_grade() {
-        return $this->get_current_question_state()->get_grade();
+        return $this->get_last_step()->get_grade();
     }
 
     public function get_question() {
@@ -339,7 +339,7 @@ class question_attempt {
 
 class question_null_state {
     public function get_state() {
-        return question_states::NOT_STARTED;
+        return question_state::NOT_STARTED;
     }
 
     public function set_state($state) {
@@ -358,9 +358,9 @@ class question_null_state {
  * @copyright © 2006 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class question_state {
+class question_attempt_step {
     private $id = null;
-    private $state = question_states::UNPROCESSED;
+    private $state = question_state::UNPROCESSED;
     private $grade = null;
     private $timestamp;
     private $userid;
@@ -417,8 +417,8 @@ class question_state {
  */
 abstract class question_interaction_model_base {
     public function create_initial_state() {
-        $state = new question_state();
-        $state->set_state(question_states::INCOMPLETE);
+        $state = new question_attempt_step();
+        $state->set_state(question_state::INCOMPLETE);
         return $state;
     }
 
@@ -430,14 +430,14 @@ abstract class question_interaction_model_base {
     public abstract function process_action(question_attempt $qa, array $submitteddata);
 
     public function process_comment($qa, $submitteddata) {
-        $currentstate = $qa->get_current_question_state();
+        $currentstate = $qa->get_last_step();
 
-        $newstate = new question_state();
+        $newstate = new question_attempt_step();
         $newstate->set_response($submitteddata);
         if (array_key_exists('!grade', $submitteddata)) {
             $newstate->set_grade($submitteddata['!grade']);
         }
-        $newstate->set_state(question_states::manually_graded_state_for_other_state(
+        $newstate->set_state(question_state::manually_graded_state_for_other_state(
                 $currentstate->get_state(), $newstate->get_grade()));
         $qa->add_state($newstate);
     }

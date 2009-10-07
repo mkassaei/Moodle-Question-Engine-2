@@ -59,7 +59,7 @@ class test_question_type {
         } else {
             $grade = 0;
         }
-        return array($grade, question_states::graded_state_for_grade($grade));
+        return array($grade, question_state::graded_state_for_grade($grade));
     }
 }
 
