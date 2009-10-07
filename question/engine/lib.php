@@ -343,8 +343,7 @@ class question_attempt {
     }
 
     public function process_action($submitteddata) {
-        $pendingstep = new question_attempt_step();
-        $pendingstep->set_response($submitteddata);
+        $pendingstep = new question_attempt_step($submitteddata);
         if ($this->interactionmodel->process_action($pendingstep) == self::KEEP) {
             $this->add_step($pendingstep);
         }
@@ -377,10 +376,11 @@ class question_attempt_step {
     private $grade = null;
     private $timestamp;
     private $userid;
-    private $responses = array();
+    private $data;
 
-    public function __construct($timestamp = null, $userid = null) {
+    public function __construct($data = array(), $timestamp = null, $userid = null) {
         global $USER;
+        $this->data = $data;
         if (is_null($timestamp)) {
             $this->timestamp = time();
         } else {
@@ -401,12 +401,40 @@ class question_attempt_step {
         $this->state = $state;
     }
 
-    public function get_response() {
-        return $this->responses;
+    public function get_qt_var($name) {
+        return $this->data[$name];
     }
 
-    public function set_response($responses) {
-        $this->responses = $responses;
+    public function set_qt_var($name) {
+        if ($name[0] != '_') {
+            throw new Exception('Cannot set question type data ' . $name . ' on an attempt step. You can only set variables with names begining with _.');
+        }
+        return $this->data[$name];
+    }
+
+    public function get_qt_data() {
+        $result = array();
+        foreach ($this->data as $name => $value) {
+            if ($name[0] != '!') {
+                $result[$name] = $value;
+            }
+        }
+        return $result;
+    }
+
+    public function has_im_var($name) {
+        return array_key_exists('!' . $name, $this->data);
+    }
+
+    public function get_im_var($name) {
+        return $this->data['!' . $name];
+    }
+
+    public function set_im_var($name) {
+        if ($name[0] != '_') {
+            throw new Exception('Cannot set question type data ' . $name . ' on an attempt step. You can only set variables with names begining with _.');
+        }
+        return $this->data['!' . $name];
     }
 
     public function get_grade() {
@@ -469,14 +497,14 @@ abstract class question_interaction_model {
     public abstract function process_action(question_attempt_step $pendingstep);
 
     public function process_comment(question_attempt_step $pendingstep) {
-        $currentstate = $this->qa->get_last_step();
+        $laststep = $this->qa->get_last_step();
 
-        $response = $pendingstep->get_response();
-        if (array_key_exists('!grade', $response)) {
-            $pendingstep->set_grade($response['!grade'] / $response['!maxgrade']);
+        if ($pendingstep->has_im_var('grade')) {
+            $pendingstep->set_grade($pendingstep->get_im_var('grade') /
+                    $pendingstep->get_im_var('maxgrade'));
         }
         $pendingstep->set_state(question_state::manually_graded_state_for_other_state(
-                $currentstate->get_state(), $pendingstep->get_grade()));
+                $laststep->get_state(), $pendingstep->get_grade()));
         return question_attempt::KEEP;
     }
 }
