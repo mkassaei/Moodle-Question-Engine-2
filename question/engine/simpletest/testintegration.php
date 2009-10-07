@@ -95,6 +95,7 @@ class question_engine_integration_test extends UnitTestCase {
         $displayoptions = new question_display_options();
 
         // Start a delayed feedback attempt and add the question to it.
+        $tf->maxgrade = 2;
         $quba = question_engine::make_questions_usage_by_activity('unit_test');
         $quba->set_preferred_interaction_model('delayedfeedback');
         $qnumber = $quba->add_question($tf);
@@ -146,18 +147,18 @@ class question_engine_integration_test extends UnitTestCase {
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::GRADED_CORRECT);
-        $this->assertEqual($quba->get_question_grade($qnumber), 1);
+        $this->assertEqual($quba->get_question_grade($qnumber), 2);
         //$this->assertPattern(
         //        '/' . preg_quote(get_string('correct', 'question')) . '/',
         //        $html);
 
         // Process a manual comment.
-        $quba->manual_grade($qnumber, 0.5, 'Not good enough!');
+        $quba->manual_grade($qnumber, 1, 'Not good enough!');
         //$html = $quba->render_question($qnumber, $displayoptions);
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::MANUALLY_GRADED_PARTCORRECT);
-        $this->assertEqual($quba->get_question_grade($qnumber), 0.5);
+        $this->assertEqual($quba->get_question_grade($qnumber), 1);
         //$this->assertPattern('/' . preg_quote('Not good enough!') . '/', $html);
     }
 
