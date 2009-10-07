@@ -64,11 +64,19 @@ abstract class question_engine {
 }
 
 
+/**
+ * An enumration representing the states a question can be in after a step.
+ *
+ * With some useful methods to help manipulate states.
+ *
+ * @copyright © 2006 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 abstract class question_state {
+    const NOT_STARTED = -1;
     const UNPROCESSED = 0;
-    const NOT_STARTED = 1;
-    const INCOMPLETE = 2;
-    const COMPLETE = 3;
+    const INCOMPLETE = 1;
+    const COMPLETE = 2;
     const NEEDS_GRADING = 16;
     const FINISHED = 17;
     const GAVE_UP = 18;
@@ -235,7 +243,7 @@ class question_usage_by_activity {
         }
     }
 
-    public function manual_grade($qnumber, $grade, $comment) {
+    public function manual_grade($qnumber, $comment, $grade) {
         $this->get_question_attempt($qnumber)->manual_grade($grade, $comment);
     }
 }
@@ -254,8 +262,12 @@ class question_attempt {
     private $qtype;
     private $maxgrade;
     private $responsesummary = '';
-    private $states = array();
+    private $steps = array();
     private $flagged = false;
+    private $pendingstep = null;
+
+    const KEEP = true;
+    const DISCARD = false;
 
     public function __construct($question) {
         $this->question = $question;
@@ -284,10 +296,10 @@ class question_attempt {
     }
 
     public function get_last_step() {
-        if (count($this->states) == 0) {
-            return new question_null_state();
+        if (count($this->steps) == 0) {
+            return new question_null_step();
         }
-        return end($this->states);
+        return end($this->steps);
     }
 
     public function get_state() {
@@ -295,7 +307,11 @@ class question_attempt {
     }
 
     public function get_grade() {
-        return $this->get_last_step()->get_grade();
+        $grade = $this->get_last_step()->get_grade();
+        if (!is_null($grade)) {
+            $grade *= $this->maxgrade;
+        }
+        return $grade;
     }
 
     public function get_question() {
@@ -308,52 +324,49 @@ class question_attempt {
 
     public function render($options) {
         $qoutput = renderer_factory::get_renderer('core', 'question');
-        $qimoutput = $this->interactionmodel->get_renderer($this->question);
+        $qimoutput = $this->interactionmodel->get_renderer();
         $qtoutput = $this->qtype->get_renderer($this->question);
         return $qoutput->question($this, $qimoutput, $qtoutput, $options);
     }
 
-    public function add_state($state) {
-        $this->states[] = $state;
+    protected function add_step($state) {
+        $this->steps[] = $state;
     }
 
     public function start($preferredmodel) {
         $this->interactionmodel =
-                $this->qtype->get_interaction_model($preferredmodel);
-        $this->add_state($this->interactionmodel->create_initial_state());
+                $this->qtype->get_interaction_model($this, $preferredmodel);
+        $firststep = new question_attempt_step();
+        $firststep->set_state(question_state::INCOMPLETE);
+        $this->interactionmodel->init_first_step($firststep);
+        $this->add_step($firststep);
     }
 
     public function process_action($submitteddata) {
-        $this->interactionmodel->process_action($this, $submitteddata);
+        $pendingstep = new question_attempt_step();
+        $pendingstep->set_response($submitteddata);
+        if ($this->interactionmodel->process_action($pendingstep) == self::KEEP) {
+            $this->add_step($pendingstep);
+        }
     }
 
     public function finish() {
-        $this->interactionmodel->finish($this);
+        $this->process_action(array('!finish' => 1));
     }
 
-    public function manual_grade($grade, $comment) {
-        $this->interactionmodel->manual_grade($this, $grade, $comment);
-    }
-}
-
-
-class question_null_state {
-    public function get_state() {
-        return question_state::NOT_STARTED;
-    }
-
-    public function set_state($state) {
-        throw new Exception('This question has not been started.');
-    }
-
-    public function get_grade() {
-        return NULL;
+    public function manual_grade($comment, $grade) {
+        $submitteddata = array('!comment' => $comment);
+        if (!is_null($grade)) {
+            $submitteddata['!grade'] = $grade;
+            $submitteddata['!maxgrade'] = $this->maxgrade;
+        }
+        $this->process_action($submitteddata);
     }
 }
 
 
 /**
- * Stores one state of a question that is being attempted.
+ * Stores one step in a {@link question_attempt}.
  *
  * @copyright © 2006 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -407,6 +420,29 @@ class question_attempt_step {
 
 
 /**
+ * A null {@link question_attempt_step} returned from
+ * {@link question_attempt::get_last_step()} etc. when a an attempt has just been
+ * started and there is no acutal step.
+ *
+ * @copyright © 2006 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_null_step {
+    public function get_state() {
+        return question_state::NOT_STARTED;
+    }
+
+    public function set_state($state) {
+        throw new Exception('This question has not been started.');
+    }
+
+    public function get_grade() {
+        return NULL;
+    }
+}
+
+
+/**
  * The base class for question interaction models.
  *
  * A question interaction model controls the flow of actions a student can
@@ -415,43 +451,33 @@ class question_attempt_step {
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class question_interaction_model_base {
-    public function create_initial_state() {
-        $state = new question_attempt_step();
-        $state->set_state(question_state::INCOMPLETE);
-        return $state;
+abstract class question_interaction_model {
+    protected $qa;
+
+    public function __construct(question_attempt $qa) {
+        $this->qa = $qa;
     }
 
-    public function get_renderer($question) {
+    public function get_renderer() {
         list($ignored, $type) = explode('_', get_class($this), 3);
         return renderer_factory::get_renderer('qim_' . $type);
     }
 
-    public abstract function process_action(question_attempt $qa, array $submitteddata);
-
-    public function process_comment($qa, $submitteddata) {
-        $currentstate = $qa->get_last_step();
-
-        $newstate = new question_attempt_step();
-        $newstate->set_response($submitteddata);
-        if (array_key_exists('!grade', $submitteddata)) {
-            $newstate->set_grade($submitteddata['!grade']);
-        }
-        $newstate->set_state(question_state::manually_graded_state_for_other_state(
-                $currentstate->get_state(), $newstate->get_grade()));
-        $qa->add_state($newstate);
+    public function init_first_step($step) {
     }
 
-    public function finish(question_attempt $qa) {
-        $this->process_action($qa, array('!finish' => 1));
-    }
+    public abstract function process_action(question_attempt_step $pendingstep);
 
-    public function manual_grade(question_attempt $qa, $grade, $comment) {
-        $submitteddata = array('!comment' => $comment);
-        if (!is_null($grade)) {
-            $submitteddata['!grade'] = $grade;
+    public function process_comment(question_attempt_step $pendingstep) {
+        $currentstate = $this->qa->get_last_step();
+
+        $response = $pendingstep->get_response();
+        if (array_key_exists('!grade', $response)) {
+            $pendingstep->set_grade($response['!grade'] / $response['!maxgrade']);
         }
-        $this->process_action($qa, $submitteddata);
+        $pendingstep->set_state(question_state::manually_graded_state_for_other_state(
+                $currentstate->get_state(), $pendingstep->get_grade()));
+        return question_attempt::KEEP;
     }
 }
 

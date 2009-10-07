@@ -35,56 +35,51 @@
  * @copyright © 2006 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class question_deferredfeedback_model extends question_interaction_model_base {
-    public function process_action(question_attempt $qa, array $submitteddata) {
-        if (array_key_exists('!comment', $submitteddata)) {
-            $this->process_comment($qa, $submitteddata);
-        } else if (array_key_exists('!finish', $submitteddata)) {
-            $this->process_finish($qa, $submitteddata);
+class question_deferredfeedback_model extends question_interaction_model {
+    public function process_action(question_attempt_step $pendingstep) {
+        if (array_key_exists('!comment', $pendingstep->get_response())) {
+            return $this->process_comment($pendingstep);
+        } else if (array_key_exists('!finish', $pendingstep->get_response())) {
+            return $this->process_finish($pendingstep);
         } else {
-            $this->process_save($qa, $submitteddata);
+            return $this->process_save($pendingstep);
         }
     }
 
-    public function process_save(question_attempt $qa, array $submitteddata) {
-        $currentstate = $qa->get_last_step();
+    public function process_save(question_attempt_step $pendingstep) {
+        $currentstate = $this->qa->get_last_step();
 
         if (!question_state::is_active($currentstate->get_state())) {
             throw new Exception('Question is already closed, cannot process_actions.');
         }
-        if ($qa->get_qtype()->is_same_response(
-                $currentstate->get_response(), $submitteddata)) {
-            return;
+        if ($this->qa->get_qtype()->is_same_response(
+                $currentstate->get_response(), $pendingstep->get_response())) {
+            return question_attempt::DISCARD;
         }
 
-        $newstate = new question_attempt_step();
-        $newstate->set_response($submitteddata);
-        if ($qa->get_qtype()->is_complete_response($submitteddata)) {
-            $newstate->set_state(question_state::COMPLETE);
+        if ($this->qa->get_qtype()->is_complete_response($pendingstep->get_response())) {
+            $pendingstep->set_state(question_state::COMPLETE);
         } else {
-            $newstate->set_state(question_state::INCOMPLETE);
+            $pendingstep->set_state(question_state::INCOMPLETE);
         }
-        $qa->add_state($newstate);
+        return question_attempt::KEEP;
     }
 
-    public function process_finish(question_attempt $qa, array $submitteddata) {
-        $currentstate = $qa->get_last_step();
+    public function process_finish(question_attempt_step $pendingstep) {
+        $currentstate = $this->qa->get_last_step();
 
         if (question_state::is_finished($currentstate->get_state())) {
-            return;
+            return question_attempt::DISCARD;
         }
 
-        $newstate = new question_attempt_step();
-        $newstate->set_response(array('!submit' => 1));
-
-        if (!$qa->get_qtype()->is_gradable_response($currentstate->get_response())) {
-            $newstate->set_state(question_state::GAVE_UP);
+        if (!$this->qa->get_qtype()->is_gradable_response($currentstate->get_response())) {
+            $pendingstep->set_state(question_state::GAVE_UP);
         } else {
-            list($grade, $state) = $qa->get_qtype()->
+            list($grade, $state) = $this->qa->get_qtype()->
                     grade_response($currentstate->get_response());
-            $newstate->set_grade($grade);
-            $newstate->set_state($state);
+            $pendingstep->set_grade($grade);
+            $pendingstep->set_state($state);
         }
-        $qa->add_state($newstate);
+        return question_attempt::KEEP;
     }
 }

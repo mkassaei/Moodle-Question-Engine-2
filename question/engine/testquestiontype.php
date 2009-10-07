@@ -27,8 +27,8 @@
 
 
 class test_question_type {
-    public function get_interaction_model($preferredmodel) {
-        return new question_deferredfeedback_model();
+    public function get_interaction_model($qa, $preferredmodel) {
+        return new question_deferredfeedback_model($qa);
     }
 
     public function get_renderer($question) {
