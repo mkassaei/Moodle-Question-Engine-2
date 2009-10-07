@@ -37,9 +37,9 @@
  */
 class question_deferredfeedback_model extends question_interaction_model {
     public function process_action(question_attempt_step $pendingstep) {
-        if (array_key_exists('!comment', $pendingstep->get_response())) {
+        if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);
-        } else if (array_key_exists('!finish', $pendingstep->get_response())) {
+        } else if ($pendingstep->has_im_var('finish')) {
             return $this->process_finish($pendingstep);
         } else {
             return $this->process_save($pendingstep);
@@ -47,17 +47,15 @@ class question_deferredfeedback_model extends question_interaction_model {
     }
 
     public function process_save(question_attempt_step $pendingstep) {
-        $currentstate = $this->qa->get_last_step();
-
-        if (!question_state::is_active($currentstate->get_state())) {
+        if (!question_state::is_active($this->qa->get_state())) {
             throw new Exception('Question is already closed, cannot process_actions.');
         }
         if ($this->qa->get_qtype()->is_same_response(
-                $currentstate->get_response(), $pendingstep->get_response())) {
+                $this->qa->get_last_step()->get_qt_data(), $pendingstep->get_qt_data())) {
             return question_attempt::DISCARD;
         }
 
-        if ($this->qa->get_qtype()->is_complete_response($pendingstep->get_response())) {
+        if ($this->qa->get_qtype()->is_complete_response($pendingstep->get_qt_data())) {
             $pendingstep->set_state(question_state::COMPLETE);
         } else {
             $pendingstep->set_state(question_state::INCOMPLETE);
@@ -66,17 +64,15 @@ class question_deferredfeedback_model extends question_interaction_model {
     }
 
     public function process_finish(question_attempt_step $pendingstep) {
-        $currentstate = $this->qa->get_last_step();
-
-        if (question_state::is_finished($currentstate->get_state())) {
+        if (question_state::is_finished($this->qa->get_state())) {
             return question_attempt::DISCARD;
         }
 
-        if (!$this->qa->get_qtype()->is_gradable_response($currentstate->get_response())) {
+        $response = $this->qa->get_last_step()->get_qt_data();
+        if (!$this->qa->get_qtype()->is_gradable_response($response)) {
             $pendingstep->set_state(question_state::GAVE_UP);
         } else {
-            list($grade, $state) = $this->qa->get_qtype()->
-                    grade_response($currentstate->get_response());
+            list($grade, $state) = $this->qa->get_qtype()->grade_response($response);
             $pendingstep->set_grade($grade);
             $pendingstep->set_state($state);
         }
