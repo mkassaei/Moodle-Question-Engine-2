@@ -34,46 +34,46 @@
  */
 class core_question_renderer extends moodle_renderer_base {
     public function question(question_attempt $qa, qim_renderer $qimoutput,
-            qtype_renderer $qtoutput, question_display_options $options) {
+            qtype_renderer $qtoutput, question_display_options $options, $number) {
+
+    // TODO
+    $editlink = '';
+
     ob_start();
 ?>
-<div id="q<?php echo $actualquestionid; ?>" class="que <?php echo $question->qtype; ?> clearfix">
+<div id="q<?php echo $qa->get_question()->id; ?>" class="que <?php echo $qa->get_question()->qtype; ?> clearfix">
   <div class="info">
     <h2 class="no"><span class="accesshide">Question </span><?php echo $number;
     if ($editlink) { ?>
       <span class="edit"><?php echo $editlink; ?></span>
     <?php } ?></h2><?php
-    if ($grade) { ?>
+    if ($qa->get_max_grade()) { ?>
       <div class="grade">
-        <?php echo get_string('marks', 'quiz').': '.$grade; ?>
+        <?php echo get_string('gradex', 'question', $qa->format_grade_out_of_max($options->gradedp)); ?>
       </div>
     <?php }
-    echo $this->question_flag($qa, $state, $options->flags); ?>
+    echo $this->question_flag($qa, $options->flags); ?>
   </div>
   <div class="content">
-    <?php echo $qtoutput->formulation_and_controls($qa, $options);
-    if ($generalfeedback) { ?>
-      <div class="generalfeedback">
-        <?php echo $generalfeedback ?>
-      </div>
-    <?php }
-    if ($comment) { ?>
+    <?php
+    echo $qtoutput->formulation_and_controls($qa, $options);
+    echo $qimoutput->controls($qa, $options);
+    if ($qa->has_manual_comment()) { ?>
       <div class="comment">
         <?php
-          echo get_string('comment', 'quiz').': ';
-          echo $comment;
+          echo get_string('commentx', 'question', $qa->get_manual_comment());
         ?>
       </div>
     <?php }
-    echo $commentlink;  ?>
+    echo $this->comment_link($qa, $options); ?>
     <div class="grading">
-      <?php echo $this->grading_details($qa, $options); ?>
+      <?php echo $qimoutput->grading_details($qa, $options); ?>
     </div><?php
-    if ($history) { ?>
+    if ($options->history) { ?>
       <div class="history">
         <?php
-          print_string('history', 'quiz');
-          echo $history;
+          print_string('history', 'question');
+          echo $this->history($qa, $options);
         ?>
       </div>
     <?php } ?>
@@ -82,6 +82,21 @@ class core_question_renderer extends moodle_renderer_base {
 <?php
         $result = ob_get_clean();
         return $result;
+    }
+
+    protected function history(question_attempt $qa, question_display_options $options) {
+        return ''; // TODO
+    }
+
+    protected function comment_link(question_attempt $qa, question_display_options $options) {
+        if (!$options->manualcommentlink) {
+            return '';
+        }
+        $strcomment = get_string('commentorgrade', 'quiz');
+        $commentlink = link_to_popup_window($options->questioncommentlink .
+                '?attempt=' . $state->attempt . '&amp;question=' . $actualquestionid,
+                'commentquestion', $strcomment, 480, 750, $strcomment, 'none', true);
+        return '<div class="commentlink">'. $commentlink .'</div>';
     }
 
     /**
@@ -144,6 +159,26 @@ class core_question_renderer extends moodle_renderer_base {
         return '<img ' . $id . 'src="' . $CFG->pixpath . '/i/' . $img .
                 '" alt="' . get_string('flagthisquestion', 'question') . '" />';
     }
+}
+
+
+abstract class qtype_renderer extends moodle_renderer_base {
+    public function formulation_and_controls(question_attempt $qa,
+            question_display_options $options) {
+        return $qa->get_question()->questiontext;
+    }
+
+    public function general_feedback(question_attempt $qa) {
+        return '<div class="generalfeedback">' . $qa->get_question()->generalfeedback .
+                '</div>';
+    }
+}
+
+
+abstract class qim_renderer extends moodle_renderer_base {
+    public function controls(question_attempt $qa, question_display_options $options) {
+        return '';
+    }
 
     /**
     * Prints the score obtained and maximum score available plus any penalty
@@ -162,68 +197,30 @@ class core_question_renderer extends moodle_renderer_base {
     * @param object $cmoptions
     * @param object $options  An object describing the rendering options.
     */
-    function grading_details($qa, question_display_options $options) {
+    function grading_details(question_attempt $qa, question_display_options $options) {
         /* The default implementation prints the number of marks if no attempt
         has been made. Otherwise it displays the grade obtained out of the
         maximum grade available and a warning if a penalty was applied for the
         attempt and displays the overall grade obtained counting all previous
         responses (and penalties) */
 
-        if ($question->maxgrade > 0 && $options->scores) {
-            if (question_state_is_graded($state->last_graded)) {
+        if ($qa->get_max_grade() > 0 && $options->scores) {
+            if (question_state::is_graded($qa->get_state())) {
                 // Display the grading details from the last graded state
                 $grade = new stdClass;
-                $grade->cur = question_format_grade($cmoptions, $state->last_graded->grade);
-                $grade->max = question_format_grade($cmoptions, $question->maxgrade);
-                $grade->raw = question_format_grade($cmoptions, $state->last_graded->raw_grade);
+                $grade->cur = $qa->format_grade($options->gradedp);
+                $grade->max = $qa->format_max_grade($options->gradedp);
+                $grade->raw = $qa->format_grade($options->gradedp);
 
                 // let student know wether the answer was correct
-                $class = question_get_feedback_class($state->last_graded->raw_grade / 
-                        $question->maxgrade);
-                echo '<div class="correctness ' . $class . '">' . get_string($class, 'quiz') . '</div>';
+                $class = question_state::get_feedback_class($qa->get_state());
+                echo '<div class="correctness ' . $class . '">' . get_string($class, 'question') . '</div>';
 
                 echo '<div class="gradingdetails">';
                 // print grade for this submission
-                print_string('gradingdetails', 'quiz', $grade);
-                if ($cmoptions->penaltyscheme) {
-                    // print details of grade adjustment due to penalties
-                    if ($state->last_graded->raw_grade > $state->last_graded->grade){
-                        echo ' ';
-                        print_string('gradingdetailsadjustment', 'quiz', $grade);
-                    }
-                    // print info about new penalty
-                    // penalty is relevant only if the answer is not correct and further attempts are possible
-                    if (($state->last_graded->raw_grade < $question->maxgrade / 1.01)
-                                and (QUESTION_EVENTCLOSEANDGRADE != $state->event)) {
-
-                        if ('' !== $state->last_graded->penalty && ((float)$state->last_graded->penalty) > 0.0) {
-                            // A penalty was applied so display it
-                            echo ' ';
-                            print_string('gradingdetailspenalty', 'quiz', question_format_grade($cmoptions, $state->last_graded->penalty));
-                        } else {
-                            /* No penalty was applied even though the answer was
-                            not correct (eg. a syntax error) so tell the student
-                            that they were not penalised for the attempt */
-                            echo ' ';
-                            print_string('gradingdetailszeropenalty', 'quiz');
-                        }
-                    }
-                }
+                print_string('gradingdetails', 'question', $grade);
                 echo '</div>';
             }
         }
     }
-}
-
-
-abstract class qtype_renderer extends moodle_renderer_base {
-    public function formulation_and_controls(question_attempt $qa,
-            question_display_options $options) {
-        return $qa->get_question()->questiontext;
-    }
-}
-
-
-abstract class qim_renderer extends moodle_renderer_base {
-    
 }

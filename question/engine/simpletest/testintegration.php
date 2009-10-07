@@ -111,12 +111,12 @@ class question_engine_integration_test extends UnitTestCase {
         $quba->start_all_questions();
 
         // Output the question in the initial state.
-        //$html = $quba->render_question($qnumber, $displayoptions);
+        $html = $quba->render_question($qnumber, $displayoptions);
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::INCOMPLETE);
         $this->assertNull($quba->get_question_grade($qnumber));
-        //$this->assertPattern('/' . preg_quote($tf->questiontext) . '/', $html);
+        $this->assertPattern('/' . preg_quote($tf->questiontext) . '/', $html);
 
         // Simulate some data submitted by the student.
         $prefix = $quba->get_field_prefix($qnumber);
@@ -132,34 +132,34 @@ class question_engine_integration_test extends UnitTestCase {
 
         // Process the data extracted for this question.
         $quba->process_action($qnumber, $submitteddata);
-        //$html = $quba->render_question($qnumber, $displayoptions);
+        $html = $quba->render_question($qnumber, $displayoptions);
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::COMPLETE);
         $this->assertNull($quba->get_question_grade($qnumber));
-        //$this->assert(new ContainsTagWithAttributes('input',
-        //        array('name' => $answername, 'value' => 1)), $html);
-        //$this->assertNoPattern('/class=\"correctness/', $html);
+        $this->assert(new ContainsTagWithAttributes('input',
+                array('name' => $answername, 'value' => 1)), $html);
+        $this->assertNoPattern('/class=\"correctness/', $html);
 
         // Finish the attempt.
         $quba->finish_all_questions();
-        //$html = $quba->render_question($qnumber, $displayoptions);
+        $html = $quba->render_question($qnumber, $displayoptions);
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::GRADED_CORRECT);
         $this->assertEqual($quba->get_question_grade($qnumber), 2);
-        //$this->assertPattern(
-        //        '/' . preg_quote(get_string('correct', 'question')) . '/',
-        //        $html);
+        $this->assertPattern(
+                '/' . preg_quote(get_string('correct', 'question')) . '/',
+                $html);
 
         // Process a manual comment.
         $quba->manual_grade($qnumber, 1, 'Not good enough!');
-        //$html = $quba->render_question($qnumber, $displayoptions);
+        $html = $quba->render_question($qnumber, $displayoptions);
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::MANUALLY_GRADED_PARTCORRECT);
         $this->assertEqual($quba->get_question_grade($qnumber), 1);
-        //$this->assertPattern('/' . preg_quote('Not good enough!') . '/', $html);
+        $this->assertPattern('/' . preg_quote('Not good enough!') . '/', $html);
     }
 
 }
