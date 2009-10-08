@@ -280,6 +280,20 @@ class question_usage_by_activity {
     public function manual_grade($qnumber, $comment, $grade) {
         $this->get_question_attempt($qnumber)->manual_grade($grade, $comment);
     }
+
+    public function regrade_question($qnumber) {
+        $oldqa = $this->get_question_attempt($qnumber);
+        $newqa = new question_attempt($oldqa->get_question(), $oldqa->get_usage_id());
+        $newqa->start($this->preferredmodel); // TODO handle things like random seed.
+        $newqa->regrade($oldqa);
+        $this->questionattempts[$qnumber] = $newqa;
+    }
+
+    public function regrade_all_questions() {
+        foreach ($this->questionattempts as $qnumber => $notused) {
+            $this->regrade_question($qnumber);
+        }
+    }
 }
 
 /**
@@ -321,6 +335,10 @@ class question_attempt {
 
     public function get_number_in_usage() {
         return $this->numberinusage;
+    }
+
+    public function get_usage_id() {
+        return $this->usageid;
     }
 
     public function set_fagged($flagged) {
@@ -426,6 +444,12 @@ class question_attempt {
 
     public function finish() {
         $this->process_action(array('!finish' => 1));
+    }
+
+    public function regrade(question_attempt $oldqa) {
+        foreach ($oldqa->get_step_iterator() as $step) {
+            $this->process_action($step->get_submitted_data());
+        }
     }
 
     public function manual_grade($comment, $grade) {
@@ -607,6 +631,17 @@ class question_attempt_step {
             if ($name[0] == '!') {
                 $result[substr($name, 1)] = $value;
             }
+        }
+        return $result;
+    }
+
+    public function get_submitted_data() {
+        $result = array();
+        foreach ($this->data as $name => $value) {
+            if ($name[0] == '_' || ($name[0] == '!' && $name[1] == '_')) {
+                continue;
+            }
+            $result[$name] = $value;
         }
         return $result;
     }

@@ -54,11 +54,11 @@ class test_question_type {
         return $this->is_complete_response($response);
     }
 
-    public function grade_response(array $response) {
+    public function grade_response($question, array $response) {
         if (isset($response['true']) && $response['true']) {
-            $grade = 1;
+            $grade = $question->options->answers[$question->options->trueanswer]->fraction;
         } else {
-            $grade = 0;
+            $grade = $question->options->answers[$question->options->falseanswer]->fraction;
         }
         return array($grade, question_state::graded_state_for_grade($grade));
     }
