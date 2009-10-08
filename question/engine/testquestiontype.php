@@ -28,6 +28,7 @@
 
 class test_question_type {
     public function get_interaction_model(question_attempt $qa, $preferredmodel) {
+        question_engine::load_interaction_model_class('deferredfeedback');
         return new question_deferredfeedback_model($qa);
     }
 

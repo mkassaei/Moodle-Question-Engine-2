@@ -19,7 +19,7 @@
 /**
  * This file contains integration tests for the Moodle question engine.
  *
- * The tests her test the system working as a whole, rather than individual units.
+ * These tests exercise the system working as a whole, rather than individual units.
  *
  * @package question-engine
  * @copyright © 2009 The Open University

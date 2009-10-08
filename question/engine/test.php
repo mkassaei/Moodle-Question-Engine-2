@@ -2,6 +2,9 @@
 
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->libdir . '/simpletestlib.php');
+require_once($CFG->dirroot . '/question/engine/simpletest/testquestionengine.php');
+require_once($CFG->dirroot . '/question/engine/simpletest/testquestionattemptstepiterator.php');
+
 require_once($CFG->dirroot . '/question/engine/simpletest/testintegration.php');
 
 define('QUESTION_FLAGSHIDDEN', 0);
@@ -10,6 +13,13 @@ define('QUESTION_FLAGSEDITABLE', 2);
 
 global $QTYPES;
 $QTYPES = array('truefalse' => new test_question_type());
+
+$reporter = new HtmlReporter();
+$test = new TestSuite();
+$test->addTestClass('question_engine_test');
+$test->addTestClass('question_attempt_step_iterator_test');
+$test->addTestClass('question_engine_integration_test');
+$test->run($reporter);
 
 function format_backtrace($callers, $plaintext = false) {
     // do not use $CFG->dirroot because it might not be available in desctructors
@@ -132,9 +142,3 @@ function default_exception_handler($ex) {
     exit(1); // General error code
 }
 set_exception_handler('default_exception_handler');
-
-$reporter = new HtmlReporter();
-$test = new TestSuite();
-$test->addTestClass('question_engine_integration_test');
-$test->run($reporter);
-
