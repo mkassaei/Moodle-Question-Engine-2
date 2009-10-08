@@ -29,7 +29,6 @@
 require_once(dirname(__FILE__) . '/compatibility.php');
 require_once(dirname(__FILE__) . '/renderer.php');
 require_once(dirname(__FILE__) . '/testquestiontype.php');
-require_once(dirname(__FILE__) . '/../interaction/deferredfeedback/model.php');
 
 
 /**
@@ -39,6 +38,8 @@ require_once(dirname(__FILE__) . '/../interaction/deferredfeedback/model.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class question_engine {
+    private static $loadedmodels = array();
+
     /**
      * 
      * @param $owningplugin
@@ -46,10 +47,6 @@ abstract class question_engine {
      */
     public static function make_questions_usage_by_activity($owningplugin) {
         return new question_usage_by_activity($owningplugin);
-    }
-
-    public static function load_questions_usage_by_activity($attemptid) {
-        
     }
 
     /**
@@ -60,6 +57,19 @@ abstract class question_engine {
     public static function get_qtype($typename) {
         global $QTYPES;
         return $QTYPES[$typename];
+    }
+
+    public static function load_interaction_model_class($model) {
+        global $CFG;
+        if (isset(self::$loadedmodels[$model])) {
+            return;
+        }
+        $file = $CFG->dirroot . '/question/interaction/' . $model . '/model.php';
+        if (!is_readable($file)) {
+            throw new Exception('Unknown question interaction model ' . $model);
+        }
+        include_once($file);
+        self::$loadedmodels[$model] = 1;
     }
 }
 
@@ -325,11 +335,26 @@ class question_attempt {
         return 'q' . $this->usageid . ',' . $this->numberinusage . '_';
     }
 
+    public function get_step($i) {
+        if ($i < 0 || $i >= count($this->steps)) {
+            throw new Exception('Index out of bounds in question_attempt::get_step.');
+        }
+        return $this->steps[$i];
+    }
+
+    public function get_num_steps() {
+        return count($this->steps);
+    }
+
     public function get_last_step() {
         if (count($this->steps) == 0) {
             return new question_null_step();
         }
         return end($this->steps);
+    }
+
+    public function get_step_iterator() {
+        return new question_attempt_step_iterator($this);
     }
 
     public function get_state() {
@@ -379,8 +404,8 @@ class question_attempt {
         return $qoutput->question($this, $qimoutput, $qtoutput, $options, $number);
     }
 
-    protected function add_step($state) {
-        $this->steps[] = $state;
+    protected function add_step(question_attempt_step $step) {
+        $this->steps[] = $step;
     }
 
     public function start($preferredmodel) {
@@ -429,6 +454,50 @@ class question_attempt {
             }
         }
         return $comment;
+    }
+}
+
+
+/**
+ * A class abstracting access to the question_attempt::states array.
+ *
+ * @copyright © 2006 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_attempt_step_iterator implements Iterator, ArrayAccess {
+    private $qa;
+    private $i = 0;
+    public function __construct(question_attempt $qa) {
+        $this->qa = $qa;
+    }
+
+    public function current() {
+        return $this->offsetGet($this->i);
+    }
+    public function key() {
+        return $this->i;
+    }
+    public function next() {
+        ++$this->i;
+    }
+    public function rewind() {
+        $this->i = 0;
+    }
+    public function valid() {
+        return $this->offsetExists($this->i);
+    }
+
+    public function offsetExists($i) {
+        return $i >= 0 && $i < $this->qa->get_num_steps();
+    }
+    public function offsetGet($i) {
+        return $this->qa->get_step($i);
+    }
+    public function offsetSet($offset, $value) {
+        throw new Exception('You are only allowed read-only access to question_attempt::states through a question_attempt_step_iterator. Cannot set.');
+    }
+    public function offsetUnset($offset) {
+        throw new Exception('You are only allowed read-only access to question_attempt::states through a question_attempt_step_iterator. Cannot unset.');
     }
 }
 
