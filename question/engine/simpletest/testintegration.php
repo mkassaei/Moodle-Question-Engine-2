@@ -141,6 +141,19 @@ class question_engine_integration_test extends UnitTestCase {
                 array('name' => $answername, 'value' => 1)), $html);
         $this->assertNoPattern('/class=\"correctness/', $html);
 
+        // Process the same data again, check it does not create a new step.
+        $numsteps = $quba->get_question_attempt($qnumber)->get_num_steps();
+        $quba->process_action($qnumber, $submitteddata);
+        $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps);
+
+        // Process different data, check it creates a new step.
+        $quba->process_action($qnumber, array('false' => 1));
+        $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps + 1);
+
+        // Change back, check it creates a new step.
+        $quba->process_action($qnumber, array('true' => 1));
+        $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps + 2);
+
         // Finish the attempt.
         $quba->finish_all_questions();
         $html = $quba->render_question($qnumber, $displayoptions);
@@ -160,6 +173,18 @@ class question_engine_integration_test extends UnitTestCase {
         $this->assertEqual($quba->get_question_state($qnumber), question_state::MANUALLY_GRADED_PARTCORRECT);
         $this->assertEqual($quba->get_question_grade($qnumber), 1);
         $this->assertPattern('/' . preg_quote('Not good enough!') . '/', $html);
+
+        // Now change the correct answer to the question, and regrade.
+        $tf->options->answers[1]->fraction = 0;
+        $tf->options->answers[2]->fraction = 1;
+        $html = $quba->regrade_all_questions($qnumber);
+
+        // Verify.
+        $this->assertEqual($quba->get_question_state($qnumber), question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->assertEqual($quba->get_question_grade($qnumber), 1);
+        $numsteps = $quba->get_question_attempt($qnumber)->get_num_steps();
+        $autogradedstep = $quba->get_question_attempt($qnumber)->get_step($numsteps - 2);
+        $this->assertWithinMargin($autogradedstep->get_grade(), 0, 0.0000001);
     }
 
 }

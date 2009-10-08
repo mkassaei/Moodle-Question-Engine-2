@@ -72,7 +72,8 @@ class question_deferredfeedback_model extends question_interaction_model {
         if (!$this->qa->get_qtype()->is_gradable_response($response)) {
             $pendingstep->set_state(question_state::GAVE_UP);
         } else {
-            list($grade, $state) = $this->qa->get_qtype()->grade_response($response);
+            list($grade, $state) = $this->qa->get_qtype()->grade_response(
+                    $this->qa->get_question(), $response);
             $pendingstep->set_grade($grade);
             $pendingstep->set_state($state);
         }

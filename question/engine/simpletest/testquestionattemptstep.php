@@ -92,6 +92,13 @@ class question_attempt_step_test extends UnitTestCase {
         $this->assertEqual(array('y' => 'frog'), $step->get_im_data());
     }
 
+    public function test_get_submitted_data() {
+        $step = new question_attempt_step(array('x' => 1, '!y' => 'frog'));
+        $step->set_qt_var('_x', 1);
+        $step->set_im_var('_x', 2);
+        $this->assertEqual(array('x' => 1, '!y' => 'frog'), $step->get_submitted_data());
+    }
+
     public function test_constructor_default_params() {
         global $USER;
         $step = new question_attempt_step();
