@@ -539,15 +539,38 @@ class question_attempt_step {
         $this->state = $state;
     }
 
+    public function get_grade() {
+        return $this->grade;
+    }
+
+    public function set_grade($grade) {
+        $this->grade = $grade;
+    }
+
+    public function get_user_id() {
+        return $this->userid;
+    }
+
+    public function get_timestamp() {
+        return $this->timestamp;
+    }
+
+    public function has_qt_var($name) {
+        return array_key_exists($name, $this->data);
+    }
+
     public function get_qt_var($name) {
+        if (!$this->has_qt_var($name)) {
+            throw new Exception('Unknown variable ' . $name . ' in submitted question type data.');
+        }
         return $this->data[$name];
     }
 
-    public function set_qt_var($name) {
+    public function set_qt_var($name, $value) {
         if ($name[0] != '_') {
             throw new Exception('Cannot set question type data ' . $name . ' on an attempt step. You can only set variables with names begining with _.');
         }
-        return $this->data[$name];
+        $this->data[$name] = $value;
     }
 
     public function get_qt_data() {
@@ -565,22 +588,27 @@ class question_attempt_step {
     }
 
     public function get_im_var($name) {
-        return $this->data['!' . $name];
-    }
-
-    public function set_im_var($name) {
-        if ($name[0] != '_') {
-            throw new Exception('Cannot set question type data ' . $name . ' on an attempt step. You can only set variables with names begining with _.');
+        if (!$this->has_im_var($name)) {
+            throw new Exception('Unknown variable ' . $name . ' in submitted iteraction model data.');
         }
         return $this->data['!' . $name];
     }
 
-    public function get_grade() {
-        return $this->grade;
+    public function set_im_var($name, $value) {
+        if ($name[0] != '_') {
+            throw new Exception('Cannot set question type data ' . $name . ' on an attempt step. You can only set variables with names begining with _.');
+        }
+        return $this->data['!' . $name] = $value;
     }
 
-    public function set_grade($grade) {
-        $this->grade = $grade;
+    public function get_im_data() {
+        $result = array();
+        foreach ($this->data as $name => $value) {
+            if ($name[0] == '!') {
+                $result[substr($name, 1)] = $value;
+            }
+        }
+        return $result;
     }
 }
 
