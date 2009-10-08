@@ -3,6 +3,7 @@
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->libdir . '/simpletestlib.php');
 require_once($CFG->dirroot . '/question/engine/simpletest/testquestionengine.php');
+require_once($CFG->dirroot . '/question/engine/simpletest/testquestionattemptstep.php');
 require_once($CFG->dirroot . '/question/engine/simpletest/testquestionattemptstepiterator.php');
 
 require_once($CFG->dirroot . '/question/engine/simpletest/testintegration.php');
@@ -17,6 +18,7 @@ $QTYPES = array('truefalse' => new test_question_type());
 $reporter = new HtmlReporter();
 $test = new TestSuite();
 $test->addTestClass('question_engine_test');
+$test->addTestClass('question_attempt_step_test');
 $test->addTestClass('question_attempt_step_iterator_test');
 $test->addTestClass('question_engine_integration_test');
 $test->run($reporter);
