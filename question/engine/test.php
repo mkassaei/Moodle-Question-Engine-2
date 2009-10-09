@@ -12,8 +12,14 @@ define('QUESTION_FLAGSHIDDEN', 0);
 define('QUESTION_FLAGSSHOWN', 1);
 define('QUESTION_FLAGSEDITABLE', 2);
 
+class question_truefalse_qtype {
+    public function name() {
+        return 'truefalse';
+    }
+}
+
 global $QTYPES;
-$QTYPES = array('truefalse' => new test_question_type());
+$QTYPES = array('truefalse' => new question_truefalse_qtype());
 
 $reporter = new HtmlReporter();
 $test = new TestSuite();

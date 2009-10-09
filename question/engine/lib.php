@@ -180,6 +180,37 @@ class question_display_options {
 
 
 /**
+ * The definition of a question of a particular type.
+ *
+ * This class matches the question table in the database. It will normally be
+ * subclassed by the particular question type.
+ *
+ * @copyright © 2006 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_definition {
+    public $id;
+    public $category;
+    public $parent = 0;
+    public $qtype;
+    public $name;
+    public $questiontext;
+    public $questiontextformat;
+    public $generalfeedback = 'You should have selected true.';
+    public $defaultgrade = 1;
+    public $length = 1;
+    public $penalty = 0;
+    public $stamp;
+    public $version;
+    public $hidden = 0;
+    public $timecreated;
+    public $timemodified;
+    public $createdb;
+    public $modifiedby;
+}
+
+
+/**
  * This class keeps track of a group of questions that are being attempted,
  * and which state each one is currently in.
  *
@@ -211,7 +242,7 @@ class question_usage_by_activity {
         return $this->id;
     }
 
-    public function add_question($question) {
+    public function add_question(question_definition $question) {
         $qa = new question_attempt($question, $this->get_id());
         if (count($this->questionattempts) == 0) {
             $this->questionattempts[1] = $qa;
@@ -308,7 +339,6 @@ class question_attempt {
     private $numberinusage = null;
     private $interactionmodel = null;
     private $question;
-    private $qtype;
     private $maxgrade;
     private $responsesummary = '';
     private $steps = array();
@@ -318,10 +348,9 @@ class question_attempt {
     const KEEP = true;
     const DISCARD = false;
 
-    public function __construct($question, $usageid) {
+    public function __construct(question_definition $question, $usageid) {
         $this->question = $question;
         $this->usageid = $usageid;
-        $this->qtype = question_engine::get_qtype($question->qtype);
         if (!empty($question->maxgrade)) {
             $this->maxgrade = $question->maxgrade;
         } else {
@@ -349,6 +378,14 @@ class question_attempt {
         return $this->flagged;
     }
 
+    public function get_qt_field_name($varname) {
+        return $this->get_field_prefix() . $varname;
+    }
+
+    public function get_im_field_name($varname) {
+        return $this->get_field_prefix() . '!' . $varname;
+    }
+
     public function get_field_prefix() {
         return 'q' . $this->usageid . ',' . $this->numberinusage . '_';
     }
@@ -373,6 +410,27 @@ class question_attempt {
 
     public function get_step_iterator() {
         return new question_attempt_step_iterator($this);
+    }
+
+    public function get_reverse_step_iterator() {
+        return new question_attempt_reverse_step_iterator($this);
+    }
+
+    /**
+     * Get the latest value of a particular qtype variable. That is, get the value
+     * from the latest step that has it set. Return null if it is not set in any step.
+     * @param string $name the name of the variable to get.
+     * @param mixed default the value to return in the variable has never been set.
+     *      (Optional, defaults to null.)
+     * @return mixed string value, or $default if it has never been set.
+     */
+    public function get_last_qt_var($name, $default = null) {
+        foreach ($this->get_reverse_step_iterator() as $step) {
+            if ($step->has_qt_var($name)) {
+                return $step->has_qt_var($name);
+            }
+            return $default;
+        }
     }
 
     public function get_state() {
@@ -411,14 +469,10 @@ class question_attempt {
         return $this->question;
     }
 
-    public function get_qtype() {
-        return $this->qtype;
-    }
-
     public function render($options, $number) {
         $qoutput = renderer_factory::get_renderer('core', 'question');
         $qimoutput = $this->interactionmodel->get_renderer();
-        $qtoutput = $this->qtype->get_renderer($this->question);
+        $qtoutput = $this->question->get_renderer();
         return $qoutput->question($this, $qimoutput, $qtoutput, $options, $number);
     }
 
@@ -428,7 +482,7 @@ class question_attempt {
 
     public function start($preferredmodel) {
         $this->interactionmodel =
-                $this->qtype->get_interaction_model($this, $preferredmodel);
+                $this->question->get_interaction_model($this, $preferredmodel);
         $firststep = new question_attempt_step();
         $firststep->set_state(question_state::INCOMPLETE);
         $this->interactionmodel->init_first_step($firststep);
@@ -489,10 +543,11 @@ class question_attempt {
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt_step_iterator implements Iterator, ArrayAccess {
-    private $qa;
-    private $i = 0;
+    protected $qa;
+    protected $i;
     public function __construct(question_attempt $qa) {
         $this->qa = $qa;
+        $this->rewind();
     }
 
     public function current() {
@@ -522,6 +577,17 @@ class question_attempt_step_iterator implements Iterator, ArrayAccess {
     }
     public function offsetUnset($offset) {
         throw new Exception('You are only allowed read-only access to question_attempt::states through a question_attempt_step_iterator. Cannot unset.');
+    }
+}
+
+
+class question_attempt_reverse_step_iterator extends question_attempt_step_iterator {
+    public function next() {
+        --$this->i;
+    }
+
+    public function rewind() {
+        $this->i = $this->qa->get_num_steps() - 1;
     }
 }
 
@@ -692,7 +758,7 @@ abstract class question_interaction_model {
         return renderer_factory::get_renderer('qim_' . $type);
     }
 
-    public function init_first_step($step) {
+    public function init_first_step(question_attempt_step $step) {
     }
 
     public abstract function process_action(question_attempt_step $pendingstep);

@@ -33,7 +33,7 @@ class question_attempt_step_iterator_test extends UnitTestCase {
     private $iterator;
 
     public function setUp() {
-        $question->qtype = 'truefalse';
+        $question = new question_definition();
         $question->maxgrade = 1;
         $this->qa = new testable_question_attempt($question, 0);
         for ($i = 0; $i < 3; $i++) {
@@ -69,6 +69,15 @@ class question_attempt_step_iterator_test extends UnitTestCase {
             }
         }
         $this->assertEqual(4, $i);
+    }
+
+    public function test_reverse_foreach_loop() {
+        $i = 2;
+        foreach ($this->qa->get_reverse_step_iterator() as $key => $step) {
+            $this->assertEqual($i, $key);
+            $this->assertEqual($i, $step->get_qt_var('i'));
+            $i--;
+        }
     }
 
     public function test_offsetExists_before_start() {

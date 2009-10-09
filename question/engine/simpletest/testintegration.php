@@ -42,7 +42,7 @@ class question_engine_integration_test extends UnitTestCase {
     public function make_a_truefalse_question() {
         global $USER;
 
-        $tf = new stdClass();
+        $tf = new question_truefalse();
         $tf->id = 0;
         $tf->category = 0;
         $tf->parent = 0;
@@ -53,7 +53,7 @@ class question_engine_integration_test extends UnitTestCase {
         $tf->generalfeedback = 'You should have selected true.';
         $tf->defaultgrade = 1;
         $tf->penalty = 1;
-        $tf->qtype = 'truefalse';
+        $tf->qtype = question_engine::get_qtype('truefalse');
         $tf->length = 1;
         $tf->stamp = make_unique_id_code();
         $tf->version = make_unique_id_code();
@@ -63,28 +63,9 @@ class question_engine_integration_test extends UnitTestCase {
         $tf->createdby = $USER->id;
         $tf->modifiedby = $USER->id;
 
-        $trueanswer = new stdClass();
-        $trueanswer->id = 1;
-        $trueanswer->question = 0;
-        $trueanswer->answer = get_string('true', 'qtype_truefalse');
-        $trueanswer->fraction = 1;
-        $trueanswer->feedback = 'This is the right answer.';
-
-        $falseanswer = new stdClass();
-        $falseanswer->id = 2;
-        $falseanswer->question = 0;
-        $falseanswer->answer = get_string('false', 'qtype_truefalse');
-        $falseanswer->fraction = 0;
-        $falseanswer->feedback = 'This is the wrong answer.';
-
-        $tf->options->id = 0;
-        $tf->options->question = 0;
-        $tf->options->trueanswer = 1;
-        $tf->options->falseanswer = 2;
-        $tf->options->answers = array(
-                1 => $trueanswer,
-                2 => $falseanswer,
-        );
+        $tf->rightanswer = true;
+        $tf->truefeedback = 'This is the right answer.';
+        $tf->falsefeedback = 'This is the wrong answer.';
 
         return $tf;
     }
@@ -120,7 +101,7 @@ class question_engine_integration_test extends UnitTestCase {
 
         // Simulate some data submitted by the student.
         $prefix = $quba->get_field_prefix($qnumber);
-        $answername = $prefix . 'true';
+        $answername = $prefix . 'answer';
         $getdata = array(
             $answername => 1,
             'irrelevant' => 'should be ignored',
@@ -128,7 +109,7 @@ class question_engine_integration_test extends UnitTestCase {
         $submitteddata = $quba->extract_responses($qnumber, $getdata);
 
         // Verify.
-        $this->assertEqual(array('true' => 1), $submitteddata);
+        $this->assertEqual(array('answer' => 1), $submitteddata);
 
         // Process the data extracted for this question.
         $quba->process_action($qnumber, $submitteddata);
@@ -147,11 +128,12 @@ class question_engine_integration_test extends UnitTestCase {
         $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps);
 
         // Process different data, check it creates a new step.
-        $quba->process_action($qnumber, array('false' => 1));
+        $quba->process_action($qnumber, array('answer' => 0));
         $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps + 1);
+        $this->assertEqual($quba->get_question_state($qnumber), question_state::COMPLETE);
 
         // Change back, check it creates a new step.
-        $quba->process_action($qnumber, array('true' => 1));
+        $quba->process_action($qnumber, array('answer' => 1));
         $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps + 2);
 
         // Finish the attempt.
@@ -175,8 +157,7 @@ class question_engine_integration_test extends UnitTestCase {
         $this->assertPattern('/' . preg_quote('Not good enough!') . '/', $html);
 
         // Now change the correct answer to the question, and regrade.
-        $tf->options->answers[1]->fraction = 0;
-        $tf->options->answers[2]->fraction = 1;
+        $tf->rightanswer = false;
         $html = $quba->regrade_all_questions($qnumber);
 
         // Verify.

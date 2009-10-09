@@ -29,6 +29,15 @@
 
 
 /**
+ * This constant is used for html attributes which need to have an empty
+ * value and still be output by the renderers (e.g. alt="");
+ *
+ * @constant @EMPTY@
+ */
+define('HTML_ATTR_EMPTY', '@EMPTY@');
+
+
+/**
  * This is the default renderer factory for Moodle. It simply returns an instance
  * of the appropriate standard renderer class.
  *

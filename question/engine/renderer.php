@@ -41,7 +41,7 @@ class core_question_renderer extends moodle_renderer_base {
 
     ob_start();
 ?>
-<div id="q<?php echo $qa->get_question()->id; ?>" class="que <?php echo $qa->get_question()->qtype; ?> clearfix">
+<div id="q<?php echo $qa->get_question()->id; ?>" class="que <?php echo $qa->get_question()->qtype->name(); ?> clearfix">
   <div class="info">
     <h2 class="no"><span class="accesshide">Question </span><?php echo $number;
     if ($editlink) { ?>
