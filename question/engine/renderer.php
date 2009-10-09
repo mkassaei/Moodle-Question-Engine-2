@@ -47,9 +47,9 @@ class core_question_renderer extends moodle_renderer_base {
     if ($editlink) { ?>
       <span class="edit"><?php echo $editlink; ?></span>
     <?php } ?></h2><?php
-    if ($qa->get_max_grade()) { ?>
+    if ($qa->get_max_mark()) { ?>
       <div class="grade">
-        <?php echo get_string('gradex', 'question', $qa->format_grade_out_of_max($options->gradedp)); ?>
+        <?php echo get_string('gradex', 'question', $qa->format_mark_out_of_max($options->markdp)); ?>
       </div>
     <?php }
     echo $this->question_flag($qa, $options->flags); ?>
@@ -92,7 +92,7 @@ class core_question_renderer extends moodle_renderer_base {
         if (!$options->manualcommentlink) {
             return '';
         }
-        $strcomment = get_string('commentorgrade', 'quiz');
+        $strcomment = get_string('commentormark', 'quiz');
         $commentlink = link_to_popup_window($options->questioncommentlink .
                 '?attempt=' . $state->attempt . '&amp;question=' . $actualquestionid,
                 'commentquestion', $strcomment, 480, 750, $strcomment, 'none', true);
@@ -181,44 +181,44 @@ abstract class qim_renderer extends moodle_renderer_base {
     }
 
     /**
-    * Prints the score obtained and maximum score available plus any penalty
+    * Prints the mark obtained and maximum score available plus any penalty
     * information
     *
     * This function prints a summary of the scoring in the most recently
-    * graded state (the question may not have been submitted for marking at
+    * markd state (the question may not have been submitted for marking at
     * the current state). The default implementation should be suitable for most
     * question types.
     * @param object $question The question for which the grading details are
     *                         to be rendered. Question type specific information
-    *                         is included. The maximum possible grade is in
-    *                         ->maxgrade.
+    *                         is included. The maximum possible mark is in
+    *                         ->maxmark.
     * @param object $state    The state. In particular the grading information
-    *                          is in ->grade, ->raw_grade and ->penalty.
+    *                          is in ->mark, ->raw_mark and ->penalty.
     * @param object $cmoptions
     * @param object $options  An object describing the rendering options.
     */
     function grading_details(question_attempt $qa, question_display_options $options) {
         /* The default implementation prints the number of marks if no attempt
-        has been made. Otherwise it displays the grade obtained out of the
-        maximum grade available and a warning if a penalty was applied for the
-        attempt and displays the overall grade obtained counting all previous
+        has been made. Otherwise it displays the mark obtained out of the
+        maximum mark available and a warning if a penalty was applied for the
+        attempt and displays the overall mark obtained counting all previous
         responses (and penalties) */
 
-        if ($qa->get_max_grade() > 0 && $options->scores) {
+        if ($qa->get_max_mark() > 0 && $options->marks) {
             if (question_state::is_graded($qa->get_state())) {
                 // Display the grading details from the last graded state
-                $grade = new stdClass;
-                $grade->cur = $qa->format_grade($options->gradedp);
-                $grade->max = $qa->format_max_grade($options->gradedp);
-                $grade->raw = $qa->format_grade($options->gradedp);
+                $mark = new stdClass;
+                $mark->cur = $qa->format_mark($options->markdp);
+                $mark->max = $qa->format_max_mark($options->markdp);
+                $mark->raw = $qa->format_mark($options->markdp);
 
                 // let student know wether the answer was correct
                 $class = question_state::get_feedback_class($qa->get_state());
                 echo '<div class="correctness ' . $class . '">' . get_string($class, 'question') . '</div>';
 
                 echo '<div class="gradingdetails">';
-                // print grade for this submission
-                print_string('gradingdetails', 'question', $grade);
+                // print marks for this submission
+                print_string('gradingdetails', 'question', $mark);
                 echo '</div>';
             }
         }

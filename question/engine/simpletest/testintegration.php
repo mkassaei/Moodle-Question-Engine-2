@@ -76,7 +76,7 @@ class question_engine_integration_test extends UnitTestCase {
         $displayoptions = new question_display_options();
 
         // Start a delayed feedback attempt and add the question to it.
-        $tf->maxgrade = 2;
+        $tf->maxmark = 2;
         $quba = question_engine::make_questions_usage_by_activity('unit_test');
         $quba->set_preferred_interaction_model('delayedfeedback');
         $qnumber = $quba->add_question($tf);
@@ -96,7 +96,7 @@ class question_engine_integration_test extends UnitTestCase {
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::INCOMPLETE);
-        $this->assertNull($quba->get_question_grade($qnumber));
+        $this->assertNull($quba->get_question_mark($qnumber));
         $this->assertPattern('/' . preg_quote($tf->questiontext) . '/', $html);
 
         // Simulate some data submitted by the student.
@@ -117,7 +117,7 @@ class question_engine_integration_test extends UnitTestCase {
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::COMPLETE);
-        $this->assertNull($quba->get_question_grade($qnumber));
+        $this->assertNull($quba->get_question_mark($qnumber));
         $this->assert(new ContainsTagWithAttributes('input',
                 array('name' => $answername, 'value' => 1)), $html);
         $this->assertNoPattern('/class=\"correctness/', $html);
@@ -142,7 +142,7 @@ class question_engine_integration_test extends UnitTestCase {
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::GRADED_CORRECT);
-        $this->assertEqual($quba->get_question_grade($qnumber), 2);
+        $this->assertEqual($quba->get_question_mark($qnumber), 2);
         $this->assertPattern(
                 '/' . preg_quote(get_string('correct', 'question')) . '/',
                 $html);
@@ -153,7 +153,7 @@ class question_engine_integration_test extends UnitTestCase {
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::MANUALLY_GRADED_PARTCORRECT);
-        $this->assertEqual($quba->get_question_grade($qnumber), 1);
+        $this->assertEqual($quba->get_question_mark($qnumber), 1);
         $this->assertPattern('/' . preg_quote('Not good enough!') . '/', $html);
 
         // Now change the correct answer to the question, and regrade.
@@ -162,10 +162,10 @@ class question_engine_integration_test extends UnitTestCase {
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::MANUALLY_GRADED_PARTCORRECT);
-        $this->assertEqual($quba->get_question_grade($qnumber), 1);
+        $this->assertEqual($quba->get_question_mark($qnumber), 1);
         $numsteps = $quba->get_question_attempt($qnumber)->get_num_steps();
         $autogradedstep = $quba->get_question_attempt($qnumber)->get_step($numsteps - 2);
-        $this->assertWithinMargin($autogradedstep->get_grade(), 0, 0.0000001);
+        $this->assertWithinMargin($autogradedstep->get_fraction(), 0, 0.0000001);
     }
 
 }

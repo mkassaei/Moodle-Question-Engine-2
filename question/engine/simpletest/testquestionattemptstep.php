@@ -39,15 +39,15 @@ class question_attempt_step_test extends UnitTestCase {
         $this->assertEqual(question_state::GRADED_CORRECT, $step->get_state());
     }
 
-    public function test_initial_grade_null() {
+    public function test_initial_fraction_null() {
         $step = new question_attempt_step();
-        $this->assertNull($step->get_grade());
+        $this->assertNull($step->get_fraction());
     }
 
-    public function test_get_set_grade() {
+    public function test_get_set_fraction() {
         $step = new question_attempt_step();
-        $step->set_grade(0.5);
-        $this->assertEqual(0.5, $step->get_grade());
+        $step->set_fraction(0.5);
+        $this->assertEqual(0.5, $step->get_fraction());
     }
 
     public function test_has_var() {

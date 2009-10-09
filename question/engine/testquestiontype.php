@@ -40,6 +40,10 @@ class question_truefalse extends question_definition {
         return renderer_factory::get_renderer('qtype_truefalse');
     }
 
+    public function get_min_fraction() {
+        return 0;
+    }
+
     public function is_same_response(array $prevresponse, array $newresponse) {
         // Check that the two arrays have exactly the same keys and values.
         $diff1 = array_diff_assoc($prevresponse, $newresponse);
@@ -60,13 +64,13 @@ class question_truefalse extends question_definition {
 
     public function grade_response($question, array $response) {
         if ($this->rightanswer == true && $response['answer'] == true) {
-            $grade = 1;
+            $fraction = 1;
         } else if ($this->rightanswer == false && $response['answer'] == false) {
-            $grade = 1;
+            $fraction = 1;
         } else {
-            $grade = 0;
+            $fraction = 0;
         }
-        return array($grade, question_state::graded_state_for_grade($grade));
+        return array($fraction, question_state::graded_state_for_fraction($fraction));
     }
 }
 
