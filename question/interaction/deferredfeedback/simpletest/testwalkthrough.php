@@ -17,9 +17,8 @@
 
 
 /**
- * This file contains integration tests for the Moodle question engine.
- *
- * These tests exercise the system working as a whole, rather than individual units.
+ * This file contains tests that walks a question through the deferred feedback
+ * interaction model.
  *
  * @package question-engine
  * @copyright © 2009 The Open University
@@ -27,52 +26,14 @@
  */
 
 
-require_once(dirname(__FILE__) . '/../lib.php');
+require_once(dirname(__FILE__) . '/../../../engine/lib.php');
+require_once(dirname(__FILE__) . '/../../../engine/simpletest/helpers.php');
 
-class question_engine_integration_test extends UnitTestCase {
-
-    public function setUp() {
-        
-    }
-
-    public function tearDown() {
-        
-    }
-
-    public function make_a_truefalse_question() {
-        global $USER;
-
-        $tf = new question_truefalse();
-        $tf->id = 0;
-        $tf->category = 0;
-        $tf->parent = 0;
-        $tf->name = 'True/false question';
-        $tf->questiontext = 'The answer is true.';
-        $tf->questiontextformat = FORMAT_HTML;
-        $tf->image = '';
-        $tf->generalfeedback = 'You should have selected true.';
-        $tf->defaultgrade = 1;
-        $tf->penalty = 1;
-        $tf->qtype = question_engine::get_qtype('truefalse');
-        $tf->length = 1;
-        $tf->stamp = make_unique_id_code();
-        $tf->version = make_unique_id_code();
-        $tf->hidden = 0;
-        $tf->timecreated = time();
-        $tf->timemodified = time();
-        $tf->createdby = $USER->id;
-        $tf->modifiedby = $USER->id;
-
-        $tf->rightanswer = true;
-        $tf->truefeedback = 'This is the right answer.';
-        $tf->falsefeedback = 'This is the wrong answer.';
-
-        return $tf;
-    }
-
+class question_deferredfeedback_model_walkthrough_test extends UnitTestCase {
     public function test_delayed_feedback_truefalse() {
+
         // Create a true-false question with correct answer true.
-        $tf = $this->make_a_truefalse_question();
+        $tf = test_question_maker::make_a_truefalse_question();
         $displayoptions = new question_display_options();
 
         // Start a delayed feedback attempt and add the question to it.
@@ -158,7 +119,7 @@ class question_engine_integration_test extends UnitTestCase {
 
         // Now change the correct answer to the question, and regrade.
         $tf->rightanswer = false;
-        $html = $quba->regrade_all_questions($qnumber);
+        $html = $quba->regrade_all_questions();
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::MANUALLY_GRADED_PARTCORRECT);
@@ -167,5 +128,4 @@ class question_engine_integration_test extends UnitTestCase {
         $autogradedstep = $quba->get_question_attempt($qnumber)->get_step($numsteps - 2);
         $this->assertWithinMargin($autogradedstep->get_fraction(), 0, 0.0000001);
     }
-
 }
