@@ -359,6 +359,10 @@ class question_attempt {
         }
     }
 
+    public function get_question() {
+        return $this->question;
+    }
+
     public function set_number_in_usage($qnumber) {
         $this->numberinusage = $qnumber;
     }
@@ -371,7 +375,7 @@ class question_attempt {
         return $this->usageid;
     }
 
-    public function set_fagged($flagged) {
+    public function set_flagged($flagged) {
         $this->flagged = $flagged;
     }
 
@@ -430,8 +434,8 @@ class question_attempt {
             if ($step->has_qt_var($name)) {
                 return $step->has_qt_var($name);
             }
-            return $default;
         }
+        return $default;
     }
 
     public function get_state() {
@@ -464,10 +468,6 @@ class question_attempt {
 
     public function format_mark_out_of_max($dp) {
         return $this->format_mark($dp) . ' / ' . $this->format_max_mark($dp);
-    }
-
-    public function get_question() {
-        return $this->question;
     }
 
     public function render($options, $number) {
@@ -527,13 +527,12 @@ class question_attempt {
     }
 
     public function get_manual_comment() {
-        $comment = null;
-        foreach ($this->steps as $step) {
+        foreach ($this->get_reverse_step_iterator() as $step) {
             if ($step->has_im_var('comment')) {
-                $comment = $step->get_im_var('comment');
+                return $step->get_im_var('comment');
             }
         }
-        return $comment;
+        return null;
     }
 }
 
