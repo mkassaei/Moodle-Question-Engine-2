@@ -36,6 +36,10 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_deferredfeedback_model extends question_interaction_model {
+    public function get_min_fraction() {
+        return $this->question->get_min_fraction();
+    }
+
     public function process_action(question_attempt_step $pendingstep) {
         if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);
@@ -50,12 +54,12 @@ class question_deferredfeedback_model extends question_interaction_model {
         if (!question_state::is_active($this->qa->get_state())) {
             throw new Exception('Question is already closed, cannot process_actions.');
         }
-        if ($this->qa->get_question()->is_same_response(
+        if ($this->question->is_same_response(
                 $this->qa->get_last_step()->get_qt_data(), $pendingstep->get_qt_data())) {
             return question_attempt::DISCARD;
         }
 
-        if ($this->qa->get_question()->is_complete_response($pendingstep->get_qt_data())) {
+        if ($this->question->is_complete_response($pendingstep->get_qt_data())) {
             $pendingstep->set_state(question_state::COMPLETE);
         } else {
             $pendingstep->set_state(question_state::INCOMPLETE);
@@ -69,12 +73,12 @@ class question_deferredfeedback_model extends question_interaction_model {
         }
 
         $response = $this->qa->get_last_step()->get_qt_data();
-        if (!$this->qa->get_question()->is_gradable_response($response)) {
+        if (!$this->question->is_gradable_response($response)) {
             $pendingstep->set_state(question_state::GAVE_UP);
         } else {
-            list($grade, $state) = $this->qa->get_question()->grade_response(
-                    $this->qa->get_question(), $response);
-            $pendingstep->set_grade($grade);
+            list($fraction, $state) = $this->question->grade_response(
+                    $this->question, $response);
+            $pendingstep->set_fraction($fraction);
             $pendingstep->set_state($state);
         }
         return question_attempt::KEEP;

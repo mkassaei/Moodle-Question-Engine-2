@@ -113,17 +113,17 @@ abstract class question_state {
                 ($state >= self::MANUALLY_GRADED_INCORRECT && $state >= self::MANUALLY_GRADED_CORRECT);
     }
 
-    public static function graded_state_for_grade($grade) {
-        if ($grade < 0.0000001) {
+    public static function graded_state_for_fraction($fraction) {
+        if ($fraction < 0.0000001) {
             return self::GRADED_INCORRECT;
-        } else if ($grade > 0.9999999) {
+        } else if ($fraction > 0.9999999) {
             return self::GRADED_CORRECT;
         } else {
             return self::GRADED_PARTCORRECT;
         }
     }
 
-    public static function manually_graded_state_for_other_state($state, $grade) {
+    public static function manually_graded_state_for_other_state($state, $fraction) {
         $oldstate = $state & 0xFFFFFFDF;
         switch ($oldstate) {
             case self::FINISHED:
@@ -133,7 +133,7 @@ abstract class question_state {
             case self::GRADED_INCORRECT:
             case self::GRADED_PARTCORRECT:
             case self::GRADED_CORRECT:
-                return self::graded_state_for_grade($grade) + 32;
+                return self::graded_state_for_fraction($fraction) + 32;
             default:
                 throw new Exception('Illegal state transition.');
         }
@@ -166,14 +166,14 @@ abstract class question_state {
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_display_options {
-    public $gradedp = 2;
+    public $markdp = 2;
     public $flags = QUESTION_FLAGSSHOWN;
     public $readonly = false;
     public $feedback = false;
     public $correct_responses = false;
     public $generalfeedback = false;
     public $responses = true;
-    public $scores = true;
+    public $marks = true;
     public $history = false;
     public $manualcommentlink = false; // Set to base URL for true.
 }
@@ -197,7 +197,7 @@ class question_definition {
     public $questiontext;
     public $questiontextformat;
     public $generalfeedback = 'You should have selected true.';
-    public $defaultgrade = 1;
+    public $defaultmark = 1;
     public $length = 1;
     public $penalty = 0;
     public $stamp;
@@ -268,8 +268,8 @@ class question_usage_by_activity {
         return $this->get_question_attempt($qnumber)->get_state();
     }
 
-    public function get_question_grade($qnumber) {
-        return $this->get_question_attempt($qnumber)->get_grade();
+    public function get_question_mark($qnumber) {
+        return $this->get_question_attempt($qnumber)->get_mark();
     }
 
     public function render_question($qnumber, $options, $number = null) {
@@ -308,8 +308,8 @@ class question_usage_by_activity {
         }
     }
 
-    public function manual_grade($qnumber, $comment, $grade) {
-        $this->get_question_attempt($qnumber)->manual_grade($grade, $comment);
+    public function manual_grade($qnumber, $comment, $mark) {
+        $this->get_question_attempt($qnumber)->manual_grade($mark, $comment);
     }
 
     public function regrade_question($qnumber) {
@@ -339,7 +339,8 @@ class question_attempt {
     private $numberinusage = null;
     private $interactionmodel = null;
     private $question;
-    private $maxgrade;
+    private $maxmark;
+    private $minfraction;
     private $responsesummary = '';
     private $steps = array();
     private $flagged = false;
@@ -351,10 +352,10 @@ class question_attempt {
     public function __construct(question_definition $question, $usageid) {
         $this->question = $question;
         $this->usageid = $usageid;
-        if (!empty($question->maxgrade)) {
-            $this->maxgrade = $question->maxgrade;
+        if (!empty($question->maxmark)) {
+            $this->maxmark = $question->maxmark;
         } else {
-            $this->maxgrade = $question->defaultgrade;
+            $this->maxmark = $question->defaultmark;
         }
     }
 
@@ -437,32 +438,32 @@ class question_attempt {
         return $this->get_last_step()->get_state();
     }
 
-    public function get_grade() {
-        $grade = $this->get_last_step()->get_grade();
-        if (!is_null($grade)) {
-            $grade *= $this->maxgrade;
+    public function get_mark() {
+        $mark = $this->get_last_step()->get_fraction();
+        if (!is_null($mark)) {
+            $mark *= $this->maxmark;
         }
-        return $grade;
+        return $mark;
     }
 
-    public function get_max_grade() {
-        return $this->maxgrade;
+    public function get_max_mark() {
+        return $this->maxmark;
     }
 
-    public function format_grade($dp) {
-        $grade = $this->get_grade();
-        if (!is_null($grade)) {
+    public function format_mark($dp) {
+        $mark = $this->get_mark();
+        if (is_null($mark)) {
             return '--';
         }
-        return round($grade, $dp);
+        return round($mark, $dp);
     }
 
-    public function format_max_grade($dp) {
-        return round($this->maxgrade, $dp);
+    public function format_max_mark($dp) {
+        return round($this->maxmark, $dp);
     }
 
-    public function format_grade_out_of_max($dp) {
-        return $this->format_grade($dp) . ' / ' . $this->format_max_grade($dp);
+    public function format_mark_out_of_max($dp) {
+        return $this->format_mark($dp) . ' / ' . $this->format_max_mark($dp);
     }
 
     public function get_question() {
@@ -483,6 +484,7 @@ class question_attempt {
     public function start($preferredmodel) {
         $this->interactionmodel =
                 $this->question->get_interaction_model($this, $preferredmodel);
+        $this->minfraction = $this->interactionmodel->get_min_fraction();
         $firststep = new question_attempt_step();
         $firststep->set_state(question_state::INCOMPLETE);
         $this->interactionmodel->init_first_step($firststep);
@@ -506,11 +508,11 @@ class question_attempt {
         }
     }
 
-    public function manual_grade($comment, $grade) {
+    public function manual_grade($comment, $mark) {
         $submitteddata = array('!comment' => $comment);
-        if (!is_null($grade)) {
-            $submitteddata['!grade'] = $grade;
-            $submitteddata['!maxgrade'] = $this->maxgrade;
+        if (!is_null($mark)) {
+            $submitteddata['!mark'] = $mark;
+            $submitteddata['!maxmark'] = $this->maxmark;
         }
         $this->process_action($submitteddata);
     }
@@ -601,7 +603,7 @@ class question_attempt_reverse_step_iterator extends question_attempt_step_itera
 class question_attempt_step {
     private $id = null;
     private $state = question_state::UNPROCESSED;
-    private $grade = null;
+    private $fraction = null;
     private $timestamp;
     private $userid;
     private $data;
@@ -629,12 +631,12 @@ class question_attempt_step {
         $this->state = $state;
     }
 
-    public function get_grade() {
-        return $this->grade;
+    public function get_fraction() {
+        return $this->fraction;
     }
 
-    public function set_grade($grade) {
-        $this->grade = $grade;
+    public function set_fraction($fraction) {
+        $this->fraction = $fraction;
     }
 
     public function get_user_id() {
@@ -731,7 +733,7 @@ class question_null_step {
         throw new Exception('This question has not been started.');
     }
 
-    public function get_grade() {
+    public function get_fraction() {
         return NULL;
     }
 }
@@ -748,14 +750,20 @@ class question_null_step {
  */
 abstract class question_interaction_model {
     protected $qa;
+    protected $question;
 
     public function __construct(question_attempt $qa) {
         $this->qa = $qa;
+        $this->question = $qa->get_question();
     }
 
     public function get_renderer() {
         list($ignored, $type) = explode('_', get_class($this), 3);
         return renderer_factory::get_renderer('qim_' . $type);
+    }
+
+    public function get_min_fraction() {
+        return 0;
     }
 
     public function init_first_step(question_attempt_step $step) {
@@ -766,12 +774,12 @@ abstract class question_interaction_model {
     public function process_comment(question_attempt_step $pendingstep) {
         $laststep = $this->qa->get_last_step();
 
-        if ($pendingstep->has_im_var('grade')) {
-            $pendingstep->set_grade($pendingstep->get_im_var('grade') /
-                    $pendingstep->get_im_var('maxgrade'));
+        if ($pendingstep->has_im_var('mark')) {
+            $pendingstep->set_fraction($pendingstep->get_im_var('mark') /
+                    $pendingstep->get_im_var('maxmark'));
         }
         $pendingstep->set_state(question_state::manually_graded_state_for_other_state(
-                $laststep->get_state(), $pendingstep->get_grade()));
+                $laststep->get_state(), $pendingstep->get_fraction()));
         return question_attempt::KEEP;
     }
 }
