@@ -130,6 +130,7 @@ abstract class question_state {
                 return FINISHED_COMMENTED;
             case self::GAVE_UP:
                 return self::GAVE_UP_COMMENTED;
+            case self::NEEDS_GRADING:
             case self::GRADED_INCORRECT:
             case self::GRADED_PARTCORRECT:
             case self::GRADED_CORRECT:
@@ -769,6 +770,23 @@ abstract class question_interaction_model {
     }
 
     public abstract function process_action(question_attempt_step $pendingstep);
+
+    public function process_save(question_attempt_step $pendingstep) {
+        if (!question_state::is_active($this->qa->get_state())) {
+            throw new Exception('Question is already closed, cannot process_actions.');
+        }
+        if ($this->question->is_same_response(
+                $this->qa->get_last_step()->get_qt_data(), $pendingstep->get_qt_data())) {
+            return question_attempt::DISCARD;
+        }
+
+        if ($this->question->is_complete_response($pendingstep->get_qt_data())) {
+            $pendingstep->set_state(question_state::COMPLETE);
+        } else {
+            $pendingstep->set_state(question_state::INCOMPLETE);
+        }
+        return question_attempt::KEEP;
+    }
 
     public function process_comment(question_attempt_step $pendingstep) {
         $laststep = $this->qa->get_last_step();

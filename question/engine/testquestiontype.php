@@ -173,3 +173,79 @@ class qtype_truefalse_renderer extends qtype_renderer {
 }
 
 
+class question_essay extends question_definition {
+    public function get_interaction_model(question_attempt $qa, $preferredmodel) {
+        question_engine::load_interaction_model_class('manualgraded');
+        return new question_manualgraded_model($qa);
+    }
+
+    public function get_renderer() {
+        return renderer_factory::get_renderer('qtype_essay');
+    }
+
+    public function get_min_fraction() {
+        return 0;
+    }
+
+    public function is_same_response(array $prevresponse, array $newresponse) {
+        // Check that the two arrays have exactly the same keys and values.
+        $diff1 = array_diff_assoc($prevresponse, $newresponse);
+        if (!empty($diff1)) {
+            return false;
+        }
+        $diff2 = array_diff_assoc($newresponse, $prevresponse);
+        return empty($diff2);
+    }
+
+    public function is_complete_response(array $response) {
+        return !empty($response['answer']);
+    }
+}
+
+
+class qtype_essay_renderer extends qtype_renderer {
+    public function formulation_and_controls(question_attempt $qa,
+            question_display_options $options) {
+
+        $question = $qa->get_question();
+        $response = $qa->get_last_qt_var('answer', '');
+
+
+        $formatoptions          = new stdClass;
+        $formatoptions->noclean = true;
+        $formatoptions->para    = false;
+
+        $safeformatoptions = new stdClass;
+        $safeformatoptions->para = false;
+
+        $stranswer = get_string('answer', 'question');
+
+        /// set question text and media
+        $questiontext = format_text($question->questiontext,
+                $question->questiontextformat, $formatoptions);
+
+        // Answer field.
+        $inputname = $qa->get_qt_field_name('answer');
+        if (empty($options->readonly)) {
+            // the student needs to type in their answer so print out a text editor
+            $answer = print_textarea(can_use_html_editor(), 18, 80, 630, 400, $inputname, $response, 0, true);
+        } else {
+            // it is read only, so just format the students answer and output it
+            $answer = format_text($response, FORMAT_MOODLE,
+                                  $safeformatoptions, $cmoptions->course);
+            $answer = '<div class="answerreview">' . $answer . '</div>';
+        }
+
+        $result = '';
+        $result .= $this->output_tag('div', array('class' => 'qtext'),
+                format_text($question->questiontext, true, $formatoptions));
+
+        $result .= $this->output_start_tag('div', array('class' => 'ablock clearfix'));
+        $result .= $this->output_tag('div', array('class' => 'prompt'),
+                get_string('answer', 'question'));
+        $result .= $this->output_tag('div', array('class' => 'answer'), $answer);
+        $result .= $this->output_end_tag('div'); // ablock
+
+        return $result;
+    }
+}

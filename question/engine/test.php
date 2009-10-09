@@ -6,8 +6,8 @@ require_once($CFG->dirroot . '/question/engine/simpletest/testquestionengine.php
 require_once($CFG->dirroot . '/question/engine/simpletest/testquestionattemptstep.php');
 require_once($CFG->dirroot . '/question/engine/simpletest/testquestionattempt.php');
 require_once($CFG->dirroot . '/question/engine/simpletest/testquestionattemptstepiterator.php');
-
-require_once($CFG->dirroot . '/question/engine/simpletest/testintegration.php');
+require_once($CFG->dirroot . '/question/interaction/deferredfeedback/simpletest/testwalkthrough.php');
+require_once($CFG->dirroot . '/question/interaction/manualgraded/simpletest/testwalkthrough.php');
 
 define('QUESTION_FLAGSHIDDEN', 0);
 define('QUESTION_FLAGSSHOWN', 1);
@@ -19,8 +19,17 @@ class question_truefalse_qtype {
     }
 }
 
+class question_essay_qtype {
+    public function name() {
+        return 'essay';
+    }
+}
+
 global $QTYPES;
-$QTYPES = array('truefalse' => new question_truefalse_qtype());
+$QTYPES = array(
+    'essay' => new question_essay_qtype(),
+    'truefalse' => new question_truefalse_qtype(),
+);
 
 $reporter = new HtmlReporter();
 $test = new TestSuite();
@@ -29,7 +38,8 @@ $test->addTestClass('question_attempt_step_test');
 $test->addTestClass('question_attempt_step_iterator_test');
 $test->addTestClass('question_attempt_test');
 $test->addTestClass('question_attempt_with_steps_test');
-$test->addTestClass('question_engine_integration_test');
+$test->addTestClass('question_deferredfeedback_model_walkthrough_test');
+$test->addTestClass('question_manualgraded_model_walkthrough_test');
 $test->run($reporter);
 
 function format_backtrace($callers, $plaintext = false) {

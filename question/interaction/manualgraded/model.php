@@ -17,8 +17,7 @@
 
 
 /**
- * Question iteraction model for the case when the student's answer is just
- * saved until they submit the whole attempt, and then it is graded.
+ * Question interaction model for questions that can only be graded manually.
  *
  * @package qim_delayedfeedback
  * @copyright 2009 The Open University
@@ -27,19 +26,16 @@
 
 
 /**
- * Question interaction model for deferred feedback.
+ * Question interaction model for questions that can only be graded manually.
  *
  * The student enters their response during the attempt, and it is saved. Later,
- * when the whole attempt is finished, their answer is graded.
+ * when the whole attempt is finished, the attempt goes into the NEEDS_GRADING
+ * state, and the teacher must grade it manually.
  *
  * @copyright © 2006 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class question_deferredfeedback_model extends question_interaction_model {
-    public function get_min_fraction() {
-        return $this->question->get_min_fraction();
-    }
-
+class question_manualgraded_model extends question_interaction_model {
     public function process_action(question_attempt_step $pendingstep) {
         if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);
@@ -56,13 +52,10 @@ class question_deferredfeedback_model extends question_interaction_model {
         }
 
         $response = $this->qa->get_last_step()->get_qt_data();
-        if (!$this->question->is_gradable_response($response)) {
+        if (!$this->question->is_complete_response($response)) {
             $pendingstep->set_state(question_state::GAVE_UP);
         } else {
-            list($fraction, $state) = $this->question->grade_response(
-                    $this->question, $response);
-            $pendingstep->set_fraction($fraction);
-            $pendingstep->set_state($state);
+            $pendingstep->set_state(question_state::NEEDS_GRADING);
         }
         return question_attempt::KEEP;
     }
