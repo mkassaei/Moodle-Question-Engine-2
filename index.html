@@ -49,35 +49,49 @@
       <span class="small">by <a href="http://github.com/timhunt">timhunt</a></span></h1>
 
     <div class="description">
-      This is work-in-progress of my rewrite of the Moodle question engine (http://docs.moodle.org/en/Development:Question_Engine_2).
+      This is work-in-progress of my <a href="http://docs.moodle.org/en/Development:Question_Engine_2">rewrite of the Moodle question engine</a>.
     </div>
 
-    <p>At the moment, there is not much to see.
+    <p>At the moment, there is not much to see.</p>
 
-The interesting code is in http://github.com/timhunt/Moodle-Question-Engine-2/tree/new_qe2/question/engine/ and http://github.com/timhunt/Moodle-Question-Engine-2/tree/new_qe2/question/engine/interaction.
+<p>The interesting code is in <a href=" http://github.com/timhunt/Moodle-Question-Engine-2/tree/new_qe2/question/engine/">question/engine</a> and <a href=" http://github.com/timhunt/Moodle-Question-Engine-2/tree/new_qe2/question/interaction/">question/interaction</a>.</p>
 
-The only way you can execute any of it is to checkout the new_qe2 branch, install Moodle as normal, and then run the unit tests in either question/engine or question/interaction.
+<p>The only way you can execute any of it is to checkout the new_qe2 branch, install Moodle as normal, and then run the unit tests in either question/engine or question/interaction.</p>
 
-Code in http://github.com/timhunt/Moodle-Question-Engine-2/blob/new_qe2/question/interaction/deferredfeedback/simpletest/testwalkthrough.php would be a good place to start looking. This walks a single question through being attempted, using the API that an activity module using the question bank would use.
+<p>Code in <a href=" http://github.com/timhunt/Moodle-Question-Engine-2/tree/new_qe2/question/interaction/deferredfeedback/simpletest/testwalkthrough.php">question/interaction/deferredfeedback/simpletest/testwalkthrough.php</a> would be a good place to start looking. This walks a single question through being attempted, using the API that an activity module using the question bank would use.</p>
 
-Note that this is work in progress. Bits that are not finished:
-1. Does not use the real question types yet. Uses fake code in question/engine/testquestiontype.php.
-2. The way the renderers are currently implemented is not exemplary. They roughly work, but need refactoring.
-3. The code in question/engine/lib.php is the heart of the new question engine, and is mostly solid.</p><h2>Install</h2>
-<p>1. Checkout the new_qe2 branch.
-2. Install Moodle as usual.
-3. Run the unit tests in question/engine and question/interaction.
-4. Look at the code in either of those folders.</p>
+<p>Note that this is work in progress. In particular:</p>
+
+<ol>
+<li>Does not use the real question types yet. Uses fake code in <a href=" http://github.com/timhunt/Moodle-Question-Engine-2/tree/new_qe2/question/question/engine/testquestiontype.php">question/engine/testquestiontype.php</a>.</li>
+<li>The way the renderers are currently implemented is not exemplary. They roughly work, but need refactoring.</li>
+<li>The code in <a href=" http://github.com/timhunt/Moodle-Question-Engine-2/tree/new_qe2/question/engine/lib.php">question/engine/lib.php</a> is the heart of the new question engine, and is mostly solid.</li>
+</ol>
+
+<h2>Install</h2>
+
+<ol>
+<li>Checkout the new_qe2 branch.
+<li>Install Moodle as usual.
+<li>Run the unit tests in question/engine and question/interaction.
+<li>Look at the code in either of those folders.
+</ol>
+
 <h2>License</h2>
-<p>As for Moodle. See http://moodle.org/</p>
+
+<p>GPL 3+, as for Moodle. See http://moodle.org/</p>
+
 <h2>Authors</h2>
+
 <p>Tim Hunt</p>
+
 <h2>Contact</h2>
-<p> T.J.Hunt@open.ac.uk<br/>      </p>
+
+<p> T.J.Hunt@open.ac.uk</p>
 
 
     <h2>Download</h2>
-    <p>
+ 	<p>
       You can download this project in either
       <a href="http://github.com/timhunt/Moodle-Question-Engine-2/zipball/master">zip</a> or
       <a href="http://github.com/timhunt/Moodle-Question-Engine-2/tarball/master">tar</a> formats.
