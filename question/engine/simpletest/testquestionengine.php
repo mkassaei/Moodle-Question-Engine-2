@@ -41,7 +41,7 @@ class question_engine_test extends UnitTestCase {
         // Exercise SUT
         question_engine::load_interaction_model_class('deferredfeedback');
         // Verify
-        $this->assertTrue(class_exists('question_deferredfeedback_model'));
+        $this->assertTrue(class_exists('qim_deferredfeedback'));
     }
 
     public function test_load_interaction_model_class_missing() {

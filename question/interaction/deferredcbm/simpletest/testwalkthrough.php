@@ -29,8 +29,8 @@
 require_once(dirname(__FILE__) . '/../../../engine/lib.php');
 require_once(dirname(__FILE__) . '/../../../engine/simpletest/helpers.php');
 
-class qim_deferredfeedback_walkthrough_test extends UnitTestCase {
-    public function test_delayed_feedback_truefalse() {
+class qim_deferredcbm_walkthrough_test extends UnitTestCase {
+    public function test_delayed_cbm_truefalse_high_certainty() {
 
         // Create a true-false question with correct answer true.
         $tf = test_question_maker::make_a_truefalse_question();
@@ -39,7 +39,7 @@ class qim_deferredfeedback_walkthrough_test extends UnitTestCase {
         // Start a delayed feedback attempt and add the question to it.
         $tf->maxmark = 2;
         $quba = question_engine::make_questions_usage_by_activity('unit_test');
-        $quba->set_preferred_interaction_model('deferredfeedback');
+        $quba->set_preferred_interaction_model('deferredcbm');
         $qnumber = $quba->add_question($tf);
         // Different from $tf->id since the same question may be used twice in
         // the same attempt.
@@ -63,14 +63,16 @@ class qim_deferredfeedback_walkthrough_test extends UnitTestCase {
         // Simulate some data submitted by the student.
         $prefix = $quba->get_field_prefix($qnumber);
         $answername = $prefix . 'answer';
+        $certaintyname = $prefix . '!certainty';
         $getdata = array(
             $answername => 1,
+            $certaintyname => 3,
             'irrelevant' => 'should be ignored',
         );
         $submitteddata = $quba->extract_responses($qnumber, $getdata);
 
         // Verify.
-        $this->assertEqual(array('answer' => 1), $submitteddata);
+        $this->assertEqual(array('answer' => 1, '!certainty' => 3), $submitteddata);
 
         // Process the data extracted for this question.
         $quba->process_action($qnumber, $submitteddata);
@@ -89,12 +91,12 @@ class qim_deferredfeedback_walkthrough_test extends UnitTestCase {
         $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps);
 
         // Process different data, check it creates a new step.
-        $quba->process_action($qnumber, array('answer' => 0));
+        $quba->process_action($qnumber, array('answer' => 1, '!certainty' => 1));
         $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps + 1);
         $this->assertEqual($quba->get_question_state($qnumber), question_state::COMPLETE);
 
         // Change back, check it creates a new step.
-        $quba->process_action($qnumber, array('answer' => 1));
+        $quba->process_action($qnumber, array('answer' => 1, '!certainty' => 3));
         $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps + 2);
 
         // Finish the attempt.
@@ -128,4 +130,53 @@ class qim_deferredfeedback_walkthrough_test extends UnitTestCase {
         $autogradedstep = $quba->get_question_attempt($qnumber)->get_step($numsteps - 2);
         $this->assertWithinMargin($autogradedstep->get_fraction(), 0, 0.0000001);
     }
+
+    public function test_delayed_cbm_truefalse_low_certainty() {
+
+        // Create a true-false question with correct answer true.
+        $tf = test_question_maker::make_a_truefalse_question();
+        $displayoptions = new question_display_options();
+
+        // Start a delayed feedback attempt and add the question to it.
+        $tf->maxmark = 2;
+        $quba = question_engine::make_questions_usage_by_activity('unit_test');
+        $quba->set_preferred_interaction_model('deferredcbm');
+        $qnumber = $quba->add_question($tf);
+        // Different from $tf->id since the same question may be used twice in
+        // the same attempt.
+
+        // Begin the attempt. Creates an initial state with no certainty - should be incomplete.
+        $quba->start_all_questions();
+        $quba->process_action($qnumber, array('answer' => 1));
+        $html = $quba->render_question($qnumber, $displayoptions);
+
+        // Verify.
+        $this->assertEqual($quba->get_question_state($qnumber), question_state::INCOMPLETE);
+        $this->assertNull($quba->get_question_mark($qnumber));
+        // Test correct radio button is selected.
+        $this->assertNoPattern('/class=\"correctness/', $html);
+
+        // Begin the attempt. Creates an initial state with no certainty - should be incomplete.
+        $quba->start_all_questions();
+        $quba->process_action($qnumber, array('answer' => 1, '!cerrtainty' => 1));
+        $html = $quba->render_question($qnumber, $displayoptions);
+
+        // Verify.
+        $this->assertEqual($quba->get_question_state($qnumber), question_state::COMPLETE);
+        $this->assertNull($quba->get_question_mark($qnumber));
+        // Test correct radio button is selected.
+        $this->assertNoPattern('/class=\"correctness/', $html);
+
+        // Finish the attempt.
+        $quba->finish_all_questions();
+        $html = $quba->render_question($qnumber, $displayoptions);
+
+        // Verify.
+        $this->assertEqual($quba->get_question_state($qnumber), question_state::GRADED_CORRECT);
+        $this->assertWithinMargin($quba->get_question_mark($qnumber), 0.6666667, 0.0000001);
+        $this->assertPattern(
+                '/' . preg_quote(get_string('correct', 'question')) . '/',
+                $html);
+    }
 }
+

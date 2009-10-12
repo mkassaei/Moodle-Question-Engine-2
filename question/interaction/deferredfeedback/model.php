@@ -35,7 +35,7 @@
  * @copyright © 2006 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class question_deferredfeedback_model extends question_interaction_model {
+class qim_deferredfeedback extends question_interaction_model {
     public function get_min_fraction() {
         return $this->question->get_min_fraction();
     }

@@ -439,6 +439,23 @@ class question_attempt {
         return $default;
     }
 
+    /**
+     * Get the latest value of a particular qim variable. That is, get the value
+     * from the latest step that has it set. Return null if it is not set in any step.
+     * @param string $name the name of the variable to get.
+     * @param mixed default the value to return in the variable has never been set.
+     *      (Optional, defaults to null.)
+     * @return mixed string value, or $default if it has never been set.
+     */
+    public function get_last_im_var($name, $default = null) {
+        foreach ($this->get_reverse_step_iterator() as $step) {
+            if ($step->has_im_var($name)) {
+                return $step->has_im_var($name);
+            }
+        }
+        return $default;
+    }
+
     public function get_state() {
         return $this->get_last_step()->get_state();
     }

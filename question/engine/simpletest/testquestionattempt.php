@@ -164,6 +164,15 @@ class question_attempt_with_steps_test extends UnitTestCase {
         $this->assertEqual('default', $this->qa->get_last_qt_var('notthere', 'default'));
     }
 
+    public function test_get_last_im_var_missing() {
+        $this->assertNull($this->qa->get_last_qt_var('notthere'));
+    }
+
+    public function test_get_last_im_var_there() {
+        $this->qa->get_step(1)->set_im_var('_x', 'a value');
+        $this->assertEqual('a value', $this->qa->get_last_im_var('_x'));
+    }
+
     public function test_get_state_gets_state_of_last() {
         $this->qa->get_step(2)->set_state(question_state::GRADED_CORRECT);
         $this->qa->get_step(1)->set_state(question_state::GRADED_INCORRECT);

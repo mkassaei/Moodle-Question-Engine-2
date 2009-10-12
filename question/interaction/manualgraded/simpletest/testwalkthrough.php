@@ -29,7 +29,7 @@
 require_once(dirname(__FILE__) . '/../../../engine/lib.php');
 require_once(dirname(__FILE__) . '/../../../engine/simpletest/helpers.php');
 
-class question_manualgraded_model_walkthrough_test extends UnitTestCase {
+class qim_manualgraded_walkthrough_test extends UnitTestCase {
     public function test_manual_graded_essay() {
 
         // Create a true-false question with correct answer true.

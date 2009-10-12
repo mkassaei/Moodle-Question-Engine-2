@@ -27,5 +27,4 @@
 
 
 class qim_deferredfeedback_renderer extends qim_renderer {
-
 }

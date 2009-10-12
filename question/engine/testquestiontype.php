@@ -32,8 +32,9 @@ class question_truefalse extends question_definition {
     public $falsefeedback = 'This is the wrong answer.';
 
     public function get_interaction_model(question_attempt $qa, $preferredmodel) {
-        question_engine::load_interaction_model_class('deferredfeedback');
-        return new question_deferredfeedback_model($qa);
+        question_engine::load_interaction_model_class($preferredmodel);
+        $class = 'qim_' . $preferredmodel;
+        return new $class($qa);
     }
 
     public function get_renderer() {
@@ -176,7 +177,7 @@ class qtype_truefalse_renderer extends qtype_renderer {
 class question_essay extends question_definition {
     public function get_interaction_model(question_attempt $qa, $preferredmodel) {
         question_engine::load_interaction_model_class('manualgraded');
-        return new question_manualgraded_model($qa);
+        return new qim_manualgraded($qa);
     }
 
     public function get_renderer() {
