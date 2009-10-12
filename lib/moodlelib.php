@@ -6873,6 +6873,7 @@ function get_plugin_types($fullpaths=true) {
                       'repository'    => 'repository',
                       'portfolio'     => 'portfolio/type',
                       'qtype'         => 'question/type',
+                      'qim'           => 'question/interaction',
                       'qformat'       => 'question/format');
 
         $mods = get_plugin_list('mod');

@@ -26,6 +26,6 @@
  */
 
 
-class qim_deferredfeedback_renderer extends qim_renderer {
+class moodle_qim_deferredfeedback_renderer extends qim_renderer {
     
 }

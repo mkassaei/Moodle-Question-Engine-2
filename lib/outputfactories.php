@@ -146,7 +146,7 @@ class standard_renderer_factory extends renderer_factory_base {
      * @return object an object implementing the requested renderer interface.
      */
     public function get_renderer($module, $page, $subtype=null) {
-        if ($module == 'core') {
+        if ($module == 'core' && is_null($subtype)) {
             return new moodle_core_renderer($page);
         } else {
             $class = $this->standard_renderer_class_for_module($module, $subtype);

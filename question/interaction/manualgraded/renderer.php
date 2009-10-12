@@ -26,6 +26,6 @@
  */
 
 
-class qim_manualgraded_renderer extends qim_renderer {
+class moodle_qim_manualgraded_renderer extends qim_renderer {
     
 }

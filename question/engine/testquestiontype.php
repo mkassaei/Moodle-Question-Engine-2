@@ -36,8 +36,8 @@ class question_truefalse extends question_definition {
         return new question_deferredfeedback_model($qa);
     }
 
-    public function get_renderer() {
-        return renderer_factory::get_renderer('qtype_truefalse');
+    public function get_renderer($page) {
+        return $page->theme->get_renderer('qtype_truefalse', $page);
     }
 
     public function get_min_fraction() {
@@ -75,7 +75,7 @@ class question_truefalse extends question_definition {
 }
 
 
-class qtype_truefalse_renderer extends qtype_renderer {
+class moodle_qtype_truefalse_renderer extends qtype_renderer {
     public function formulation_and_controls(question_attempt $qa,
             question_display_options $options) {
 
@@ -179,8 +179,8 @@ class question_essay extends question_definition {
         return new question_manualgraded_model($qa);
     }
 
-    public function get_renderer() {
-        return renderer_factory::get_renderer('qtype_essay');
+    public function get_renderer($page) {
+        return $page->theme->get_renderer('qtype_essay', $page);
     }
 
     public function get_min_fraction() {
@@ -203,7 +203,7 @@ class question_essay extends question_definition {
 }
 
 
-class qtype_essay_renderer extends qtype_renderer {
+class moodle_qtype_essay_renderer extends qtype_renderer {
     public function formulation_and_controls(question_attempt $qa,
             question_display_options $options) {
 

@@ -32,7 +32,7 @@
  * @copyright © 2006 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_question_renderer extends moodle_renderer_base {
+class moodle_core_question_renderer extends moodle_renderer_base {
     public function question(question_attempt $qa, qim_renderer $qimoutput,
             qtype_renderer $qtoutput, question_display_options $options, $number) {
 

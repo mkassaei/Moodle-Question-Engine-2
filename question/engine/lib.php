@@ -26,7 +26,6 @@
  */
 
 
-require_once(dirname(__FILE__) . '/compatibility.php');
 require_once(dirname(__FILE__) . '/renderer.php');
 require_once(dirname(__FILE__) . '/testquestiontype.php');
 
@@ -472,9 +471,10 @@ class question_attempt {
     }
 
     public function render($options, $number) {
-        $qoutput = renderer_factory::get_renderer('core', 'question');
-        $qimoutput = $this->interactionmodel->get_renderer();
-        $qtoutput = $this->question->get_renderer();
+        global $PAGE;
+        $qoutput = $PAGE->theme->get_renderer('core', $PAGE, 'question');
+        $qimoutput = $this->interactionmodel->get_renderer($PAGE);
+        $qtoutput = $this->question->get_renderer($PAGE);
         return $qoutput->question($this, $qimoutput, $qtoutput, $options, $number);
     }
 
@@ -757,9 +757,9 @@ abstract class question_interaction_model {
         $this->question = $qa->get_question();
     }
 
-    public function get_renderer() {
+    public function get_renderer($page) {
         list($ignored, $type) = explode('_', get_class($this), 3);
-        return renderer_factory::get_renderer('qim_' . $type);
+        return $page->theme->get_renderer('qim_' . $type, $page);
     }
 
     public function get_min_fraction() {
