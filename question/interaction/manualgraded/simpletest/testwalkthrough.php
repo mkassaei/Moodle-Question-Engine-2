@@ -20,7 +20,7 @@
  * This file contains tests that walks a question through the manual graded
  * interaction model.
  *
- * @package question-engine
+ * @package qim_manualgraded
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

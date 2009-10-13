@@ -20,7 +20,7 @@
  * This file contains tests that walks a question through the deferred feedback
  * interaction model.
  *
- * @package question-engine
+ * @package qim_deferredfeedback
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

@@ -21,7 +21,7 @@
  * certainly based marking. That is, in addition to the other controls, there are
  * where the student can indicate how certain they are that their answer is right.
  *
- * @package qim_delayedfeedback
+ * @package qim_deferredcbm
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

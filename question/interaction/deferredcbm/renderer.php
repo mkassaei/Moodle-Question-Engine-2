@@ -20,7 +20,7 @@
  * Renderer for outputting parts of a question belonging to the delayed
  * feedback interaction model.
  *
- * @package qim_delayedfeedback
+ * @package qim_deferredcbm
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
