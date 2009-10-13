@@ -482,9 +482,8 @@ class question_attempt {
 
     public function render($options, $number) {
         $qoutput = renderer_factory::get_renderer('core', 'question');
-        $qimoutput = $this->interactionmodel->get_renderer();
         $qtoutput = $this->question->get_renderer();
-        return $qoutput->question($this, $qimoutput, $qtoutput, $options, $number);
+        return $this->interactionmodel->render($options, $number, $qoutput, $qtoutput);
     }
 
     protected function add_step(question_attempt_step $step) {
@@ -804,6 +803,15 @@ abstract class question_interaction_model {
     public function get_renderer() {
         list($ignored, $type) = explode('_', get_class($this), 3);
         return renderer_factory::get_renderer('qim_' . $type);
+    }
+
+    public function render($options, $number, $qoutput, $qtoutput) {
+        $qimoutput = $this->get_renderer();
+        $options = clone($options);
+        if (question_state::is_finished($this->qa->get_state())) {
+            $options->readonly = true;
+        }
+        return $qoutput->question($this->qa, $qimoutput, $qtoutput, $options, $number);
     }
 
     public function get_min_fraction() {

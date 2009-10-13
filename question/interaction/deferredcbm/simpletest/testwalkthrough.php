@@ -84,7 +84,8 @@ class qim_deferredcbm_walkthrough_test extends UnitTestCase {
         $this->assert(new ContainsTagWithAttributes('input',
                 array('type' => 'radio', 'name' => $answername, 'value' => 1, 'checked' => 'checked')), $html);
         $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $certaintyname, 'value' => 3, 'checked' => 'checked')), $html);
+                array('type' => 'radio', 'name' => $certaintyname, 'value' => 3, 'checked' => 'checked'),
+                array('disabled' => 'disabled')), $html);
         $this->assertNoPattern('/class=\"correctness/', $html);
 
         // Process the same data again, check it does not create a new step.
@@ -112,7 +113,8 @@ class qim_deferredcbm_walkthrough_test extends UnitTestCase {
                 '/' . preg_quote(get_string('correct', 'question')) . '/',
                 $html);
         $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $certaintyname, 'value' => 3, 'checked' => 'checked')), $html);
+                array('type' => 'radio', 'name' => $certaintyname, 'value' => 3,
+                'checked' => 'checked', 'disabled' => 'disabled')), $html);
 
         // Process a manual comment.
         $quba->manual_grade($qnumber, 1, 'Not good enough!');
@@ -125,7 +127,7 @@ class qim_deferredcbm_walkthrough_test extends UnitTestCase {
 
         // Now change the correct answer to the question, and regrade.
         $tf->rightanswer = false;
-        $html = $quba->regrade_all_questions();
+        $quba->regrade_all_questions();
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::MANUALLY_GRADED_PARTCORRECT);
@@ -163,7 +165,7 @@ class qim_deferredcbm_walkthrough_test extends UnitTestCase {
         $this->assert(new ContainsTagWithAttributes('input',
                 array('type' => 'radio', 'name' => $certaintyname, 'value' => 1)), $html);
 
-        // Begin the attempt. Creates an initial state with no certainty - should be incomplete.
+        // Sublint ansewer with low certainty.
         $quba->start_all_questions();
         $quba->process_action($qnumber, array('answer' => 1, '!certainty' => 1));
         $html = $quba->render_question($qnumber, $displayoptions);
@@ -173,7 +175,8 @@ class qim_deferredcbm_walkthrough_test extends UnitTestCase {
         $this->assertNull($quba->get_question_mark($qnumber));
         $this->assertNoPattern('/class=\"correctness/', $html);
         $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $certaintyname, 'value' => 1, 'checked' => 'checked')), $html);
+                array('type' => 'radio', 'name' => $certaintyname, 'value' => 1,
+                'checked' => 'checked'), array('disabled' => 'disabled')), $html);
 
         // Finish the attempt.
         $quba->finish_all_questions();
@@ -185,6 +188,9 @@ class qim_deferredcbm_walkthrough_test extends UnitTestCase {
         $this->assertPattern(
                 '/' . preg_quote(get_string('correct', 'question')) . '/',
                 $html);
+        $this->assert(new ContainsTagWithAttributes('input',
+                array('type' => 'radio', 'name' => $certaintyname, 'value' => 1,
+                'checked' => 'checked', 'disabled' => 'disabled')), $html);
     }
 }
 

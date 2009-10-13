@@ -253,7 +253,7 @@ class qtype_essay_renderer extends qtype_renderer {
         } else {
             // it is read only, so just format the students answer and output it
             $answer = format_text($response, FORMAT_MOODLE,
-                                  $safeformatoptions, $cmoptions->course);
+                                  $safeformatoptions);
             $answer = '<div class="answerreview">' . $answer . '</div>';
         }
 

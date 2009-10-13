@@ -34,7 +34,7 @@ class qim_deferredcbm_renderer extends qim_renderer {
             'name' => $controlname,
         );
         if ($options->readonly) {
-            $attributes['readonly'] = 'readonly';
+            $attributes['disabled'] = 'disabled';
         }
 
         $selected = $qa->get_last_im_var('certainty');

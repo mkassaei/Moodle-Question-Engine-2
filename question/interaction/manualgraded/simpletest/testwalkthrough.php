@@ -102,7 +102,7 @@ class qim_manualgraded_walkthrough_test extends UnitTestCase {
 
         // Now change the max mark for the question and regrade.
         $essay->maxmark = 1;
-        $html = $quba->regrade_all_questions();
+        $quba->regrade_all_questions();
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::MANUALLY_GRADED_CORRECT);
