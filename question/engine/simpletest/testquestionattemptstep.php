@@ -62,8 +62,7 @@ class question_attempt_step_test extends UnitTestCase {
         $step = new question_attempt_step(array('x' => 1, '!y' => 'frog'));
         $this->assertEqual('1', $step->get_qt_var('x'));
         $this->assertEqual('frog', $step->get_im_var('y'));
-        $this->expectException();
-        $step->get_qt_var('y');
+        $this->assertNull($step->get_qt_var('y'));
     }
 
     public function test_set_var() {

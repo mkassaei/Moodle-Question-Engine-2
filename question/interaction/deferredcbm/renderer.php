@@ -37,7 +37,7 @@ class qim_deferredcbm_renderer extends qim_renderer {
             $attributes['readonly'] = 'readonly';
         }
 
-        $selected = $qa->get_last_qt_var('certainty');
+        $selected = $qa->get_last_im_var('certainty');
 
         $choices = '';
         foreach (qim_deferredcbm::$certainties as $certainly) {

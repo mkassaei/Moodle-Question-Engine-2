@@ -49,13 +49,13 @@ class qim_deferredcbm extends qim_deferredfeedback {
 
     public static $certainties = array(self::LOW, self::MED, self::HIGH);
 
-    protected static $offset = array(
+    protected static $factor = array(
         self::LOW => self::LOW_FACTOR,
         self::MED => self::MED_FACTOR,
         self::HIGH => self::HIGH_FACTOR,
     );
 
-    protected static $factor = array(
+    protected static $offset = array(
         self::LOW => self::LOW_OFFSET,
         self::MED => self::MED_OFFSET,
         self::HIGH => self::HIGH_OFFSET,
@@ -79,27 +79,25 @@ class qim_deferredcbm extends qim_deferredfeedback {
         }
     }
 
-    public function process_save(question_attempt_step $pendingstep) {
-        $status = parent::process_save($pendingstep);
-        if ($status == question_attempt::KEEP) {
-            if ($pendingstep->get_state() == question_state::COMPLETE &&
-                    !$pendingstep->has_im_var('certainty')) {
-                $pendingstep->set_state(question_state::INCOMPLETE);
-            }
-        }
-        return $status;
+    protected function is_same_response($pendingstep) {
+        return parent::is_same_response($pendingstep) &&
+                $this->qa->get_last_im_var('certainty') == $pendingstep->get_im_var('certainty');
+    }
+
+    protected function is_complete_response($pendingstep) {
+        return parent::is_complete_response($pendingstep) && $pendingstep->has_im_var('certainty');
     }
 
     public function process_finish(question_attempt_step $pendingstep) {
         $status = parent::process_finish($pendingstep);
         if ($status == question_attempt::KEEP) {
-            if ($pendingstep->has_im_var('certainty')) {
-                $certainty = $pendingstep->get_im_var('certainty');
+            $fraction = $pendingstep->get_fraction();
+            if ($this->qa->get_last_step()->has_im_var('certainty')) {
+                $certainty = $this->qa->get_last_step()->get_im_var('certainty');
             } else {
                 $certainty = self::LOW;
-                $pendingstep->set_im_var('_assumedcertainty', self::LOW);
+                $pendingstep->set_im_var('_assumedcertainty', $certainty);
             }
-            $fraction = $pendingstep->get_fraction();
             if (!is_null($fraction)) {
                 $pendingstep->set_fraction($this->adjust_fraction($fraction, $certainty));
             }

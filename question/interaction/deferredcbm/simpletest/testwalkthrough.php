@@ -36,7 +36,7 @@ class qim_deferredcbm_walkthrough_test extends UnitTestCase {
         $tf = test_question_maker::make_a_truefalse_question();
         $displayoptions = new question_display_options();
 
-        // Start a delayed feedback attempt and add the question to it.
+        // Start a delayed feedback attempt with CBM and add the question to it.
         $tf->maxmark = 2;
         $quba = question_engine::make_questions_usage_by_activity('unit_test');
         $quba->set_preferred_interaction_model('deferredcbm');
@@ -82,7 +82,9 @@ class qim_deferredcbm_walkthrough_test extends UnitTestCase {
         $this->assertEqual($quba->get_question_state($qnumber), question_state::COMPLETE);
         $this->assertNull($quba->get_question_mark($qnumber));
         $this->assert(new ContainsTagWithAttributes('input',
-                array('name' => $answername, 'value' => 1)), $html);
+                array('type' => 'radio', 'name' => $answername, 'value' => 1, 'checked' => 'checked')), $html);
+        $this->assert(new ContainsTagWithAttributes('input',
+                array('type' => 'radio', 'name' => $certaintyname, 'value' => 3, 'checked' => 'checked')), $html);
         $this->assertNoPattern('/class=\"correctness/', $html);
 
         // Process the same data again, check it does not create a new step.
@@ -96,7 +98,7 @@ class qim_deferredcbm_walkthrough_test extends UnitTestCase {
         $this->assertEqual($quba->get_question_state($qnumber), question_state::COMPLETE);
 
         // Change back, check it creates a new step.
-        $quba->process_action($qnumber, array('answer' => 1, '!certainty' => 3));
+        $quba->process_action($qnumber, $submitteddata);
         $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps + 2);
 
         // Finish the attempt.
@@ -109,6 +111,8 @@ class qim_deferredcbm_walkthrough_test extends UnitTestCase {
         $this->assertPattern(
                 '/' . preg_quote(get_string('correct', 'question')) . '/',
                 $html);
+        $this->assert(new ContainsTagWithAttributes('input',
+                array('type' => 'radio', 'name' => $certaintyname, 'value' => 3, 'checked' => 'checked')), $html);
 
         // Process a manual comment.
         $quba->manual_grade($qnumber, 1, 'Not good enough!');
@@ -128,7 +132,7 @@ class qim_deferredcbm_walkthrough_test extends UnitTestCase {
         $this->assertEqual($quba->get_question_mark($qnumber), 1);
         $numsteps = $quba->get_question_attempt($qnumber)->get_num_steps();
         $autogradedstep = $quba->get_question_attempt($qnumber)->get_step($numsteps - 2);
-        $this->assertWithinMargin($autogradedstep->get_fraction(), 0, 0.0000001);
+        $this->assertWithinMargin($autogradedstep->get_fraction(), -2, 0.0000001);
     }
 
     public function test_delayed_cbm_truefalse_low_certainty() {
@@ -144,6 +148,8 @@ class qim_deferredcbm_walkthrough_test extends UnitTestCase {
         $qnumber = $quba->add_question($tf);
         // Different from $tf->id since the same question may be used twice in
         // the same attempt.
+        $prefix = $quba->get_field_prefix($qnumber);
+        $certaintyname = $prefix . '!certainty';
 
         // Begin the attempt. Creates an initial state with no certainty - should be incomplete.
         $quba->start_all_questions();
@@ -153,19 +159,21 @@ class qim_deferredcbm_walkthrough_test extends UnitTestCase {
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::INCOMPLETE);
         $this->assertNull($quba->get_question_mark($qnumber));
-        // Test correct radio button is selected.
         $this->assertNoPattern('/class=\"correctness/', $html);
+        $this->assert(new ContainsTagWithAttributes('input',
+                array('type' => 'radio', 'name' => $certaintyname, 'value' => 1)), $html);
 
         // Begin the attempt. Creates an initial state with no certainty - should be incomplete.
         $quba->start_all_questions();
-        $quba->process_action($qnumber, array('answer' => 1, '!cerrtainty' => 1));
+        $quba->process_action($qnumber, array('answer' => 1, '!certainty' => 1));
         $html = $quba->render_question($qnumber, $displayoptions);
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::COMPLETE);
         $this->assertNull($quba->get_question_mark($qnumber));
-        // Test correct radio button is selected.
         $this->assertNoPattern('/class=\"correctness/', $html);
+        $this->assert(new ContainsTagWithAttributes('input',
+                array('type' => 'radio', 'name' => $certaintyname, 'value' => 1, 'checked' => 'checked')), $html);
 
         // Finish the attempt.
         $quba->finish_all_questions();

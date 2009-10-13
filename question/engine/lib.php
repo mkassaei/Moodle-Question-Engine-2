@@ -450,7 +450,7 @@ class question_attempt {
     public function get_last_im_var($name, $default = null) {
         foreach ($this->get_reverse_step_iterator() as $step) {
             if ($step->has_im_var($name)) {
-                return $step->has_im_var($name);
+                return $step->get_im_var($name);
             }
         }
         return $default;
@@ -668,9 +668,13 @@ class question_attempt_step {
         return array_key_exists($name, $this->data);
     }
 
+    /**
+     * @param string $name the name of a question type variable to look for in the submitted data.
+     * @return string the requested variable, or null if the variable is not set.
+     */
     public function get_qt_var($name) {
         if (!$this->has_qt_var($name)) {
-            throw new Exception('Unknown variable ' . $name . ' in submitted question type data.');
+            return null;
         }
         return $this->data[$name];
     }
@@ -696,9 +700,13 @@ class question_attempt_step {
         return array_key_exists('!' . $name, $this->data);
     }
 
+    /**
+     * @param string $name the name of an interaction model variable to look for in the submitted data.
+     * @return string the requested variable, or null if the variable is not set.
+     */
     public function get_im_var($name) {
         if (!$this->has_im_var($name)) {
-            throw new Exception('Unknown variable ' . $name . ' in submitted iteraction model data.');
+            return null;
         }
         return $this->data['!' . $name];
     }
@@ -788,16 +796,24 @@ abstract class question_interaction_model {
 
     public abstract function process_action(question_attempt_step $pendingstep);
 
+    protected function is_same_response($pendingstep) {
+        return $this->question->is_same_response(
+                $this->qa->get_last_step()->get_qt_data(), $pendingstep->get_qt_data());
+    }
+
+    protected function is_complete_response($pendingstep) {
+        return $this->question->is_complete_response($pendingstep->get_qt_data());
+    }
+
     public function process_save(question_attempt_step $pendingstep) {
         if (!question_state::is_active($this->qa->get_state())) {
             throw new Exception('Question is already closed, cannot process_actions.');
         }
-        if ($this->question->is_same_response(
-                $this->qa->get_last_step()->get_qt_data(), $pendingstep->get_qt_data())) {
+        if ($this->is_same_response($pendingstep)) {
             return question_attempt::DISCARD;
         }
 
-        if ($this->question->is_complete_response($pendingstep->get_qt_data())) {
+        if ($this->is_complete_response($pendingstep)) {
             $pendingstep->set_state(question_state::COMPLETE);
         } else {
             $pendingstep->set_state(question_state::INCOMPLETE);

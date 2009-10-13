@@ -39,6 +39,7 @@ $test->addTestClass('question_attempt_step_test');
 $test->addTestClass('question_attempt_step_iterator_test');
 $test->addTestClass('question_attempt_test');
 $test->addTestClass('question_attempt_with_steps_test');
+$test->addTestClass('question_attempt_with_steps_test');
 $test->addTestClass('qim_deferredfeedback_walkthrough_test');
 $test->addTestClass('qim_manualgraded_walkthrough_test');
 $test->addTestClass('qim_deferredcbm_walkthrough_test');
