@@ -45,6 +45,16 @@ class question_truefalse extends question_definition {
         return 0;
     }
 
+    /**
+     * Return an array of the interaction model variables that could be submitted
+     * as part of a question of this type, with their types, so they can be
+     * properly cleaned.
+     * @return array variable name => PARAM_... constant.
+     */
+    public function get_expected_data() {
+        return array('answer' => PARAM_INT);
+    }
+
     public function is_same_response(array $prevresponse, array $newresponse) {
         // Check that the two arrays have exactly the same keys and values.
         $diff1 = array_diff_assoc($prevresponse, $newresponse);
@@ -186,6 +196,16 @@ class question_essay extends question_definition {
 
     public function get_min_fraction() {
         return 0;
+    }
+
+    /**
+     * Return an array of the interaction model variables that could be submitted
+     * as part of a question of this type, with their types, so they can be
+     * properly cleaned.
+     * @return array variable name => PARAM_... constant.
+     */
+    public function get_expected_data() {
+        return array('answer' => PARAM_CLEANHTML);
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {

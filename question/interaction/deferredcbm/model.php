@@ -69,6 +69,10 @@ class qim_deferredcbm extends qim_deferredfeedback {
         return $this->adjust_fraction(parent::get_min_fraction(), self::HIGH);
     }
 
+    public function get_expected_data() {
+        return array('certainty' => PARAM_INT);
+    }
+
     public function process_action(question_attempt_step $pendingstep) {
         if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);

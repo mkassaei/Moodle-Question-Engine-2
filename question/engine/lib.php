@@ -288,15 +288,7 @@ class question_usage_by_activity {
     }
 
     public function extract_responses($qnumber, $postdata) {
-        $prefix = $this->get_field_prefix($qnumber);
-        $prefixlen = strlen($prefix);
-        $submitteddata = array();
-        foreach ($postdata as $name => $value) {
-            if (substr($name, 0, $prefixlen) == $prefix) {
-                $submitteddata[substr($name, $prefixlen)] = $value;
-            }
-        }
-        return $submitteddata;
+        return $this->get_question_attempt($qnumber)->get_submitted_data($postdata);
     }
 
     public function process_action($qnumber, $submitteddata) {
@@ -507,6 +499,33 @@ class question_attempt {
         $firststep->set_state(question_state::INCOMPLETE);
         $this->interactionmodel->init_first_step($firststep);
         $this->add_step($firststep);
+    }
+
+    protected function get_submitted_var($name, $type, $postdata) {
+        if (is_null($postdata)) {
+            return optional_param($name, null, $type);
+        } else if (array_key_exists($name, $postdata)) {
+            return clean_param($postdata[$name], $type);
+        } else {
+            return null;
+        }
+    }
+
+    public function get_submitted_data($postdata) {
+        $submitteddata = array();
+        foreach ($this->interactionmodel->get_expected_data() as $name => $type) {
+            $value = $this->get_submitted_var($this->get_im_field_name($name), $type, $postdata);
+            if (!is_null($value)) {
+                $submitteddata['!' . $name] = $value;
+            }
+        }
+        foreach ($this->question->get_expected_data() as $name => $type) {
+            $value = $this->get_submitted_var($this->get_qt_field_name($name), $type, $postdata);
+            if (!is_null($value)) {
+                $submitteddata[$name] = $value;
+            }
+        }
+        return $submitteddata;
     }
 
     public function process_action($submitteddata) {
@@ -792,6 +811,16 @@ abstract class question_interaction_model {
     }
 
     public function init_first_step(question_attempt_step $step) {
+    }
+
+    /**
+     * Return an array of the interaction model variables that could be submitted
+     * as part of a question of this type, with their types, so they can be
+     * properly cleaned.
+     * @return array variable name => PARAM_... constant.
+     */
+    public function get_expected_data() {
+        return array();
     }
 
     public abstract function process_action(question_attempt_step $pendingstep);
