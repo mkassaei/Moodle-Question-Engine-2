@@ -22,7 +22,8 @@
  * Action methods like start, process_action and finish are assumed to be
  * tested by testintegration.php.
  *
- * @package question-engine
+ * @package moodlecore
+ * @subpackage questionengine
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

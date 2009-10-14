@@ -104,13 +104,12 @@ abstract class question_state {
     }
 
     public static function is_finished($state) {
-        return !in_array($state,
-                array(self::NOT_STARTED, self::INCOMPLETE, self::COMPLETE));
+        return $state >= self::NEEDS_GRADING;
     }
 
     public static function is_graded($state) {
         return ($state >= self::GRADED_INCORRECT && $state <= self::GRADED_CORRECT) ||
-                ($state >= self::MANUALLY_GRADED_INCORRECT && $state >= self::MANUALLY_GRADED_CORRECT);
+                ($state >= self::MANUALLY_GRADED_INCORRECT && $state <= self::MANUALLY_GRADED_CORRECT);
     }
 
     public static function graded_state_for_fraction($fraction) {
