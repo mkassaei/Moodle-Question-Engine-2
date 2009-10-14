@@ -156,6 +156,13 @@ class qim_deferredfeedback_walkthrough_test extends UnitTestCase {
 
         // Begin the attempt. Creates an initial state for each question.
         $quba->start_all_questions();
+        $order = $mc->get_order($quba->get_question_attempt($qnumber));
+        foreach ($order as $i => $ansid) {
+            if ($mc->answers[$ansid]->fraction == 1) {
+                $rightindex = $i;
+                break;
+            }
+        }
 
         // Output the question in the initial state.
         $html = $quba->render_question($qnumber, $displayoptions);
@@ -173,13 +180,13 @@ class qim_deferredfeedback_walkthrough_test extends UnitTestCase {
 
         // Simulate some data submitted by the student.
         $getdata = array(
-            $answername => 1,
+            $answername => $rightindex,
             'irrelevant' => 'should be ignored',
         );
         $submitteddata = $quba->extract_responses($qnumber, $getdata);
 
         // Verify.
-        $this->assertEqual(array('answer' => 1), $submitteddata);
+        $this->assertEqual(array('answer' => $rightindex), $submitteddata);
 
         // Process the data extracted for this question.
         $quba->process_action($qnumber, $submitteddata);
@@ -189,8 +196,14 @@ class qim_deferredfeedback_walkthrough_test extends UnitTestCase {
         $this->assertEqual($quba->get_question_state($qnumber), question_state::COMPLETE);
         $this->assertNull($quba->get_question_mark($qnumber));
         $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $answername, 'value' => 1),
+                array('type' => 'radio', 'name' => $answername, 'value' => $rightindex, 'checked' => 'checked'),
                 array('disabled' => 'disabled')), $html);
+        $this->assert(new ContainsTagWithAttributes('input',
+                array('type' => 'radio', 'name' => $answername, 'value' => ($rightindex + 1) % 3),
+                array('disabled' => 'disabled', 'checked' => 'checked')), $html);
+        $this->assert(new ContainsTagWithAttributes('input',
+                array('type' => 'radio', 'name' => $answername, 'value' => ($rightindex + 2) % 3),
+                array('disabled' => 'disabled', 'checked' => 'checked')), $html);
         $this->assertNoPattern('/class=\"correctness/', $html);
 
         // Finish the attempt.
@@ -198,25 +211,26 @@ class qim_deferredfeedback_walkthrough_test extends UnitTestCase {
         $html = $quba->render_question($qnumber, $displayoptions);
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::GRADED_INCORRECT);
-        $this->assertEqual($quba->get_question_mark($qnumber), 0);
-        $this->assertPattern(
-                '/' . preg_quote(get_string('incorrect', 'question')) . '/',
-                $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $answername, 'value' => 1,
-                'disabled' => 'disabled')), $html);
-
-        // Now change the correct answer to the question, and regrade.
-        $mc->answer[0]->fraction = 0;
-        $mc->answer[1]->fraction = 1;
-        $quba->regrade_all_questions();
-
-        // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::GRADED_CORRECT);
         $this->assertEqual($quba->get_question_mark($qnumber), 3);
         $this->assertPattern(
                 '/' . preg_quote(get_string('correct', 'question')) . '/',
+                $html);
+        $this->assert(new ContainsTagWithAttributes('input',
+                array('type' => 'radio', 'name' => $answername, 'value' => $rightindex,
+                'disabled' => 'disabled')), $html);
+
+        // Now change the correct answer to the question, and regrade.
+        $mc->answers[13]->fraction = 0;
+        $mc->answers[14]->fraction = 1;
+        $quba->regrade_all_questions();
+        $html = $quba->render_question($qnumber, $displayoptions);
+
+        // Verify.
+        $this->assertEqual($quba->get_question_state($qnumber), question_state::GRADED_INCORRECT);
+        $this->assertEqual($quba->get_question_mark($qnumber), 0);
+        $this->assertPattern(
+                '/' . preg_quote(get_string('incorrect', 'question')) . '/',
                 $html);
     }
 }

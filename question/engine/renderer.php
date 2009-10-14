@@ -205,7 +205,10 @@ abstract class qim_renderer extends moodle_renderer_base {
         responses (and penalties) */
 
         if ($qa->get_max_mark() > 0 && $options->marks) {
+            echo 'xxx';
+            print_object($qa->get_state()); // DONOTCOMMIT
             if (question_state::is_graded($qa->get_state())) {
+                echo 'yyy';
                 // Display the grading details from the last graded state
                 $mark = new stdClass;
                 $mark->cur = $qa->format_mark($options->markdp);

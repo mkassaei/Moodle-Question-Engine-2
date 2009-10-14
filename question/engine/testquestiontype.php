@@ -285,7 +285,7 @@ class qtype_multichoice_single_renderer extends qtype_renderer {
 
         $question = $qa->get_question();
         $order = $question->get_order($qa);
-        $response = $qa->get_last_qt_var('answer', -1);
+        $response = $qa->get_last_qt_var('answer', 123);
 
         $inputname = $qa->get_qt_field_name('answer');
         $inputattributes = array(
@@ -326,6 +326,7 @@ class qtype_multichoice_single_renderer extends qtype_renderer {
             $ans = $question->answers[$ansid];
             $inputattributes['value'] = $value;
             $inputattributes['id'] = $inputname . $value;
+            print_object("$response, $value => $ansid"); // DONOTCOMMIT
             if ($response == $value) {
                 $inputattributes['checked'] = 'checked';
             } else {
@@ -357,12 +358,12 @@ class qtype_multichoice_single_renderer extends qtype_renderer {
 
         $result .= $this->output_start_tag('div', array('class' => 'ablock clearfix'));
         $result .= $this->output_tag('div', array('class' => 'prompt'),
-                get_string('selectoneanswer', 'qtype_multichoice'));
+                get_string('selectoneanswer', 'qtype_multichoice')) . "\n";
 
-        $result .= $this->output_start_tag('div', array('class' => 'answer'));
+        $result .= $this->output_start_tag('div', array('class' => 'answer')) . "\n";
         foreach ($radiobuttons as $key => $radio) {
             $result .= $this->output_tag('span', array('class' => $classes[$key]),
-                    $radio . $feedbackimg[$key], $feedback[$key]);
+                    $radio . $feedbackimg[$key], $feedback[$key]) . "\n";
         }
         $result .= $this->output_end_tag('div'); // answer
 

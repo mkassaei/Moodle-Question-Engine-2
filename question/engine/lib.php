@@ -109,7 +109,7 @@ abstract class question_state {
     }
 
     public static function is_graded($state) {
-        return ($state >= self::GRADED_INCORRECT && $state >= self::GRADED_CORRECT) ||
+        return ($state >= self::GRADED_INCORRECT && $state <= self::GRADED_CORRECT) ||
                 ($state >= self::MANUALLY_GRADED_INCORRECT && $state >= self::MANUALLY_GRADED_CORRECT);
     }
 
@@ -261,6 +261,10 @@ class question_usage_by_activity {
         return count($this->questionattempts);
     }
 
+    /**
+     * @param integer $qnumber
+     * @return question_attempt
+     */
     public function get_question_attempt($qnumber) {
         if (!array_key_exists($qnumber, $this->questionattempts)) {
             throw new exception("There is no question_attempt number $qnumber in this attempt.");
@@ -311,7 +315,7 @@ class question_usage_by_activity {
     public function regrade_question($qnumber) {
         $oldqa = $this->get_question_attempt($qnumber);
         $newqa = new question_attempt($oldqa->get_question(), $oldqa->get_usage_id());
-        $newqa->start($this->preferredmodel); // TODO handle things like random seed.
+        $oldfirststep = $oldqa->get_step(0);
         $newqa->regrade($oldqa);
         $this->questionattempts[$qnumber] = $newqa;
     }
@@ -432,7 +436,7 @@ class question_attempt {
     public function get_last_qt_var($name, $default = null) {
         foreach ($this->get_reverse_step_iterator() as $step) {
             if ($step->has_qt_var($name)) {
-                return $step->has_qt_var($name);
+                return $step->get_qt_var($name);
             }
         }
         return $default;
@@ -497,11 +501,16 @@ class question_attempt {
         $this->steps[] = $step;
     }
 
-    public function start($preferredmodel) {
-        $this->interactionmodel =
-                $this->question->get_interaction_model($this, $preferredmodel);
+    public function start($preferredmodel, $submitteddata = array(), $timestamp = null, $userid = null) {
+        if (is_string($preferredmodel)) {
+            $this->interactionmodel =
+                    $this->question->get_interaction_model($this, $preferredmodel);
+        } else {
+            $class = get_class($preferredmodel);
+            $this->interactionmodel = new $class($this);
+        }
         $this->minfraction = $this->interactionmodel->get_min_fraction();
-        $firststep = new question_attempt_step();
+        $firststep = new question_attempt_step($submitteddata, $timestamp, $userid);
         $firststep->set_state(question_state::INCOMPLETE);
         $this->interactionmodel->init_first_step($firststep);
         $this->add_step($firststep);
@@ -534,30 +543,38 @@ class question_attempt {
         return $submitteddata;
     }
 
-    public function process_action($submitteddata) {
-        $pendingstep = new question_attempt_step($submitteddata);
+    public function process_action($submitteddata, $timestamp = null, $userid = null) {
+        $pendingstep = new question_attempt_step($submitteddata, $timestamp, $userid);
         if ($this->interactionmodel->process_action($pendingstep) == self::KEEP) {
             $this->add_step($pendingstep);
         }
     }
 
-    public function finish() {
-        $this->process_action(array('!finish' => 1));
+    public function finish($timestamp = null, $userid = null) {
+        $this->process_action(array('!finish' => 1), $timestamp, $userid);
     }
 
     public function regrade(question_attempt $oldqa) {
+        $first = true;
         foreach ($oldqa->get_step_iterator() as $step) {
-            $this->process_action($step->get_submitted_data());
+            if ($first) {
+                $first = false;
+                $this->start($oldqa->interactionmodel, $step->get_qt_data(),
+                        $step->get_timestamp(), $step->get_user_id());
+            } else {
+                $this->process_action($step->get_submitted_data(),
+                        $step->get_timestamp(), $step->get_user_id());
+            }
         }
     }
 
-    public function manual_grade($comment, $mark) {
+    public function manual_grade($comment, $mark, $timestamp = null, $userid = null) {
         $submitteddata = array('!comment' => $comment);
         if (!is_null($mark)) {
             $submitteddata['!mark'] = $mark;
             $submitteddata['!maxmark'] = $this->maxmark;
         }
-        $this->process_action($submitteddata);
+        $this->process_action($submitteddata, $timestamp, $userid);
     }
 
     public function has_manual_comment() {

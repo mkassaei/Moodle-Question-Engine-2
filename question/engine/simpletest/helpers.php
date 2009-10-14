@@ -108,9 +108,9 @@ class test_question_maker {
         $mc->shuffleanswers = 1;
 
         $mc->answers = array(
-            0 => new question_answer('A', 1, 'A is right'),
-            1 => new question_answer('B', 0, 'B is wrong'),
-            2 => new question_answer('C', 0, 'C is wrong'),
+            13 => new question_answer('A', 1, 'A is right'),
+            14 => new question_answer('B', 0, 'B is wrong'),
+            15 => new question_answer('C', 0, 'C is wrong'),
         );
 
         return $mc;

@@ -170,7 +170,7 @@ class question_attempt_with_steps_test extends UnitTestCase {
 
     public function test_get_last_im_var_there() {
         $this->qa->get_step(1)->set_im_var('_x', 'a value');
-        $this->assertEqual('a value', $this->qa->get_last_im_var('_x'));
+        $this->assertEqual('a value', '' . $this->qa->get_last_im_var('_x'));
     }
 
     public function test_get_state_gets_state_of_last() {
