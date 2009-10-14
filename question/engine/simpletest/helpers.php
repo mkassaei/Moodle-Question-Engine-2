@@ -50,7 +50,7 @@ class testable_question_attempt extends question_attempt {
  */
 class test_question_maker {
     /**
-     * Initialise the common fields of a question of any type..
+     * Initialise the common fields of a question of any type.
      */
     private static function initialise_a_question($q) {
         global $USER;
@@ -73,10 +73,10 @@ class test_question_maker {
 
     /**
      * Makes a truefalse question with correct ansewer true, defaultgrade 1.
-     * @return question_truefalse
+     * @return qtype_truefalse_question
      */
     public static function make_a_truefalse_question() {
-        $tf = new question_truefalse();
+        $tf = new qtype_truefalse_question();
         self::initialise_a_question($tf);
         $tf->name = 'True/false question';
         $tf->questiontext = 'The answer is true.';
@@ -91,13 +91,37 @@ class test_question_maker {
         return $tf;
     }
 
+    /**
+     * Makes a multichoice question with choices 'A', 'B' and 'C' shuffled. 'A'
+     * is correct, defaultgrade 1.
+     * @return qtype_multichoice_single_question
+     */
+    public static function make_a_multichoice_single_question() {
+        $mc = new qtype_multichoice_single_question();
+        self::initialise_a_question($mc);
+        $mc->name = 'Multi-choice question, single response';
+        $mc->questiontext = 'The answer is A.';
+        $mc->generalfeedback = 'You should have selected A.';
+        $mc->penalty = 0.3333333;
+        $mc->qtype = question_engine::get_qtype('multichoice');
+
+        $mc->shuffleanswers = 1;
+
+        $mc->answers = array(
+            0 => new question_answer('A', 1, 'A is right'),
+            1 => new question_answer('B', 0, 'B is wrong'),
+            2 => new question_answer('C', 0, 'C is wrong'),
+        );
+
+        return $mc;
+    }
 
     /**
      * Makes a truefalse question with correct ansewer true, defaultgrade 1.
      * @return question_truefalse
      */
     public static function make_an_essay_question() {
-        $essay = new question_essay();
+        $essay = new qtype_essay_question();
         self::initialise_a_question($essay);
         $essay->name = 'Essay question';
         $essay->questiontext = 'Write an essay.';

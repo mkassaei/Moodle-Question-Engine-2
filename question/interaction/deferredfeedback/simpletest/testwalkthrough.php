@@ -132,4 +132,91 @@ class qim_deferredfeedback_walkthrough_test extends UnitTestCase {
         $autogradedstep = $quba->get_question_attempt($qnumber)->get_step($numsteps - 2);
         $this->assertWithinMargin($autogradedstep->get_fraction(), 0, 0.0000001);
     }
+
+    public function test_delayed_feedback_multichoice_single() {
+
+        // Create a true-false question with correct answer true.
+        $mc = test_question_maker::make_a_multichoice_single_question();
+        $displayoptions = new question_display_options();
+
+        // Start a delayed feedback attempt and add the question to it.
+        $mc->maxmark = 3;
+        $quba = question_engine::make_questions_usage_by_activity('unit_test');
+        $quba->set_preferred_interaction_model('deferredfeedback');
+        $qnumber = $quba->add_question($mc);
+        // Different from $mc->id since the same question may be used twice in
+        // the same attempt.
+        $prefix = $quba->get_field_prefix($qnumber);
+        $answername = $prefix . 'answer';
+
+        // Verify.
+        $this->assertEqual($qnumber, 1);
+        $this->assertEqual($quba->question_count(), 1);
+        $this->assertEqual($quba->get_question_state($qnumber), question_state::NOT_STARTED);
+
+        // Begin the attempt. Creates an initial state for each question.
+        $quba->start_all_questions();
+
+        // Output the question in the initial state.
+        $html = $quba->render_question($qnumber, $displayoptions);
+
+        // Verify.
+        $this->assertEqual($quba->get_question_state($qnumber), question_state::INCOMPLETE);
+        $this->assertNull($quba->get_question_mark($qnumber));
+        $this->assertPattern('/' . preg_quote($mc->questiontext) . '/', $html);
+        $this->assert(new ContainsTagWithAttributes('input',
+                array('type' => 'radio', 'name' => $answername, 'value' => 2),
+                array('disabled' => 'disabled')), $html);
+        $this->assert(new ContainsTagWithAttributes('input',
+                array('type' => 'radio', 'name' => $answername, 'value' => 0),
+                array('disabled' => 'disabled')), $html);
+
+        // Simulate some data submitted by the student.
+        $getdata = array(
+            $answername => 1,
+            'irrelevant' => 'should be ignored',
+        );
+        $submitteddata = $quba->extract_responses($qnumber, $getdata);
+
+        // Verify.
+        $this->assertEqual(array('answer' => 1), $submitteddata);
+
+        // Process the data extracted for this question.
+        $quba->process_action($qnumber, $submitteddata);
+        $html = $quba->render_question($qnumber, $displayoptions);
+
+        // Verify.
+        $this->assertEqual($quba->get_question_state($qnumber), question_state::COMPLETE);
+        $this->assertNull($quba->get_question_mark($qnumber));
+        $this->assert(new ContainsTagWithAttributes('input',
+                array('type' => 'radio', 'name' => $answername, 'value' => 1),
+                array('disabled' => 'disabled')), $html);
+        $this->assertNoPattern('/class=\"correctness/', $html);
+
+        // Finish the attempt.
+        $quba->finish_all_questions();
+        $html = $quba->render_question($qnumber, $displayoptions);
+
+        // Verify.
+        $this->assertEqual($quba->get_question_state($qnumber), question_state::GRADED_INCORRECT);
+        $this->assertEqual($quba->get_question_mark($qnumber), 0);
+        $this->assertPattern(
+                '/' . preg_quote(get_string('incorrect', 'question')) . '/',
+                $html);
+        $this->assert(new ContainsTagWithAttributes('input',
+                array('type' => 'radio', 'name' => $answername, 'value' => 1,
+                'disabled' => 'disabled')), $html);
+
+        // Now change the correct answer to the question, and regrade.
+        $mc->answer[0]->fraction = 0;
+        $mc->answer[1]->fraction = 1;
+        $quba->regrade_all_questions();
+
+        // Verify.
+        $this->assertEqual($quba->get_question_state($qnumber), question_state::GRADED_CORRECT);
+        $this->assertEqual($quba->get_question_mark($qnumber), 3);
+        $this->assertPattern(
+                '/' . preg_quote(get_string('correct', 'question')) . '/',
+                $html);
+    }
 }

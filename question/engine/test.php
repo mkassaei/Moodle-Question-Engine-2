@@ -9,6 +9,7 @@ require_once($CFG->dirroot . '/question/engine/simpletest/testquestionattemptste
 require_once($CFG->dirroot . '/question/interaction/deferredfeedback/simpletest/testwalkthrough.php');
 require_once($CFG->dirroot . '/question/interaction/manualgraded/simpletest/testwalkthrough.php');
 require_once($CFG->dirroot . '/question/interaction/deferredcbm/simpletest/testwalkthrough.php');
+require_once($CFG->dirroot . '/question/interaction/adaptive/simpletest/testwalkthrough.php');
 
 define('QUESTION_FLAGSHIDDEN', 0);
 define('QUESTION_FLAGSSHOWN', 1);
@@ -17,6 +18,12 @@ define('QUESTION_FLAGSEDITABLE', 2);
 class question_truefalse_qtype {
     public function name() {
         return 'truefalse';
+    }
+}
+
+class question_multichoice_qtype {
+    public function name() {
+        return 'multichoice';
     }
 }
 
@@ -29,6 +36,7 @@ class question_essay_qtype {
 global $QTYPES;
 $QTYPES = array(
     'essay' => new question_essay_qtype(),
+    'multichoice' => new question_multichoice_qtype(),
     'truefalse' => new question_truefalse_qtype(),
 );
 
@@ -43,6 +51,7 @@ $test->addTestClass('question_attempt_with_steps_test');
 $test->addTestClass('qim_deferredfeedback_walkthrough_test');
 $test->addTestClass('qim_manualgraded_walkthrough_test');
 $test->addTestClass('qim_deferredcbm_walkthrough_test');
+//$test->addTestClass('qim_adaptive_walkthrough_test');
 $test->run($reporter);
 
 function format_backtrace($callers, $plaintext = false) {

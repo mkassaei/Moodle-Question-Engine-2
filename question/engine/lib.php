@@ -208,6 +208,9 @@ class question_definition {
     public $timemodified;
     public $createdb;
     public $modifiedby;
+
+    public function init_first_step(question_attempt_step $step) {
+    }
 }
 
 
@@ -388,6 +391,10 @@ class question_attempt {
         return 'q' . $this->usageid . ',' . $this->numberinusage . '_';
     }
 
+    /**
+     * @param integer $i
+     * @return question_attempt_step
+     */
     public function get_step($i) {
         if ($i < 0 || $i >= count($this->steps)) {
             throw new Exception('Index out of bounds in question_attempt::get_step.');
@@ -819,6 +826,7 @@ abstract class question_interaction_model {
     }
 
     public function init_first_step(question_attempt_step $step) {
+        $this->question->init_first_step($step);
     }
 
     /**

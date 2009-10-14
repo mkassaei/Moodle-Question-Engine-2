@@ -26,10 +26,10 @@
  */
 
 
-class question_truefalse extends question_definition {
-    public $rightanswer = true;
-    public $truefeedback = 'This is the right answer.';
-    public $falsefeedback = 'This is the wrong answer.';
+class qtype_truefalse_question extends question_definition {
+    public $rightanswer;
+    public $truefeedback;
+    public $falsefeedback;
 
     public function get_interaction_model(question_attempt $qa, $preferredmodel) {
         question_engine::load_interaction_model_class($preferredmodel);
@@ -169,7 +169,7 @@ class qtype_truefalse_renderer extends qtype_renderer {
         $result .= $this->output_start_tag('div', array('class' => 'answer'));
         $result .= $this->output_tag('span', array('class' => 'r0' . $trueclass),
                 $radiotrue . $truefeedbackimg);
-        $result .= $this->output_tag('span', array('class' => 'r0' . $falseclass),
+        $result .= $this->output_tag('span', array('class' => 'r1' . $falseclass),
                 $radiofalse . $falsefeedbackimg);
         $result .= $this->output_end_tag('div'); // answer
 
@@ -184,7 +184,196 @@ class qtype_truefalse_renderer extends qtype_renderer {
 }
 
 
-class question_essay extends question_definition {
+class question_answer {
+    public $answer;
+    public $fraction;
+    public $feedback;
+    public function __construct($answer, $fraction, $feedback) {
+        $this->answer = $answer;
+        $this->fraction = $fraction;
+        $this->feedback = $feedback;
+    }
+}
+
+
+class qtype_multichoice_single_question extends question_definition {
+    public $shuffleanswers;
+    public $answers;
+    public $answernumbering;
+    public $correctfeedback;
+    public $partiallycorrectfeedback;
+    public $incorrectfeedback;
+
+    protected $order = null;
+
+    public function get_interaction_model(question_attempt $qa, $preferredmodel) {
+        question_engine::load_interaction_model_class($preferredmodel);
+        $class = 'qim_' . $preferredmodel;
+        return new $class($qa);
+    }
+
+    public function get_renderer() {
+        return renderer_factory::get_renderer('qtype_multichoice', 'single');
+    }
+
+    public function get_min_fraction() {
+        $minfraction = 0;
+        foreach ($this->answers as $ans) {
+            if ($ans->fraction < $minfraction) {
+                $minfraction = $ans->fraction;
+            }
+        }
+        return $minfraction;
+    }
+
+    public function init_first_step(question_attempt_step $step) {
+        if ($step->has_qt_var('_order')) {
+            $this->order = explode(',', $step->get_qt_var('_order'));
+        } else {
+            $this->order = array_keys($this->answers);
+            if ($this->shuffleanswers) {
+                shuffle($this->order);
+            }
+            $step->set_qt_var('_order', implode(',', $this->order));
+        }
+    }
+
+    /**
+     * Return an array of the interaction model variables that could be submitted
+     * as part of a question of this type, with their types, so they can be
+     * properly cleaned.
+     * @return array variable name => PARAM_... constant.
+     */
+    public function get_expected_data() {
+        return array('answer' => PARAM_INT);
+    }
+
+    public function is_same_response(array $prevresponse, array $newresponse) {
+        return array_key_exists('answer', $newresponse) == array_key_exists('answer', $prevresponse) &&
+            (!array_key_exists('answer', $prevresponse) || $newresponse['answer'] == $prevresponse['answer']);
+    }
+
+    public function is_complete_response(array $response) {
+        return array_key_exists('answer', $response);
+    }
+
+    public function is_gradable_response(array $response) {
+        return $this->is_complete_response($response);
+    }
+
+    public function grade_response($question, array $response) {
+        $fraction = $this->answers[$this->order[$response['answer']]]->fraction;
+        return array($fraction, question_state::graded_state_for_fraction($fraction));
+    }
+
+    public function get_order(question_attempt  $qa) {
+        $this->init_order($qa);
+        return $this->order;
+    }
+
+    protected function init_order(question_attempt  $qa) {
+        if (is_null($this->order)) {
+            $this->order = explode(',', $qa->get_step(0)->get_qt_var('_order'));
+        }
+    }
+}
+
+
+class qtype_multichoice_single_renderer extends qtype_renderer {
+    public function formulation_and_controls(question_attempt $qa,
+            question_display_options $options) {
+
+        $question = $qa->get_question();
+        $order = $question->get_order($qa);
+        $response = $qa->get_last_qt_var('answer', -1);
+
+        $inputname = $qa->get_qt_field_name('answer');
+        $inputattributes = array(
+            'type' => 'radio',
+            'name' => $inputname,
+        );
+
+        if ($options->readonly) {
+            $inputattributes['disabled'] = 'disabled';
+        }
+
+        // Work out visual feedback for answer correctness.
+        $trueclass = '';
+        $falseclass = '';
+        if ($options->feedback) {
+            if ($truechecked) {
+                $trueclass = ' ' . question_get_feedback_class($question->rightanswer);
+            } else if ($falsechecked) {
+                $falseclass = ' ' . question_get_feedback_class(!$question->rightanswer);
+            }
+        }
+        $truefeedbackimg = '';
+        $falsefeedbackimg = '';
+        if (($options->feedback || $options->correct_responses) && $response !== '') {
+            $truefeedbackimg = question_get_feedback_image($response, $truechecked && $options->feedback);
+            $falsefeedbackimg = question_get_feedback_image(!$response, $falsechecked && $options->feedback);
+        }
+
+        $formatoptions = new stdClass;
+        $formatoptions->noclean = true;
+        $formatoptions->para = false;
+
+        $radiobuttons = array();
+        $feedbackimg = array();
+        $feedback = array();
+        $classes = array();
+        foreach ($order as $value => $ansid) {
+            $ans = $question->answers[$ansid];
+            $inputattributes['value'] = $value;
+            $inputattributes['id'] = $inputname . $value;
+            if ($response == $value) {
+                $inputattributes['checked'] = 'checked';
+            } else {
+                unset($inputattributes['checked']);
+            }
+            $radiobuttons[] = $this->output_empty_tag('input', $inputattributes) .
+                    $this->output_tag('label', array('for' => $inputattributes['id']),
+                    format_text($ans->answer, true, $formatoptions));
+
+            if (($options->feedback || $options->correct_responses) && $response !== -1) {
+                $feedbackimg[] = question_get_feedback_image($response == $value, $response == $value && $options->feedback);
+            } else {
+                $feedbackimg[] = '';
+            }
+            if (($options->feedback || $options->correct_responses) && $response == $value) {
+                $feedback[] = format_text($ans->feedback, true, $formatoptions);
+            } else {
+                $feedback[] = '';
+            }
+            $classes[] = 'r' . ($value % 2);
+            if ($options->correct_responses && $answer->fraction > 0) {
+                $a->class = question_get_feedback_class($answer->fraction);
+            }
+        }
+
+        $result = '';
+        $result .= $this->output_tag('div', array('class' => 'qtext'),
+                format_text($question->questiontext, true, $formatoptions));
+
+        $result .= $this->output_start_tag('div', array('class' => 'ablock clearfix'));
+        $result .= $this->output_tag('div', array('class' => 'prompt'),
+                get_string('selectoneanswer', 'qtype_multichoice'));
+
+        $result .= $this->output_start_tag('div', array('class' => 'answer'));
+        foreach ($radiobuttons as $key => $radio) {
+            $result .= $this->output_tag('span', array('class' => $classes[$key]),
+                    $radio . $feedbackimg[$key], $feedback[$key]);
+        }
+        $result .= $this->output_end_tag('div'); // answer
+
+        $result .= $this->output_end_tag('div'); // ablock
+
+        return $result;
+    }
+}
+
+
+class qtype_essay_question extends question_definition {
     public function get_interaction_model(question_attempt $qa, $preferredmodel) {
         question_engine::load_interaction_model_class('manualgraded');
         return new qim_manualgraded($qa);
@@ -238,8 +427,6 @@ class qtype_essay_renderer extends qtype_renderer {
 
         $safeformatoptions = new stdClass;
         $safeformatoptions->para = false;
-
-        $stranswer = get_string('answer', 'question');
 
         /// set question text and media
         $questiontext = format_text($question->questiontext,
