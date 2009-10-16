@@ -53,7 +53,7 @@ $test->addTestClass('question_attempt_with_steps_test');
 $test->addTestClass('qim_deferredfeedback_walkthrough_test');
 $test->addTestClass('qim_manualgraded_walkthrough_test');
 $test->addTestClass('qim_deferredcbm_walkthrough_test');
-//$test->addTestClass('qim_adaptive_walkthrough_test');
+$test->addTestClass('qim_adaptive_walkthrough_test');
 $test->run($reporter);
 
 function format_backtrace($callers, $plaintext = false) {

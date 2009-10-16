@@ -188,6 +188,16 @@ class question_attempt_with_steps_test extends UnitTestCase {
         $this->assertEqual(1, $this->qa->get_mark());
     }
 
+    public function test_get_fraction_gets_fraction_of_last() {
+        $this->qa->get_step(2)->set_fraction(0.5);
+        $this->qa->get_step(1)->set_fraction(0.1);
+        $this->assertEqual(0.5, $this->qa->get_fraction());
+    }
+
+    public function test_get_fraction_returns_null_if_none() {
+        $this->assertNull($this->qa->get_fraction());
+    }
+
     public function test_format_mark() {
         $this->qa->get_step(2)->set_fraction(0.5);
         $this->assertEqual('1.00', $this->qa->format_mark(2));

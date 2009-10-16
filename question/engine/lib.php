@@ -358,6 +358,9 @@ class question_attempt {
         }
     }
 
+    /**
+     * @return question_definition
+     */
     public function get_question() {
         return $this->question;
     }
@@ -409,6 +412,9 @@ class question_attempt {
         return count($this->steps);
     }
 
+    /**
+     * @return question_attempt_step
+     */
     public function get_last_step() {
         if (count($this->steps) == 0) {
             return new question_null_step();
@@ -462,8 +468,12 @@ class question_attempt {
         return $this->get_last_step()->get_state();
     }
 
+    public function get_fraction() {
+        return $this->get_last_step()->get_fraction();
+    }
+
     public function get_mark() {
-        $mark = $this->get_last_step()->get_fraction();
+        $mark = $this->get_fraction();
         if (!is_null($mark)) {
             $mark *= $this->maxmark;
         }
@@ -815,7 +825,13 @@ class question_null_step {
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class question_interaction_model {
+    /**
+     * @var question_attempt
+     */
     protected $qa;
+    /**
+     * @var question_definition
+     */
     protected $question;
 
     public function __construct(question_attempt $qa) {

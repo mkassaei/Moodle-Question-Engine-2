@@ -73,7 +73,7 @@ class qtype_truefalse_question extends question_definition {
         return $this->is_complete_response($response);
     }
 
-    public function grade_response($question, array $response) {
+    public function grade_response(array $response) {
         if ($this->rightanswer == true && $response['answer'] == true) {
             $fraction = 1;
         } else if ($this->rightanswer == false && $response['answer'] == false) {
@@ -261,7 +261,7 @@ class qtype_multichoice_single_question extends question_definition {
         return $this->is_complete_response($response);
     }
 
-    public function grade_response($question, array $response) {
+    public function grade_response(array $response) {
         $fraction = $this->answers[$this->order[$response['answer']]]->fraction;
         return array($fraction, question_state::graded_state_for_fraction($fraction));
     }

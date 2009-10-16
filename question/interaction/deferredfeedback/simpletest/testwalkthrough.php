@@ -30,7 +30,7 @@ require_once(dirname(__FILE__) . '/../../../engine/lib.php');
 require_once(dirname(__FILE__) . '/../../../engine/simpletest/helpers.php');
 
 class qim_deferredfeedback_walkthrough_test extends UnitTestCase {
-    public function test_delayed_feedback_truefalse() {
+    public function test_deferredfeedback_feedback_truefalse() {
 
         // Create a true-false question with correct answer true.
         $tf = test_question_maker::make_a_truefalse_question();
@@ -133,7 +133,7 @@ class qim_deferredfeedback_walkthrough_test extends UnitTestCase {
         $this->assertWithinMargin($autogradedstep->get_fraction(), 0, 0.0000001);
     }
 
-    public function test_delayed_feedback_multichoice_single() {
+    public function test_deferredfeedback_feedback_multichoice_single() {
 
         // Create a true-false question with correct answer true.
         $mc = test_question_maker::make_a_multichoice_single_question();

@@ -20,7 +20,7 @@
  * Question iteraction model for the case when the student's answer is just
  * saved until they submit the whole attempt, and then it is graded.
  *
- * @package qim_deferredfeedback
+ * @package qim_adaptive
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -35,9 +35,9 @@
  * @copyright © 2006 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qim_deferredfeedback extends question_interaction_model {
-    public function get_min_fraction() {
-        return $this->question->get_min_fraction();
+class qim_adaptive extends question_interaction_model {
+    public function get_expected_data() {
+        return array('submit' => PARAM_BOOL);
     }
 
     public function process_action(question_attempt_step $pendingstep) {
@@ -45,9 +45,49 @@ class qim_deferredfeedback extends question_interaction_model {
             return $this->process_comment($pendingstep);
         } else if ($pendingstep->has_im_var('finish')) {
             return $this->process_finish($pendingstep);
+        } else if ($pendingstep->has_im_var('submit')) {
+            return $this->process_submit($pendingstep);
         } else {
             return $this->process_save($pendingstep);
         }
+    }
+
+    public function process_save(question_attempt_step $pendingstep) {
+        $status = parent::process_save($pendingstep);
+        $prevgrade = $this->qa->get_fraction();
+        if (!is_null($prevgrade)) {
+            $pendingstep->set_fraction($prevgrade);
+        }
+        $pendingstep->set_state(question_state::INCOMPLETE);
+        return $status;
+    }
+
+    public function process_submit(question_attempt_step $pendingstep) {
+        $status = $this->process_save($pendingstep);
+
+        $response = $pendingstep->get_qt_data();
+        if (!$this->question->is_gradable_response($response)) {
+            return $status;
+
+        } else {
+            $prevtries = $this->qa->get_last_im_var('_try', 0);
+            $prevbest = $pendingstep->get_fraction();
+            if (is_null($prevbest)) {
+                $prevbest = 0;
+            }
+
+            list($fraction, $state) = $this->question->grade_response($response);
+
+            $pendingstep->set_fraction(max($prevbest, $fraction - $this->question->penalty * $prevtries));
+            if ($state == question_state::GRADED_CORRECT) {
+                $pendingstep->set_state(question_state::COMPLETE);
+            } else {
+                $pendingstep->set_state(question_state::INCOMPLETE);
+            }
+            $pendingstep->set_im_var('_try', $prevtries + 1);
+        }
+
+        return question_attempt::KEEP;
     }
 
     public function process_finish(question_attempt_step $pendingstep) {
@@ -55,7 +95,9 @@ class qim_deferredfeedback extends question_interaction_model {
             return question_attempt::DISCARD;
         }
 
-        $response = $this->qa->get_last_step()->get_qt_data();
+        // TODO
+        $laststep = $this->qa->get_last_step();
+        $response = $laststep->get_qt_data();
         if (!$this->question->is_gradable_response($response)) {
             $pendingstep->set_state(question_state::GAVE_UP);
         } else {
