@@ -221,14 +221,14 @@ class qim_deferredfeedback_walkthrough_test extends UnitTestCase {
                 'disabled' => 'disabled')), $html);
 
         // Now change the correct answer to the question, and regrade.
-        $mc->answers[13]->fraction = 0;
+        $mc->answers[13]->fraction = -0.33333333;
         $mc->answers[14]->fraction = 1;
         $quba->regrade_all_questions();
         $html = $quba->render_question($qnumber, $displayoptions);
 
         // Verify.
         $this->assertEqual($quba->get_question_state($qnumber), question_state::GRADED_INCORRECT);
-        $this->assertEqual($quba->get_question_mark($qnumber), 0);
+        $this->assertWithinMargin($quba->get_question_mark($qnumber), -1, 0.0000001);
         $this->assertPattern(
                 '/' . preg_quote(get_string('incorrect', 'question')) . '/',
                 $html);

@@ -110,8 +110,8 @@ class test_question_maker {
 
         $mc->answers = array(
             13 => new question_answer('A', 1, 'A is right'),
-            14 => new question_answer('B', 0, 'B is wrong'),
-            15 => new question_answer('C', 0, 'C is wrong'),
+            14 => new question_answer('B', -0.3333333, 'B is wrong'),
+            15 => new question_answer('C', -0.3333333, 'C is wrong'),
         );
 
         return $mc;
