@@ -68,24 +68,24 @@ class qim_adaptive extends question_interaction_model {
         $response = $pendingstep->get_qt_data();
         if (!$this->question->is_gradable_response($response)) {
             return $status;
-
-        } else {
-            $prevtries = $this->qa->get_last_im_var('_try', 0);
-            $prevbest = $pendingstep->get_fraction();
-            if (is_null($prevbest)) {
-                $prevbest = 0;
-            }
-
-            list($fraction, $state) = $this->question->grade_response($response);
-
-            $pendingstep->set_fraction(max($prevbest, $fraction - $this->question->penalty * $prevtries));
-            if ($state == question_state::GRADED_CORRECT) {
-                $pendingstep->set_state(question_state::COMPLETE);
-            } else {
-                $pendingstep->set_state(question_state::INCOMPLETE);
-            }
-            $pendingstep->set_im_var('_try', $prevtries + 1);
         }
+
+        $prevtries = $this->qa->get_last_im_var('_try', 0);
+        $prevbest = $pendingstep->get_fraction();
+        if (is_null($prevbest)) {
+            $prevbest = 0;
+        }
+
+        list($fraction, $state) = $this->question->grade_response($response);
+
+        $pendingstep->set_fraction(max($prevbest, $fraction - $this->question->penalty * $prevtries));
+        if ($state == question_state::GRADED_CORRECT) {
+            $pendingstep->set_state(question_state::COMPLETE);
+        } else {
+            $pendingstep->set_state(question_state::INCOMPLETE);
+        }
+        $pendingstep->set_im_var('_try', $prevtries + 1);
+        $pendingstep->set_im_var('_rawfraction', $fraction);
 
         return question_attempt::KEEP;
     }
@@ -95,16 +95,31 @@ class qim_adaptive extends question_interaction_model {
             return question_attempt::DISCARD;
         }
 
-        // TODO
         $laststep = $this->qa->get_last_step();
         $response = $laststep->get_qt_data();
         if (!$this->question->is_gradable_response($response)) {
             $pendingstep->set_state(question_state::GAVE_UP);
-        } else {
-            list($fraction, $state) = $this->question->grade_response($response);
-            $pendingstep->set_fraction($fraction);
-            $pendingstep->set_state($state);
+            return question_attempt::KEEP;
         }
+
+        $prevtries = $this->qa->get_last_im_var('_try', 0);
+        $prevbest = $pendingstep->get_fraction();
+        if (is_null($prevbest)) {
+            $prevbest = 0;
+        }
+
+        if ($laststep->has_im_var('_try')) {
+            // Last answer was graded, we want to regrade it. Otherwise the answer
+            // has changed, and we are grading a new try.
+            $prevtries -= 1;
+        }
+
+        list($fraction, $state) = $this->question->grade_response($response);
+
+        $pendingstep->set_fraction(max($prevbest, $fraction - $this->question->penalty * $prevtries));
+        $pendingstep->set_state($state);
+        $pendingstep->set_im_var('_try', $prevtries + 1);
+        $pendingstep->set_im_var('_rawfraction', $fraction);
         return question_attempt::KEEP;
     }
 }

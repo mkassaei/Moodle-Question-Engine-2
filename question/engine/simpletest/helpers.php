@@ -217,6 +217,10 @@ class qim_walkthrough_test_base extends UnitTestCase {
         return new PatternExpectation('/' . preg_quote(get_string('correct', 'question')) . '/');
     }
 
+    protected function get_contains_partcorrect_expectation() {
+        return new PatternExpectation('/' . preg_quote(get_string('partiallycorrect', 'question')) . '/');
+    }
+
     protected function get_contains_incorrect_expectation() {
         return new PatternExpectation('/' . preg_quote(get_string('incorrect', 'question')) . '/');
     }

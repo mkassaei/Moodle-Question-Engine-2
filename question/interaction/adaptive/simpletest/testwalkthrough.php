@@ -117,7 +117,7 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
         $this->check_current_mark(1);
         $this->check_current_output(
-                $this->get_contains_correct_expectation());
+                $this->get_contains_partcorrect_expectation());
 
         $autogradedstep = $this->get_step($this->get_step_count() - 2);
         $this->assertWithinMargin($autogradedstep->get_fraction(), 0, 0.0000001);

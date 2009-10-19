@@ -112,6 +112,11 @@ abstract class question_state {
                 ($state >= self::MANUALLY_GRADED_INCORRECT && $state <= self::MANUALLY_GRADED_CORRECT);
     }
 
+
+    public static function is_commented($state) {
+        return $state >= self::FINISHED_COMMENTED;
+    }
+
     public static function graded_state_for_fraction($fraction) {
         if ($fraction < 0.0000001) {
             return self::GRADED_INCORRECT;
@@ -157,7 +162,6 @@ abstract class question_state {
         }
     }
 }
-
 
 /**
  * This class contains all the options that controls how a question is displayed.
@@ -422,10 +426,16 @@ class question_attempt {
         return end($this->steps);
     }
 
+    /**
+     * @return question_attempt_step_iterator
+     */
     public function get_step_iterator() {
         return new question_attempt_step_iterator($this);
     }
 
+    /**
+     * @return question_attempt_reverse_step_iterator
+     */
     public function get_reverse_step_iterator() {
         return new question_attempt_reverse_step_iterator($this);
     }
@@ -620,9 +630,11 @@ class question_attempt_step_iterator implements Iterator, ArrayAccess {
         $this->rewind();
     }
 
+    /** @return question_attempt_step */
     public function current() {
         return $this->offsetGet($this->i);
     }
+    /** @return integer */
     public function key() {
         return $this->i;
     }
@@ -632,13 +644,16 @@ class question_attempt_step_iterator implements Iterator, ArrayAccess {
     public function rewind() {
         $this->i = 0;
     }
+    /** @return boolean */
     public function valid() {
         return $this->offsetExists($this->i);
     }
 
+    /** @return boolean */
     public function offsetExists($i) {
         return $i >= 0 && $i < $this->qa->get_num_steps();
     }
+    /** @return question_attempt_step */
     public function offsetGet($i) {
         return $this->qa->get_step($i);
     }
@@ -844,12 +859,16 @@ abstract class question_interaction_model {
         return renderer_factory::get_renderer('qim_' . $type);
     }
 
-    public function render($options, $number, $qoutput, $qtoutput) {
-        $qimoutput = $this->get_renderer();
-        $options = clone($options);
+    public function adjust_display_options($options) {
         if (question_state::is_finished($this->qa->get_state())) {
             $options->readonly = true;
         }
+    }
+
+    public function render($options, $number, $qoutput, $qtoutput) {
+        $qimoutput = $this->get_renderer();
+        $options = clone($options);
+        $this->adjust_display_options($options);
         return $qoutput->question($this->qa, $qimoutput, $qtoutput, $options, $number);
     }
 

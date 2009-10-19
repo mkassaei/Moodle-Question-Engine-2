@@ -82,4 +82,22 @@ class question_state_test extends UnitTestCase {
         $this->assertTrue(question_state::is_graded(question_state::MANUALLY_GRADED_PARTCORRECT));
         $this->assertTrue(question_state::is_graded(question_state::MANUALLY_GRADED_CORRECT));
     }
+
+    public function test_is_commented() {
+        $this->assertFalse(question_state::is_commented(question_state::NOT_STARTED));
+        $this->assertFalse(question_state::is_commented(question_state::UNPROCESSED));
+        $this->assertFalse(question_state::is_commented(question_state::INCOMPLETE));
+        $this->assertFalse(question_state::is_commented(question_state::COMPLETE));
+        $this->assertFalse(question_state::is_commented(question_state::NEEDS_GRADING));
+        $this->assertFalse(question_state::is_commented(question_state::FINISHED));
+        $this->assertFalse(question_state::is_commented(question_state::GAVE_UP));
+        $this->assertFalse(question_state::is_commented(question_state::GRADED_INCORRECT));
+        $this->assertFalse(question_state::is_commented(question_state::GRADED_PARTCORRECT));
+        $this->assertFalse(question_state::is_commented(question_state::GRADED_CORRECT));
+        $this->assertTrue(question_state::is_commented(question_state::FINISHED_COMMENTED));
+        $this->assertTrue(question_state::is_commented(question_state::GAVE_UP_COMMENTED));
+        $this->assertTrue(question_state::is_commented(question_state::MANUALLY_GRADED_INCORRECT));
+        $this->assertTrue(question_state::is_commented(question_state::MANUALLY_GRADED_PARTCORRECT));
+        $this->assertTrue(question_state::is_commented(question_state::MANUALLY_GRADED_CORRECT));
+    }
 }

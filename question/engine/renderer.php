@@ -204,26 +204,25 @@ abstract class qim_renderer extends moodle_renderer_base {
         attempt and displays the overall mark obtained counting all previous
         responses (and penalties) */
 
-        if ($qa->get_max_mark() > 0 && $options->marks) {
-            echo 'xxx';
-            print_object($qa->get_state()); // DONOTCOMMIT
-            if (question_state::is_graded($qa->get_state())) {
-                echo 'yyy';
-                // Display the grading details from the last graded state
-                $mark = new stdClass;
-                $mark->cur = $qa->format_mark($options->markdp);
-                $mark->max = $qa->format_max_mark($options->markdp);
-                $mark->raw = $qa->format_mark($options->markdp);
-
-                // let student know wether the answer was correct
-                $class = question_state::get_feedback_class($qa->get_state());
-                echo '<div class="correctness ' . $class . '">' . get_string($class, 'question') . '</div>';
-
-                echo '<div class="gradingdetails">';
-                // print marks for this submission
-                print_string('gradingdetails', 'question', $mark);
-                echo '</div>';
-            }
+        if ($qa->get_max_mark() == 0 || !$options->marks || !question_state::is_graded($qa->get_state())) {
+            return '';
         }
+
+        // Display the grading details from the last graded state
+        $mark = new stdClass;
+        $mark->cur = $qa->format_mark($options->markdp);
+        $mark->max = $qa->format_max_mark($options->markdp);
+        $mark->raw = $qa->format_mark($options->markdp);
+
+        // let student know wether the answer was correct
+        $class = question_state::get_feedback_class($qa->get_state());
+
+        $output = '';
+        $output .= $this->output_tag('div', array('class' => 'correctness ' . $class),
+                get_string($class, 'question'));
+        $output .= $this->output_tag('div', array('class' => 'gradingdetails'),
+                get_string('gradingdetails', 'question', $mark));
+
+        return $output;
     }
 }
