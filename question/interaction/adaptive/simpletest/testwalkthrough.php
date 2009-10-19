@@ -29,163 +29,97 @@
 require_once(dirname(__FILE__) . '/../../../engine/lib.php');
 require_once(dirname(__FILE__) . '/../../../engine/simpletest/helpers.php');
 
-class qim_adaptive_walkthrough_test extends UnitTestCase {
+class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
     public function test_adaptive_multichoice() {
 
         // Create a true-false question with correct answer true.
         $mc = test_question_maker::make_a_multichoice_single_question();
-        $displayoptions = new question_display_options();
-
-        // Start a delayed feedback attempt and add the question to it.
         $mc->maxmark = 3;
         $mc->penalty = 0.3333333;
-        $quba = question_engine::make_questions_usage_by_activity('unit_test');
-        $quba->set_preferred_interaction_model('adaptive');
-        $qnumber = $quba->add_question($mc);
-        // Different from $mc->id since the same question may be used twice in
-        // the same attempt.
-        $prefix = $quba->get_field_prefix($qnumber);
-        $answername = $prefix . 'answer';
-        $submitname = $prefix . '!submit';
+        $this->start_attempt_at_question($mc, 'adaptive');
 
-        // Verify.
-        $this->assertEqual($qnumber, 1);
-        $this->assertEqual($quba->question_count(), 1);
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::NOT_STARTED);
-
-        // Begin the attempt. Creates an initial state for each question.
-        $quba->start_all_questions();
-        $order = $mc->get_order($quba->get_question_attempt($qnumber));
-        foreach ($order as $i => $ansid) {
-            if ($mc->answers[$ansid]->fraction == 1) {
-                $rightindex = $i;
-                break;
-            }
-        }
+        $rightindex = $this->get_mc_right_answer_index($mc);
         $wrongindex = ($rightindex + 1) % 3;
 
-        // Output the question in the initial state.
-        $html = $quba->render_question($qnumber, $displayoptions);
+        // Check the initial state.
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_question_text_expectation($mc),
+                $this->get_contains_mc_radio_expectation(0, true, false),
+                $this->get_contains_mc_radio_expectation(1, true, false),
+                $this->get_contains_mc_radio_expectation(2, true, false),
+                $this->get_contains_adaptive_submit_expectation(true));
+
+        // Process a submit.
+        $this->process_submission(array('answer' => $wrongindex, '!submit' => 1));
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::INCOMPLETE);
-        $this->assertNull($quba->get_question_mark($qnumber));
-        $this->assertPattern('/' . preg_quote($mc->questiontext) . '/', $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $answername, 'value' => 2),
-                array('disabled' => 'disabled')), $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $answername, 'value' => 0),
-                array('disabled' => 'disabled')), $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'submit', 'name' => $submitname),
-                array('disabled' => 'disabled')), $html);
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(0);
+        $this->check_current_output(
+                $this->get_contains_mc_radio_expectation($wrongindex, true, true),
+                $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
+                $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
+                $this->get_contains_incorrect_expectation());
 
-        // Simulate some data submitted by the student.
-        $getdata = array(
-            $answername => $wrongindex,
-            $submitname => 'Submit',
-            'irrelevant' => 'should be ignored',
-        );
-        $submitteddata = $quba->extract_responses($qnumber, $getdata);
+        // Process a change of answer to the right one, but not sumbitted.
+        $this->process_submission(array('answer' => $rightindex));
 
         // Verify.
-        $this->assertEqual(array('answer' => $wrongindex, '!submit' => 1), $submitteddata);
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(0);
+        $this->check_current_output(
+                $this->get_contains_mc_radio_expectation($rightindex, true, true),
+                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
+                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
+                $this->get_contains_incorrect_expectation());
 
-        // Process the data extracted for this question.
-        $quba->process_action($qnumber, $submitteddata);
-        $html = $quba->render_question($qnumber, $displayoptions);
-
-        // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::INCOMPLETE);
-        $this->assertNotNull($quba->get_question_mark($qnumber));
-        $this->assertEqual($quba->get_question_mark($qnumber), 0);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $answername, 'value' => $wrongindex, 'checked' => 'checked'),
-                array('disabled' => 'disabled')), $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $answername, 'value' => ($wrongindex + 1) % 3),
-                array('disabled' => 'disabled', 'checked' => 'checked')), $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $answername, 'value' => ($wrongindex + 2) % 3),
-                array('disabled' => 'disabled', 'checked' => 'checked')), $html);
-        $this->assertPattern('/class=\"correctness/', $html);
-        $this->assertPattern('/' . preg_quote(get_string('incorrect', 'question')) . '/', $html);
-
-        // Process the data extracted for this question.
-        $quba->process_action($qnumber, array('answer' => $rightindex));
-        $html = $quba->render_question($qnumber, $displayoptions);
+        // Now submit the right answer.
+        $this->process_submission(array('answer' => $rightindex, '!submit' => 1));
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::INCOMPLETE);
-        $this->assertEqual($quba->get_question_mark($qnumber), 0);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $answername, 'value' => $rightindex, 'checked' => 'checked'),
-                array('disabled' => 'disabled')), $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $answername, 'value' => ($rightindex + 1) % 3),
-                array('disabled' => 'disabled', 'checked' => 'checked')), $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $answername, 'value' => ($rightindex + 2) % 3),
-                array('disabled' => 'disabled', 'checked' => 'checked')), $html);
-        $this->assertPattern('/class=\"correctness/', $html);
-        $this->assertPattern('/' . preg_quote(get_string('incorrect', 'question')) . '/', $html);
-
-        // Process the data extracted for this question.
-        $quba->process_action($qnumber, array('answer' => $rightindex, '!submit' => 1));
-        $html = $quba->render_question($qnumber, $displayoptions);
-
-        // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::COMPLETE);
-        $this->assertEqual($quba->get_question_mark($qnumber), 3 * (1 - $mc->penalty));
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $answername, 'value' => $rightindex, 'checked' => 'checked'),
-                array('disabled' => 'disabled')), $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $answername, 'value' => ($rightindex + 1) % 3),
-                array('disabled' => 'disabled', 'checked' => 'checked')), $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $answername, 'value' => ($rightindex + 2) % 3),
-                array('disabled' => 'disabled', 'checked' => 'checked')), $html);
-        $this->assertPattern('/class=\"correctness/', $html);
-        $this->assertPattern('/' . preg_quote(get_string('correct', 'question')) . '/', $html);
+        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_mark(3 * (1 - $mc->penalty));
+        $this->check_current_output(
+                $this->get_contains_mc_radio_expectation($rightindex, true, true),
+                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
+                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
+                $this->get_contains_correct_expectation());
 
         // Finish the attempt.
-        $quba->finish_all_questions();
-        $html = $quba->render_question($qnumber, $displayoptions);
+        $this->quba->finish_all_questions();
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::GRADED_CORRECT);
-        $this->assertEqual($quba->get_question_mark($qnumber), 3 * (1 - $mc->penalty));
-        $this->assertPattern('/' . preg_quote(get_string('correct', 'question')) . '/', $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $answername, 'value' => $rightindex,
-                'disabled' => 'disabled')), $html);
+        $this->check_current_state(question_state::GRADED_CORRECT);
+        $this->check_current_mark(3 * (1 - $mc->penalty));
+        $this->check_current_output(
+                $this->get_contains_mc_radio_expectation($rightindex, false, true),
+                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
+                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
+                $this->get_contains_correct_expectation());
 
         // Process a manual comment.
-        $quba->manual_grade($qnumber, 1, 'Not good enough!');
-        $html = $quba->render_question($qnumber, $displayoptions);
+        $this->manual_grade(1, 'Not good enough!');
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::MANUALLY_GRADED_PARTCORRECT);
-        $this->assertEqual($quba->get_question_mark($qnumber), 1);
-        $this->assertPattern('/' . preg_quote('Not good enough!') . '/', $html);
+        $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->check_current_mark(1);
+        $this->check_current_output(
+                new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
 
         // Now change the correct answer to the question, and regrade.
         $mc->answers[13]->fraction = -0.33333333;
         $mc->answers[15]->fraction = 1;
-        $quba->regrade_all_questions();
-        $html = $quba->render_question($qnumber, $displayoptions);
+        $this->quba->regrade_all_questions();
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::MANUALLY_GRADED_PARTCORRECT);
-        $this->assertWithinMargin($quba->get_question_mark($qnumber), 1, 0.0000001);
-        $this->assertPattern(
-                '/' . preg_quote(get_string('incorrect', 'question')) . '/',
-                $html);
+        $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->check_current_mark(1);
+        $this->check_current_output(
+                $this->get_contains_correct_expectation());
 
-        $numsteps = $quba->get_question_attempt($qnumber)->get_num_steps();
-        $autogradedstep = $quba->get_question_attempt($qnumber)->get_step($numsteps - 2);
+        $autogradedstep = $this->get_step($this->get_step_count() - 2);
         $this->assertWithinMargin($autogradedstep->get_fraction(), 0, 0.0000001);
     }
 }

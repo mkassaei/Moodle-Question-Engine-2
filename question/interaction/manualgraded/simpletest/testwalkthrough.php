@@ -29,83 +29,65 @@
 require_once(dirname(__FILE__) . '/../../../engine/lib.php');
 require_once(dirname(__FILE__) . '/../../../engine/simpletest/helpers.php');
 
-class qim_manualgraded_walkthrough_test extends UnitTestCase {
+class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
     public function test_manual_graded_essay() {
 
         // Create a true-false question with correct answer true.
         $essay = test_question_maker::make_an_essay_question();
-        $displayoptions = new question_display_options();
-
-        // Start a delayed feedback attempt and add the question to it.
         $essay->maxmark = 10;
-        $quba = question_engine::make_questions_usage_by_activity('unit_test');
-        $quba->set_preferred_interaction_model('delayedfeedback');
-        $qnumber = $quba->add_question($essay);
+        $this->start_attempt_at_question($essay, 'deferredfeedback');
 
-        // Verify.
-        $this->assertEqual($qnumber, 1);
-        $this->assertEqual($quba->question_count(), 1);
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::NOT_STARTED);
-
-        // Begin the attempt. Creates an initial state for each question.
-        $quba->start_all_questions();
-
-        // Output the question in the initial state.
-        $html = $quba->render_question($qnumber, $displayoptions);
-
-        // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::INCOMPLETE);
-        $this->assertNull($quba->get_question_mark($qnumber));
-        $this->assertPattern('/' . preg_quote($essay->questiontext) . '/', $html);
+        // Check the initial state.
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output($this->get_contains_question_text_expectation($essay));
 
         // Simulate some data submitted by the student.
-        $submitteddata = array('answer' => 'This is my wonderful essay!');
-        $quba->process_action($qnumber, $submitteddata);
-        $html = $quba->render_question($qnumber, $displayoptions);
+        $this->process_submission(array('answer' => 'This is my wonderful essay!'));
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::COMPLETE);
-        $this->assertNull($quba->get_question_mark($qnumber));
-        $this->assert(new ContainsTagWithAttribute('textarea', 'name',
-                $quba->get_question_attempt($qnumber)->get_qt_field_name('answer')), $html);
+        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                new ContainsTagWithAttribute('textarea', 'name',
+                $this->quba->get_question_attempt($this->qnumber)->get_qt_field_name('answer')));
 
         // Process the same data again, check it does not create a new step.
-        $numsteps = $quba->get_question_attempt($qnumber)->get_num_steps();
-        $quba->process_action($qnumber, $submitteddata);
-        $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps);
+        $numsteps = $this->get_step_count();
+        $this->process_submission(array('answer' => 'This is my wonderful essay!'));
+        $this->check_step_count($numsteps);
 
         // Process different data, check it creates a new step.
-        $quba->process_action($qnumber, array('answer' => ''));
-        $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps + 1);
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::INCOMPLETE);
+        $this->process_submission(array('answer' => ''));
+        $this->check_step_count($numsteps + 1);
+        $this->check_current_state(question_state::INCOMPLETE);
 
         // Change back, check it creates a new step.
-        $quba->process_action($qnumber, $submitteddata);
-        $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps + 2);
+        $this->process_submission(array('answer' => 'This is my wonderful essay!'));
+        $this->check_step_count($numsteps + 2);
 
         // Finish the attempt.
-        $quba->finish_all_questions();
-        $html = $quba->render_question($qnumber, $displayoptions);
+        $this->quba->finish_all_questions();
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::NEEDS_GRADING);
-        $this->assertNull($quba->get_question_mark($qnumber));
+        $this->check_current_state(question_state::NEEDS_GRADING);
+        $this->check_current_mark(null);
 
         // Process a manual comment.
-        $quba->manual_grade($qnumber, 10, 'Not good enough!');
-        $html = $quba->render_question($qnumber, $displayoptions);
+        $this->manual_grade(10, 'Not good enough!');
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::MANUALLY_GRADED_CORRECT);
-        $this->assertEqual($quba->get_question_mark($qnumber), 10);
-        $this->assertPattern('/' . preg_quote('Not good enough!') . '/', $html);
+        $this->check_current_state(question_state::MANUALLY_GRADED_CORRECT);
+        $this->check_current_mark(10);
+        $this->check_current_output(
+                new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
 
         // Now change the max mark for the question and regrade.
         $essay->maxmark = 1;
-        $quba->regrade_all_questions();
+        $this->quba->regrade_all_questions();
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::MANUALLY_GRADED_CORRECT);
-        $this->assertEqual($quba->get_question_mark($qnumber), 1);
+        $this->check_current_state(question_state::MANUALLY_GRADED_CORRECT);
+        $this->check_current_mark(1);
     }
 }

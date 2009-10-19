@@ -7,6 +7,7 @@ require_once($CFG->dirroot . '/question/engine/simpletest/testquestionstate.php'
 require_once($CFG->dirroot . '/question/engine/simpletest/testquestionattemptstep.php');
 require_once($CFG->dirroot . '/question/engine/simpletest/testquestionattempt.php');
 require_once($CFG->dirroot . '/question/engine/simpletest/testquestionattemptstepiterator.php');
+require_once($CFG->dirroot . '/question/engine/simpletest/testquestionusagebyactivity.php');
 require_once($CFG->dirroot . '/question/interaction/deferredfeedback/simpletest/testwalkthrough.php');
 require_once($CFG->dirroot . '/question/interaction/manualgraded/simpletest/testwalkthrough.php');
 require_once($CFG->dirroot . '/question/interaction/deferredcbm/simpletest/testwalkthrough.php');
@@ -50,6 +51,7 @@ $test->addTestClass('question_attempt_step_iterator_test');
 $test->addTestClass('question_attempt_test');
 $test->addTestClass('question_attempt_with_steps_test');
 $test->addTestClass('question_attempt_with_steps_test');
+$test->addTestClass('question_usage_by_activity_test');
 $test->addTestClass('qim_deferredfeedback_walkthrough_test');
 $test->addTestClass('qim_manualgraded_walkthrough_test');
 $test->addTestClass('qim_deferredcbm_walkthrough_test');

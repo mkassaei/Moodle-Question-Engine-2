@@ -29,111 +29,77 @@
 require_once(dirname(__FILE__) . '/../../../engine/lib.php');
 require_once(dirname(__FILE__) . '/../../../engine/simpletest/helpers.php');
 
-class qim_deferredcbm_walkthrough_test extends UnitTestCase {
+class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
     public function test_delayed_cbm_truefalse_high_certainty() {
 
         // Create a true-false question with correct answer true.
         $tf = test_question_maker::make_a_truefalse_question();
-        $displayoptions = new question_display_options();
-
-        // Start a delayed feedback attempt with CBM and add the question to it.
         $tf->maxmark = 2;
-        $quba = question_engine::make_questions_usage_by_activity('unit_test');
-        $quba->set_preferred_interaction_model('deferredcbm');
-        $qnumber = $quba->add_question($tf);
-        // Different from $tf->id since the same question may be used twice in
-        // the same attempt.
+        $this->start_attempt_at_question($tf, 'deferredcbm');
 
         // Verify.
-        $this->assertEqual($qnumber, 1);
-        $this->assertEqual($quba->question_count(), 1);
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::NOT_STARTED);
-
-        // Begin the attempt. Creates an initial state for each question.
-        $quba->start_all_questions();
-
-        // Output the question in the initial state.
-        $html = $quba->render_question($qnumber, $displayoptions);
-
-        // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::INCOMPLETE);
-        $this->assertNull($quba->get_question_mark($qnumber));
-        $this->assertPattern('/' . preg_quote($tf->questiontext) . '/', $html);
-
-        // Simulate some data submitted by the student.
-        $prefix = $quba->get_field_prefix($qnumber);
-        $answername = $prefix . 'answer';
-        $certaintyname = $prefix . '!certainty';
-        $getdata = array(
-            $answername => 1,
-            $certaintyname => 3,
-            'irrelevant' => 'should be ignored',
-        );
-        $submitteddata = $quba->extract_responses($qnumber, $getdata);
-
-        // Verify.
-        $this->assertEqual(array('answer' => 1, '!certainty' => 3), $submitteddata);
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_question_text_expectation($tf),
+                $this->get_contains_tf_true_radio_expectation(true, false),
+                $this->get_contains_tf_false_radio_expectation(true, false),
+                $this->get_contains_cbm_radio_expectation(1, true, false),
+                $this->get_contains_cbm_radio_expectation(2, true, false),
+                $this->get_contains_cbm_radio_expectation(3, true, false));
 
         // Process the data extracted for this question.
-        $quba->process_action($qnumber, $submitteddata);
-        $html = $quba->render_question($qnumber, $displayoptions);
+        $this->process_submission(array('answer' => 1, '!certainty' => 3));
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::COMPLETE);
-        $this->assertNull($quba->get_question_mark($qnumber));
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $answername, 'value' => 1, 'checked' => 'checked')), $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $certaintyname, 'value' => 3, 'checked' => 'checked'),
-                array('disabled' => 'disabled')), $html);
-        $this->assertNoPattern('/class=\"correctness/', $html);
+        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_tf_true_radio_expectation(true, true),
+                $this->get_contains_cbm_radio_expectation(3, true, true),
+                $this->get_does_not_contain_correctness_expectation());
 
         // Process the same data again, check it does not create a new step.
-        $numsteps = $quba->get_question_attempt($qnumber)->get_num_steps();
-        $quba->process_action($qnumber, $submitteddata);
-        $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps);
+        $numsteps = $this->get_step_count();
+        $this->process_submission(array('answer' => 1, '!certainty' => 3));
+        $this->check_step_count($numsteps);
 
         // Process different data, check it creates a new step.
-        $quba->process_action($qnumber, array('answer' => 1, '!certainty' => 1));
-        $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps + 1);
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::COMPLETE);
+        $this->process_submission(array('answer' => 1, '!certainty' => 1));
+        $this->check_step_count($numsteps + 1);
+        $this->check_current_state(question_state::COMPLETE);
 
         // Change back, check it creates a new step.
-        $quba->process_action($qnumber, $submitteddata);
-        $this->assertEqual($quba->get_question_attempt($qnumber)->get_num_steps(), $numsteps + 2);
+        $this->process_submission(array('answer' => 1, '!certainty' => 3));
+        $this->check_step_count($numsteps + 2);
 
         // Finish the attempt.
-        $quba->finish_all_questions();
-        $html = $quba->render_question($qnumber, $displayoptions);
+        $this->quba->finish_all_questions();
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::GRADED_CORRECT);
-        $this->assertEqual($quba->get_question_mark($qnumber), 2);
-        $this->assertPattern(
-                '/' . preg_quote(get_string('correct', 'question')) . '/',
-                $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $certaintyname, 'value' => 3,
-                'checked' => 'checked', 'disabled' => 'disabled')), $html);
+        $this->check_current_state(question_state::GRADED_CORRECT);
+        $this->check_current_mark(2);
+        $this->check_current_output(
+                $this->get_contains_tf_true_radio_expectation(false, true),
+                $this->get_contains_cbm_radio_expectation(3, false, true),
+                $this->get_contains_correct_expectation());
 
         // Process a manual comment.
-        $quba->manual_grade($qnumber, 1, 'Not good enough!');
-        $html = $quba->render_question($qnumber, $displayoptions);
+        $this->manual_grade(1, 'Not good enough!');
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::MANUALLY_GRADED_PARTCORRECT);
-        $this->assertEqual($quba->get_question_mark($qnumber), 1);
-        $this->assertPattern('/' . preg_quote('Not good enough!') . '/', $html);
+        $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->check_current_mark(1);
+        $this->check_current_output(new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
 
         // Now change the correct answer to the question, and regrade.
         $tf->rightanswer = false;
-        $quba->regrade_all_questions();
+        $this->quba->regrade_all_questions();
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::MANUALLY_GRADED_PARTCORRECT);
-        $this->assertEqual($quba->get_question_mark($qnumber), 1);
-        $numsteps = $quba->get_question_attempt($qnumber)->get_num_steps();
-        $autogradedstep = $quba->get_question_attempt($qnumber)->get_step($numsteps - 2);
+        $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->check_current_mark(1);
+        $autogradedstep = $this->get_step($this->get_step_count() - 2);
         $this->assertWithinMargin($autogradedstep->get_fraction(), -2, 0.0000001);
     }
 
@@ -141,56 +107,33 @@ class qim_deferredcbm_walkthrough_test extends UnitTestCase {
 
         // Create a true-false question with correct answer true.
         $tf = test_question_maker::make_a_truefalse_question();
-        $displayoptions = new question_display_options();
-
-        // Start a delayed feedback attempt and add the question to it.
         $tf->maxmark = 2;
-        $quba = question_engine::make_questions_usage_by_activity('unit_test');
-        $quba->set_preferred_interaction_model('deferredcbm');
-        $qnumber = $quba->add_question($tf);
-        // Different from $tf->id since the same question may be used twice in
-        // the same attempt.
-        $prefix = $quba->get_field_prefix($qnumber);
-        $certaintyname = $prefix . '!certainty';
-
-        // Begin the attempt. Creates an initial state with no certainty - should be incomplete.
-        $quba->start_all_questions();
-        $quba->process_action($qnumber, array('answer' => 1));
-        $html = $quba->render_question($qnumber, $displayoptions);
+        $this->start_attempt_at_question($tf, 'deferredcbm');
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::INCOMPLETE);
-        $this->assertNull($quba->get_question_mark($qnumber));
-        $this->assertNoPattern('/class=\"correctness/', $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $certaintyname, 'value' => 1)), $html);
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_contains_cbm_radio_expectation(1, true, false));
 
-        // Sublint ansewer with low certainty.
-        $quba->start_all_questions();
-        $quba->process_action($qnumber, array('answer' => 1, '!certainty' => 1));
-        $html = $quba->render_question($qnumber, $displayoptions);
+        // Submit ansewer with low certainty.
+        $this->process_submission(array('answer' => 1, '!certainty' => 1));
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::COMPLETE);
-        $this->assertNull($quba->get_question_mark($qnumber));
-        $this->assertNoPattern('/class=\"correctness/', $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $certaintyname, 'value' => 1,
-                'checked' => 'checked'), array('disabled' => 'disabled')), $html);
+        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output($this->get_does_not_contain_correctness_expectation(),
+                $this->get_contains_cbm_radio_expectation(1, true, true));
 
         // Finish the attempt.
-        $quba->finish_all_questions();
-        $html = $quba->render_question($qnumber, $displayoptions);
+        $this->quba->finish_all_questions();
 
         // Verify.
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::GRADED_CORRECT);
-        $this->assertWithinMargin($quba->get_question_mark($qnumber), 0.6666667, 0.0000001);
-        $this->assertPattern(
-                '/' . preg_quote(get_string('correct', 'question')) . '/',
-                $html);
-        $this->assert(new ContainsTagWithAttributes('input',
-                array('type' => 'radio', 'name' => $certaintyname, 'value' => 1,
-                'checked' => 'checked', 'disabled' => 'disabled')), $html);
+        $this->check_current_state(question_state::GRADED_CORRECT);
+        $this->check_current_mark(0.6666667);
+        $this->check_current_output($this->get_contains_correct_expectation(),
+                $this->get_contains_cbm_radio_expectation(1, false, true));
     }
 }
 

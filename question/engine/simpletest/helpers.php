@@ -133,3 +133,161 @@ class test_question_maker {
         return $essay;
     }
 }
+
+class qim_walkthrough_test_base extends UnitTestCase {
+    /** @var question_display_options */
+    protected $displayoptions;
+    /** @var questions_usage_by_activity */
+    protected $quba;
+    /** @var unknown_type integer */
+    protected $qnumber;
+
+    public function setUp() {
+        $this->displayoptions = new question_display_options();
+        $this->quba = question_engine::make_questions_usage_by_activity('unit_test');
+    }
+
+    public function tearDown() {
+        $this->displayoptions = null;
+        $this->quba = null;
+    }
+
+    protected function start_attempt_at_question($question, $preferredmodel) {
+        $this->quba->set_preferred_interaction_model($preferredmodel);
+        $this->qnumber = $this->quba->add_question($question);
+        $this->quba->start_all_questions();
+    }
+    protected function process_submission($data) {
+        $this->quba->process_action($this->qnumber, $data);
+    }
+
+    protected function manual_grade($mark, $comment) {
+        $this->quba->manual_grade($this->qnumber, $mark, $comment);
+    }
+
+    protected function check_current_state($state) {
+        $this->assertEqual($this->quba->get_question_state($this->qnumber), $state, 'Questions is in the wrong state: %s.');
+    }
+
+    protected function check_current_mark($mark) {
+        if (is_null($mark)) {
+            $this->assertNull($this->quba->get_question_mark($this->qnumber));
+        } else {
+            if ($mark == 0) {
+                // PHP will think a null mark and a mark of 0 are equal,
+                // so explicity check not null in this case.
+                $this->assertNotNull($this->quba->get_question_mark($this->qnumber));
+            }
+            $this->assertWithinMargin($mark, $this->quba->get_question_mark($this->qnumber),
+                    0.000001, 'Expected mark and actual mark differ: %s.');
+        }
+    }
+
+    /**
+     * @param $condition one or more Expectations. (users varargs).
+     */
+    protected function check_current_output() {
+        $html = $this->quba->render_question($this->qnumber, $this->displayoptions);
+        foreach (func_get_args() as $condition) {
+            $this->assert($condition, $html);
+        }
+    }
+
+    protected function get_step_count() {
+        return $this->quba->get_question_attempt($this->qnumber)->get_num_steps();
+    }
+
+    protected function check_step_count($expectednumsteps) {
+        $this->assertEqual($expectednumsteps, $this->get_step_count());
+    }
+
+    protected function get_step($stepnum) {
+        return $this->quba->get_question_attempt($this->qnumber)->get_step($stepnum);
+    }
+
+    protected function get_contains_question_text_expectation($question) {
+        return new PatternExpectation('/' . preg_quote($question->questiontext) . '/');
+    }
+
+    protected function get_does_not_contain_correctness_expectation() {
+        return new NoPatternExpectation('/class=\"correctness/');
+    }
+
+    protected function get_contains_correct_expectation() {
+        return new PatternExpectation('/' . preg_quote(get_string('correct', 'question')) . '/');
+    }
+
+    protected function get_contains_incorrect_expectation() {
+        return new PatternExpectation('/' . preg_quote(get_string('incorrect', 'question')) . '/');
+    }
+
+    protected function get_contains_radio_expectation($baseattr, $enabled, $checked) {
+        $expectedattributes = $baseattr;
+        $forbiddenattributes = array();
+        $expectedattributes['type'] = 'radio';
+        if ($enabled === true) {
+            $forbiddenattributes['disabled'] = 'disabled';
+        } else if ($enabled === false) {
+            $expectedattributes['disabled'] = 'disabled';
+        }
+        if ($checked === true) {
+            $expectedattributes['checked'] = 'checked';
+        } else if ($checked === false) {
+            $forbiddenattributes['checked'] = 'checked';
+        }
+        return new ContainsTagWithAttributes('input', $expectedattributes, $forbiddenattributes);
+    }
+
+    protected function get_contains_mc_radio_expectation($index, $enabled = null, $checked = null) {
+        return $this->get_contains_radio_expectation(array(
+                'name' => $this->quba->get_field_prefix($this->qnumber) . 'answer',
+                'value' => $index,
+                ), $enabled, $checked);
+    }
+
+    protected function get_contains_tf_true_radio_expectation($enabled = null, $checked = null) {
+        return $this->get_contains_radio_expectation(array(
+                'name' => $this->quba->get_field_prefix($this->qnumber) . 'answer',
+                'value' => 1,
+                ), $enabled, $checked);
+    }
+
+    protected function get_contains_tf_false_radio_expectation($enabled = null, $checked = null) {
+        return $this->get_contains_radio_expectation(array(
+                'name' => $this->quba->get_field_prefix($this->qnumber) . 'answer',
+                'value' => 0,
+                ), $enabled, $checked);
+    }
+
+    protected function get_contains_cbm_radio_expectation($certainty, $enabled = null, $checked = null) {
+        return $this->get_contains_radio_expectation(array(
+                'name' => $this->quba->get_field_prefix($this->qnumber) . '!certainty',
+                'value' => $certainty,
+                ), $enabled, $checked);
+    }
+
+    protected function get_contains_adaptive_submit_expectation($enabled = null) {
+        $expectedattributes = array(
+            'type' => 'submit',
+            'name' => $this->quba->get_field_prefix($this->qnumber) . '!submit',
+        );
+        $forbiddenattributes = array();
+        if ($enabled === true) {
+            $forbiddenattributes['disabled'] = 'disabled';
+        } else if ($enabled === false) {
+            $expectedattributes['disabled'] = 'disabled';
+        }
+        return new ContainsTagWithAttributes('input', $expectedattributes, $forbiddenattributes);
+    }
+
+    protected function get_mc_right_answer_index($mc) {
+        $order = $mc->get_order($this->quba->get_question_attempt($this->qnumber));
+        foreach ($order as $i => $ansid) {
+            if ($mc->answers[$ansid]->fraction == 1) {
+                return $i;
+            }
+        }
+        $this->fail('This multiple choice question does not seem to have a right answer!');
+    }
+
+}
