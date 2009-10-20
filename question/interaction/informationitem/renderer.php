@@ -17,8 +17,8 @@
 
 
 /**
- * Renderer for outputting parts of a question belonging to the delayed
- * feedback interaction model.
+ * Renderer for outputting parts of a question belonging to the information
+ * item interaction model.
  *
  * @package qim_deferredfeedback
  * @copyright 2009 The Open University
@@ -26,5 +26,17 @@
  */
 
 
-class qim_deferredfeedback_renderer extends qim_renderer {
+class qim_informationitem_renderer extends qim_renderer {
+    public function controls(question_attempt $qa, question_display_options $options) {
+        if ($qa->get_state() != question_state::INCOMPLETE) {
+            return '';
+        }
+
+        // Hidden input to move the question into the complete state.
+        return $this->output_empty_tag('input', array(
+            'type' => 'hidden',
+            'name' => $qa->get_im_field_name('seen'),
+            'value' => 1,
+        ));
+    }
 }

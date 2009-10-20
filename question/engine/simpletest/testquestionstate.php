@@ -100,4 +100,40 @@ class question_state_test extends UnitTestCase {
         $this->assertTrue(question_state::is_commented(question_state::MANUALLY_GRADED_PARTCORRECT));
         $this->assertTrue(question_state::is_commented(question_state::MANUALLY_GRADED_CORRECT));
     }
+
+    public function test_graded_state_for_fraction() {
+        $this->assertEqual(question_state::GRADED_INCORRECT, question_state::graded_state_for_fraction(-1));
+        $this->assertEqual(question_state::GRADED_INCORRECT, question_state::graded_state_for_fraction(0));
+        $this->assertEqual(question_state::GRADED_PARTCORRECT, question_state::graded_state_for_fraction(0.0000001));
+        $this->assertEqual(question_state::GRADED_PARTCORRECT, question_state::graded_state_for_fraction(0.9999999));
+        $this->assertEqual(question_state::GRADED_CORRECT, question_state::graded_state_for_fraction(1));
+    }
+
+    public function test_manually_graded_state_for_other_state() {
+        $this->assertEqual(question_state::FINISHED_COMMENTED,
+                question_state::manually_graded_state_for_other_state(question_state::FINISHED, null));
+        $this->assertEqual(question_state::GAVE_UP_COMMENTED,
+                question_state::manually_graded_state_for_other_state(question_state::GAVE_UP, null));
+        $this->assertEqual(question_state::FINISHED_COMMENTED,
+                question_state::manually_graded_state_for_other_state(question_state::FINISHED_COMMENTED, null));
+        $this->assertEqual(question_state::GAVE_UP_COMMENTED,
+                question_state::manually_graded_state_for_other_state(question_state::GAVE_UP_COMMENTED, null));
+
+        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
+                question_state::manually_graded_state_for_other_state(question_state::GAVE_UP, 0));
+        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
+                question_state::manually_graded_state_for_other_state(question_state::NEEDS_GRADING, 0));
+        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
+                question_state::manually_graded_state_for_other_state(question_state::GRADED_INCORRECT, 0));
+        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
+                question_state::manually_graded_state_for_other_state(question_state::GRADED_PARTCORRECT, 0));
+        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
+                question_state::manually_graded_state_for_other_state(question_state::GRADED_CORRECT, 0));
+        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
+                question_state::manually_graded_state_for_other_state(question_state::MANUALLY_GRADED_INCORRECT, 0));
+        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
+                question_state::manually_graded_state_for_other_state(question_state::MANUALLY_GRADED_PARTCORRECT, 0));
+        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
+                question_state::manually_graded_state_for_other_state(question_state::MANUALLY_GRADED_CORRECT, 0));
+    }
 }

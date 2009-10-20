@@ -132,6 +132,23 @@ class test_question_maker {
 
         return $essay;
     }
+
+    /**
+     * Makes a truefalse question with correct ansewer true, defaultgrade 1.
+     * @return question_truefalse
+     */
+    public static function make_a_description_question() {
+        $description = new qtype_description_question();
+        self::initialise_a_question($description);
+        $description->name = 'Description question';
+        $description->questiontext = 'This text tells you a bit about the next few questions in this quiz.';
+        $description->generalfeedback = 'This is what this seciton of the quiz should have taught you.';
+        $description->defaultgrade = 0;
+        $description->penalty = 0;
+        $description->qtype = question_engine::get_qtype('description');
+
+        return $description;
+    }
 }
 
 class qim_walkthrough_test_base extends UnitTestCase {
@@ -207,6 +224,10 @@ class qim_walkthrough_test_base extends UnitTestCase {
 
     protected function get_contains_question_text_expectation($question) {
         return new PatternExpectation('/' . preg_quote($question->questiontext) . '/');
+    }
+
+    protected function get_contains_general_feedback_expectation() {
+        return new PatternExpectation('/' . preg_quote($question->generalfeedback) . '/');
     }
 
     protected function get_does_not_contain_correctness_expectation() {

@@ -46,7 +46,7 @@ class qtype_truefalse_question extends question_definition {
     }
 
     /**
-     * Return an array of the interaction model variables that could be submitted
+     * Return an array of the question type variables that could be submitted
      * as part of a question of this type, with their types, so they can be
      * properly cleaned.
      * @return array variable name => PARAM_... constant.
@@ -239,7 +239,7 @@ class qtype_multichoice_single_question extends question_definition {
     }
 
     /**
-     * Return an array of the interaction model variables that could be submitted
+     * Return an array of the question type variables that could be submitted
      * as part of a question of this type, with their types, so they can be
      * properly cleaned.
      * @return array variable name => PARAM_... constant.
@@ -389,7 +389,7 @@ class qtype_essay_question extends question_definition {
     }
 
     /**
-     * Return an array of the interaction model variables that could be submitted
+     * Return an array of the question type variables that could be submitted
      * as part of a question of this type, with their types, so they can be
      * properly cleaned.
      * @return array variable name => PARAM_... constant.
@@ -454,6 +454,53 @@ class qtype_essay_renderer extends qtype_renderer {
                 get_string('answer', 'question'));
         $result .= $this->output_tag('div', array('class' => 'answer'), $answer);
         $result .= $this->output_end_tag('div'); // ablock
+
+        return $result;
+    }
+}
+
+class qtype_description_question extends question_definition {
+    public function get_interaction_model(question_attempt $qa, $preferredmodel) {
+        question_engine::load_interaction_model_class('informationitem');
+        return new qim_informationitem($qa);
+    }
+
+    public function get_renderer() {
+        return renderer_factory::get_renderer('qtype_description');
+    }
+
+    public function get_min_fraction() {
+        return 0;
+    }
+
+    /**
+     * Return an array of the question type variables that could be submitted
+     * as part of a question of this type, with their types, so they can be
+     * properly cleaned.
+     * @return array variable name => PARAM_... constant.
+     */
+    public function get_expected_data() {
+        return array();
+    }
+}
+
+
+class qtype_description_renderer extends qtype_renderer {
+    public function formulation_and_controls(question_attempt $qa,
+            question_display_options $options) {
+
+        $question = $qa->get_question();
+
+        $formatoptions          = new stdClass;
+        $formatoptions->noclean = true;
+        $formatoptions->para    = false;
+
+        $questiontext = format_text($question->questiontext,
+                $question->questiontextformat, $formatoptions);
+
+        $result = '';
+        $result .= $this->output_tag('div', array('class' => 'qtext'),
+                format_text($question->questiontext, true, $formatoptions));
 
         return $result;
     }

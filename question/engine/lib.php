@@ -131,9 +131,12 @@ abstract class question_state {
         $oldstate = $state & 0xFFFFFFDF;
         switch ($oldstate) {
             case self::FINISHED:
-                return FINISHED_COMMENTED;
+                return self::FINISHED_COMMENTED;
             case self::GAVE_UP:
-                return self::GAVE_UP_COMMENTED;
+                if (is_null($fraction)) {
+                    return self::GAVE_UP_COMMENTED;
+                }
+                // Else fall through.
             case self::NEEDS_GRADING:
             case self::GRADED_INCORRECT:
             case self::GRADED_PARTCORRECT:
@@ -924,6 +927,7 @@ abstract class question_interaction_model {
             $pendingstep->set_fraction($pendingstep->get_im_var('mark') /
                     $pendingstep->get_im_var('maxmark'));
         }
+
         $pendingstep->set_state(question_state::manually_graded_state_for_other_state(
                 $laststep->get_state(), $pendingstep->get_fraction()));
         return question_attempt::KEEP;
