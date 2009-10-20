@@ -114,4 +114,102 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
         $autogradedstep = $this->get_step($this->get_step_count() - 2);
         $this->assertWithinMargin($autogradedstep->get_fraction(), -0.3333333, 0.0000001);
     }
+
+    public function test_immediatefeedback_feedback_multichoice_try_to_submit_blank() {
+
+        // Create a true-false question with correct answer true.
+        $mc = test_question_maker::make_a_multichoice_single_question();
+        $mc->maxmark = 1;
+        $this->start_attempt_at_question($mc, 'immediatefeedback');
+
+        // Check the initial state.
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_question_text_expectation($mc),
+                $this->get_contains_mc_radio_expectation(0, true, false),
+                $this->get_contains_mc_radio_expectation(1, true, false),
+                $this->get_contains_mc_radio_expectation(2, true, false),
+                $this->get_contains_submit_button_expectation(true));
+
+        // Submit nothing.
+        $this->process_submission(array('!submit' => 1));
+
+        // Verify.
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_mc_radio_expectation(0, true, false),
+                $this->get_contains_mc_radio_expectation(1, true, false),
+                $this->get_contains_mc_radio_expectation(2, true, false),
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_correctness_expectation());
+
+        // Finish the attempt.
+        $this->quba->finish_all_questions();
+
+        // Verify.
+        $this->check_current_state(question_state::GAVE_UP);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_mc_radio_expectation(0, false, false),
+                $this->get_contains_mc_radio_expectation(1, false, false),
+                $this->get_contains_mc_radio_expectation(2, false, false));
+
+        // Process a manual comment.
+        $this->manual_grade(0.5, 'Not good enough!');
+
+        // Verify.
+        $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->check_current_mark(0.5);
+        $this->check_current_output(
+                $this->get_contains_partcorrect_expectation(),
+                new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
+    }
+
+    public function test_immediatefeedback_feedback_multichoice_wrong_on_finish() {
+
+        // Create a true-false question with correct answer true.
+        $mc = test_question_maker::make_a_multichoice_single_question();
+        $mc->maxmark = 1;
+        $this->start_attempt_at_question($mc, 'immediatefeedback');
+
+        // Check the initial state.
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_question_text_expectation($mc),
+                $this->get_contains_mc_radio_expectation(0, true, false),
+                $this->get_contains_mc_radio_expectation(1, true, false),
+                $this->get_contains_mc_radio_expectation(2, true, false),
+                $this->get_contains_submit_button_expectation(true));
+
+        $rightindex = $this->get_mc_right_answer_index($mc);
+        $wrongindex = ($rightindex + 1) % 3;
+
+        // Save the wrong answer.
+        $this->process_submission(array('answer' => $wrongindex));
+
+        // Verify.
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_mc_radio_expectation($wrongindex, true, true),
+                $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
+                $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_correctness_expectation());
+
+        // Finish the attempt.
+        $this->quba->finish_all_questions();
+
+        // Verify.
+        $this->check_current_state(question_state::GRADED_INCORRECT);
+        $this->check_current_mark(-0.3333333);
+        $this->check_current_output(
+                $this->get_contains_mc_radio_expectation($wrongindex, false, true),
+                $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
+                $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
+                $this->get_contains_incorrect_expectation());
+    }
 }

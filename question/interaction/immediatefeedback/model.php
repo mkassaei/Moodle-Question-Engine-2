@@ -76,6 +76,7 @@ class qim_immediatefeedback extends question_interaction_model {
             return question_attempt::DISCARD;
         }
 
+        $response = $this->qa->get_last_step()->get_qt_data();
         if (!$this->question->is_gradable_response($response)) {
             $pendingstep->set_state(question_state::GAVE_UP);
 
