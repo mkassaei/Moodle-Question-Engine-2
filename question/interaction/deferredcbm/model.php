@@ -30,57 +30,24 @@
 /**
  * Question interaction model for deferred feedback with certainty based marking.
  *
- * The student enters their response during the attempt, and it is saved. Later,
- * when the whole attempt is finished, their answer is graded.
+ * The student enters their response during the attempt, along with a certainty,
+ * that is, how sure they are that they are right, and it is saved. Later,
+ * when the whole attempt is finished, their answer is graded. Their degree
+ * of certainty affects their score.
  *
  * @copyright © 2006 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qim_deferredcbm extends qim_deferredfeedback {
-    const LOW = 1;
-    const MED = 2;
-    const HIGH = 3;
-    const LOW_OFFSET = 0;
-    const LOW_FACTOR = 0.333333333333333;
-    const MED_OFFSET = -0.666666666666667;
-    const MED_FACTOR = 1.333333333333333;
-    const HIGH_OFFSET = -2;
-    const HIGH_FACTOR = 3;
-
-    public static $certainties = array(self::LOW, self::MED, self::HIGH);
-
-    protected static $factor = array(
-        self::LOW => self::LOW_FACTOR,
-        self::MED => self::MED_FACTOR,
-        self::HIGH => self::HIGH_FACTOR,
-    );
-
-    protected static $offset = array(
-        self::LOW => self::LOW_OFFSET,
-        self::MED => self::MED_OFFSET,
-        self::HIGH => self::HIGH_OFFSET,
-    );
-
-    protected function adjust_fraction($fraction, $certainty) {
-        return self::$offset[$certainty] + self::$factor[$certainty] * $fraction;
-    }
-
     public function get_min_fraction() {
-        return $this->adjust_fraction(parent::get_min_fraction(), self::HIGH);
+        return question_cbm::adjust_fraction(parent::get_min_fraction(), question_cbm::HIGH);
     }
 
     public function get_expected_data() {
-        return array('certainty' => PARAM_INT);
-    }
-
-    public function process_action(question_attempt_step $pendingstep) {
-        if ($pendingstep->has_im_var('comment')) {
-            return $this->process_comment($pendingstep);
-        } else if ($pendingstep->has_im_var('finish')) {
-            return $this->process_finish($pendingstep);
-        } else {
-            return $this->process_save($pendingstep);
+        if (question_state::is_active($this->qa->get_state())) {
+            return array('certainty' => PARAM_INT);
         }
+        return array();
     }
 
     protected function is_same_response($pendingstep) {
@@ -90,6 +57,10 @@ class qim_deferredcbm extends qim_deferredfeedback {
 
     protected function is_complete_response($pendingstep) {
         return parent::is_complete_response($pendingstep) && $pendingstep->has_im_var('certainty');
+    }
+
+    protected function get_certainty() {
+
     }
 
     public function process_finish(question_attempt_step $pendingstep) {
@@ -103,7 +74,7 @@ class qim_deferredcbm extends qim_deferredfeedback {
                 $pendingstep->set_im_var('_assumedcertainty', $certainty);
             }
             if (!is_null($fraction)) {
-                $pendingstep->set_fraction($this->adjust_fraction($fraction, $certainty));
+                $pendingstep->set_fraction(question_cbm::adjust_fraction($fraction, $certainty));
             }
         }
         return $status;

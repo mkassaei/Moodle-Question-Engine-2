@@ -1,0 +1,34 @@
+Finish interaction models and core of the engine
+  Interactive mode
+  Missing mode
+  Opaque mode
+  Each attempt builds on last
+  Scroll-down JavaScript on adaptive submit button
+  Minor refactoring of the different interaction models
+  Questionline and answerline
+
+Refactor all the renderer code
+
+Database load/save code
+  Create tables
+  Load functions
+  Insert/update functions
+  Get qengine to call DB update code
+
+Convert existing question type code
+  Split qtype classes in three
+  New fields for editing hints
+
+Database upgrade script
+
+Backup and restore code
+  Restore old backup code
+
+Redo the question preview window
+
+Finish 2.0 quiz -> 1.9 backport
+
+Integrate new code into the quiz
+  attempting code
+  reviewing code
+  reports

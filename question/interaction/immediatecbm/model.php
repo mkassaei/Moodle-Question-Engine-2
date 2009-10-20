@@ -18,50 +18,42 @@
 
 /**
  * Question iteraction model where the student can submit questions one at a
- * time for immediate feedback.
+ * time for immediate feedback, with certainty based marking.
  *
- * @package qim_immediatefeedback
+ * @package qim_immediatecbm
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 /**
- * Question interaction model for immediate feedback.
+ * Question interaction model for immediate feedback with CBM.
  *
- * Each question has a submit button next to it which the student can use to
- * submit it. Once the qustion is submitted, it is not possible for the
- * student to change their answer any more, but the student gets full feedback
- * straight away.
+ * Each question has a submit button next to it along with some radio buttons
+ * to input a certainly, that is, how sure they are that they are right.
+ * The student can submit their answer at any time for immediate feedback.
+ * Once the qustion is submitted, it is not possible for the student to change
+ * their answer any more. The student's degree of certainly affects their score.
  *
  * @copyright © 2006 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qim_immediatefeedback extends question_interaction_model {
+class qim_immediatecbm extends qim_immediatefeedback {
     public function get_min_fraction() {
-        return $this->question->get_min_fraction();
+        return question_cbm::adjust_fraction(parent::get_min_fraction(), question_cbm::HIGH);
     }
 
     public function get_expected_data() {
-        if (question_state::is_active($this->qa->get_state())) {
-            return array(
-                'submit' => PARAM_BOOL,
-                'certainty' => PARAM_INT,
-            );
-        }
-        return array();
+        return array('certainty' => PARAM_INT);
     }
 
-    public function process_action(question_attempt_step $pendingstep) {
-        if ($pendingstep->has_im_var('comment')) {
-            return $this->process_comment($pendingstep);
-        } else if ($pendingstep->has_im_var('submit')) {
-            return $this->process_submit($pendingstep);
-        } else if ($pendingstep->has_im_var('finish')) {
-            return $this->process_finish($pendingstep);
-        } else {
-            return $this->process_save($pendingstep);
-        }
+    protected function is_same_response($pendingstep) {
+        return parent::is_same_response($pendingstep) &&
+                $this->qa->get_last_im_var('certainty') == $pendingstep->get_im_var('certainty');
+    }
+
+    protected function is_complete_response($pendingstep) {
+        return parent::is_complete_response($pendingstep) && $pendingstep->has_im_var('certainty');
     }
 
     public function process_submit(question_attempt_step $pendingstep) {
@@ -74,7 +66,8 @@ class qim_immediatefeedback extends question_interaction_model {
 
         } else {
             list($fraction, $state) = $this->question->grade_response($pendingstep->get_qt_data());
-            $pendingstep->set_fraction($fraction);
+            $pendingstep->set_fraction(question_cbm::adjust_fraction($fraction,
+                    $pendingstep->get_im_var('certainty')));
             $pendingstep->set_state($state);
         }
         return question_attempt::KEEP;
@@ -85,23 +78,23 @@ class qim_immediatefeedback extends question_interaction_model {
             return question_attempt::DISCARD;
         }
 
-        $response = $this->qa->get_last_step()->get_qt_data();
-        if (!$this->question->is_gradable_response($response)) {
+        $laststep = $this->qa->get_last_step();
+        if (!$this->question->is_gradable_response($laststep->get_qt_data())) {
             $pendingstep->set_state(question_state::GAVE_UP);
 
         } else {
-            list($fraction, $state) = $this->question->grade_response($response);
-            $pendingstep->set_fraction($fraction);
+            list($fraction, $state) = $this->question->grade_response($laststep->get_qt_data());
+
+            if ($laststep->has_im_var('certainty')) {
+                $certainty = $laststep->get_im_var('certainty');
+            } else {
+                $certainty = self::LOW;
+                $pendingstep->set_im_var('_assumedcertainty', $certainty);
+            }
+
+            $pendingstep->set_fraction(question_cbm::adjust_fraction($fraction, $certainty));
             $pendingstep->set_state($state);
         }
         return question_attempt::KEEP;
-    }
-
-    public function process_save(question_attempt_step $pendingstep) {
-        $status = parent::process_save($pendingstep);
-        if ($status == question_attempt::KEEP && $pendingstep->get_state() == question_state::COMPLETE) {
-            $pendingstep->set_state(question_state::INCOMPLETE);
-        }
-        return $status;
     }
 }

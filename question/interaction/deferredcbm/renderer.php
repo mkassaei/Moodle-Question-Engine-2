@@ -27,20 +27,17 @@
 
 
 class qim_deferredcbm_renderer extends qim_renderer {
-    public function controls(question_attempt $qa, question_display_options $options) {
-        $controlname = $qa->get_im_field_name('certainty');
+    protected function certainly_choices($controlname, $selected, $readonly) {
         $attributes = array(
             'type' => 'radio',
             'name' => $controlname,
         );
-        if ($options->readonly) {
+        if ($readonly) {
             $attributes['disabled'] = 'disabled';
         }
 
-        $selected = $qa->get_last_im_var('certainty');
-
         $choices = '';
-        foreach (qim_deferredcbm::$certainties as $certainly) {
+        foreach (question_cbm::$certainties as $certainly) {
             $id = $controlname . $certainly;
             $attributes['id'] = $id;
             $attributes['value'] = $certainly;
@@ -53,8 +50,14 @@ class qim_deferredcbm_renderer extends qim_renderer {
                     $this->output_tag('label', array('for' => $id),
                     get_string('certainty' . $certainly, 'qim_deferredcbm'));
         }
+        return $choices;
+    }
+
+    public function controls(question_attempt $qa, question_display_options $options) {
 
         return $this->output_tag('div', array('class' => 'controls'),
-                get_string('howcertainareyou', 'qim_deferredcbm', $choices));
+                get_string('howcertainareyou', 'qim_deferredcbm',
+                $this->certainly_choices($qa->get_im_field_name('certainty'),
+                $qa->get_last_im_var('certainty'), $options->readonly)));
     }
 }

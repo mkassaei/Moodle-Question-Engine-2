@@ -166,6 +166,45 @@ abstract class question_state {
     }
 }
 
+
+/**
+ * This class contains the constants and methods required for manipulating scores
+ * for certainly based marking.
+ *
+ * @copyright © 2006 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+abstract class question_cbm {
+    const LOW = 1;
+    const MED = 2;
+    const HIGH = 3;
+    const LOW_OFFSET = 0;
+    const LOW_FACTOR = 0.333333333333333;
+    const MED_OFFSET = -0.666666666666667;
+    const MED_FACTOR = 1.333333333333333;
+    const HIGH_OFFSET = -2;
+    const HIGH_FACTOR = 3;
+
+    public static $certainties = array(self::LOW, self::MED, self::HIGH);
+
+    protected static $factor = array(
+        self::LOW => self::LOW_FACTOR,
+        self::MED => self::MED_FACTOR,
+        self::HIGH => self::HIGH_FACTOR,
+    );
+
+    protected static $offset = array(
+        self::LOW => self::LOW_OFFSET,
+        self::MED => self::MED_OFFSET,
+        self::HIGH => self::HIGH_OFFSET,
+    );
+
+    public static function adjust_fraction($fraction, $certainty) {
+        return self::$offset[$certainty] + self::$factor[$certainty] * $fraction;
+    }
+}
+
+
 /**
  * This class contains all the options that controls how a question is displayed.
  *

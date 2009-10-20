@@ -37,7 +37,9 @@
  */
 class qim_adaptive extends question_interaction_model {
     public function get_expected_data() {
-        return array('submit' => PARAM_BOOL);
+        if (question_state::is_active($this->qa->get_state())) {
+            return array('submit' => PARAM_BOOL);
+        }
     }
 
     public function process_action(question_attempt_step $pendingstep) {

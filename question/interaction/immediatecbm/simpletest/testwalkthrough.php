@@ -17,10 +17,10 @@
 
 
 /**
- * This file contains tests that walks a question through the immediate feedback
+ * This file contains tests that walks a question through the immediate cbm
  * interaction model.
  *
- * @package qim_immediatefeedback
+ * @package qim_immediatecbm
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -29,13 +29,13 @@
 require_once(dirname(__FILE__) . '/../../../engine/lib.php');
 require_once(dirname(__FILE__) . '/../../../engine/simpletest/helpers.php');
 
-class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
-    public function test_immediatefeedback_feedback_multichoice_right() {
+class qim_immediatecbm_walkthrough_test extends qim_walkthrough_test_base {
+    public function test_immediatecbm_feedback_multichoice_right() {
 
         // Create a true-false question with correct answer true.
         $mc = test_question_maker::make_a_multichoice_single_question();
         $mc->maxmark = 1;
-        $this->start_attempt_at_question($mc, 'immediatefeedback');
+        $this->start_attempt_at_question($mc, 'immediatecbm');
 
         $rightindex = $this->get_mc_right_answer_index($mc);
         $wrongindex = ($rightindex + 1) % 3;
@@ -51,7 +51,7 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_submit_button_expectation(true));
 
         // Save the wrong answer.
-        $this->process_submission(array('answer' => $wrongindex));
+        $this->process_submission(array('answer' => $wrongindex, '!certainty' => 1));
 
         // Verify.
         $this->check_current_state(question_state::INCOMPLETE);
@@ -64,11 +64,11 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_correctness_expectation());
 
         // Submit the right answer.
-        $this->process_submission(array('answer' => $rightindex, '!submit' => 1));
+        $this->process_submission(array('answer' => $rightindex, '!certainty' => 2, '!submit' => 1));
 
         // Verify.
         $this->check_current_state(question_state::GRADED_CORRECT);
-        $this->check_current_mark(1);
+        $this->check_current_mark(2/3);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, false, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
@@ -83,7 +83,7 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
         // Verify.
         $this->assertEqual($numsteps, $this->get_step_count());
         $this->check_current_state(question_state::GRADED_CORRECT);
-        $this->check_current_mark(1);
+        $this->check_current_mark(2/3);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, false, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
@@ -112,15 +112,15 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_partcorrect_expectation());
 
         $autogradedstep = $this->get_step($this->get_step_count() - 2);
-        $this->assertWithinMargin($autogradedstep->get_fraction(), -0.3333333, 0.0000001);
+        $this->assertWithinMargin($autogradedstep->get_fraction(), -10/9, 0.0000001);
     }
 
-    public function test_immediatefeedback_feedback_multichoice_try_to_submit_blank() {
+    public function test_immediatecbm_feedback_multichoice_try_to_submit_blank() {
 
         // Create a true-false question with correct answer true.
         $mc = test_question_maker::make_a_multichoice_single_question();
         $mc->maxmark = 1;
-        $this->start_attempt_at_question($mc, 'immediatefeedback');
+        $this->start_attempt_at_question($mc, 'immediatecbm');
 
         // Check the initial state.
         $this->check_current_state(question_state::INCOMPLETE);
@@ -167,12 +167,12 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
     }
 
-    public function test_immediatefeedback_feedback_multichoice_wrong_on_finish() {
+    public function test_immediatecbm_feedback_multichoice_wrong_on_finish() {
 
         // Create a true-false question with correct answer true.
         $mc = test_question_maker::make_a_multichoice_single_question();
         $mc->maxmark = 1;
-        $this->start_attempt_at_question($mc, 'immediatefeedback');
+        $this->start_attempt_at_question($mc, 'immediatecbm');
 
         // Check the initial state.
         $this->check_current_state(question_state::INCOMPLETE);
@@ -188,7 +188,7 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
         $wrongindex = ($rightindex + 1) % 3;
 
         // Save the wrong answer.
-        $this->process_submission(array('answer' => $wrongindex));
+        $this->process_submission(array('answer' => $wrongindex, '!certainty' => 3));
 
         // Verify.
         $this->check_current_state(question_state::INCOMPLETE);
@@ -205,7 +205,7 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
 
         // Verify.
         $this->check_current_state(question_state::GRADED_INCORRECT);
-        $this->check_current_mark(-0.3333333);
+        $this->check_current_mark(-3);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($wrongindex, false, true),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
