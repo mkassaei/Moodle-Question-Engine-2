@@ -291,7 +291,7 @@ class qim_walkthrough_test_base extends UnitTestCase {
                 ), $enabled, $checked);
     }
 
-    protected function get_contains_adaptive_submit_expectation($enabled = null) {
+    protected function get_contains_submit_button_expectation($enabled = null) {
         $expectedattributes = array(
             'type' => 'submit',
             'name' => $this->quba->get_field_prefix($this->qnumber) . '!submit',

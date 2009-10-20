@@ -17,14 +17,25 @@
 
 
 /**
- * Renderer for outputting parts of a question belonging to the deferred
+ * Renderer for outputting parts of a question belonging to the immediate
  * feedback interaction model.
  *
- * @package qim_deferredfeedback
+ * @package qim_immediatefeedback
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
-class qim_deferredfeedback_renderer extends qim_renderer {
+class qim_immediatefeedback_renderer extends qim_renderer {
+    public function controls(question_attempt $qa, question_display_options $options) {
+        if (!question_state::is_active($qa->get_state())) {
+            return '';
+        }
+        return $this->output_empty_tag('input', array(
+            'type' => 'submit',
+            'name' => $qa->get_im_field_name('submit'),
+            'value' => get_string('submit', 'qim_immediatefeedback'),
+            'class' => 'submit btn',
+        ));
+    }
 }

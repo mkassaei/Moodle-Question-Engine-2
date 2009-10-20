@@ -115,6 +115,7 @@
             array_shift($breadcrumb);
             print implode(" -&gt; ", $breadcrumb);
             print " -&gt; " . $this->_htmlEntities($message) . "<br />\n";
+            echo format_backtrace(debug_backtrace()); // DONOTCOMMIT
         }
 
         /**

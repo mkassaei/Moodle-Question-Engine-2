@@ -20,7 +20,7 @@
  * This file contains tests that walks a question through the deferred feedback
  * interaction model.
  *
- * @package qim_adaptive
+ * @package qim_immediatefeedback
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -29,14 +29,13 @@
 require_once(dirname(__FILE__) . '/../../../engine/lib.php');
 require_once(dirname(__FILE__) . '/../../../engine/simpletest/helpers.php');
 
-class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
-    public function test_adaptive_multichoice() {
+class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
+    public function test_immediatefeedback_feedback_multichoice_right() {
 
         // Create a true-false question with correct answer true.
         $mc = test_question_maker::make_a_multichoice_single_question();
-        $mc->maxmark = 3;
-        $mc->penalty = 0.3333333;
-        $this->start_attempt_at_question($mc, 'adaptive');
+        $mc->maxmark = 1;
+        $this->start_attempt_at_question($mc, 'immediatefeedback');
 
         $rightindex = $this->get_mc_right_answer_index($mc);
         $wrongindex = ($rightindex + 1) % 3;
@@ -51,48 +50,40 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(2, true, false),
                 $this->get_contains_submit_button_expectation(true));
 
-        // Process a submit.
-        $this->process_submission(array('answer' => $wrongindex, '!submit' => 1));
+        // Save the wrong answer.
+        $this->process_submission(array('answer' => $wrongindex));
 
         // Verify.
         $this->check_current_state(question_state::INCOMPLETE);
-        $this->check_current_mark(0);
+        $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($wrongindex, true, true),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
-                $this->get_contains_incorrect_expectation());
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_correctness_expectation());
 
-        // Process a change of answer to the right one, but not sumbitted.
-        $this->process_submission(array('answer' => $rightindex));
-
-        // Verify.
-        $this->check_current_state(question_state::INCOMPLETE);
-        $this->check_current_mark(0);
-        $this->check_current_output(
-                $this->get_contains_mc_radio_expectation($rightindex, true, true),
-                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
-                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
-                $this->get_contains_incorrect_expectation());
-
-        // Now submit the right answer.
+        // Submit the right answer.
         $this->process_submission(array('answer' => $rightindex, '!submit' => 1));
 
         // Verify.
-        $this->check_current_state(question_state::COMPLETE);
-        $this->check_current_mark(3 * (1 - $mc->penalty));
+        $this->check_current_state(question_state::GRADED_CORRECT);
+        $this->check_current_mark(1);
         $this->check_current_output(
-                $this->get_contains_mc_radio_expectation($rightindex, true, true),
-                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
-                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
+                $this->get_contains_mc_radio_expectation($rightindex, false, true),
+                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
+                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
                 $this->get_contains_correct_expectation());
 
-        // Finish the attempt.
+        $numsteps = $this->get_step_count();
+
+        // Finish the attempt - should not need to add a new state.
         $this->quba->finish_all_questions();
 
         // Verify.
+        $this->assertEqual($numsteps, $this->get_step_count());
         $this->check_current_state(question_state::GRADED_CORRECT);
-        $this->check_current_mark(3 * (1 - $mc->penalty));
+        $this->check_current_mark(1);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, false, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
@@ -100,12 +91,13 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_correct_expectation());
 
         // Process a manual comment.
-        $this->manual_grade(1, 'Not good enough!');
+        $this->manual_grade(0.5, 'Not good enough!');
 
         // Verify.
         $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
-        $this->check_current_mark(1);
+        $this->check_current_mark(0.5);
         $this->check_current_output(
+                $this->get_contains_partcorrect_expectation(),
                 new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
 
         // Now change the correct answer to the question, and regrade.
@@ -115,11 +107,11 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
 
         // Verify.
         $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
-        $this->check_current_mark(1);
+        $this->check_current_mark(0.5);
         $this->check_current_output(
                 $this->get_contains_partcorrect_expectation());
 
         $autogradedstep = $this->get_step($this->get_step_count() - 2);
-        $this->assertWithinMargin($autogradedstep->get_fraction(), 0, 0.0000001);
+        $this->assertWithinMargin($autogradedstep->get_fraction(), -0.3333333, 0.0000001);
     }
 }

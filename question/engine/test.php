@@ -13,6 +13,7 @@ require_once($CFG->dirroot . '/question/interaction/manualgraded/simpletest/test
 require_once($CFG->dirroot . '/question/interaction/deferredcbm/simpletest/testwalkthrough.php');
 require_once($CFG->dirroot . '/question/interaction/adaptive/simpletest/testwalkthrough.php');
 require_once($CFG->dirroot . '/question/interaction/informationitem/simpletest/testwalkthrough.php');
+require_once($CFG->dirroot . '/question/interaction/immediatefeedback/simpletest/testwalkthrough.php');
 
 define('QUESTION_FLAGSHIDDEN', 0);
 define('QUESTION_FLAGSSHOWN', 1);
@@ -65,6 +66,7 @@ $test->addTestClass('qim_manualgraded_walkthrough_test');
 $test->addTestClass('qim_deferredcbm_walkthrough_test');
 $test->addTestClass('qim_adaptive_walkthrough_test');
 $test->addTestClass('qim_informationitem_walkthrough_test');
+$test->addTestClass('qim_immediatefeedback_walkthrough_test');
 $test->run($reporter);
 
 function format_backtrace($callers, $plaintext = false) {
