@@ -16,6 +16,7 @@ require_once($CFG->dirroot . '/question/interaction/adaptive/simpletest/testwalk
 require_once($CFG->dirroot . '/question/interaction/informationitem/simpletest/testwalkthrough.php');
 require_once($CFG->dirroot . '/question/interaction/immediatefeedback/simpletest/testwalkthrough.php');
 require_once($CFG->dirroot . '/question/interaction/immediatecbm/simpletest/testwalkthrough.php');
+require_once($CFG->dirroot . '/question/interaction/missing/simpletest/testmissingmodel.php');
 
 define('QUESTION_FLAGSHIDDEN', 0);
 define('QUESTION_FLAGSSHOWN', 1);
@@ -71,6 +72,7 @@ $test->addTestClass('qim_adaptive_walkthrough_test');
 $test->addTestClass('qim_informationitem_walkthrough_test');
 $test->addTestClass('qim_immediatefeedback_walkthrough_test');
 $test->addTestClass('qim_immediatecbm_walkthrough_test');
+$test->addTestClass('qim_missing_test');
 $test->run($reporter);
 
 function format_backtrace($callers, $plaintext = false) {

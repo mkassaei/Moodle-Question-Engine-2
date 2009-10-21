@@ -1,6 +1,5 @@
 Finish interaction models and core of the engine
   Interactive mode
-  Missing mode
   Opaque mode
   Each attempt builds on last
   Scroll-down JavaScript on adaptive submit button
