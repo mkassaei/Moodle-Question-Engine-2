@@ -32,7 +32,7 @@
  * and the question type is marked complete the first time the user navigates
  * away from a page that contains that question.
  *
- * @copyright © 2006 The Open University
+ * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qim_informationitem extends question_interaction_model {

@@ -29,7 +29,7 @@
 /**
  * Output the generic stuff common to all questions.
  *
- * @copyright © 2006 The Open University
+ * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class core_question_renderer extends moodle_renderer_base {

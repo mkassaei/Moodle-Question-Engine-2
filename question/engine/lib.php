@@ -79,7 +79,7 @@ abstract class question_engine {
  *
  * With some useful methods to help manipulate states.
  *
- * @copyright © 2006 The Open University
+ * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class question_state {
@@ -171,7 +171,7 @@ abstract class question_state {
  * This class contains the constants and methods required for manipulating scores
  * for certainly based marking.
  *
- * @copyright © 2006 The Open University
+ * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class question_cbm {
@@ -208,7 +208,7 @@ abstract class question_cbm {
 /**
  * This class contains all the options that controls how a question is displayed.
  *
- * @copyright © 2006 The Open University
+ * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_display_options {
@@ -231,7 +231,7 @@ class question_display_options {
  * This class matches the question table in the database. It will normally be
  * subclassed by the particular question type.
  *
- * @copyright © 2006 The Open University
+ * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_definition {
@@ -661,7 +661,7 @@ class question_attempt {
 /**
  * A class abstracting access to the question_attempt::states array.
  *
- * @copyright © 2006 The Open University
+ * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt_step_iterator implements Iterator, ArrayAccess {
@@ -722,7 +722,7 @@ class question_attempt_reverse_step_iterator extends question_attempt_step_itera
 /**
  * Stores one step in a {@link question_attempt}.
  *
- * @copyright © 2006 The Open University
+ * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt_step {
@@ -854,7 +854,7 @@ class question_attempt_step {
  * {@link question_attempt::get_last_step()} etc. when a an attempt has just been
  * started and there is no acutal step.
  *
- * @copyright © 2006 The Open University
+ * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_null_step {

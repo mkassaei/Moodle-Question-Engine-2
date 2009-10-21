@@ -35,7 +35,7 @@
  * when the whole attempt is finished, their answer is graded. Their degree
  * of certainty affects their score.
  *
- * @copyright © 2006 The Open University
+ * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qim_deferredcbm extends qim_deferredfeedback {
