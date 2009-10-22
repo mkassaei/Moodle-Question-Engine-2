@@ -9,7 +9,6 @@ Finish interaction models and core of the engine
 Refactor all the renderer code
 
 Database load/save code
-  Create tables
   Load functions
   Insert/update functions
   Get qengine to call DB update code
@@ -31,3 +30,78 @@ Integrate new code into the quiz
   attempting code
   reviewing code
   reports
+
+
+--------------------------------------------------------------------------------
+
+Note: code to create the databaes tables in Postgres:
+
+
+CREATE TABLE git_question_usages (
+    id BIGSERIAL,
+    contextid BIGINT NOT NULL,
+    owningplugin VARCHAR(255) NOT NULL DEFAULT '',
+CONSTRAINT git_quesusag_id_pk PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE git_question_usages IS 'This table\'s main purpose it to assign a unique id to each attempt at a set of questions by some part of Moodle.';
+
+CREATE INDEX git_quesusag_con_ix ON git_question_usages (contextid);
+
+
+CREATE TABLE git_question_attempts_new (
+    id BIGSERIAL,
+    questionusageid BIGINT NOT NULL,
+    numberinusage BIGINT NOT NULL,
+    interactionmodel VARCHAR(32) NOT NULL DEFAULT '',
+    questionid BIGINT NOT NULL,
+    maxmark NUMERIC(12,7) NOT NULL,
+    minfraction NUMERIC(12,7) NOT NULL,
+    flagged SMALLINT NOT NULL DEFAULT 0,
+    questionsummary TEXT,
+    rightanswer TEXT,
+    responsesummary TEXT,
+    timemodified BIGINT NOT NULL,
+CONSTRAINT git_quesattenew_id_pk PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE git_question_attempts_new IS 'Each row here corresponds to an attempt at one question, as part of a question_usage. A question_attempt will have some question_attempt_steps';
+
+CREATE UNIQUE INDEX git_quesattenew_quenum_uix ON git_question_attempts_new (questionusageid, numberinusage);
+
+CREATE INDEX git_quesattenew_que_ix ON git_question_attempts_new (questionid);
+
+
+CREATE TABLE git_question_attempt_step (
+    id BIGSERIAL,
+    questionattemptid BIGINT NOT NULL,
+    sequencenumber BIGINT NOT NULL,
+    state SMALLINT NOT NULL,
+    fraction NUMERIC(12,7),
+    timecreated BIGINT NOT NULL,
+    userid BIGINT,
+CONSTRAINT git_quesattestep_id_pk PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE git_question_attempt_step IS 'Stores one step in in a question attempt. As well as the data here, the step will have some data in the question_attempt_step_data table.';
+
+CREATE UNIQUE INDEX git_quesattestep_queseq_uix ON git_question_attempt_step (questionattemptid, sequencenumber);
+
+CREATE INDEX git_quesattestep_que_ix ON git_question_attempt_step (questionattemptid);
+
+CREATE INDEX git_quesattestep_use_ix ON git_question_attempt_step (userid);
+
+
+CREATE TABLE git_question_attempt_step_data (
+    id BIGSERIAL,
+    attemptstepid BIGINT NOT NULL,
+    name VARCHAR(32) NOT NULL DEFAULT '',
+    value TEXT,
+CONSTRAINT git_quesattestepdata_id_pk PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE git_question_attempt_step_data IS 'Each question_attempt_step has an associative array of the data that was submitted by the user in the POST request. It can also contain extra data from the question type or interaction model to avoid re-computation. The convention is that names belon';
+
+CREATE UNIQUE INDEX git_quesattestepdata_attnam_uix ON git_question_attempt_step_data (attemptstepid, name);
+
+CREATE INDEX git_quesattestepdata_att_ix ON git_question_attempt_step_data (attemptstepid);
