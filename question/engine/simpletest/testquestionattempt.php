@@ -207,9 +207,15 @@ class question_attempt_with_steps_test extends UnitTestCase {
         $this->assertEqual('2.0000000', $this->qa->format_max_mark(7));
     }
 
-    public function test_format_mark_out_of_max() {
-        $this->qa->get_step(2)->set_fraction(0.5);
-        $this->assertEqual('1 / 2', $this->qa->format_mark_out_of_max(0));
+    public function test_get_min_fraction() {
+        $this->qa->set_min_fraction(-1);
+        $this->assertEqual(-1, $this->qa->get_min_fraction(0));
+    }
+
+    public function test_cannot_get_min_fraction_before_start() {
+        $qa = new question_attempt(null, null);
+        $this->expectException();
+        $qa->get_min_fraction();
     }
 }
 

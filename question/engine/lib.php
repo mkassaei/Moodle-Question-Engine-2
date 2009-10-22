@@ -379,17 +379,17 @@ class question_usage_by_activity {
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt {
-    private $id = null;
-    private $usageid;
-    private $numberinusage = null;
-    private $interactionmodel = null;
-    private $question;
-    private $maxmark;
-    private $minfraction;
-    private $responsesummary = '';
-    private $steps = array();
-    private $flagged = false;
-    private $pendingstep = null;
+    protected $id = null;
+    protected $usageid;
+    protected $numberinusage = null;
+    protected $interactionmodel = null;
+    protected $question;
+    protected $maxmark;
+    protected $minfraction = null;
+    protected $responsesummary = '';
+    protected $steps = array();
+    protected $flagged = false;
+    protected $pendingstep = null;
 
     const KEEP = true;
     const DISCARD = false;
@@ -536,6 +536,13 @@ class question_attempt {
         return $this->maxmark;
     }
 
+    public function get_min_fraction() {
+        if (is_null($this->minfraction)) {
+            throw new Exception('This question_attempt has not been started yet, the min fraction is not yet konwn.');
+        }
+        return $this->minfraction;
+    }
+
     public function format_mark($dp) {
         $mark = $this->get_mark();
         if (is_null($mark)) {
@@ -621,10 +628,10 @@ class question_attempt {
             if ($first) {
                 $first = false;
                 $this->start($oldqa->interactionmodel, $step->get_qt_data(),
-                        $step->get_timestamp(), $step->get_user_id());
+                        $step->get_timecreated(), $step->get_user_id());
             } else {
                 $this->process_action($step->get_submitted_data(),
-                        $step->get_timestamp(), $step->get_user_id());
+                        $step->get_timecreated(), $step->get_user_id());
             }
         }
     }
@@ -729,17 +736,17 @@ class question_attempt_step {
     private $id = null;
     private $state = question_state::UNPROCESSED;
     private $fraction = null;
-    private $timestamp;
+    private $timecreated;
     private $userid;
     private $data;
 
-    public function __construct($data = array(), $timestamp = null, $userid = null) {
+    public function __construct($data = array(), $timecreated = null, $userid = null) {
         global $USER;
         $this->data = $data;
-        if (is_null($timestamp)) {
-            $this->timestamp = time();
+        if (is_null($timecreated)) {
+            $this->timecreated = time();
         } else {
-            $this->timestamp = $timestamp;
+            $this->timecreated = $timecreated;
         }
         if (is_null($userid)) {
             $this->userid = $USER->id;
@@ -768,8 +775,8 @@ class question_attempt_step {
         return $this->userid;
     }
 
-    public function get_timestamp() {
-        return $this->timestamp;
+    public function get_timecreated() {
+        return $this->timecreated;
     }
 
     public function has_qt_var($name) {
@@ -792,6 +799,10 @@ class question_attempt_step {
             throw new Exception('Cannot set question type data ' . $name . ' on an attempt step. You can only set variables with names begining with _.');
         }
         $this->data[$name] = $value;
+    }
+
+    public function get_all_data() {
+        return $this->data;
     }
 
     public function get_qt_data() {
@@ -845,6 +856,36 @@ class question_attempt_step {
             $result[$name] = $value;
         }
         return $result;
+    }
+
+    /**
+     * Create a question_attempt_step from records loaded from the database.
+     * @param array $records Raw records loaded from the database.
+     * @param integer $stepid The id of the records to extract.
+     * @return question_attempt_step The newly constructed question_attempt_step.
+     */
+    public static function load_from_records($records, $stepid) {
+        $currentrec = current($records);
+        while ($currentrec->attemptstepid != $stepid) {
+            $currentrec = next($records);
+            if (!$currentrec) {
+                throw new Exception("Question attempt step $stepid not found in the database.");
+            }
+        }
+
+        $record = $currentrec;
+        $data = array();
+        while ($currentrec && $currentrec->attemptstepid == $stepid) {
+            if ($currentrec->name) {
+                $data[$currentrec->name] = $currentrec->value;
+            }
+            $currentrec = next($records);
+        }
+
+        $step = new question_attempt_step($data, $record->timecreated, $record->userid);
+        $step->set_state($record->state);
+        $step->set_fraction($record->fraction);
+        return $step;
     }
 }
 

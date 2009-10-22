@@ -90,6 +90,7 @@ class question_attempt_step_test extends UnitTestCase {
         $step = new question_attempt_step(array('x' => 1, '!y' => 'frog'));
         $this->assertEqual(array('x' => '1'), $step->get_qt_data());
         $this->assertEqual(array('y' => 'frog'), $step->get_im_data());
+        $this->assertEqual(array('x' => 1, '!y' => 'frog'), $step->get_all_data());
     }
 
     public function test_get_submitted_data() {
@@ -102,7 +103,7 @@ class question_attempt_step_test extends UnitTestCase {
     public function test_constructor_default_params() {
         global $USER;
         $step = new question_attempt_step();
-        $this->assertWithinMargin(time(), $step->get_timestamp(), 5);
+        $this->assertWithinMargin(time(), $step->get_timecreated(), 5);
         $this->assertEqual($USER->id, $step->get_user_id());
         $this->assertEqual(array(), $step->get_qt_data());
         $this->assertEqual(array(), $step->get_im_data());
@@ -112,10 +113,48 @@ class question_attempt_step_test extends UnitTestCase {
     public function test_constructor_given_params() {
         global $USER;
         $step = new question_attempt_step(array(), 123, 5);
-        $this->assertEqual(123, $step->get_timestamp());
+        $this->assertEqual(123, $step->get_timecreated());
         $this->assertEqual(5, $step->get_user_id());
         $this->assertEqual(array(), $step->get_qt_data());
         $this->assertEqual(array(), $step->get_im_data());
+
+    }
+}
+
+
+class question_attempt_step_db_test extends UnitTestCase {
+    protected function build_db_records(array $table) {
+        $columns = array_shift($table);
+        $records = array();
+        foreach ($table as $row) {
+            $rec = new stdClass;
+            foreach ($columns as $i => $name) {
+                $rec->$name = $row[$i];
+            }
+            $records[] = $rec;
+        }
+        return $records;
+    }
+    public function test_load_with_data() {
+        $records = $this->build_db_records(array(
+            array('id', 'attemptstepid', 'questionattemptid', 'sequencenumber', 'state', 'fraction', 'timecreated', 'userid', 'name', 'value'),
+            array(  1,               1,                   1,                0,       1,       null,    1256228502,       13,   null,    null),
+            array(  2,               2,                   1,                1,       2,       null,    1256228505,       13,    'x',     'a'),
+            array(  3,               2,                   1,                1,       2,       null,    1256228505,       13,   '_y',    '_b'),
+            array(  4,               2,                   1,                1,       2,       null,    1256228505,       13,   '!z',    '!c'),
+            array(  5,               2,                   1,                1,       2,       null,    1256228505,       13, '!_t',    '!_d'),
+            array(  6,               3,                   1,                2,      26,        1.0,    1256228515,       13, '!finish',  '1'),
+        ));
+
+        $step = question_attempt_step::load_from_records($records, 2);
+        $this->assertEqual(2, $step->get_state());
+        $this->assertNull($step->get_fraction());
+        $this->assertEqual(1256228505, $step->get_timecreated());
+        $this->assertEqual(13, $step->get_user_id());
+        $this->assertEqual(array('x' => 'a', '_y' => '_b', '!z' => '!c', '!_t' => '!_d'), $step->get_all_data());
+    }
+
+    public function test_load_without_data() {
 
     }
 }

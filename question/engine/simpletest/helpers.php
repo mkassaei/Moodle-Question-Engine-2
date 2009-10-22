@@ -39,6 +39,9 @@ class testable_question_attempt extends question_attempt {
     public function add_step($step) {#
         parent::add_step($step);
     }
+    public function set_min_fraction($fraction) {
+        $this->minfraction = $fraction;
+    }
 }
 
 
