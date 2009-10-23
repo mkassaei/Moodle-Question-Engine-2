@@ -8,6 +8,8 @@ Finish interaction models and core of the engine
 
 Refactor all the renderer code
 
+Redo the question preview window
+
 Database load/save code
   Load functions
   Insert/update functions
@@ -18,19 +20,17 @@ Convert existing question type code
   Split qtype classes in three
   New fields for editing hints
 
+Integrate new code into the quiz
+  attempting code
+  reviewing code
+  reports
+
 Database upgrade script
 
 Backup and restore code
   Restore old backup code
 
-Redo the question preview window
-
 Finish 2.0 quiz -> 1.9 backport
-
-Integrate new code into the quiz
-  attempting code
-  reviewing code
-  reports
 
 
 --------------------------------------------------------------------------------
