@@ -662,6 +662,44 @@ class question_attempt {
         }
         return null;
     }
+
+    /**
+     * Create a question_attempt_step from records loaded from the database.
+     * @param array $records Raw records loaded from the database.
+     * @param integer $questionattemptid The id of the question_attempt to extract.
+     * @return question_attempt The newly constructed question_attempt_step.
+     */
+    public static function load_from_records(&$records, $questionattemptid) {
+        $record = current($records);
+        while ($record->questionattemptid != $questionattemptid) {
+            $record = next($records);
+            if (!$record) {
+                throw new Exception("Question attempt $questionattemptid not found in the database.");
+            }
+        }
+
+        // TODO something to do with $record->questionid
+        $question = test_question_maker::make_a_description_question();
+
+        $qa = new question_attempt($question, $record->questionusageid);
+        $qa->set_number_in_usage($record->numberinusage);
+        // TODO something to do with $record->interactionmodel
+        // $qa->interactionmodel = ;
+        $qa->maxmark = $record->maxmark;
+        $qa->minfraction = $record->minfraction;
+        $qa->set_flagged($record->flagged);
+        $qa->questionsummary = $record->questionsummary;
+        $qa->rightanswer = $record->rightanswer;
+        $qa->timemodified = $record->timemodified;
+
+        $i = 0;
+        while (current($records)) {
+            $qa->steps[$i] = question_attempt_step::load_from_records($records, $i);
+            $i++;
+        }
+
+        return $qa;
+    }
 }
 
 
@@ -864,9 +902,9 @@ class question_attempt_step {
      * @param integer $stepid The id of the records to extract.
      * @return question_attempt_step The newly constructed question_attempt_step.
      */
-    public static function load_from_records($records, $stepid) {
+    public static function load_from_records(&$records, $sequencenumber) {
         $currentrec = current($records);
-        while ($currentrec->attemptstepid != $stepid) {
+        while ($currentrec->sequencenumber != $sequencenumber) {
             $currentrec = next($records);
             if (!$currentrec) {
                 throw new Exception("Question attempt step $stepid not found in the database.");
@@ -875,7 +913,7 @@ class question_attempt_step {
 
         $record = $currentrec;
         $data = array();
-        while ($currentrec && $currentrec->attemptstepid == $stepid) {
+        while ($currentrec && $currentrec->sequencenumber == $sequencenumber) {
             if ($currentrec->name) {
                 $data[$currentrec->name] = $currentrec->value;
             }

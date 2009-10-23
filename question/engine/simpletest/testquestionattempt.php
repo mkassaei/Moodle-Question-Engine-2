@@ -219,3 +219,70 @@ class question_attempt_with_steps_test extends UnitTestCase {
     }
 }
 
+
+class question_attempt_db_test extends data_loading_method_test_base {
+    public function test_load() {
+        $records = $this->build_db_records(array(
+            array('id', 'questionattemptid', 'questionusageid', 'numberinusage',
+                              'interactionmodel', 'questionid', 'maxmark', 'minfraction', 'flagged',
+                                                                             'questionsummary', 'rightanswer', 'responsesummary', 'timemodified',
+                                                                                                     'attemptstepid', 'sequencenumber', 'state', 'fraction',
+                                                                                                                          'timecreated', 'userid', 'name', 'value'),
+            array(1, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 1, 0,  1,      null, 1256233700, 1,       null, null),
+            array(2, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 2, 1,  2,      null, 1256233705, 1,   'answer',  '1'),
+            array(3, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 1, '', '', '', 1256233790, 3, 2,  2,      null, 1256233710, 1,   'answer',  '0'),
+            array(4, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 4, 3,  2,      null, 1256233715, 1,   'answer',  '1'),
+            array(5, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 5, 4, 26, 1.0000000, 1256233720, 1,  '!finish',  '1'),
+            array(6, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 57, 0.5000000, 1256233790, 1, '!comment', 'Not good enough!'),
+            array(7, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 57, 0.5000000, 1256233790, 1,    '!mark',  '1'),
+            array(8, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 57, 0.5000000, 1256233790, 1, '!maxmark',  '2'),
+        ));
+
+        $qa = question_attempt::load_from_records($records, 1);
+
+        $this->assertEqual(6, $qa->get_num_steps());
+
+        $step = $qa->get_step(0);
+        $this->assertEqual(1, $step->get_state());
+        $this->assertNull($step->get_fraction());
+        $this->assertEqual(1256233700, $step->get_timecreated());
+        $this->assertEqual(1, $step->get_user_id());
+        $this->assertEqual(array(), $step->get_all_data());
+
+        $step = $qa->get_step(1);
+        $this->assertEqual(2, $step->get_state());
+        $this->assertNull($step->get_fraction());
+        $this->assertEqual(1256233705, $step->get_timecreated());
+        $this->assertEqual(1, $step->get_user_id());
+        $this->assertEqual(array('answer' => '1'), $step->get_all_data());
+
+        $step = $qa->get_step(2);
+        $this->assertEqual(2, $step->get_state());
+        $this->assertNull($step->get_fraction());
+        $this->assertEqual(1256233710, $step->get_timecreated());
+        $this->assertEqual(1, $step->get_user_id());
+        $this->assertEqual(array('answer' => '0'), $step->get_all_data());
+
+        $step = $qa->get_step(3);
+        $this->assertEqual(2, $step->get_state());
+        $this->assertNull($step->get_fraction());
+        $this->assertEqual(1256233715, $step->get_timecreated());
+        $this->assertEqual(1, $step->get_user_id());
+        $this->assertEqual(array('answer' => '1'), $step->get_all_data());
+
+        $step = $qa->get_step(4);
+        $this->assertEqual(26, $step->get_state());
+        $this->assertEqual(1, $step->get_fraction());
+        $this->assertEqual(1256233720, $step->get_timecreated());
+        $this->assertEqual(1, $step->get_user_id());
+        $this->assertEqual(array('!finish' => '1'), $step->get_all_data());
+
+        $step = $qa->get_step(5);
+        $this->assertEqual(57, $step->get_state());
+        $this->assertEqual(0.5, $step->get_fraction());
+        $this->assertEqual(1256233790, $step->get_timecreated());
+        $this->assertEqual(1, $step->get_user_id());
+        $this->assertEqual(array('!comment' => 'Not good enough!', '!mark' => '1', '!maxmark' => '2'),
+                $step->get_all_data());
+    }
+}

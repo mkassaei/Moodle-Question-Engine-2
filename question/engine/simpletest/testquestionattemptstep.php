@@ -17,7 +17,7 @@
 
 
 /**
- * This file contains tests for the question_attempt_setp class.
+ * This file contains tests for the question_attempt_step class.
  *
  * @package moodlecore
  * @subpackage questionengine
@@ -27,6 +27,7 @@
 
 
 require_once(dirname(__FILE__) . '/../lib.php');
+require_once(dirname(__FILE__) . '/helpers.php');
 
 class question_attempt_step_test extends UnitTestCase {
     public function test_initial_state_unprocessed() {
@@ -122,19 +123,7 @@ class question_attempt_step_test extends UnitTestCase {
 }
 
 
-class question_attempt_step_db_test extends UnitTestCase {
-    protected function build_db_records(array $table) {
-        $columns = array_shift($table);
-        $records = array();
-        foreach ($table as $row) {
-            $rec = new stdClass;
-            foreach ($columns as $i => $name) {
-                $rec->$name = $row[$i];
-            }
-            $records[] = $rec;
-        }
-        return $records;
-    }
+class question_attempt_step_db_test extends data_loading_method_test_base {
     public function test_load_with_data() {
         $records = $this->build_db_records(array(
             array('id', 'attemptstepid', 'questionattemptid', 'sequencenumber', 'state', 'fraction', 'timecreated', 'userid', 'name', 'value'),
@@ -146,7 +135,7 @@ class question_attempt_step_db_test extends UnitTestCase {
             array(  6,               3,                   1,                2,      26,        1.0,    1256228515,       13, '!finish',  '1'),
         ));
 
-        $step = question_attempt_step::load_from_records($records, 2);
+        $step = question_attempt_step::load_from_records($records, 1);
         $this->assertEqual(2, $step->get_state());
         $this->assertNull($step->get_fraction());
         $this->assertEqual(1256228505, $step->get_timecreated());
@@ -155,6 +144,16 @@ class question_attempt_step_db_test extends UnitTestCase {
     }
 
     public function test_load_without_data() {
+        $records = $this->build_db_records(array(
+            array('id', 'attemptstepid', 'questionattemptid', 'sequencenumber', 'state', 'fraction', 'timecreated', 'userid', 'name', 'value'),
+            array(  2,               2,                   1,                1,       2,       null,    1256228505,       13,   null,    null),
+        ));
 
+        $step = question_attempt_step::load_from_records($records, 1);
+        $this->assertEqual(2, $step->get_state());
+        $this->assertNull($step->get_fraction());
+        $this->assertEqual(1256228505, $step->get_timecreated());
+        $this->assertEqual(13, $step->get_user_id());
+        $this->assertEqual(array(), $step->get_all_data());
     }
 }

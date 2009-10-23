@@ -154,6 +154,24 @@ class test_question_maker {
     }
 }
 
+class data_loading_method_test_base extends UnitTestCase {
+    protected function build_db_records(array $table) {
+        $columns = array_shift($table);
+        $records = array();
+        foreach ($table as $row) {
+            if (count($row) != count($columns)) {
+                throw new Exception("Row contains the wrong number of fields.");
+            }
+            $rec = new stdClass;
+            foreach ($columns as $i => $name) {
+                $rec->$name = $row[$i];
+            }
+            $records[] = $rec;
+        }
+        return $records;
+    }
+}
+
 class qim_walkthrough_test_base extends UnitTestCase {
     /** @var question_display_options */
     protected $displayoptions;

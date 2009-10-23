@@ -12,6 +12,7 @@ Database load/save code
   Load functions
   Insert/update functions
   Get qengine to call DB update code
+  Make more efficient code using lazy-loading, etc.
 
 Convert existing question type code
   Split qtype classes in three

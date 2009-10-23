@@ -97,6 +97,46 @@ WHERE
 
         return question_attempt_step::load_from_records($records, $stepid);
     }
+
+    public function load_question_attempt($questionattemptid) {
+        global $CFG;
+        $records = get_records_sql("
+SELECT
+    qasd.id,
+    qa.id AS questionattemptid,
+    qa.questionusageid,
+    qa.numberinusage,
+    qa.interactionmodel,
+    qa.questionid,
+    qa.maxmark,
+    qa.minfraction,
+    qa.flagged,
+    qa.questionsummary,
+    qa.rightanswer,
+    qa.responsesummary,
+    qa.timemodified,
+    qas.id AS attemptstepid,
+    qas.sequencenumber,
+    qas.state,
+    qas.fraction,
+    qas.timecreated,
+    qas.userid,
+    qasd.name,
+    qasd.value
+
+FROM {$CFG->prefix}question_attempt qa
+LEFT JOIN {$CFG->prefix}question_attempt_step qas ON qas.questionattemptid = qa.id
+LEFT JOIN {$CFG->prefix}question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
+
+WHERE
+    qa.id = $questionattemptid
+
+ORDER BY
+    qas.sequencenumber
+        ");
+
+        return question_attempt::load_from_records($records, $questionattemptid);
+    }
 }
 
 /**
