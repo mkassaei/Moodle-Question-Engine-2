@@ -4,6 +4,8 @@
 $string['adminreport'] = 'Report on possible problems in your question database.';
 $string['broken'] = 'This is a \"broken link\", it points to a nonexistent file.';
 $string['byandon'] = 'by <em>$a->user</em> on <em>$a->time</em>';
+$string['cannotloadquestion'] = 'Could not load question';
+$string['cannotpreview'] = 'You can\'t preview these questions!';
 $string['categorydoesnotexist'] = 'This category does not exist';
 $string['categorycurrent'] = 'Current Category';
 $string['categorycurrentuse'] = 'Use This Category';

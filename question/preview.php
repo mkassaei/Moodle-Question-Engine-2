@@ -60,7 +60,7 @@
     }
     // Load the question information
     if (!$questions = get_records('question', 'id', $id)) {
-        error('Could not load question');
+        print_error('cannotloadquestion', 'question');
     }
     if (empty($quizid)) {
         $quiz = new cmoptions;
@@ -68,13 +68,15 @@
         $quiz->review = $CFG->quiz_review;
         require_login($courseid, false);
         $quiz->course = $courseid;
+        $quiz->decimalpoints = $CFG->quiz_decimalpoints;
+        $context = get_context_instance(CONTEXT_COURSE, $courseid);
     } else if (!$quiz = get_record('quiz', 'id', $quizid)) {
-        error("Quiz id $quizid does not exist");
+        print_error('invalidquizid', 'quiz', '', $quizid);
     } else {
-        require_login($quiz->course, false, get_coursemodule_from_instance('quiz', $quizid, $quiz->course));
+        $cm = get_coursemodule_from_instance('quiz', $quizid, $quiz->course);
+        require_login($quiz->course, false, $cm);
+        $context = get_context_instance(CONTEXT_MODULE, $cm->id);
     }
-
-
 
     if ($maxgrade = get_field('quiz_question_instances', 'grade', 'quiz', $quiz->id, 'question', $id)) {
         $questions[$id]->maxgrade = $maxgrade;
@@ -86,11 +88,11 @@
     $quiz->questions = $id;
 
     if (!$category = get_record("question_categories", "id", $questions[$id]->category)) {
-        error("This question doesn't belong to a valid category!");
+        print_error('invalidquestionid', 'quiz');
     }
 
     if (!question_has_capability_on($questions[$id], 'use', $questions[$id]->category)){
-        error("You can't preview these questions!");
+        print_error('cannotpreview', 'question');
     }
     if (isset($COURSE)){
         $quiz->course = $COURSE->id;
@@ -114,6 +116,7 @@
     $attempt->timemodified = $timenow;
     $attempt->uniqueid = 0;
     $attempt->id = 0;
+    $attempt->layout = $id;
 
     // Restore the history of question sessions from the moodle session or create
     // new sessions. Make $states a reference to the states array in the moodle
@@ -131,10 +134,10 @@
         // Record the question id in the moodle session
         $SESSION->quizpreview->questionid = $id;
         // Create an empty session for the question
-        if (!$newstates =
-         get_question_states($questions, $quiz, $attempt)) {
+        if (!$newstates = get_question_states($questions, $quiz, $attempt)) {
             print_error('newattemptfail', 'quiz');
         }
+        $newstates[$id]->questionsessionid = 0;
         $SESSION->quizpreview->states = array($newstates);
         $states =& $SESSION->quizpreview->states;
         $historylength = 0;
@@ -160,7 +163,13 @@
         unset($form['back']);
         unset($form['startagain']);
 
-        $event = $finishattempt ? QUESTION_EVENTCLOSE : QUESTION_EVENTSUBMIT;
+        if ($finishattempt) {
+            $event = QUESTION_EVENTCLOSE;
+        } else if ($markall) {
+            $event = QUESTION_EVENTSUBMIT;
+        } else {
+            $event = QUESTION_EVENTSAVE;
+        }
         if ($actions = question_extract_responses($questions, $form, $event)) {
             $actions[$id]->timestamp = 0; // We do not care about timelimits here
             if (!question_process_responses($questions[$id], $curstate, $actions[$id], $quiz, $attempt)) {
@@ -186,8 +195,7 @@
 
     // Fill in the correct responses (unless the question is in readonly mode)
     if ($fillcorrect && !$options->readonly) {
-        $curstate->responses = $QTYPES[$questions[$id]->qtype]
-         ->get_correct_responses($questions[$id], $curstate);
+        $curstate->responses = $QTYPES[$questions[$id]->qtype]->get_correct_responses($questions[$id], $curstate);
     }
 
     $strpreview = get_string('preview', 'quiz').' '.format_string($questions[$id]->name);
