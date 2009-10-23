@@ -30,6 +30,7 @@
 
 
 require_once(dirname(__FILE__) . '/../lib.php');
+require_once(dirname(__FILE__) . '/helpers.php');
 
 class question_attempt_test extends UnitTestCase {#
     private $question;

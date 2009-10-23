@@ -26,6 +26,8 @@
  */
 
 
+require_once(dirname(__FILE__) . '/../immediatefeedback/model.php');
+
 /**
  * Question interaction model for immediate feedback with CBM.
  *

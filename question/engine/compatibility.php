@@ -295,3 +295,37 @@ class null_continer_stack {
     public function discard() {
     }
 }
+
+function format_backtrace($callers, $plaintext = false) {
+    // do not use $CFG->dirroot because it might not be available in desctructors
+    $dirroot = dirname(dirname(__FILE__));
+
+    if (empty($callers)) {
+        return '';
+    }
+
+    $from = $plaintext ? '' : '<ul style="text-align: left">';
+    foreach ($callers as $caller) {
+        if (!isset($caller['line'])) {
+            $caller['line'] = '?'; // probably call_user_func()
+        }
+        if (!isset($caller['file'])) {
+            $caller['file'] = 'unknownfile'; // probably call_user_func()
+        }
+        $from .= $plaintext ? '* ' : '<li>';
+        $from .= 'line ' . $caller['line'] . ' of ' . str_replace($dirroot, '', $caller['file']);
+        if (isset($caller['function'])) {
+            $from .= ': call to ';
+            if (isset($caller['class'])) {
+                $from .= $caller['class'] . $caller['type'];
+            }
+            $from .= $caller['function'] . '()';
+        } else if (isset($caller['exception'])) {
+            $from .= ': '.$caller['exception'].' thrown';
+        }
+        $from .= $plaintext ? "\n" : '</li>';
+    }
+    $from .= $plaintext ? '' : '</ul>';
+
+    return $from;
+}

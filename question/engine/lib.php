@@ -31,6 +31,15 @@ require_once(dirname(__FILE__) . '/renderer.php');
 require_once(dirname(__FILE__) . '/testquestiontype.php');
 
 
+/**#@+
+ * Options for whether flags are shown/editable when rendering questions.
+ */
+define('QUESTION_FLAGSHIDDEN', 0);
+define('QUESTION_FLAGSSHOWN', 1);
+define('QUESTION_FLAGSEDITABLE', 2);
+/**#@-*/
+
+
 /**
  * This static class provides access to the other question engine classes.
  *

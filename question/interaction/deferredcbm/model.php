@@ -27,6 +27,8 @@
  */
 
 
+require_once(dirname(__FILE__) . '/../deferredfeedback/model.php');
+
 /**
  * Question interaction model for deferred feedback with certainty based marking.
  *

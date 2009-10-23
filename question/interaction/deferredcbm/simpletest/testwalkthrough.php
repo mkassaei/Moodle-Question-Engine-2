@@ -30,7 +30,7 @@ require_once(dirname(__FILE__) . '/../../../engine/lib.php');
 require_once(dirname(__FILE__) . '/../../../engine/simpletest/helpers.php');
 
 class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
-    public function test_delayed_cbm_truefalse_high_certainty() {
+    public function test_deferred_cbm_truefalse_high_certainty() {
 
         // Create a true-false question with correct answer true.
         $tf = test_question_maker::make_a_truefalse_question();
@@ -103,7 +103,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->assertWithinMargin($autogradedstep->get_fraction(), -2, 0.0000001);
     }
 
-    public function test_delayed_cbm_truefalse_low_certainty() {
+    public function test_deferred_cbm_truefalse_low_certainty() {
 
         // Create a true-false question with correct answer true.
         $tf = test_question_maker::make_a_truefalse_question();

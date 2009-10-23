@@ -17,7 +17,7 @@
 
 
 /**
- * Renderer for outputting parts of a question belonging to the delayed
+ * Renderer for outputting parts of a question belonging to the deferred
  * feedback interaction model.
  *
  * @package qim_deferredcbm

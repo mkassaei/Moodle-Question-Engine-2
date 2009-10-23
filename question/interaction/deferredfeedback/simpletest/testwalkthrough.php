@@ -100,7 +100,7 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         $mc->maxmark = 3;
         $this->start_attempt_at_question($mc, 'deferredfeedback');
 
-        // Start a delayed feedback attempt and add the question to it.
+        // Start a deferred feedback attempt and add the question to it.
         $rightindex = $this->get_mc_right_answer_index($mc);
 
         $this->check_current_state(question_state::INCOMPLETE);

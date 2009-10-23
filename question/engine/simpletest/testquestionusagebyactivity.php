@@ -52,7 +52,7 @@ class question_usage_by_activity_test extends UnitTestCase {
     }
 
     public function test_extract_responses() {
-        // Start a delayed feedback attempt with CBM and add the question to it.
+        // Start a deferred feedback attempt with CBM and add the question to it.
         $tf = test_question_maker::make_a_truefalse_question();
         $quba = question_engine::make_questions_usage_by_activity('unit_test');
         $quba->set_preferred_interaction_model('deferredcbm');
