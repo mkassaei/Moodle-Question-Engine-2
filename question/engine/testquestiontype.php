@@ -135,7 +135,7 @@ class qtype_truefalse_renderer extends qtype_renderer {
         }
         $truefeedbackimg = '';
         $falsefeedbackimg = '';
-        if (($options->feedback || $options->correct_responses) && $response !== '') {
+        if (($options->feedback || $options->correctresponses) && $response !== '') {
             $truefeedbackimg = question_get_feedback_image($response, $truechecked && $options->feedback);
             $falsefeedbackimg = question_get_feedback_image(!$response, $falsechecked && $options->feedback);
         }
@@ -309,7 +309,7 @@ class qtype_multichoice_single_renderer extends qtype_renderer {
         }
         $truefeedbackimg = '';
         $falsefeedbackimg = '';
-        if (($options->feedback || $options->correct_responses) && $response !== '') {
+        if (($options->feedback || $options->correctresponses) && $response !== '') {
             $truefeedbackimg = question_get_feedback_image($response, $truechecked && $options->feedback);
             $falsefeedbackimg = question_get_feedback_image(!$response, $falsechecked && $options->feedback);
         }
@@ -336,18 +336,18 @@ class qtype_multichoice_single_renderer extends qtype_renderer {
                     $this->output_tag('label', array('for' => $inputattributes['id']),
                     format_text($ans->answer, true, $formatoptions));
 
-            if (($options->feedback || $options->correct_responses) && $response !== -1) {
+            if (($options->feedback || $options->correctresponses) && $response !== -1) {
                 $feedbackimg[] = question_get_feedback_image($response == $value, $response == $value && $options->feedback);
             } else {
                 $feedbackimg[] = '';
             }
-            if (($options->feedback || $options->correct_responses) && $response == $value) {
+            if (($options->feedback || $options->correctresponses) && $response == $value) {
                 $feedback[] = format_text($ans->feedback, true, $formatoptions);
             } else {
                 $feedback[] = '';
             }
             $classes[] = 'r' . ($value % 2);
-            if ($options->correct_responses && $answer->fraction > 0) {
+            if ($options->correctresponses && $answer->fraction > 0) {
                 $a->class = question_get_feedback_class($answer->fraction);
             }
         }

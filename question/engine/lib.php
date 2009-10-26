@@ -50,12 +50,62 @@ abstract class question_engine {
     private static $loadedmodels = array();
 
     /**
-     *
-     * @param $owningplugin
+     * @param string $owningplugin
      * @return question_usage_by_activity
      */
     public static function make_questions_usage_by_activity($owningplugin) {
         return new question_usage_by_activity($owningplugin);
+    }
+
+    /**
+     * @param integer $qubaid the id of the usage to load.
+     * @return question_usage_by_activity loaded from the database.
+     */
+    public static function load_questions_usage_by_activity($qubaid) {
+        return question_engine_data_mapper::load_questions_usage_by_activity($qubaid);
+    }
+
+    /**
+     * @param integer $qubaid the id of the usage to load.
+     * @return question_usage_by_activity loaded from the database.
+     */
+    public static function load_question($questionid) {
+        $questiondata = get_record('question', 'id', $questionid);
+        if (empty($questiondata)) {
+            throw new Exception('Unknown question id $questionid');
+        }
+        get_question_options($questiondata);
+
+        $question = new qtype_truefalse_question();
+        $question->id = $questiondata->id;
+        $question->category = $questiondata->category;
+        $question->parent = $questiondata->parent;
+        $question->qtype = question_engine::get_qtype($questiondata->qtype);
+        $question->name = $questiondata->name;
+        $question->questiontext = $questiondata->questiontext;
+        $question->questiontextformat = $questiondata->questiontextformat;
+        $question->generalfeedback = $questiondata->generalfeedback;
+        $question->defaultmark = $questiondata->defaultgrade;
+        $question->length = $questiondata->length;
+        $question->penalty = $questiondata->penalty;
+        $question->stamp = $questiondata->stamp;
+        $question->version = $questiondata->version;
+        $question->hidden = $questiondata->hidden;
+        $question->timecreated = $questiondata->timecreated;
+        $question->timemodified = $questiondata->timemodified;
+        $question->createdby = $questiondata->createdby;
+        $question->modifiedby = $questiondata->modifiedby;
+
+        $answers = $questiondata->options->answers;
+        if ($answers[$questiondata->options->trueanswer]->fraction > 0.99) {
+            $question->rightanswer = true;
+        } else {
+            $question->rightanswer = false;
+        }
+        $question->truefeedback = $answers[$questiondata->options->trueanswer]->feedback;
+        $question->falsefeedback = $answers[$questiondata->options->falseanswer]->feedback;
+
+        return $question;
     }
 
     /**
@@ -225,12 +275,22 @@ class question_display_options {
     public $flags = QUESTION_FLAGSSHOWN;
     public $readonly = false;
     public $feedback = false;
-    public $correct_responses = false;
+    public $correctresponses = false;
     public $generalfeedback = false;
     public $responses = true;
     public $marks = true;
     public $history = false;
     public $manualcommentlink = false; // Set to base URL for true.
+
+    public function set_review_options($bitmask) {
+        global $CFG;
+        require_once($CFG->dirroot . '/mod/quiz/lib.php');
+        $this->responses = ($bitmask & QUIZ_REVIEW_RESPONSES) != 0;
+        $this->feedback = ($bitmask & QUIZ_REVIEW_FEEDBACK) != 0;
+        $this->generalfeedback = ($bitmask & QUIZ_REVIEW_GENERALFEEDBACK) != 0;
+        $this->marks = ($bitmask & QUIZ_REVIEW_SCORES) != 0;
+        $this->correctresponses = ($bitmask & QUIZ_REVIEW_ANSWERS) != 0;
+    }
 }
 
 
@@ -251,7 +311,7 @@ class question_definition {
     public $name;
     public $questiontext;
     public $questiontextformat;
-    public $generalfeedback = 'You should have selected true.';
+    public $generalfeedback;
     public $defaultmark = 1;
     public $length = 1;
     public $penalty = 0;
@@ -336,6 +396,10 @@ class question_usage_by_activity {
 
     public function render_question($qnumber, $options, $number = null) {
         return $this->get_question_attempt($qnumber)->render($options, $number);
+    }
+
+    public function render_question_head_html($qnumber) {
+        return $this->get_question_attempt($qnumber)->render_head_html();
     }
 
     public function get_field_prefix($qnumber) {
@@ -553,25 +617,21 @@ class question_attempt {
     }
 
     public function format_mark($dp) {
-        $mark = $this->get_mark();
-        if (is_null($mark)) {
-            return '--';
-        }
-        return round($mark, $dp);
+        return round($this->get_mark(), $dp);
     }
 
     public function format_max_mark($dp) {
         return round($this->maxmark, $dp);
     }
 
-    public function format_mark_out_of_max($dp) {
-        return $this->format_mark($dp) . ' / ' . $this->format_max_mark($dp);
-    }
-
     public function render($options, $number) {
         $qoutput = renderer_factory::get_renderer('core', 'question');
         $qtoutput = $this->question->get_renderer();
         return $this->interactionmodel->render($options, $number, $qoutput, $qtoutput);
+    }
+
+    public function render_head_html() {
+        return $this->question->qtype->get_html_head_contributions($this->question, 'TODO');
     }
 
     protected function add_step(question_attempt_step $step) {

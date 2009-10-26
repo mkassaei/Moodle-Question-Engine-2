@@ -18,6 +18,8 @@
  * @package question
  */
 
+require_once($CFG->dirroot . '/question/engine/lib.php');
+
 /// CONSTANTS ///////////////////////////////////
 
 /**#@+
@@ -1680,7 +1682,7 @@ function question_hash($question) {
  *
  * @return string some HTML code that can go inside the head tag.
  */
-function get_html_head_contributions(&$questionlist, &$questions, &$states) {
+function get_html_head_contributions($questionlist, $questions, $states) {
     global $QTYPES;
 
     $contributions = array();

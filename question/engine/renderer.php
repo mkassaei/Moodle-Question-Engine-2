@@ -33,27 +33,35 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class core_question_renderer extends moodle_renderer_base {
+
+    protected function number($number) {
+        return $this->output_tag('h2', array('class' => 'no'),
+                $this->output_tag('span', array('class' => 'accesshide'), get_string('question', 'question') . ' ') .
+                $number);
+    }
+
+
+
     public function question(question_attempt $qa, qim_renderer $qimoutput,
             qtype_renderer $qtoutput, question_display_options $options, $number) {
 
     // TODO
     $editlink = '';
 
+    $info = $this->number($number);
+    if ($options->marks) {
+        $info .= $qimoutput->mark_summary($qa, $options->markdp);
+    }
+    $info .= $this->question_flag($qa, $options->flags);
+
+    $output = $this->output_tag('div', array('class' => 'info'), $info);
+
     ob_start();
 ?>
 <div id="q<?php echo $qa->get_question()->id; ?>" class="que <?php echo $qa->get_question()->qtype->name(); ?> clearfix">
-  <div class="info">
-    <h2 class="no"><span class="accesshide">Question </span><?php echo $number;
-    if ($editlink) { ?>
-      <span class="edit"><?php echo $editlink; ?></span>
-    <?php } ?></h2><?php
-    if ($qa->get_max_mark()) { ?>
-      <div class="grade">
-        <?php echo get_string('gradex', 'question', $qa->format_mark_out_of_max($options->markdp)); ?>
-      </div>
-    <?php }
-    echo $this->question_flag($qa, $options->flags); ?>
-  </div>
+  <?php
+  echo $output;
+  ?>
   <div class="content">
     <?php
     echo $qtoutput->formulation_and_controls($qa, $options);
@@ -135,7 +143,7 @@ class core_question_renderer extends moodle_renderer_base {
                 $flagcontent = '';
         }
         if ($flagcontent) {
-            echo '<div class="questionflag">' . $flagcontent . "</div>\n";
+            return '<div class="questionflag">' . $flagcontent . "</div>\n";
         }
     }
 
@@ -176,6 +184,21 @@ abstract class qtype_renderer extends moodle_renderer_base {
 
 
 abstract class qim_renderer extends moodle_renderer_base {
+    public function mark_summary(question_attempt $qa, $markdp) {
+        if ($qa->get_max_mark() == 0) {
+            $summary = get_string('notgraded', 'question');
+        } else if (question_state::is_graded($qa->get_state())) {
+            $a = new stdClass;
+            $a->mark = $qa->format_mark($markdp);
+            $a->max = $qa->format_max_mark($markdp);
+            $summary = get_string('markoutofmax', 'question', $a);
+        } else {
+            $summary = get_string('markedoutofmax', 'question', $qa->format_max_mark($markdp));
+        }
+
+        return $this->output_tag('div', array('class' => 'grade'), $summary);
+    }
+
     public function controls(question_attempt $qa, question_display_options $options) {
         return '';
     }

@@ -757,7 +757,7 @@ class default_questiontype {
      * this question is print_question-ed in the body. The array should use
      * integer array keys, which have no significance.
      */
-    function get_html_head_contributions(&$question, &$state) {
+    function get_html_head_contributions($question, $state) {
         // We only do this once for this question type, no matter how often this
         // method is called on one page.
         if ($this->htmlheadalreadydone) {

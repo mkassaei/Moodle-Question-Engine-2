@@ -2,6 +2,7 @@
 // question.php - created with Moodle 1.8 dev
 
 $string['adminreport'] = 'Report on possible problems in your question database.';
+$string['answer'] = 'Answer:';
 $string['broken'] = 'This is a \"broken link\", it points to a nonexistent file.';
 $string['byandon'] = 'by <em>$a->user</em> on <em>$a->time</em>';
 $string['cannotloadquestion'] = 'Could not load question';
@@ -57,6 +58,8 @@ $string['invalidcontextinhasanyquestions'] = 'Invalid context passed to question
 $string['linkedfiledoesntexist'] = 'Linked file $a doesn\'t exist';
 $string['makechildof'] = "Make Child of '\$a'";
 $string['maketoplevelitem'] = 'Move to top level';
+$string['markedoutofmax'] = 'Marked out of $a';
+$string['markoutofmax'] = 'Mark $a->mark out of $a->max';
 $string['missingimportantcode'] = 'This question type is missing important code: $a.';
 $string['modified'] = 'Last saved';
 $string['move']= 'Move from $a and change links.';
@@ -81,6 +84,7 @@ $string['permissionedit'] = 'Edit this question';
 $string['permissionmove'] = 'Move this question';
 $string['permissionsaveasnew'] = 'Save this as a new question';
 $string['permissionto'] = 'You have permission to :';
+$string['previewquestion'] = 'Preview question: $a';
 $string['published'] = 'shared';
 $string['questionaffected'] = '<a href=\"$a->qurl\">Question \"$a->name\" ($a->qtype)</a> is in this question category but is also being used in <a href=\"$a->qurl\">quiz \"$a->quizname\"</a> in another course \"$a->coursename\".';
 $string['questionbank'] = 'Question bank';

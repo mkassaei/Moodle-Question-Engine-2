@@ -26,6 +26,9 @@
  */
 
 
+require_once(dirname(__FILE__) . '/../deferredcbm/renderer.php');
+
+
 class qim_immediatecbm_renderer extends qim_deferredcbm_renderer {
     public function controls(question_attempt $qa, question_display_options $options) {
         if (!question_state::is_active($qa->get_state())) {
