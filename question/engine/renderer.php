@@ -36,75 +36,99 @@ class core_question_renderer extends moodle_renderer_base {
 
     protected function number($number) {
         return $this->output_tag('h2', array('class' => 'no'),
-                $this->output_tag('span', array('class' => 'accesshide'), get_string('question', 'question') . ' ') .
-                $number);
+                get_string('questionx', 'question', $this->output_tag('span', array('class' => 'qno'), $number)));
     }
-
-
 
     public function question(question_attempt $qa, qim_renderer $qimoutput,
             qtype_renderer $qtoutput, question_display_options $options, $number) {
 
-    // TODO
-    $editlink = '';
+        $output = '';
+        $output .= $this->output_start_tag('div', array(
+            'id' => 'q' . $qa->get_question()->id,
+            'class' => 'que clearfix ' . $qa->get_question()->qtype->name(),
+        ));
 
-    $info = $this->number($number);
-    if ($options->marks) {
-        $info .= $qimoutput->mark_summary($qa, $options->markdp);
-    }
-    $info .= $this->question_flag($qa, $options->flags);
+        $output .= $this->output_tag('div', array('class' => 'info'),
+                $this->info($qa, $qimoutput, $qtoutput, $options, $number));
 
-    $output = $this->output_tag('div', array('class' => 'info'), $info);
+        $output .= $this->output_start_tag('div', array('class' => 'content'));
 
-    ob_start();
-?>
-<div id="q<?php echo $qa->get_question()->id; ?>" class="que <?php echo $qa->get_question()->qtype->name(); ?> clearfix">
-  <?php
-  echo $output;
-  ?>
-  <div class="content">
-    <?php
-    echo $qtoutput->formulation_and_controls($qa, $options);
-    echo $qimoutput->controls($qa, $options);
-    if ($qa->has_manual_comment()) { ?>
-      <div class="comment">
-        <?php
-          echo get_string('commentx', 'question', $qa->get_manual_comment());
-        ?>
-      </div>
-    <?php }
-    echo $this->comment_link($qa, $options); ?>
-    <div class="grading">
-      <?php echo $qimoutput->grading_details($qa, $options); ?>
-    </div><?php
-    if ($options->history) { ?>
-      <div class="history">
-        <?php
-          print_string('history', 'question');
-          echo $this->history($qa, $options);
-        ?>
-      </div>
-    <?php } ?>
-  </div>
-</div>
-<?php
-        $result = ob_get_clean();
-        return $result;
+        $output .= $this->output_tag('div', array('class' => 'formulation'),
+                $this->formulation($qa, $qimoutput, $qtoutput, $options));
+        $output .= $this->output_nonempty_tag('div', array('class' => 'outcome'),
+                $this->outcome($qa, $qimoutput, $qtoutput, $options));
+        $output .= $this->output_nonempty_tag('div', array('class' => 'comment'),
+                $qimoutput->manual_comment($qa, $options));
+        $output .= $this->output_nonempty_tag('div', array('class' => 'history'),
+                $this->response_history($qa, $qimoutput, $qtoutput, $options));
+
+        $output .= $this->output_end_tag('div');
+        $output .= $this->output_end_tag('div');
+        return $output;
     }
 
-    protected function history(question_attempt $qa, question_display_options $options) {
-        return ''; // TODO
+    public function info(question_attempt $qa, qim_renderer $qimoutput,
+            qtype_renderer $qtoutput, question_display_options $options, $number) {
+        $output = '';
+        $output .= $this->number($number);
+        $output .= $this->status($qa, $qimoutput, $options);
+        $output .= $this->mark_summary($qa, $options);
+        $output .= $this->question_flag($qa, $options->flags);
+        return $output;
     }
 
-    protected function comment_link(question_attempt $qa, question_display_options $options) {
-        if (!$options->manualcommentlink) {
+    public function status(question_attempt $qa, qim_renderer $qimoutput, question_display_options $options) {
+        if ($options->correctness) {
+            return $this->output_tag('div', array('class' => 'state'),
+                    $qimoutput->get_state_string($qa));
+        } else {
             return '';
         }
-        $strcomment = get_string('commentormark', 'quiz');
-        $commentlink = link_to_popup_window($options->questioncommentlink .
-                '?attempt=' . $state->attempt . '&amp;question=' . $actualquestionid,
-                'commentquestion', $strcomment, 480, 750, $strcomment, 'none', true);
-        return '<div class="commentlink">'. $commentlink .'</div>';
+    }
+
+    public function mark_summary(question_attempt $qa, question_display_options $options) {
+        if (!$options->marks) {
+            return '';
+        }
+
+        if ($qa->get_max_mark() == 0) {
+            $summary = get_string('notgraded', 'question');
+
+        } else if ($options->marks == question_display_options::MAX_ONLY ||
+                !question_state::is_graded($qa->get_state())) {
+            $summary = get_string('markedoutofmax', 'question', $qa->format_max_mark($options->markdp));
+
+        } else {
+            $a = new stdClass;
+            $a->mark = $qa->format_mark($options->markdp);
+            $a->max = $qa->format_max_mark($options->markdp);
+            $summary = get_string('markoutofmax', 'question', $a);
+        }
+
+        return $this->output_tag('div', array('class' => 'grade'), $summary);
+    }
+
+    public function formulation(question_attempt $qa, qim_renderer $qimoutput,
+            qtype_renderer $qtoutput, question_display_options $options) {
+        $output = '';
+        $output .= $qtoutput->formulation_and_controls($qa, $options);
+        $output .= $qimoutput->controls($qa, $options);
+        return $output;
+    }
+
+    public function outcome(question_attempt $qa, qim_renderer $qimoutput,
+            qtype_renderer $qtoutput, question_display_options $options) {
+        $output = '';
+        $output .= $qtoutput->feedback($qa, $options);
+        $output .= $qimoutput->feedback($qa, $options);
+        return $output;
+    }
+
+    public function response_history(question_attempt $qa, qim_renderer $qimoutput,
+            qtype_renderer $qtoutput, question_display_options $options) {
+        $output = '';
+        // TODO
+        return $output;
     }
 
     /**
@@ -118,10 +142,10 @@ class core_question_renderer extends moodle_renderer_base {
     protected function question_flag(question_attempt $qa, $flagsoption) {
         global $CFG;
         switch ($flagsoption) {
-            case QUESTION_FLAGSSHOWN:
+            case question_display_options::FLAGS_SHOWN:
                 $flagcontent = $this->get_flag_html($qa->is_flagged());
                 break;
-            case QUESTION_FLAGSEDITABLE:
+            case question_display_options::FLAGS_EDITABLE:
                 $id = $question->name_prefix . '_flagged';
                 if ($qa->is_flagged()) {
                     $checked = 'checked="checked" ';
@@ -176,31 +200,64 @@ abstract class qtype_renderer extends moodle_renderer_base {
         return $qa->get_question()->questiontext;
     }
 
+    public function feedback(question_attempt $qa, question_display_options $options) {
+        $output = '';
+        if ($options->feedback) {
+            $output .= $this->specific_feedback($qa);
+        }
+        if ($options->generalfeedback) {
+            $output .= $this->general_feedback($qa);
+        }
+        if ($options->correctresponse) {
+            $output .= $this->correct_response($qa);
+        }
+        return $output;
+    }
+
+    public function specific_feedback(question_attempt $qa) {
+        return '';
+    }
+
     public function general_feedback(question_attempt $qa) {
-        return '<div class="generalfeedback">' . $qa->get_question()->generalfeedback .
-                '</div>';
+        return $this->output_nonempty_tag('div', array('class' => 'generalfeedback'),
+                $qa->get_question()->format_generalfeedback());
+    }
+
+    public function correct_response(question_attempt $qa) {
+        return '';
     }
 }
 
 
 abstract class qim_renderer extends moodle_renderer_base {
-    public function mark_summary(question_attempt $qa, $markdp) {
-        if ($qa->get_max_mark() == 0) {
-            $summary = get_string('notgraded', 'question');
-        } else if (question_state::is_graded($qa->get_state())) {
-            $a = new stdClass;
-            $a->mark = $qa->format_mark($markdp);
-            $a->max = $qa->format_max_mark($markdp);
-            $summary = get_string('markoutofmax', 'question', $a);
-        } else {
-            $summary = get_string('markedoutofmax', 'question', $qa->format_max_mark($markdp));
-        }
-
-        return $this->output_tag('div', array('class' => 'grade'), $summary);
+    public function get_state_string(question_attempt $qa) {
+        return question_state::default_string($qa->get_state());
     }
 
     public function controls(question_attempt $qa, question_display_options $options) {
         return '';
+    }
+
+    public function feedback(question_attempt $qa, question_display_options $options) {
+        return '';
+    }
+
+    public function manual_comment(question_attempt $qa, question_display_options $options) {
+        $output = '';
+
+        if ($options->manualcomment && $qa->has_manual_comment()) {
+            $output .= get_string('commentx', 'question', $qa->get_manual_comment());
+        }
+
+        if ($options->can_edit_comment()) {
+            $strcomment = get_string('commentormark', 'quiz');
+            $link = link_to_popup_window($options->manualcomment .
+                    '?attempt=' . $qa->get_id() . '&amp;question=' . $qa->get_question()->id,
+                    'commentquestion', $strcomment, 480, 750, $strcomment, 'none', true);
+            $output .= $this->output_tag('div', array('class' => 'commentlink'), $link);
+        }
+
+        return $output;
     }
 
     /**

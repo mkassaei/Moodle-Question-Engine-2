@@ -40,7 +40,8 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         // Check the initial state.
         $this->check_current_state(question_state::INCOMPLETE);
         $this->check_current_mark(null);
-        $this->check_current_output($this->get_contains_question_text_expectation($tf));
+        $this->check_current_output($this->get_contains_question_text_expectation($tf),
+                $this->get_does_not_contain_feedback_expectation());
 
         // Process a true answer and check the expected result.
         $this->process_submission(array('answer' => 1));
@@ -48,7 +49,8 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_state(question_state::COMPLETE);
         $this->check_current_mark(null);
         $this->check_current_output($this->get_contains_tf_true_radio_expectation(true, true),
-                $this->get_does_not_contain_correctness_expectation());
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation());
 
         // Process the same data again, check it does not create a new step.
         $numsteps = $this->get_step_count();
@@ -109,7 +111,8 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_question_text_expectation($mc),
                 $this->get_contains_mc_radio_expectation(0, true, false),
                 $this->get_contains_mc_radio_expectation(1, true, false),
-                $this->get_contains_mc_radio_expectation(2, true, false));
+                $this->get_contains_mc_radio_expectation(2, true, false),
+                $this->get_does_not_contain_feedback_expectation());
 
         // Process the data extracted for this question.
         $this->process_submission(array('answer' => $rightindex));
@@ -121,7 +124,8 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation($rightindex, true, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
-                $this->get_does_not_contain_correctness_expectation());
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation());
 
         // Finish the attempt.
         $this->quba->finish_all_questions();

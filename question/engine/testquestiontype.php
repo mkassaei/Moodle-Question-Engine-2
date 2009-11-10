@@ -135,7 +135,7 @@ class qtype_truefalse_renderer extends qtype_renderer {
         }
         $truefeedbackimg = '';
         $falsefeedbackimg = '';
-        if (($options->feedback || $options->correctresponses) && $response !== '') {
+        if (($options->feedback || $options->correctresponse) && $response !== '') {
             $truefeedbackimg = question_get_feedback_image($response, $truechecked && $options->feedback);
             $falsefeedbackimg = question_get_feedback_image(!$response, $falsechecked && $options->feedback);
         }
@@ -150,13 +150,6 @@ class qtype_truefalse_renderer extends qtype_renderer {
         $formatoptions = new stdClass;
         $formatoptions->noclean = true;
         $formatoptions->para = false;
-
-        $feedback = '';
-        if ($truechecked) {
-            $feedback = format_text($question->truefeedback, true, $formatoptions);
-        } else {
-            $feedback = format_text($question->falsefeedback, true, $formatoptions);
-        }
 
         $result = '';
         $result .= $this->output_tag('div', array('class' => 'qtext'),
@@ -173,13 +166,32 @@ class qtype_truefalse_renderer extends qtype_renderer {
                 $radiofalse . $falsefeedbackimg);
         $result .= $this->output_end_tag('div'); // answer
 
-        if ($feedback) {
-            $result .= $this->output_tag('div', array('class' => 'feedback'), $feedback);
-        }
-
         $result .= $this->output_end_tag('div'); // ablock
 
         return $result;
+    }
+
+    public function specific_feedback(question_attempt $qa) {
+        $question = $qa->get_question();
+        $response = $qa->get_last_qt_var('answer', '');
+
+        $formatoptions = new stdClass;
+        $formatoptions->noclean = true;
+        $formatoptions->para = false;
+
+        $feedback = '';
+        if ($response) {
+            $feedback = format_text($question->truefeedback, true, $formatoptions);
+        } else {
+            $feedback = format_text($question->falsefeedback, true, $formatoptions);
+        }
+
+        $output = '';
+        if ($feedback) {
+            $output .= $this->output_tag('div', array('class' => 'specificfeedback'), $feedback);
+        }
+
+        return $output;
     }
 }
 
@@ -297,23 +309,6 @@ class qtype_multichoice_single_renderer extends qtype_renderer {
             $inputattributes['disabled'] = 'disabled';
         }
 
-        // Work out visual feedback for answer correctness.
-        $trueclass = '';
-        $falseclass = '';
-        if ($options->feedback) {
-            if ($truechecked) {
-                $trueclass = ' ' . question_get_feedback_class($question->rightanswer);
-            } else if ($falsechecked) {
-                $falseclass = ' ' . question_get_feedback_class(!$question->rightanswer);
-            }
-        }
-        $truefeedbackimg = '';
-        $falsefeedbackimg = '';
-        if (($options->feedback || $options->correctresponses) && $response !== '') {
-            $truefeedbackimg = question_get_feedback_image($response, $truechecked && $options->feedback);
-            $falsefeedbackimg = question_get_feedback_image(!$response, $falsechecked && $options->feedback);
-        }
-
         $formatoptions = new stdClass;
         $formatoptions->noclean = true;
         $formatoptions->para = false;
@@ -326,7 +321,6 @@ class qtype_multichoice_single_renderer extends qtype_renderer {
             $ans = $question->answers[$ansid];
             $inputattributes['value'] = $value;
             $inputattributes['id'] = $inputname . $value;
-            print_object("$response, $value => $ansid"); // DONOTCOMMIT
             if ($response == $value) {
                 $inputattributes['checked'] = 'checked';
             } else {
@@ -336,19 +330,19 @@ class qtype_multichoice_single_renderer extends qtype_renderer {
                     $this->output_tag('label', array('for' => $inputattributes['id']),
                     format_text($ans->answer, true, $formatoptions));
 
-            if (($options->feedback || $options->correctresponses) && $response !== -1) {
+            if (($options->feedback || $options->correctresponse) && $response !== -1) {
                 $feedbackimg[] = question_get_feedback_image($response == $value, $response == $value && $options->feedback);
             } else {
                 $feedbackimg[] = '';
             }
-            if (($options->feedback || $options->correctresponses) && $response == $value) {
+            if (($options->feedback || $options->correctresponse) && $response == $value) {
                 $feedback[] = format_text($ans->feedback, true, $formatoptions);
             } else {
                 $feedback[] = '';
             }
             $classes[] = 'r' . ($value % 2);
-            if ($options->correctresponses && $answer->fraction > 0) {
-                $a->class = question_get_feedback_class($answer->fraction);
+            if ($options->correctresponse && $ans->fraction > 0) {
+                $a->class = question_get_feedback_class($ans->fraction);
             }
         }
 

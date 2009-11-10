@@ -817,6 +817,22 @@ table.message_search_results td {
 .que {
     border-color: #DDD;
 }
+
+.que .info {
+    background: #eee;
+}
+.que .formulation {
+    background: #E4F1FA;
+}
+.que .outcome {
+    background: #FFF3BF;
+}
+.que .comment {
+    background: #efe;
+}
+.que .history {
+    background: #eee;
+}
 .que .r0 {
     background-color: #F5F5F5;
 }

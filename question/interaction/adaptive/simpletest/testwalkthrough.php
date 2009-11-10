@@ -49,7 +49,8 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(0, true, false),
                 $this->get_contains_mc_radio_expectation(1, true, false),
                 $this->get_contains_mc_radio_expectation(2, true, false),
-                $this->get_contains_submit_button_expectation(true));
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation());
 
         // Process a submit.
         $this->process_submission(array('answer' => $wrongindex, '!submit' => 1));
@@ -73,7 +74,7 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation($rightindex, true, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
-                $this->get_contains_incorrect_expectation());
+                new PatternExpectation('/' . preg_quote(get_string('answersaved', 'question')) . '/'));
 
         // Now submit the right answer.
         $this->process_submission(array('answer' => $rightindex, '!submit' => 1));

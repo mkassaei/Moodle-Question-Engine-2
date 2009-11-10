@@ -692,10 +692,15 @@ body#grade-index .grades .header {
  *** Question
  ***/
 
-.que .no {
-  font-size: 1.2em;
+.que h2.no {
+  font-size: 0.8em;
+  font-weight: normal;
+}
+.que span.qno {
+  font-size: 1.5em;
   font-weight: bold;
 }
+.que .state,
 .que .grade {
   font-size: 0.8em;
 }

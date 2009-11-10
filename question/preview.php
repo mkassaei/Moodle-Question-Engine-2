@@ -39,8 +39,8 @@ $displayoptions = new question_display_options();
 $displayoptions->set_review_options($CFG->quiz_review); // Quiz-specific, but a sensible source of defaults.
 $displayoptions->markdp = optional_param('markdp', $CFG->quiz_decimalpoints, PARAM_INT);
 // TODO various review options.
-$displayoptions->flags = QUESTION_FLAGSHIDDEN;
-$displayoptions->manualcommentlink = false; // TODO
+$displayoptions->flags = question_display_options::HIDDEN;
+$displayoptions->manualcomment = question_display_options::HIDDEN;
 
 // Get and validate exitsing preview, or start a new one.
 $previewid = optional_param('previewid', 0, PARAM_INT);

@@ -31,15 +31,6 @@ require_once(dirname(__FILE__) . '/renderer.php');
 require_once(dirname(__FILE__) . '/testquestiontype.php');
 
 
-/**#@+
- * Options for whether flags are shown/editable when rendering questions.
- */
-define('QUESTION_FLAGSHIDDEN', 0);
-define('QUESTION_FLAGSSHOWN', 1);
-define('QUESTION_FLAGSEDITABLE', 2);
-/**#@-*/
-
-
 /**
  * This static class provides access to the other question engine classes.
  *
@@ -223,6 +214,34 @@ abstract class question_state {
                 return '';
         }
     }
+
+    public static function default_string($state) {
+        switch ($state) {
+            case self::INCOMPLETE;
+                return get_string('notyetanswered', 'question');
+            case self::COMPLETE;
+                return get_string('answersaved', 'question');
+            case self::NEEDS_GRADING;
+                return get_string('requiresgrading', 'question');
+            case self::FINISHED;
+            case self::FINISHED_COMMENTED;
+                return get_string('complete', 'question');
+            case self::GAVE_UP;
+            case self::GAVE_UP_COMMENTED;
+                return get_string('notanswered', 'question');
+            case self::GRADED_INCORRECT:
+            case self::MANUALLY_GRADED_INCORRECT:
+                return get_string('incorrect', 'question');
+            case self::GRADED_PARTCORRECT:
+            case self::MANUALLY_GRADED_PARTCORRECT:
+                return get_string('partiallycorrect', 'question');
+            case self::GRADED_CORRECT:
+            case self::MANUALLY_GRADED_CORRECT:
+                return get_string('correct', 'question');
+            default:
+                throw new Exception('Unknown question state.');
+        }
+    }
 }
 
 
@@ -271,16 +290,25 @@ abstract class question_cbm {
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_display_options {
+    const HIDDEN = 0;
+
+    const MAX_ONLY = 1;
+    const MARK_AND_MAX = 2;
+
+    const FLAGS_SHOWN = 1;
+    const FLAGS_EDITABLE = 2;
+
+    public $correctness = true;
+    public $marks = self::MARK_AND_MAX;
     public $markdp = 2;
-    public $flags = QUESTION_FLAGSSHOWN;
+    public $flags = self::FLAGS_SHOWN;
     public $readonly = false;
-    public $feedback = false;
-    public $correctresponses = false;
-    public $generalfeedback = false;
+    public $feedback = true;
+    public $correctresponse = true;
+    public $generalfeedback = true;
     public $responses = true;
-    public $marks = true;
     public $history = false;
-    public $manualcommentlink = false; // Set to base URL for true.
+    public $manualcomment = true;
 
     public function set_review_options($bitmask) {
         global $CFG;
@@ -289,7 +317,18 @@ class question_display_options {
         $this->feedback = ($bitmask & QUIZ_REVIEW_FEEDBACK) != 0;
         $this->generalfeedback = ($bitmask & QUIZ_REVIEW_GENERALFEEDBACK) != 0;
         $this->marks = ($bitmask & QUIZ_REVIEW_SCORES) != 0;
-        $this->correctresponses = ($bitmask & QUIZ_REVIEW_ANSWERS) != 0;
+        $this->correctresponse = ($bitmask & QUIZ_REVIEW_ANSWERS) != 0;
+    }
+
+    public function hide_all_feedback() {
+        $this->feedback = self::HIDDEN;
+        $this->correctresponse = self::HIDDEN;
+        $this->generalfeedback = self::HIDDEN;
+        $this->manualcomment = self::HIDDEN;
+    }
+
+    public function can_edit_comment() {
+        return is_string($this->manualcomment);
     }
 }
 
@@ -324,6 +363,14 @@ class question_definition {
     public $modifiedby;
 
     public function init_first_step(question_attempt_step $step) {
+    }
+
+    protected function format_text($text) {
+        return format_text($text);
+    }
+
+    public function format_generalfeedback() {
+        return $this->format_text($this->generalfeedback);
     }
 }
 
@@ -1049,13 +1096,16 @@ abstract class question_interaction_model {
         return renderer_factory::get_renderer('qim_' . $type);
     }
 
-    public function adjust_display_options($options) {
+    public function adjust_display_options(question_display_options $options) {
         if (question_state::is_finished($this->qa->get_state())) {
             $options->readonly = true;
+        } else {
+            $options->hide_all_feedback();
         }
     }
 
-    public function render($options, $number, $qoutput, $qtoutput) {
+    public function render(question_display_options $options, $number,
+            core_question_renderer $qoutput, qtype_renderer $qtoutput) {
         $qimoutput = $this->get_renderer();
         $options = clone($options);
         $this->adjust_display_options($options);

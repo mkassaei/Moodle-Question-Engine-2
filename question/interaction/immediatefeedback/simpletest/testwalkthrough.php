@@ -48,7 +48,8 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(0, true, false),
                 $this->get_contains_mc_radio_expectation(1, true, false),
                 $this->get_contains_mc_radio_expectation(2, true, false),
-                $this->get_contains_submit_button_expectation(true));
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation());
 
         // Save the wrong answer.
         $this->process_submission(array('answer' => $wrongindex));
@@ -61,7 +62,8 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
                 $this->get_contains_submit_button_expectation(true),
-                $this->get_does_not_contain_correctness_expectation());
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation());
 
         // Submit the right answer.
         $this->process_submission(array('answer' => $rightindex, '!submit' => 1));
@@ -130,7 +132,8 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(0, true, false),
                 $this->get_contains_mc_radio_expectation(1, true, false),
                 $this->get_contains_mc_radio_expectation(2, true, false),
-                $this->get_contains_submit_button_expectation(true));
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation());
 
         // Submit nothing.
         $this->process_submission(array('!submit' => 1));
@@ -143,7 +146,8 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(1, true, false),
                 $this->get_contains_mc_radio_expectation(2, true, false),
                 $this->get_contains_submit_button_expectation(true),
-                $this->get_does_not_contain_correctness_expectation());
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation());
 
         // Finish the attempt.
         $this->quba->finish_all_questions();
@@ -182,7 +186,8 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(0, true, false),
                 $this->get_contains_mc_radio_expectation(1, true, false),
                 $this->get_contains_mc_radio_expectation(2, true, false),
-                $this->get_contains_submit_button_expectation(true));
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation());
 
         $rightindex = $this->get_mc_right_answer_index($mc);
         $wrongindex = ($rightindex + 1) % 3;
@@ -198,7 +203,8 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
                 $this->get_contains_submit_button_expectation(true),
-                $this->get_does_not_contain_correctness_expectation());
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation());
 
         // Finish the attempt.
         $this->quba->finish_all_questions();

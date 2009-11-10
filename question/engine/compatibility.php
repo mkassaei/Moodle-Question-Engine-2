@@ -138,6 +138,20 @@ class moodle_renderer_base {
     }
 
     /**
+     * Outputs a tag if the contents are not empty.
+     * @param string $tagname The name of tag ('a', 'img', 'span' etc.)
+     * @param array $attributes The tag attributes (array('src' => $url, 'class' => 'class1') etc.)
+     * @param string $contents What goes between the opening and closing tags
+     * @return string HTML fragment
+     */
+    protected function output_nonempty_tag($tagname, $attributes, $contents) {
+        if (empty($contents)) {
+            return '';
+        }
+        return $this->output_tag($tagname, $attributes, $contents);
+    }
+
+    /**
      * Outputs an opening tag with attributes
      * @param string $tagname The name of tag ('a', 'img', 'span' etc.)
      * @param array $attributes The tag attributes (array('src' => $url, 'class' => 'class1') etc.)

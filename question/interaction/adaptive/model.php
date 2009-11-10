@@ -42,6 +42,17 @@ class qim_adaptive extends question_interaction_model {
         }
     }
 
+    public function adjust_display_options(question_display_options $options) {
+        if (question_state::is_finished($this->qa->get_state())) {
+            $options->readonly = true;
+        } else {
+            $options->hide_all_feedback();
+            if ($this->qa->get_last_im_var('_try')) {
+                $options->feedback = true;
+            }
+        }
+    }
+
     public function process_action(question_attempt_step $pendingstep) {
         if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);

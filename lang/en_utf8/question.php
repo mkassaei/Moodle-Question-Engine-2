@@ -105,4 +105,14 @@ $string['upgradeproblemcategoryloop'] = 'Problem detected when upgrading questio
 $string['upgradeproblemcouldnotupdatecategory'] = 'Could not update question category $a->name ($a->id).';
 $string['upgradeproblemunknowncategory'] = 'Problem detected when upgrading question categories. Category $a->id refers to parent $a->parent, which does not exist. Parent changed to fix problem.';
 $string['yourfileshoulddownload'] = 'Your export file should start to download shortly. If not, please <a href=\"$a\">click here</a>. Parent changed to fix problem.';
-?>
+
+
+$string['answersaved'] = 'Answer saved';
+$string['complete'] = 'Complete';
+$string['correct'] = 'Correct';
+$string['incorrect'] = 'Incorrect';
+$string['notanswered'] = 'Not answered';
+$string['notyetanswered'] = 'Not yet answered';
+$string['partiallycorrect'] = 'Partially correct';
+$string['questionx'] = 'Question $a';
+$string['requiresgrading'] = 'Requires grading';

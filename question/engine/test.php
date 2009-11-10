@@ -18,10 +18,6 @@ require_once($CFG->dirroot . '/question/interaction/immediatefeedback/simpletest
 require_once($CFG->dirroot . '/question/interaction/immediatecbm/simpletest/testwalkthrough.php');
 require_once($CFG->dirroot . '/question/interaction/missing/simpletest/testmissingmodel.php');
 
-define('QUESTION_FLAGSHIDDEN', 0);
-define('QUESTION_FLAGSSHOWN', 1);
-define('QUESTION_FLAGSEDITABLE', 2);
-
 class question_truefalse_qtype {
     public function name() {
         return 'truefalse';

@@ -46,7 +46,8 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_tf_false_radio_expectation(true, false),
                 $this->get_contains_cbm_radio_expectation(1, true, false),
                 $this->get_contains_cbm_radio_expectation(2, true, false),
-                $this->get_contains_cbm_radio_expectation(3, true, false));
+                $this->get_contains_cbm_radio_expectation(3, true, false),
+                $this->get_does_not_contain_feedback_expectation());
 
         // Process the data extracted for this question.
         $this->process_submission(array('answer' => 1, '!certainty' => 3));
@@ -57,7 +58,8 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_output(
                 $this->get_contains_tf_true_radio_expectation(true, true),
                 $this->get_contains_cbm_radio_expectation(3, true, true),
-                $this->get_does_not_contain_correctness_expectation());
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation());
 
         // Process the same data again, check it does not create a new step.
         $numsteps = $this->get_step_count();
@@ -115,7 +117,8 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_does_not_contain_correctness_expectation(),
-                $this->get_contains_cbm_radio_expectation(1, true, false));
+                $this->get_contains_cbm_radio_expectation(1, true, false),
+                $this->get_does_not_contain_feedback_expectation());
 
         // Submit ansewer with low certainty.
         $this->process_submission(array('answer' => 1, '!certainty' => 1));
@@ -124,7 +127,8 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_state(question_state::COMPLETE);
         $this->check_current_mark(null);
         $this->check_current_output($this->get_does_not_contain_correctness_expectation(),
-                $this->get_contains_cbm_radio_expectation(1, true, true));
+                $this->get_contains_cbm_radio_expectation(1, true, true),
+                $this->get_does_not_contain_feedback_expectation());
 
         // Finish the attempt.
         $this->quba->finish_all_questions();

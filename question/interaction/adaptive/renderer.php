@@ -27,6 +27,27 @@
 
 
 class qim_adaptive_renderer extends qim_renderer {
+    protected function get_graded_step(question_attempt $qa) {
+        foreach ($qa->get_reverse_step_iterator() as $step) {
+            if ($step->has_im_var('_try')) {
+                return $step;
+            }
+        }
+    }
+
+    public function get_state_string(question_attempt $qa) {
+        $state = $qa->get_state();
+
+        $laststep = $qa->get_last_step();
+        if ($laststep->has_im_var('_try')) {
+            $state = question_state::graded_state_for_fraction($laststep->get_im_var('_rawfraction'));
+
+        } else if ($qa->get_num_steps() > 0 && !question_state::is_finished($state)) {
+            $state = question_state::COMPLETE;
+        }
+        return question_state::default_string($state);
+    }
+
     public function controls(question_attempt $qa, question_display_options $options) {
         if (!question_state::is_active($qa->get_state())) {
             return '';
@@ -41,14 +62,8 @@ class qim_adaptive_renderer extends qim_renderer {
 
     public function grading_details(question_attempt $qa, question_display_options $options) {
         // Try to find the last graded step.
-        $gradedstep = null;
-        foreach ($qa->get_reverse_step_iterator() as $step) {
-            if ($step->has_im_var('_try')) {
-                $gradedstep = $step;
-                break;
-            }
-        }
 
+        $gradedstep = $this->get_graded_step($qa);
         if (is_null($gradedstep) || $qa->get_max_mark() == 0 || !$options->marks) {
             return '';
         }
