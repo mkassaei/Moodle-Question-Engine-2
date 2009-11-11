@@ -175,14 +175,15 @@ class data_loading_method_test_base extends UnitTestCase {
 class qim_walkthrough_test_base extends UnitTestCase {
     /** @var question_display_options */
     protected $displayoptions;
-    /** @var questions_usage_by_activity */
+    /** @var question_usage_by_activity */
     protected $quba;
     /** @var unknown_type integer */
     protected $qnumber;
 
     public function setUp() {
         $this->displayoptions = new question_display_options();
-        $this->quba = question_engine::make_questions_usage_by_activity('unit_test');
+        $this->quba = question_engine::make_questions_usage_by_activity('unit_test',
+                get_context_instance(CONTEXT_SYSTEM));
     }
 
     public function tearDown() {

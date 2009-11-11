@@ -27,6 +27,7 @@
 
 
 require_once(dirname(__FILE__) . '/compatibility.php');
+require_once(dirname(__FILE__) . '/datalib.php');
 require_once(dirname(__FILE__) . '/renderer.php');
 require_once(dirname(__FILE__) . '/testquestiontype.php');
 
@@ -44,8 +45,8 @@ abstract class question_engine {
      * @param string $owningplugin
      * @return question_usage_by_activity
      */
-    public static function make_questions_usage_by_activity($owningplugin) {
-        return new question_usage_by_activity($owningplugin);
+    public static function make_questions_usage_by_activity($owningplugin, $context) {
+        return new question_usage_by_activity($owningplugin, $context);
     }
 
     /**
@@ -53,7 +54,13 @@ abstract class question_engine {
      * @return question_usage_by_activity loaded from the database.
      */
     public static function load_questions_usage_by_activity($qubaid) {
-        return question_engine_data_mapper::load_questions_usage_by_activity($qubaid);
+        $dm = new question_engine_data_mapper();
+        return $dm->load_questions_usage_by_activity($qubaid);
+    }
+
+    public static function save_questions_usage_by_activity(question_usage_by_activity $quba) {
+        $dm = new question_engine_data_mapper();
+        $dm->insert_questions_usage_by_activity($quba);
     }
 
     /**
@@ -415,11 +422,13 @@ class question_definition {
 class question_usage_by_activity {
     protected $id = null;
     protected $preferredmodel = null;
+    protected $context;
     protected $owningplugin;
     protected $questionattempts = array();
 
-    public function __construct($owningplugin) {
+    public function __construct($owningplugin, $context) {
         $this->owningplugin = $owningplugin;
+        $this->context = $context;
     }
 
     public function set_preferred_interaction_model($model) {
@@ -430,11 +439,27 @@ class question_usage_by_activity {
         return $this->preferredmodel;
     }
 
+    /** @return stdClass */
+    public function get_owning_context() {
+        return $this->context;
+    }
+
+    public function get_owning_plugin() {
+        return $this->owningplugin;
+    }
+
     public function get_id() {
         if (is_null($this->id)) {
             $this->id = random_string(10);
         }
         return $this->id;
+    }
+
+    public function set_id_from_database($id) {
+        $this->id = $id;
+        foreach ($this->questionattempts as $qa) {
+            $qa->set_usage_id($id);
+        }
     }
 
     public function add_question(question_definition $question) {
@@ -456,8 +481,21 @@ class question_usage_by_activity {
         return $this->get_question_attempt($qnumber)->get_question();
     }
 
+    public function get_question_numbers() {
+        return array_keys($this->questionattempts);
+    }
+
+    public function get_first_question_number() {
+        reset($this->questionattempts);
+        return key($this->questionattempts);
+    }
+
     public function question_count() {
         return count($this->questionattempts);
+    }
+
+    public function get_attempt_iterator() {
+        return new question_attempt_iterator($this);
     }
 
     /**
@@ -530,6 +568,59 @@ class question_usage_by_activity {
     }
 }
 
+
+/**
+ * A class abstracting access to the question_attempt::states array.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_attempt_iterator implements Iterator, ArrayAccess {
+    protected $quba;
+    protected $qnumbers;
+
+    public function __construct(question_usage_by_activity $quba) {
+        $this->quba = $quba;
+        $this->qnumbers = $quba->get_question_numbers();
+        $this->rewind();
+    }
+
+    /** @return question_attempt_step */
+    public function current() {
+        return $this->offsetGet(current($this->qnumbers));
+    }
+    /** @return integer */
+    public function key() {
+        return current($this->qnumbers);
+    }
+    public function next() {
+        next($this->qnumbers);
+    }
+    public function rewind() {
+        reset($this->qnumbers);
+    }
+    /** @return boolean */
+    public function valid() {
+        return current($this->qnumbers) !== false;
+    }
+
+    /** @return boolean */
+    public function offsetExists($qnumber) {
+        return in_array($qnumber, $this->qnumbers);
+    }
+    /** @return question_attempt_step */
+    public function offsetGet($qnumber) {
+        return $this->quba->get_question_attempt($qnumber);
+    }
+    public function offsetSet($qnumber, $value) {
+        throw new Exception('You are only allowed read-only access to question_attempt::states through a question_attempt_step_iterator. Cannot set.');
+    }
+    public function offsetUnset($qnumber) {
+        throw new Exception('You are only allowed read-only access to question_attempt::states through a question_attempt_step_iterator. Cannot unset.');
+    }
+}
+
+
 /**
  * Tracks an attempt at one particular question.
  *
@@ -579,6 +670,14 @@ class question_attempt {
 
     public function get_usage_id() {
         return $this->usageid;
+    }
+
+    public function set_usage_id($usageid) {
+        $this->usageid = $usageid;
+    }
+
+    public function get_interaction_model_name() {
+        return $this->interactionmodel->get_name();
     }
 
     public function set_flagged($flagged) {
@@ -1127,6 +1226,10 @@ abstract class question_interaction_model {
     public function __construct(question_attempt $qa) {
         $this->qa = $qa;
         $this->question = $qa->get_question();
+    }
+
+    public function get_name() {
+        return substr(get_class($this), 4);
     }
 
     public function get_renderer() {

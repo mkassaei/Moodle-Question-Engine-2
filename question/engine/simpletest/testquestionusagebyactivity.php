@@ -30,30 +30,55 @@ require_once(dirname(__FILE__) . '/../lib.php');
 
 class question_usage_by_activity_test extends UnitTestCase {
 
-    public function setUp() {
+    public function test_set_get_preferred_model() {
+        // Set up
+        $quba = question_engine::make_questions_usage_by_activity('unit_test',
+                get_context_instance(CONTEXT_SYSTEM));
 
+        // Exercise SUT and verify.
+        $quba->set_preferred_interaction_model('deferredfeedback');
+        $this->assertEqual('deferredfeedback', $quba->get_preferred_interaction_model());
     }
 
-    public function tearDown() {
+    public function test_set_get_id() {
+        // Set up
+        $quba = question_engine::make_questions_usage_by_activity('unit_test',
+                get_context_instance(CONTEXT_SYSTEM));
 
+        // Exercise SUT and verify
+        $quba->set_id_from_database(123);
+        $this->assertEqual(123, $quba->get_id());
+    }
+
+    public function test_fake_id() {
+        // Set up
+        $quba = question_engine::make_questions_usage_by_activity('unit_test',
+                get_context_instance(CONTEXT_SYSTEM));
+
+        // Exercise SUT and verify
+        $this->assertTrue($quba->get_id());
     }
 
     public function test_create_usage_and_add_question() {
         // Exercise SUT
-        $quba = question_engine::make_questions_usage_by_activity('unit_test');
+        $context = get_context_instance(CONTEXT_SYSTEM);
+        $quba = question_engine::make_questions_usage_by_activity('unit_test', $context);
         $quba->set_preferred_interaction_model('deferredfeedback');
         $tf = test_question_maker::make_a_truefalse_question();
         $qnumber = $quba->add_question($tf);
 
         // Verify.
         $this->assertEqual($qnumber, 1);
+        $this->assertEqual('unit_test', $quba->get_owning_plugin());
+        $this->assertIdentical($context, $quba->get_owning_context());
         $this->assertEqual($quba->question_count(), 1);
         $this->assertEqual($quba->get_question_state($qnumber), question_state::NOT_STARTED);
     }
 
     public function test_get_question() {
         // Set up.
-        $quba = question_engine::make_questions_usage_by_activity('unit_test');
+        $quba = question_engine::make_questions_usage_by_activity('unit_test',
+                get_context_instance(CONTEXT_SYSTEM));
         $quba->set_preferred_interaction_model('deferredfeedback');
         $tf = test_question_maker::make_a_truefalse_question();
         $qnumber = $quba->add_question($tf);
@@ -68,7 +93,8 @@ class question_usage_by_activity_test extends UnitTestCase {
     public function test_extract_responses() {
         // Start a deferred feedback attempt with CBM and add the question to it.
         $tf = test_question_maker::make_a_truefalse_question();
-        $quba = question_engine::make_questions_usage_by_activity('unit_test');
+        $quba = question_engine::make_questions_usage_by_activity('unit_test',
+                get_context_instance(CONTEXT_SYSTEM));
         $quba->set_preferred_interaction_model('deferredcbm');
         $qnumber = $quba->add_question($tf);
         $quba->start_all_questions();

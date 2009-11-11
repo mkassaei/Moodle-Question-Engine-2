@@ -41,6 +41,8 @@ class preview_options_form extends moodleform {
         $mform->addElement('select', 'markdp', get_string('decimalplacesingrades', 'question'),
                 question_engine::get_dp_options());
 
+        // TODO Other fields from http://moodle.org/mod/forum/discuss.php?d=134156#p595000
+
         $mform->addElement('submit', 'submit', get_string('restartwiththeseoptions', 'question'));
     }
 }
@@ -82,7 +84,7 @@ if ($previewid) {
         print_error('notyourpreview', 'question');
     }
     $quba = question_engine::load_questions_usage_by_activity($previewid);
-    $qnumber = $quba->get_first_qnumber();
+    $qnumber = $quba->get_first_question_number();
     $usedquestion = $quba->get_question($qnumber);
     if ($usedquestion->id != $question->id) {
         print_error('questionidmismatch', 'question');
@@ -93,12 +95,13 @@ if ($previewid) {
     $model = optional_param('model', 'deferredfeedback', PARAM_FORMAT);
     $maxmark = optional_param('maxmark', $question->defaultmark, PARAM_NUMBER);
 
-    $quba = question_engine::make_questions_usage_by_activity('core_question_preview');
+    $quba = question_engine::make_questions_usage_by_activity('core_question_preview',
+            get_context_instance_by_id($category->contextid));
     $quba->set_preferred_interaction_model($model);
     $question->maxmark = $maxmark;
     $qnumber = $quba->add_question($question);
     $quba->start_all_questions();
-    // TODO question_engine::save_questions_usage_by_activity($quba);
+    question_engine::save_questions_usage_by_activity($quba);
 
     $SESSION->question_previews[$quba->get_id()] = true;
 }

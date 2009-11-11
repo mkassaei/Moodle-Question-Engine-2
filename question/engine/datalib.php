@@ -34,11 +34,25 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_engine_data_mapper {
+    public function insert_questions_usage_by_activity(question_usage_by_activity $quba) {
+        $record = new stdClass;
+        $record->contextid = $quba->get_owning_context()->id;
+        $record->owningplugin = $quba->get_owning_plugin();
+        $record->preferredmodel = $quba->get_preferred_interaction_model();
+
+        $newid = insert_record('question_usages', $record);
+        $quba->set_id_from_database($newid);
+
+        foreach ($quba->get_attempt_iterator() as $qa) {
+            $this->insert_question_attempt($qa);
+        }
+    }
+
     public function insert_question_attempt(question_attempt $qa) {
         $record = new stdClass;
         $record->questionusageid = $qa->get_usage_id();
         $record->numberinusage = $qa->get_number_in_usage();
-        $record->interactionmodel = $qa->get_im_name();
+        $record->interactionmodel = $qa->get_interaction_model_name();
         $record->questionid = $qa->get_question()->id;
         $record->maxmark = $qa->get_max_mark();
         $record->minfraction = $qa->get_min_fraction();
@@ -46,14 +60,16 @@ class question_engine_data_mapper {
         $record->questionsummary = null;
         $record->rightanswer = null;
         $record->responsesummary = null;
-        $record->id = insert_record('question_attempt', $record);
+        $record->timemodified = time();
+        $record->id = insert_record('question_attempts_new', $record);
 
         foreach ($qa->get_step_iterator() as $seq => $step) {
-            $this->insert_question_attempt_step($step, $record->id);
+            $this->insert_question_attempt_step($step, $record->id, $seq);
         }
     }
 
-    public function insert_question_attempt_step(question_attempt_step $step, $questionattemptid, $seq) {
+    public function insert_question_attempt_step(question_attempt_step $step,
+            $questionattemptid, $seq) {
         $record = new stdClass;
         $record->questionattemptid = $questionattemptid;
         $record->sequencenumber = $seq;
@@ -62,7 +78,7 @@ class question_engine_data_mapper {
         $record->timecreated = $step->get_timecreated();
         $record->userid = $step->get_user_id();
 
-        $record->id = insert_record('question_attempt_step', $record);
+        $record->id = insert_record('question_attempt_steps', $record);
 
         foreach ($step->get_all_data() as $name => $value) {
             $data = new stdClass;
@@ -88,7 +104,7 @@ SELECT
     qasd.name,
     qasd.value
 
-FROM {$CFG->prefix}question_attempt_step qas
+FROM {$CFG->prefix}question_attempt_steps qas
 LEFT JOIN {$CFG->prefix}question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
 
 WHERE
@@ -124,8 +140,8 @@ SELECT
     qasd.name,
     qasd.value
 
-FROM {$CFG->prefix}question_attempt qa
-LEFT JOIN {$CFG->prefix}question_attempt_step qas ON qas.questionattemptid = qa.id
+FROM {$CFG->prefix}question_attempt_new qa
+LEFT JOIN {$CFG->prefix}question_attempt_steps qas ON qas.questionattemptid = qa.id
 LEFT JOIN {$CFG->prefix}question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
 
 WHERE
@@ -136,6 +152,52 @@ ORDER BY
         ");
 
         return question_attempt::load_from_records($records, $questionattemptid);
+    }
+
+    public function load_questions_usage_by_activity($usageid) {
+        global $CFG;
+        $records = get_records_sql("
+SELECT
+    qasd.id,
+    quba.id AS qubaid,
+    quba.contextid,
+    quba.owningplugin,
+    quba.preferredmodel,
+    qa.id AS questionattemptid,
+    qa.questionusageid,
+    qa.numberinusage,
+    qa.interactionmodel,
+    qa.questionid,
+    qa.maxmark,
+    qa.minfraction,
+    qa.flagged,
+    qa.questionsummary,
+    qa.rightanswer,
+    qa.responsesummary,
+    qa.timemodified,
+    qas.id AS attemptstepid,
+    qas.sequencenumber,
+    qas.state,
+    qas.fraction,
+    qas.timecreated,
+    qas.userid,
+    qasd.name,
+    qasd.value
+
+FROM {$CFG->prefix}question_usages quba
+LEFT JOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = quba.id
+LEFT JOIN {$CFG->prefix}question_attempt_steps qas ON qas.questionattemptid = qa.id
+LEFT JOIN {$CFG->prefix}question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
+
+WHERE
+    quba.id = $usageid
+
+ORDER BY
+    qa.numberinusage,
+    qas.sequencenumber
+    ");
+
+        return question_usage_by_activity::load_from_records($records);
     }
 }
 

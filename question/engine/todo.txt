@@ -9,6 +9,10 @@ Finish interaction models and core of the engine
 Refactor all the renderer code
 
 Redo the question preview window
+  Unit tests for question_attempt_iterator
+  Processing
+  Fill with correct
+  More display options
 
 Database load/save code
   Load functions
@@ -30,18 +34,69 @@ Database upgrade script
 Backup and restore code
   Restore old backup code
 
-Finish 2.0 quiz -> 1.9 backport
+
+--------------------------------------------------------------------------------
+
+-- Monster query to return all of a question_usage.
+
+SELECT
+    qasd.id,
+    quba.id AS qubaid,
+    quba.contextid,
+    quba.owningplugin,
+    quba.preferredmodel,
+    qa.id AS questionattemptid,
+    qa.questionusageid,
+    qa.numberinusage,
+    qa.interactionmodel,
+    qa.questionid,
+    qa.maxmark,
+    qa.minfraction,
+    qa.flagged,
+    qa.questionsummary,
+    qa.rightanswer,
+    qa.responsesummary,
+    qa.timemodified,
+    qas.id AS attemptstepid,
+    qas.sequencenumber,
+    qas.state,
+    qas.fraction,
+    qas.timecreated,
+    qas.userid,
+    qasd.name,
+    qasd.value
+
+FROM git_question_usages quba
+LEFT JOIN git_question_attempts_new qa ON qa.questionusageid = quba.id
+LEFT JOIN git_question_attempt_steps qas ON qas.questionattemptid = qa.id
+LEFT JOIN git_question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
+
+WHERE
+    quba.id = 1
+
+ORDER BY
+    qa.numberinusage,
+    qas.sequencenumber
 
 
 --------------------------------------------------------------------------------
 
-Note: code to create the databaes tables in Postgres:
+-- Note: code to drop the database tables in Postgres:
+
+DROP TABLE git_question_usages;
+DROP TABLE git_question_attempts_new;
+DROP TABLE git_question_attempt_steps;
+DROP TABLE git_question_attempt_step_data;
+
+
+-- Note: code to create the database tables in Postgres:
 
 
 CREATE TABLE git_question_usages (
     id BIGSERIAL,
     contextid BIGINT NOT NULL,
-    owningplugin VARCHAR(255) NOT NULL DEFAULT '',
+    owningplugin VARCHAR(255) NOT NULL,
+    preferredmodel VARCHAR(32) NOT NULL,
 CONSTRAINT git_quesusag_id_pk PRIMARY KEY (id)
 );
 
@@ -54,7 +109,7 @@ CREATE TABLE git_question_attempts_new (
     id BIGSERIAL,
     questionusageid BIGINT NOT NULL,
     numberinusage BIGINT NOT NULL,
-    interactionmodel VARCHAR(32) NOT NULL DEFAULT '',
+    interactionmodel VARCHAR(32) NOT NULL,
     questionid BIGINT NOT NULL,
     maxmark NUMERIC(12,7) NOT NULL,
     minfraction NUMERIC(12,7) NOT NULL,
@@ -73,7 +128,7 @@ CREATE UNIQUE INDEX git_quesattenew_quenum_uix ON git_question_attempts_new (que
 CREATE INDEX git_quesattenew_que_ix ON git_question_attempts_new (questionid);
 
 
-CREATE TABLE git_question_attempt_step (
+CREATE TABLE git_question_attempt_steps (
     id BIGSERIAL,
     questionattemptid BIGINT NOT NULL,
     sequencenumber BIGINT NOT NULL,
@@ -84,19 +139,19 @@ CREATE TABLE git_question_attempt_step (
 CONSTRAINT git_quesattestep_id_pk PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE git_question_attempt_step IS 'Stores one step in in a question attempt. As well as the data here, the step will have some data in the question_attempt_step_data table.';
+COMMENT ON TABLE git_question_attempt_steps IS 'Stores one step in in a question attempt. As well as the data here, the step will have some data in the question_attempt_step_data table.';
 
-CREATE UNIQUE INDEX git_quesattestep_queseq_uix ON git_question_attempt_step (questionattemptid, sequencenumber);
+CREATE UNIQUE INDEX git_quesattestep_queseq_uix ON git_question_attempt_steps (questionattemptid, sequencenumber);
 
-CREATE INDEX git_quesattestep_que_ix ON git_question_attempt_step (questionattemptid);
+CREATE INDEX git_quesattestep_que_ix ON git_question_attempt_steps (questionattemptid);
 
-CREATE INDEX git_quesattestep_use_ix ON git_question_attempt_step (userid);
+CREATE INDEX git_quesattestep_use_ix ON git_question_attempt_steps (userid);
 
 
 CREATE TABLE git_question_attempt_step_data (
     id BIGSERIAL,
     attemptstepid BIGINT NOT NULL,
-    name VARCHAR(32) NOT NULL DEFAULT '',
+    name VARCHAR(32) NOT NULL,
     value TEXT,
 CONSTRAINT git_quesattestepdata_id_pk PRIMARY KEY (id)
 );
