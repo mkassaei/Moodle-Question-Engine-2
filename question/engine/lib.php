@@ -400,6 +400,10 @@ class question_usage_by_activity {
         $this->preferredmodel = $model;
     }
 
+    public function get_preferred_interaction_model() {
+        return $this->preferredmodel;
+    }
+
     public function get_id() {
         if (is_null($this->id)) {
             $this->id = random_string(10);
@@ -416,6 +420,14 @@ class question_usage_by_activity {
         }
         $qa->set_number_in_usage(end(array_keys($this->questionattempts)));
         return $qa->get_number_in_usage();
+    }
+
+    /**
+     * @param integer $qnumber
+     * @return question_definition
+     */
+    public function get_question($qnumber) {
+        return $this->get_question_attempt($qnumber)->get_question();
     }
 
     public function question_count() {

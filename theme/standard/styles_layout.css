@@ -2592,18 +2592,25 @@ body.notes .notesgroup {
 .que {
   text-align: left;
   margin: 0 auto 1.8em auto;
-  border: 1px solid;
   clear: both;
 }
 .que .info {
   float: left;
-  margin: 0.5em 0 0.5em 1.2em;
-  width: 8%;
+  width: 6em;
+  padding: 0.5em;
+}
+.que h2.no {
+    margin: 0.5em 0;
 }
 .que .content {
-  float: left;
-  margin: 0.5em 1.2em 0.5em 0;
-  width: 85%;
+  margin: 0 0 0 7.5em;
+}
+.que .formulation,
+.que .outcome,
+.que .comment,
+.que .history {
+    padding: 0.5em;
+    margin: 0 0 0.5em;
 }
 .que.description .info {
   margin: 0.5em 0 0.5em 0.2em;

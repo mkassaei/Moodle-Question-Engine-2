@@ -99,7 +99,9 @@ $string['shareincontext'] = 'Share in context for $a';
 $string['tofilecategory'] = 'Write category to file';
 $string['tofilecontext'] = 'Write context to file';
 $string['unknown'] = 'Unknown';
+$string['unknownquestion'] = 'Unknown question: $a.';
 $string['unknownquestiontype'] = 'Unknown question type: $a.';
+$string['unknownquestioncatregory'] = 'Unknown question category: $a.';
 $string['unpublished'] = 'unshared';
 $string['upgradeproblemcategoryloop'] = 'Problem detected when upgrading question categories. There is a loop in the category tree. The affected category ids are $a.';
 $string['upgradeproblemcouldnotupdatecategory'] = 'Could not update question category $a->name ($a->id).';
@@ -108,11 +110,15 @@ $string['yourfileshoulddownload'] = 'Your export file should start to download s
 
 
 $string['answersaved'] = 'Answer saved';
+$string['closepreview'] = 'Close preview';
 $string['complete'] = 'Complete';
 $string['correct'] = 'Correct';
 $string['incorrect'] = 'Incorrect';
 $string['notanswered'] = 'Not answered';
 $string['notyetanswered'] = 'Not yet answered';
+$string['notyourpreview'] = 'This preview does not belong to you';
 $string['partiallycorrect'] = 'Partially correct';
 $string['questionx'] = 'Question $a';
 $string['requiresgrading'] = 'Requires grading';
+$string['restart'] = 'Re-start';
+$string['submitandfinish'] = 'Submit and finish';

@@ -51,6 +51,20 @@ class question_usage_by_activity_test extends UnitTestCase {
         $this->assertEqual($quba->get_question_state($qnumber), question_state::NOT_STARTED);
     }
 
+    public function test_get_question() {
+        // Set up.
+        $quba = question_engine::make_questions_usage_by_activity('unit_test');
+        $quba->set_preferred_interaction_model('deferredfeedback');
+        $tf = test_question_maker::make_a_truefalse_question();
+        $qnumber = $quba->add_question($tf);
+
+        // Exercise SUT and verify.
+        $this->assertIdentical($tf, $quba->get_question($qnumber));
+
+        $this->expectException();
+        $quba->get_question($qnumber + 1);
+    }
+
     public function test_extract_responses() {
         // Start a deferred feedback attempt with CBM and add the question to it.
         $tf = test_question_maker::make_a_truefalse_question();
