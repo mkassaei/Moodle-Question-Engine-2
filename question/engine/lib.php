@@ -63,7 +63,7 @@ abstract class question_engine {
     public static function load_question($questionid) {
         $questiondata = get_record('question', 'id', $questionid);
         if (empty($questiondata)) {
-            throw new Exception('Unknown question id $questionid');
+            throw new Exception('Unknown question id ' . $questionid);
         }
         get_question_options($questiondata);
 
@@ -109,6 +109,18 @@ abstract class question_engine {
         return $QTYPES[$typename];
     }
 
+    /**
+     * Return an array where the keys are the internal names of the
+     * archetypal interaction models, and the values are a human-readable
+     * name. By archetypal interaction model, I mean a string that is suitable
+     * to be passed to archetypal {@link interaction model::set_preferred_interaction_model()}.
+     *
+     * @return array model name => lang string for this model name.
+     */
+    public static function get_archetypal_interaction_models() {
+        return array('deferredfeedback' => get_string('deferredfeedback', 'qim_deferredfeedback')); // TODO
+    }
+
     public static function load_interaction_model_class($model) {
         global $CFG;
         if (isset(self::$loadedmodels[$model])) {
@@ -120,6 +132,10 @@ abstract class question_engine {
         }
         include_once($file);
         self::$loadedmodels[$model] = 1;
+    }
+
+    public static function get_dp_options() {
+        return question_display_options::get_dp_options();
     }
 }
 
@@ -298,6 +314,8 @@ class question_display_options {
     const FLAGS_SHOWN = 1;
     const FLAGS_EDITABLE = 2;
 
+    const MAX_DP = 7;
+
     public $correctness = true;
     public $marks = self::MARK_AND_MAX;
     public $markdp = 2;
@@ -329,6 +347,14 @@ class question_display_options {
 
     public function can_edit_comment() {
         return is_string($this->manualcomment);
+    }
+
+    public static function get_dp_options() {
+        $options = array();
+        for ($i = 0; $i <= self::MAX_DP; $i += 1) {
+            $options[$i] = $i;
+        }
+        return $options;
     }
 }
 
@@ -676,11 +702,11 @@ class question_attempt {
     }
 
     public function format_mark($dp) {
-        return round($this->get_mark(), $dp);
+        return format_float($this->get_mark(), $dp);
     }
 
     public function format_max_mark($dp) {
-        return round($this->maxmark, $dp);
+        return format_float($this->maxmark, $dp);
     }
 
     public function render($options, $number) {

@@ -19,11 +19,43 @@ require_once($CFG->libdir . '/formslib.php');
 require_js('yui_dom-event');
 require_js($CFG->httpswwwroot . '/question/preview.js');
 
-// Define settings form class.
+/**
+ * Settings form for the preview options.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class preview_options_form extends moodleform {
     function definition() {
+        $mform = $this->_form;
 
+        $mform->addElement('header', 'optionsheader', get_string('changeoptions', 'question'));
+
+        $mform->addElement('select', 'model', get_string('howquestionsbehave', 'question'),
+                question_engine::get_archetypal_interaction_models());
+        $mform->setHelpButton('model', array('howquestionsbehave', get_string('howquestionsbehave', 'question'), 'question'));
+
+        $mform->addElement('text', 'maxmark', get_string('markedoutof', 'question'), array('size' => '5'));
+        $mform->setType('maxmark', PARAM_NUMBER);
+
+        $mform->addElement('select', 'markdp', get_string('decimalplacesingrades', 'question'),
+                question_engine::get_dp_options());
+
+        $mform->addElement('submit', 'submit', get_string('restartwiththeseoptions', 'question'));
     }
+}
+
+/**
+ * Generate the URL for starting a new preview of a given question with the given options.
+ * @param integer $questionid
+ * @param string $preferredmodel
+ * @param fload $maxmark
+ * @return string the URL.
+ */
+function restart_url($questionid, $preferredmodel, $maxmark, $markdp) {
+    global $CFG;
+    return $CFG->wwwroot . '/question/preview.php?id=' . $questionid . '&model=' .
+                $preferredmodel . '&maxmark=' . $maxmark . '&markdp=' . $markdp;
 }
 
 // Get and validate question id.
@@ -44,7 +76,7 @@ $displayoptions->flags = question_display_options::HIDDEN;
 $displayoptions->manualcomment = question_display_options::HIDDEN;
 
 // Get and validate exitsing preview, or start a new one.
-$previewid = optional_param('previewid', 0, PARAM_INT);
+$previewid = optional_param('previewid', 0, PARAM_ALPHANUM);
 if ($previewid) {
     if (!isset($SESSION->question_previews[$previewid])) {
         print_error('notyourpreview', 'question');
@@ -53,7 +85,7 @@ if ($previewid) {
     $qnumber = $quba->get_first_qnumber();
     $usedquestion = $quba->get_question($qnumber);
     if ($usedquestion->id != $question->id) {
-        print_error();
+        print_error('questionidmismatch', 'question');
     }
     $question = $usedquestion;
 
@@ -71,19 +103,28 @@ if ($previewid) {
     $SESSION->question_previews[$quba->get_id()] = true;
 }
 
+// Prepare a URL that is used in various places.
 $actionurl = $CFG->wwwroot . '/question/preview.php?id=' . $question->id . '&amp;previewid=' . $quba->get_id();
 
+// Create the settings form, and initialise the fields.
 $optionsform = new preview_options_form($actionurl);
-// $optionsform->set_data(); TODO
-if ($optionsform->is_submitted()) {
-    // TODO
+$currentoptions = new stdClass();
+$currentoptions->model = $model;
+$currentoptions->maxmark = $question->maxmark;
+$currentoptions->markdp = $displayoptions->markdp;
+$optionsform->set_data($currentoptions);
+
+// Process change of settings, if that was requested.
+if ($newoptions = $optionsform->get_submitted_data()) {
+    redirect(restart_url($question->id, $newoptions->model, $newoptions->maxmark,
+            $newoptions->markdp));
 }
 
 // Process any actions from the buttons at the bottom of the form.
 if (data_submitted() && confirm_sesskey()) {
     if (optional_param('restart', false, PARAM_BOOL)) {
-        redirect($CFG->wwwroot . '/question/preview.php?id=' . $question->id . '&model=' .
-                $quba->get_preferred_interaction_model() . '&maxmark=' . $question->maxmark);
+        redirect(restart_url($question->id, $quba->get_preferred_interaction_model(),
+                $question->maxmark, $displayoptions->markdp));
 
     } else if (optional_param('fill', null, PARAM_BOOL)) {
         // TODO
@@ -124,3 +165,4 @@ $optionsform->display();
 
 // Finish output.
 print_footer('empty');
+

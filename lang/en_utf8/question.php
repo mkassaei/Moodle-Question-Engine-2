@@ -110,15 +110,21 @@ $string['yourfileshoulddownload'] = 'Your export file should start to download s
 
 
 $string['answersaved'] = 'Answer saved';
+$string['changeoptions'] = 'Change options';
 $string['closepreview'] = 'Close preview';
 $string['complete'] = 'Complete';
 $string['correct'] = 'Correct';
+$string['decimalplacesingrades'] = 'Decimal places in grades';
+$string['howquestionsbehave'] = 'How questions behave';
 $string['incorrect'] = 'Incorrect';
+$string['markedoutof'] = 'Marked out of';
 $string['notanswered'] = 'Not answered';
 $string['notyetanswered'] = 'Not yet answered';
 $string['notyourpreview'] = 'This preview does not belong to you';
 $string['partiallycorrect'] = 'Partially correct';
 $string['questionx'] = 'Question $a';
+$string['questionidmismatch'] = 'Question ids mismatch';
 $string['requiresgrading'] = 'Requires grading';
-$string['restart'] = 'Re-start';
+$string['restart'] = 'Start again';
+$string['restartwiththeseoptions'] = 'Start again with these options';
 $string['submitandfinish'] = 'Submit and finish';
