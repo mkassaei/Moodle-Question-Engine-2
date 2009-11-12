@@ -48,7 +48,6 @@ class qim_immediatefeedback extends question_interaction_model {
         if (question_state::is_active($this->qa->get_state())) {
             return array(
                 'submit' => PARAM_BOOL,
-                'certainty' => PARAM_INT,
             );
         }
         return array();

@@ -48,7 +48,13 @@ class qim_immediatecbm extends qim_immediatefeedback {
     }
 
     public function get_expected_data() {
-        return array('certainty' => PARAM_INT);
+        if (question_state::is_active($this->qa->get_state())) {
+            return array(
+                'submit' => PARAM_BOOL,
+                'certainty' => PARAM_INT,
+            );
+        }
+        return array();
     }
 
     protected function is_same_response($pendingstep) {

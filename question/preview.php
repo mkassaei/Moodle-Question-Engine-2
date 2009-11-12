@@ -117,13 +117,14 @@ if (data_submitted() && confirm_sesskey()) {
     } else if (optional_param('finish', null, PARAM_BOOL)) {
         $quba->process_all_actions();
         $quba->finish_all_questions();
-//        redirect($actionurl);
+        question_engine::save_questions_usage_by_activity($quba);
+        redirect($actionurl);
 
     } else {
         $quba->process_all_actions();
-//        redirect($actionurl);
+        question_engine::save_questions_usage_by_activity($quba);
+        redirect($actionurl);
     }
-
 }
 
 // Output

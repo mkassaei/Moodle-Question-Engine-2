@@ -41,6 +41,9 @@ class question_engine_data_mapper {
         $record->preferredmodel = $quba->get_preferred_interaction_model();
 
         $newid = insert_record('question_usages', $record);
+        if (!$newid) {
+            throw new Exception('Failed to save questions_usage_by_activity.');
+        }
         $quba->set_id_from_database($newid);
 
         foreach ($quba->get_attempt_iterator() as $qa) {
@@ -62,6 +65,9 @@ class question_engine_data_mapper {
         $record->responsesummary = null;
         $record->timemodified = time();
         $record->id = insert_record('question_attempts_new', $record);
+        if (!$record->id) {
+            throw new Exception('Failed to save question_attempt ' . $qa->get_number_in_usage());
+        }
 
         foreach ($qa->get_step_iterator() as $seq => $step) {
             $this->insert_question_attempt_step($step, $record->id, $seq);
@@ -79,6 +85,10 @@ class question_engine_data_mapper {
         $record->userid = $step->get_user_id();
 
         $record->id = insert_record('question_attempt_steps', $record);
+        if (!$record->id) {
+            throw new Exception('Failed to save question_attempt_step' . $seq .
+                    ' for question attempt id ' . $questionattemptid);
+        }
 
         foreach ($step->get_all_data() as $name => $value) {
             $data = new stdClass;
@@ -212,16 +222,44 @@ ORDER BY
         return question_usage_by_activity::load_from_records($records, $qubaid);
     }
 
+    public function update_questions_usage_by_activity(question_usage_by_activity $quba) {
+        $record = new stdClass;
+        $record->id = $quba->get_id();
+        $record->contextid = $quba->get_owning_context()->id;
+        $record->owningplugin = $quba->get_owning_plugin();
+        $record->preferredmodel = $quba->get_preferred_interaction_model();
+
+        if (!update_record('question_usages', $record)) {
+            throw new Exception('Failed to update question_usage_by_activity ' . $record->id);
+        }
+    }
+
+    public function update_question_attempt(question_attempt $qa) {
+        $record = new stdClass;
+        $record->id = $qa->get_database_id();
+        $record->maxmark = $qa->get_max_mark();
+        $record->minfraction = $qa->get_min_fraction();
+        $record->flagged = $qa->is_flagged();
+        $record->questionsummary = null;
+        $record->rightanswer = null;
+        $record->responsesummary = null;
+        $record->timemodified = time();
+
+        if (!update_record('question_attempts_new', $record)) {
+            throw new Exception('Failed to update question_attempt ' . $record->id);
+        }
+    }
+
     public function delete_questions_usage_by_activity($qubaid) {
         global $CFG;
         delete_records_select('question_attempt_step_data', "attemptstepid IN (
-                SELECT qa.id
-                FROM {$CFG->prefix}question_attempts_new qa
-                WHERE qa.questionusageid = $qubaid)");
-        delete_records_select('question_attempt_steps', "questionattemptid IN (
                 SELECT qas.id
                 FROM {$CFG->prefix}question_attempts_new qa
                 JOIN {$CFG->prefix}question_attempt_steps qas ON qas.questionattemptid = qa.id
+                WHERE qa.questionusageid = $qubaid)");
+        delete_records_select('question_attempt_steps', "questionattemptid IN (
+                SELECT qa.id
+                FROM {$CFG->prefix}question_attempts_new qa
                 WHERE qa.questionusageid = $qubaid)");
         delete_records('question_attempts_new', 'questionusageid', $qubaid);
         delete_records('question_usages', 'id', $qubaid);
@@ -233,10 +271,57 @@ ORDER BY
  *
  * See http://martinfowler.com/eaaCatalog/unitOfWork.html
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class question_engine_unit_of_work {
-    protected $loadedstates = array();
+class question_engine_unit_of_work implements question_usage_observer {
+    protected $quba;
+    protected $modified = false;
+    protected $attemptsmodified = array();
+    protected $attemptsadded = array();
+    protected $stepsadded = array();
 
+    public function __construct($quba) {
+        $this->quba = $quba;
+    }
+
+    public function notify_modified() {
+        $this->modified = true;
+    }
+
+    public function notify_attempt_modified(question_attempt $qa) {
+        $no = $qa->get_number_in_usage();
+        if (!array_key_exists($no, $this->attemptsadded)) {
+            $this->attemptsmodified[$no] = $qa;
+        }
+    }
+
+    public function notify_attempt_added(question_attempt $qa) {
+        $this->attemptsadded[$qa->get_number_in_usage()] = $qa;
+    }
+
+    public function notify_step_added(question_attempt_step $step, question_attempt $qa, $seq) {
+        $no = $qa->get_number_in_usage();
+        if (array_key_exists($no, $this->attemptsadded)) {
+            return;
+        }
+        $this->stepsadded[] = array($step, $qa->get_database_id(), $seq);
+    }
+
+    public function save() {
+        $dm = new question_engine_data_mapper();
+        foreach ($this->stepsadded as $stepinfo) {
+            list($step, $questionattemptid, $seq) = $stepinfo;
+            $dm->insert_question_attempt_step($step, $questionattemptid, $seq);
+        }
+        foreach ($this->attemptsadded as $qa) {
+            $dm->insert_question_attempt($qa);
+        }
+        foreach ($this->attemptsmodified as $qa) {
+            $dm->update_question_attempt($qa);
+        }
+        if ($this->modified) {
+            $dm->update_questions_usage_by_activity($this->quba);
+        }
+    }
 }

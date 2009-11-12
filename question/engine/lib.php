@@ -59,8 +59,13 @@ abstract class question_engine {
     }
 
     public static function save_questions_usage_by_activity(question_usage_by_activity $quba) {
-        $dm = new question_engine_data_mapper();
-        $dm->insert_questions_usage_by_activity($quba);
+        $observer = $quba->get_observer();
+        if ($observer instanceof question_engine_unit_of_work) {
+            $observer->save();
+        } else {
+            $dm = new question_engine_data_mapper();
+            $dm->insert_questions_usage_by_activity($quba);
+        }
     }
 
     public static function delete_questions_usage_by_activity($qubaid) {
@@ -356,7 +361,7 @@ class question_display_options {
         $this->responses = ($bitmask & QUIZ_REVIEW_RESPONSES) != 0;
         $this->feedback = ($bitmask & QUIZ_REVIEW_FEEDBACK) != 0;
         $this->generalfeedback = ($bitmask & QUIZ_REVIEW_GENERALFEEDBACK) != 0;
-        $this->marks = ($bitmask & QUIZ_REVIEW_SCORES) != 0;
+        $this->marks = self::MARK_AND_MAX * (($bitmask & QUIZ_REVIEW_SCORES) != 0);
         $this->correctresponse = ($bitmask & QUIZ_REVIEW_ANSWERS) != 0;
     }
 
@@ -440,14 +445,17 @@ class question_usage_by_activity {
     protected $context;
     protected $owningplugin;
     protected $questionattempts = array();
+    protected $observer;
 
     public function __construct($owningplugin, $context) {
         $this->owningplugin = $owningplugin;
         $this->context = $context;
+        $this->observer = new question_usage_null_observer();
     }
 
     public function set_preferred_interaction_model($model) {
         $this->preferredmodel = $model;
+        $this->observer->notify_modified();
     }
 
     public function get_preferred_interaction_model() {
@@ -470,6 +478,10 @@ class question_usage_by_activity {
         return $this->id;
     }
 
+    public function get_observer() {
+        return $this->observer;
+    }
+
     public function set_id_from_database($id) {
         $this->id = $id;
         foreach ($this->questionattempts as $qa) {
@@ -478,13 +490,14 @@ class question_usage_by_activity {
     }
 
     public function add_question(question_definition $question, $maxmark = null) {
-        $qa = new question_attempt($question, $this->get_id(), $maxmark);
+        $qa = new question_attempt($question, $this->get_id(), $this->observer, $maxmark);
         if (count($this->questionattempts) == 0) {
             $this->questionattempts[1] = $qa;
         } else {
             $this->questionattempts[] = $qa;
         }
         $qa->set_number_in_usage(end(array_keys($this->questionattempts)));
+        $this->observer->notify_attempt_added($qa);
         return $qa->get_number_in_usage();
     }
 
@@ -551,6 +564,7 @@ class question_usage_by_activity {
     public function start_all_questions() {
         foreach ($this->questionattempts as $qa) {
             $qa->start($this->preferredmodel);
+            $this->observer->notify_attempt_modified($qa);
         }
     }
 
@@ -575,17 +589,22 @@ class question_usage_by_activity {
     }
 
     public function process_action($qnumber, $submitteddata) {
-        $this->get_question_attempt($qnumber)->process_action($submitteddata);
+        $qa = $this->get_question_attempt($qnumber);
+        $qa->process_action($submitteddata);
+        $this->observer->notify_attempt_modified($qa);
     }
 
     public function finish_all_questions() {
         foreach ($this->questionattempts as $qa) {
             $qa->finish();
+            $this->observer->notify_attempt_modified($qa);
         }
     }
 
     public function manual_grade($qnumber, $comment, $mark) {
-        $this->get_question_attempt($qnumber)->manual_grade($mark, $comment);
+        $qa = $this->get_question_attempt($qnumber);
+        $qa->manual_grade($mark, $comment);
+        $this->observer->notify_attempt_modified($qa);
     }
 
     public function regrade_question($qnumber, $newmaxmark = null) {
@@ -593,10 +612,11 @@ class question_usage_by_activity {
         if (is_null($newmaxmark)) {
             $newmaxmark = $oldqa->get_max_mark();
         }
-        $newqa = new question_attempt($oldqa->get_question(), $oldqa->get_usage_id(), $newmaxmark);
+        $newqa = new question_attempt($oldqa->get_question(), $oldqa->get_usage_id(), null, $newmaxmark);
         $oldfirststep = $oldqa->get_step(0);
         $newqa->regrade($oldqa);
         $this->questionattempts[$qnumber] = $newqa;
+        // TODO notify observer.
     }
 
     public function regrade_all_questions() {
@@ -625,9 +645,12 @@ class question_usage_by_activity {
         $quba->set_id_from_database($record->qubaid);
         $quba->set_preferred_interaction_model($record->preferredmodel);
 
+        $quba->observer = new question_engine_unit_of_work($quba);
+
         while ($record && $record->qubaid == $qubaid && !is_null($record->numberinusage)) {
             $quba->questionattempts[$record->numberinusage] =
-                    question_attempt::load_from_records($records, $record->questionattemptid);
+                    question_attempt::load_from_records($records,
+                    $record->questionattemptid, $quba->observer);
             $record = current($records);
         }
 
@@ -706,13 +729,20 @@ class question_attempt {
     protected $steps = array();
     protected $flagged = false;
     protected $pendingstep = null;
+    /** @var question_usage_observer */
+    protected $observer;
 
     const KEEP = true;
     const DISCARD = false;
 
-    public function __construct(question_definition $question, $usageid, $maxmark = null) {
+    public function __construct(question_definition $question, $usageid,
+            question_usage_observer $observer = null, $maxmark = null) {
         $this->question = $question;
         $this->usageid = $usageid;
+        if (is_null($observer)) {
+            $observer = new question_usage_null_observer();
+        }
+        $this->observer = $observer;
         if (!is_null($maxmark)) {
             $this->maxmark = $maxmark;
         } else {
@@ -735,6 +765,10 @@ class question_attempt {
         return $this->numberinusage;
     }
 
+    public function get_database_id() {
+        return $this->id;
+    }
+
     public function get_usage_id() {
         return $this->usageid;
     }
@@ -749,6 +783,7 @@ class question_attempt {
 
     public function set_flagged($flagged) {
         $this->flagged = $flagged;
+        $this->observer->notify_attempt_modified($this);
     }
 
     public function is_flagged() {
@@ -887,6 +922,8 @@ class question_attempt {
 
     protected function add_step(question_attempt_step $step) {
         $this->steps[] = $step;
+        end($this->steps);
+        $this->observer->notify_step_added($step, $this, key($this->steps));
     }
 
     public function start($preferredmodel, $submitteddata = array(), $timestamp = null, $userid = null) {
@@ -989,7 +1026,8 @@ class question_attempt {
      * @param integer $questionattemptid The id of the question_attempt to extract.
      * @return question_attempt The newly constructed question_attempt_step.
      */
-    public static function load_from_records(&$records, $questionattemptid) {
+    public static function load_from_records(&$records, $questionattemptid,
+            question_usage_observer $observer) {
         $record = current($records);
         while ($record->questionattemptid != $questionattemptid) {
             $record = next($records);
@@ -1000,7 +1038,8 @@ class question_attempt {
 
         $question = question_engine::load_question($record->questionid);
 
-        $qa = new question_attempt($question, $record->questionusageid, $record->maxmark + 0);
+        $qa = new question_attempt($question, $record->questionusageid, null, $record->maxmark + 0);
+        $qa->id = $record->questionattemptid;
         $qa->set_number_in_usage($record->numberinusage);
         $qa->minfraction = $record->minfraction + 0;
         $qa->set_flagged($record->flagged);
@@ -1015,6 +1054,8 @@ class question_attempt {
             $qa->steps[$i] = question_attempt_step::load_from_records($records, $i);
             $i++;
         }
+
+        $qa->observer = $observer;
 
         return $qa;
     }
@@ -1238,12 +1279,34 @@ class question_attempt_step {
             $currentrec = next($records);
         }
 
-        $step = new question_attempt_step($data, $record->timecreated, $record->userid);
-        $step->set_state($record->state);
+        $step = new question_attempt_step_read_only($data, $record->timecreated, $record->userid);
+        $step->state = $record->state;
         if (!is_null($record->fraction)) {
-            $step->set_fraction($record->fraction + 0);
+            $step->fraction = $record->fraction + 0;
         }
         return $step;
+    }
+}
+
+
+/**
+ * A subclass of {@link question_attempt_step} that cannot be modified.
+ *
+ * @copyright 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_attempt_step_read_only extends question_attempt_step {
+    public function set_state($state) {
+        throw new Exception('Cannot modify a question_attempt_step_read_only.');
+    }
+    public function set_fraction($fraction) {
+        throw new Exception('Cannot modify a question_attempt_step_read_only.');
+    }
+    public function set_qt_var($name, $value) {
+        throw new Exception('Cannot modify a question_attempt_step_read_only.');
+    }
+    public function set_im_var($name, $value) {
+        throw new Exception('Cannot modify a question_attempt_step_read_only.');
     }
 }
 
@@ -1253,7 +1316,7 @@ class question_attempt_step {
  * {@link question_attempt::get_last_step()} etc. when a an attempt has just been
  * started and there is no acutal step.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_null_step {
@@ -1382,3 +1445,38 @@ abstract class question_interaction_model {
 }
 
 
+/**
+ * Interface for things that want to be notified of signficant changes to a
+ * {@link question_usage_by_activity}.
+ *
+ * A question interaction model controls the flow of actions a student can
+ * take as they work through a question, and later, as a teacher manually grades it.
+ *
+ * @copyright 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+interface question_usage_observer {
+    public function notify_modified();
+    public function notify_attempt_modified(question_attempt $qa);
+    public function notify_attempt_added(question_attempt $qa);
+    public function notify_step_added(question_attempt_step $step, question_attempt $qa, $seq);
+}
+
+
+/**
+ * Null implmentation of the {@link question_usage_watcher} interface.
+ * Does nothing.
+ *
+ * @copyright 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_usage_null_observer implements question_usage_observer {
+    public function notify_modified() {
+    }
+    public function notify_attempt_modified(question_attempt $qa) {
+    }
+    public function notify_attempt_added(question_attempt $qa) {
+    }
+    public function notify_step_added(question_attempt_step $step, question_attempt $qa, $seq) {
+    }
+}

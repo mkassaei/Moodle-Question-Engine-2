@@ -57,7 +57,7 @@ class question_attempt_test extends UnitTestCase {#
     }
 
     public function test_maxmark_beats_default_mark() {
-        $qa = new question_attempt($this->question, $this->usageid, 2);
+        $qa = new question_attempt($this->question, $this->usageid, null, 2);
         $this->assertEqual(2, $qa->get_max_mark());
     }
 
@@ -107,7 +107,7 @@ class question_attempt_with_steps_test extends UnitTestCase {
 
     public function setUp() {
         $question = new question_definition();
-        $this->qa = new testable_question_attempt($question, 0, 2);
+        $this->qa = new testable_question_attempt($question, 0, null, 2);
         for ($i = 0; $i < 3; $i++) {
             $step = new question_attempt_step(array('i' => $i));
             $this->qa->add_step($step);
@@ -236,7 +236,7 @@ class question_attempt_db_test extends data_loading_method_test_base {
             array(8, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 57, 0.5000000, 1256233790, 1, '!maxmark',  '2'),
         ));
 
-        $qa = question_attempt::load_from_records($records, 1);
+        $qa = question_attempt::load_from_records($records, 1, new question_usage_null_observer());
 
         $this->assertEqual(6, $qa->get_num_steps());
 
