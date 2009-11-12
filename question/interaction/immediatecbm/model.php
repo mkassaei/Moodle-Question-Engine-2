@@ -41,6 +41,8 @@ require_once(dirname(__FILE__) . '/../immediatefeedback/model.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qim_immediatecbm extends qim_immediatefeedback {
+    const IS_ARCHETYPAL = true;
+
     public function get_min_fraction() {
         return question_cbm::adjust_fraction(parent::get_min_fraction(), question_cbm::HIGH);
     }

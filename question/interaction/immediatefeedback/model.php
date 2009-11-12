@@ -38,6 +38,8 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qim_immediatefeedback extends question_interaction_model {
+    const IS_ARCHETYPAL = true;
+
     public function get_min_fraction() {
         return $this->question->get_min_fraction();
     }

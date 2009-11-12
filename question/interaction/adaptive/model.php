@@ -36,6 +36,8 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qim_adaptive extends question_interaction_model {
+    const IS_ARCHETYPAL = true;
+
     public function get_expected_data() {
         if (question_state::is_active($this->qa->get_state())) {
             return array('submit' => PARAM_BOOL);

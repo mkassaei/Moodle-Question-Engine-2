@@ -36,6 +36,8 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qim_manualgraded extends question_interaction_model {
+    const IS_ARCHETYPAL = true;
+
     public function process_action(question_attempt_step $pendingstep) {
         if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);

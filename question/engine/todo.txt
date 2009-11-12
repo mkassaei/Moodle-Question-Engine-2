@@ -10,13 +10,14 @@ Refactor all the renderer code
 
 Redo the question preview window
   Unit tests for question_attempt_iterator
+  Get list of interaction models
   Processing
   Fill with correct
   More display options
 
 Database load/save code
   Load functions
-  Insert/update functions
+  Update functions
   Get qengine to call DB update code
   Make more efficient code using lazy-loading, etc.
 

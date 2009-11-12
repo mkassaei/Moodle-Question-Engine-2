@@ -116,18 +116,6 @@ abstract class question_engine {
         return $QTYPES[$typename];
     }
 
-    /**
-     * Return an array where the keys are the internal names of the
-     * archetypal interaction models, and the values are a human-readable
-     * name. By archetypal interaction model, I mean a string that is suitable
-     * to be passed to archetypal {@link interaction model::set_preferred_interaction_model()}.
-     *
-     * @return array model name => lang string for this model name.
-     */
-    public static function get_archetypal_interaction_models() {
-        return array('deferredfeedback' => get_string('deferredfeedback', 'qim_deferredfeedback')); // TODO
-    }
-
     public static function load_interaction_model_class($model) {
         global $CFG;
         if (isset(self::$loadedmodels[$model])) {
@@ -139,6 +127,29 @@ abstract class question_engine {
         }
         include_once($file);
         self::$loadedmodels[$model] = 1;
+    }
+
+    /**
+     * Return an array where the keys are the internal names of the
+     * archetypal interaction models, and the values are a human-readable
+     * name. By archetypal interaction model, I mean a string that is suitable
+     * to be passed to archetypal {@link interaction model::set_preferred_interaction_model()}.
+     *
+     * @return array model name => lang string for this model name.
+     */
+    public static function get_archetypal_interaction_models() {
+        $archetypes = array();
+        $models = get_list_of_plugins('question/interaction');
+        foreach ($models as $path) {
+            $model = basename($path);
+            self::load_interaction_model_class($model);
+            $plugin = 'qim_' . $model;
+            if (constant($plugin . '::IS_ARCHETYPAL')) {
+                $archetypes[$model] = get_string($model, $plugin);
+            }
+        }
+        asort($archetypes, SORT_LOCALE_STRING);
+        return $archetypes;
     }
 
     public static function get_dp_options() {
@@ -1214,6 +1225,8 @@ class question_null_step {
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class question_interaction_model {
+    const IS_ARCHETYPAL = false;
+
     /**
      * @var question_attempt
      */
