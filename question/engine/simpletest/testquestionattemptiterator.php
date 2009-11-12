@@ -17,75 +17,57 @@
 
 
 /**
- * This file contains tests for the question_attempt_step_iterator class.
+ * This file contains tests for the question_attempt_iterator class.
  *
  * @package moodlecore
  * @subpackage questionengine
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 require_once(dirname(__FILE__) . '/../lib.php');
 
-class question_attempt_step_iterator_test extends UnitTestCase {
-    private $qa;
+class question_attempt_iterator_test extends UnitTestCase {
+    private $quba;
+    private $qas = array();
     private $iterator;
 
     public function setUp() {
-        $question = new question_definition();
-        $question->maxgrade = 1;
-        $this->qa = new testable_question_attempt($question, 0);
-        for ($i = 0; $i < 3; $i++) {
-            $step = new question_attempt_step(array('i' => $i));
-            $this->qa->add_step($step);
-        }
-        $this->iterator = $this->qa->get_step_iterator();
+        $this->quba = question_engine::make_questions_usage_by_activity('unit_test',
+                get_context_instance(CONTEXT_SYSTEM));
+        $this->quba->set_preferred_interaction_model('deferredfeedback');
+
+        $qnumber = $this->quba->add_question(new question_definition());
+        $this->qas[$qnumber] = $this->quba->get_question_attempt($qnumber);
+
+        $qnumber = $this->quba->add_question(new question_definition());
+        $this->qas[$qnumber] = $this->quba->get_question_attempt($qnumber);
+
+        $this->iterator = $this->quba->get_attempt_iterator();
     }
 
     public function tearDown() {
-        $this->qa = null;
+        $this->quba = null;
         $this->iterator = null;
     }
 
     public function test_foreach_loop() {
-        $i = 0;
-        foreach ($this->iterator as $key => $step) {
+        $i = 1;
+        foreach ($this->iterator as $key => $qa) {
             $this->assertEqual($i, $key);
-            $this->assertEqual($i, $step->get_qt_var('i'));
+            $this->assertIdentical($this->qas[$i], $qa);
             $i++;
         }
-    }
-
-    public function test_foreach_loop_add_step_during() {
-        $i = 0;
-        foreach ($this->iterator as $key => $step) {
-            $this->assertEqual($i, $key);
-            $this->assertEqual($i, $step->get_qt_var('i'));
-            $i++;
-            if ($i == 2) {
-                $step = new question_attempt_step(array('i' => 3));
-                $this->qa->add_step($step);
-            }
-        }
-        $this->assertEqual(4, $i);
-    }
-
-    public function test_reverse_foreach_loop() {
-        $i = 2;
-        foreach ($this->qa->get_reverse_step_iterator() as $key => $step) {
-            $this->assertEqual($i, $key);
-            $this->assertEqual($i, $step->get_qt_var('i'));
-            $i--;
-        }
+        $this->assertEqual(3, $i);
     }
 
     public function test_offsetExists_before_start() {
-        $this->assertFalse(isset($this->iterator[-1]));
+        $this->assertFalse(isset($this->iterator[0]));
     }
 
     public function test_offsetExists_at_start() {
-        $this->assertTrue(isset($this->iterator[0]));
+        $this->assertTrue(isset($this->iterator[1]));
     }
 
     public function test_offsetExists_at_endt() {
@@ -98,17 +80,15 @@ class question_attempt_step_iterator_test extends UnitTestCase {
 
     public function test_offsetGet_before_start() {
         $this->expectException();
-        $step = $this->iterator[-1];
+        $step = $this->iterator[0];
     }
 
     public function test_offsetGet_at_start() {
-        $step = $this->iterator[0];
-        $this->assertEqual(0, $step->get_qt_var('i'));
+        $this->assertIdentical($this->qas[1], $this->iterator[1]);
     }
 
     public function test_offsetGet_at_end() {
-        $step = $this->iterator[2];
-        $this->assertEqual(2, $step->get_qt_var('i'));
+        $this->assertIdentical($this->qas[2], $this->iterator[2]);
     }
 
     public function test_offsetGet_past_end() {
