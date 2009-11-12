@@ -63,6 +63,11 @@ abstract class question_engine {
         $dm->insert_questions_usage_by_activity($quba);
     }
 
+    public static function delete_questions_usage_by_activity($qubaid) {
+        $dm = new question_engine_data_mapper();
+        $dm->delete_questions_usage_by_activity($qubaid);
+    }
+
     /**
      * @param integer $qubaid the id of the usage to load.
      * @return question_usage_by_activity loaded from the database.
@@ -83,7 +88,7 @@ abstract class question_engine {
         $question->questiontext = $questiondata->questiontext;
         $question->questiontextformat = $questiondata->questiontextformat;
         $question->generalfeedback = $questiondata->generalfeedback;
-        $question->defaultmark = $questiondata->defaultgrade;
+        $question->defaultmark = $questiondata->defaultgrade + 0;
         $question->length = $questiondata->length;
         $question->penalty = $questiondata->penalty;
         $question->stamp = $questiondata->stamp;
@@ -325,19 +330,18 @@ abstract class question_cbm {
  */
 class question_display_options {
     const HIDDEN = 0;
+    const VISIBLE = 1;
+    const EDITABLE = 2;
 
     const MAX_ONLY = 1;
     const MARK_AND_MAX = 2;
-
-    const FLAGS_SHOWN = 1;
-    const FLAGS_EDITABLE = 2;
 
     const MAX_DP = 7;
 
     public $correctness = true;
     public $marks = self::MARK_AND_MAX;
     public $markdp = 2;
-    public $flags = self::FLAGS_SHOWN;
+    public $flags = self::VISIBLE;
     public $readonly = false;
     public $feedback = true;
     public $correctresponse = true;
@@ -473,8 +477,8 @@ class question_usage_by_activity {
         }
     }
 
-    public function add_question(question_definition $question) {
-        $qa = new question_attempt($question, $this->get_id());
+    public function add_question(question_definition $question, $maxmark = null) {
+        $qa = new question_attempt($question, $this->get_id(), $maxmark);
         if (count($this->questionattempts) == 0) {
             $this->questionattempts[1] = $qa;
         } else {
@@ -528,6 +532,10 @@ class question_usage_by_activity {
         return $this->get_question_attempt($qnumber)->get_mark();
     }
 
+    public function get_question_max_mark($qnumber) {
+        return $this->get_question_attempt($qnumber)->get_max_mark();
+    }
+
     public function render_question($qnumber, $options, $number = null) {
         return $this->get_question_attempt($qnumber)->render($options, $number);
     }
@@ -546,7 +554,23 @@ class question_usage_by_activity {
         }
     }
 
-    public function extract_responses($qnumber, $postdata) {
+    public function process_all_actions($postdata = null) {
+        $qnumbers = optional_param('qnumbers', null, PARAM_SEQUENCE);
+        if (is_null($qnumbers)) {
+            $qnumbers = $this->get_question_numbers();
+        } else if (!$qnumbers) {
+            $qnumbers = array();
+        } else {
+            $qnumbers = explode(',', $qnumbers);
+        }
+        foreach ($qnumbers as $qnumber) {
+            $submitteddata = $this->extract_responses($qnumber, $postdata);
+            $this->process_action($qnumber, $submitteddata);
+        }
+        $this->get_question_attempt($qnumber)->process_action($submitteddata);
+    }
+
+    public function extract_responses($qnumber, $postdata = null) {
         return $this->get_question_attempt($qnumber)->get_submitted_data($postdata);
     }
 
@@ -564,9 +588,12 @@ class question_usage_by_activity {
         $this->get_question_attempt($qnumber)->manual_grade($mark, $comment);
     }
 
-    public function regrade_question($qnumber) {
+    public function regrade_question($qnumber, $newmaxmark = null) {
         $oldqa = $this->get_question_attempt($qnumber);
-        $newqa = new question_attempt($oldqa->get_question(), $oldqa->get_usage_id());
+        if (is_null($newmaxmark)) {
+            $newmaxmark = $oldqa->get_max_mark();
+        }
+        $newqa = new question_attempt($oldqa->get_question(), $oldqa->get_usage_id(), $newmaxmark);
         $oldfirststep = $oldqa->get_step(0);
         $newqa->regrade($oldqa);
         $this->questionattempts[$qnumber] = $newqa;
@@ -576,6 +603,35 @@ class question_usage_by_activity {
         foreach ($this->questionattempts as $qnumber => $notused) {
             $this->regrade_question($qnumber);
         }
+    }
+
+    /**
+     * Create a question_usage_by_activity from records loaded from the database.
+     * @param array $records Raw records loaded from the database.
+     * @param integer $questionattemptid The id of the question_attempt to extract.
+     * @return question_attempt The newly constructed question_attempt_step.
+     */
+    public static function load_from_records(&$records, $qubaid) {
+        $record = current($records);
+        while ($record->qubaid != $qubaid) {
+            $record = next($records);
+            if (!$record) {
+                throw new Exception("Question usage $qubaid not found in the database.");
+            }
+        }
+
+        $quba = new question_usage_by_activity($record->owningplugin,
+            get_context_instance_by_id($record->contextid));
+        $quba->set_id_from_database($record->qubaid);
+        $quba->set_preferred_interaction_model($record->preferredmodel);
+
+        while ($record && $record->qubaid == $qubaid && !is_null($record->numberinusage)) {
+            $quba->questionattempts[$record->numberinusage] =
+                    question_attempt::load_from_records($records, $record->questionattemptid);
+            $record = current($records);
+        }
+
+        return $quba;
     }
 }
 
@@ -654,11 +710,11 @@ class question_attempt {
     const KEEP = true;
     const DISCARD = false;
 
-    public function __construct(question_definition $question, $usageid) {
+    public function __construct(question_definition $question, $usageid, $maxmark = null) {
         $this->question = $question;
         $this->usageid = $usageid;
-        if (!empty($question->maxmark)) {
-            $this->maxmark = $question->maxmark;
+        if (!is_null($maxmark)) {
+            $this->maxmark = $maxmark;
         } else {
             $this->maxmark = $question->defaultmark;
         }
@@ -836,7 +892,7 @@ class question_attempt {
     public function start($preferredmodel, $submitteddata = array(), $timestamp = null, $userid = null) {
         if (is_string($preferredmodel)) {
             $this->interactionmodel =
-                    $this->question->get_interaction_model($this, $preferredmodel);
+                    $this->question->make_interaction_model($this, $preferredmodel);
         } else {
             $class = get_class($preferredmodel);
             $this->interactionmodel = new $class($this);
@@ -848,7 +904,7 @@ class question_attempt {
         $this->add_step($firststep);
     }
 
-    protected function get_submitted_var($name, $type, $postdata) {
+    protected function get_submitted_var($name, $type, $postdata = null) {
         if (is_null($postdata)) {
             return optional_param($name, null, $type);
         } else if (array_key_exists($name, $postdata)) {
@@ -858,7 +914,7 @@ class question_attempt {
         }
     }
 
-    public function get_submitted_data($postdata) {
+    public function get_submitted_data($postdata = null) {
         $submitteddata = array();
         foreach ($this->interactionmodel->get_expected_data() as $name => $type) {
             $value = $this->get_submitted_var($this->get_im_field_name($name), $type, $postdata);
@@ -942,19 +998,17 @@ class question_attempt {
             }
         }
 
-        // TODO something to do with $record->questionid
-        $question = test_question_maker::make_a_description_question();
+        $question = question_engine::load_question($record->questionid);
 
-        $qa = new question_attempt($question, $record->questionusageid);
+        $qa = new question_attempt($question, $record->questionusageid, $record->maxmark + 0);
         $qa->set_number_in_usage($record->numberinusage);
-        // TODO something to do with $record->interactionmodel
-        // $qa->interactionmodel = ;
-        $qa->maxmark = $record->maxmark;
-        $qa->minfraction = $record->minfraction;
+        $qa->minfraction = $record->minfraction + 0;
         $qa->set_flagged($record->flagged);
         $qa->questionsummary = $record->questionsummary;
         $qa->rightanswer = $record->rightanswer;
         $qa->timemodified = $record->timemodified;
+
+        $qa->interactionmodel = $question->make_interaction_model($qa, $record->interactionmodel);
 
         $i = 0;
         while (current($records)) {
@@ -1186,7 +1240,9 @@ class question_attempt_step {
 
         $step = new question_attempt_step($data, $record->timecreated, $record->userid);
         $step->set_state($record->state);
-        $step->set_fraction($record->fraction);
+        if (!is_null($record->fraction)) {
+            $step->set_fraction($record->fraction + 0);
+        }
         return $step;
     }
 }

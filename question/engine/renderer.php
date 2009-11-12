@@ -142,10 +142,10 @@ class core_question_renderer extends moodle_renderer_base {
     protected function question_flag(question_attempt $qa, $flagsoption) {
         global $CFG;
         switch ($flagsoption) {
-            case question_display_options::FLAGS_SHOWN:
+            case question_display_options::VISIBLE:
                 $flagcontent = $this->get_flag_html($qa->is_flagged());
                 break;
-            case question_display_options::FLAGS_EDITABLE:
+            case question_display_options::EDITABLE:
                 $id = $question->name_prefix . '_flagged';
                 if ($qa->is_flagged()) {
                     $checked = 'checked="checked" ';

@@ -57,8 +57,7 @@ class question_attempt_test extends UnitTestCase {#
     }
 
     public function test_maxmark_beats_default_mark() {
-        $this->question->maxmark = 2;
-        $qa = new question_attempt($this->question, $this->usageid);
+        $qa = new question_attempt($this->question, $this->usageid, 2);
         $this->assertEqual(2, $qa->get_max_mark());
     }
 
@@ -108,8 +107,7 @@ class question_attempt_with_steps_test extends UnitTestCase {
 
     public function setUp() {
         $question = new question_definition();
-        $question->maxmark = 2;
-        $this->qa = new testable_question_attempt($question, 0);
+        $this->qa = new testable_question_attempt($question, 0, 2);
         for ($i = 0; $i < 3; $i++) {
             $step = new question_attempt_step(array('i' => $i));
             $this->qa->add_step($step);
@@ -182,7 +180,6 @@ class question_attempt_with_steps_test extends UnitTestCase {
     }
 
     public function test_get_mark_gets_mark_of_last() {
-        // $qa->maxgrade = 2
         $this->assertEqual(2, $this->qa->get_max_mark());
         $this->qa->get_step(2)->set_fraction(0.5);
         $this->qa->get_step(1)->set_fraction(0.1);

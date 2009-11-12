@@ -1,3 +1,6 @@
+Write lots of JavaDoc
+Unit tests for question_attempt_iterator
+
 Finish interaction models and core of the engine
   Interactive mode
   Opaque mode
@@ -9,14 +12,10 @@ Finish interaction models and core of the engine
 Refactor all the renderer code
 
 Redo the question preview window
-  Unit tests for question_attempt_iterator
-  Get list of interaction models
-  Processing
   Fill with correct
   More display options
 
 Database load/save code
-  Load functions
   Update functions
   Get qengine to call DB update code
   Make more efficient code using lazy-loading, etc.

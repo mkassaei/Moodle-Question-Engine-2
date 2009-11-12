@@ -34,8 +34,7 @@ class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
 
         // Create a true-false question with correct answer true.
         $essay = test_question_maker::make_an_essay_question();
-        $essay->maxmark = 10;
-        $this->start_attempt_at_question($essay, 'deferredfeedback');
+        $this->start_attempt_at_question($essay, 'deferredfeedback', 10);
 
         // Check the initial state.
         $this->check_current_state(question_state::INCOMPLETE);
@@ -85,8 +84,7 @@ class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
                 new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
 
         // Now change the max mark for the question and regrade.
-        $essay->maxmark = 1;
-        $this->quba->regrade_all_questions();
+        $this->quba->regrade_question($this->qnumber, 1);
 
         // Verify.
         $this->check_current_state(question_state::MANUALLY_GRADED_CORRECT);

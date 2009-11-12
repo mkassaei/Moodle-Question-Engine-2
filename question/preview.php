@@ -1,4 +1,26 @@
-<?php // $Id$
+<?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+
+/**
+ * Helper code for the question preview UI.
+ *
+ */
+
 /**
  * This page displays a preview of a question
  *
@@ -7,58 +29,19 @@
  * information is stored in the session as an array of subsequent states rather
  * than in the database.
  *
- * @author Alex Smith as part of the Serving Mathematics project
- *         {@link http://maths.york.ac.uk/serving_maths}
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package questionbank
+ * @package core
+ * @subpackage questionbank
+ * @copyright Alex Smith {@link http://maths.york.ac.uk/serving_maths} and
+ *      numerous contributors.
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(dirname(__FILE__) . '/../config.php');
 require_once($CFG->libdir . '/questionlib.php');
 require_once($CFG->libdir . '/formslib.php');
+require_once(dirname(__FILE__) . '/previewlib.php');
 require_js('yui_dom-event');
 require_js($CFG->httpswwwroot . '/question/preview.js');
-
-/**
- * Settings form for the preview options.
- *
- * @copyright © 2009 The Open University
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class preview_options_form extends moodleform {
-    function definition() {
-        $mform = $this->_form;
-
-        $mform->addElement('header', 'optionsheader', get_string('changeoptions', 'question'));
-
-        $mform->addElement('select', 'model', get_string('howquestionsbehave', 'question'),
-                question_engine::get_archetypal_interaction_models());
-        $mform->setHelpButton('model', array('howquestionsbehave', get_string('howquestionsbehave', 'question'), 'question'));
-
-        $mform->addElement('text', 'maxmark', get_string('markedoutof', 'question'), array('size' => '5'));
-        $mform->setType('maxmark', PARAM_NUMBER);
-
-        $mform->addElement('select', 'markdp', get_string('decimalplacesingrades', 'question'),
-                question_engine::get_dp_options());
-
-        // TODO Other fields from http://moodle.org/mod/forum/discuss.php?d=134156#p595000
-
-        $mform->addElement('submit', 'submit', get_string('restartwiththeseoptions', 'question'));
-    }
-}
-
-/**
- * Generate the URL for starting a new preview of a given question with the given options.
- * @param integer $questionid
- * @param string $preferredmodel
- * @param fload $maxmark
- * @return string the URL.
- */
-function restart_url($questionid, $preferredmodel, $maxmark, $markdp) {
-    global $CFG;
-    return $CFG->wwwroot . '/question/preview.php?id=' . $questionid . '&model=' .
-                $preferredmodel . '&maxmark=' . $maxmark . '&markdp=' . $markdp;
-}
 
 // Get and validate question id.
 $id = required_param('id', PARAM_INT); // Question id
@@ -75,7 +58,7 @@ $displayoptions->set_review_options($CFG->quiz_review); // Quiz-specific, but a 
 $displayoptions->markdp = optional_param('markdp', $CFG->quiz_decimalpoints, PARAM_INT);
 // TODO various review options.
 $displayoptions->flags = question_display_options::HIDDEN;
-$displayoptions->manualcomment = question_display_options::HIDDEN;
+$displayoptions->manualcomment = question_display_options::EDITABLE;
 
 // Get and validate exitsing preview, or start a new one.
 $previewid = optional_param('previewid', 0, PARAM_ALPHANUM);
@@ -98,8 +81,7 @@ if ($previewid) {
     $quba = question_engine::make_questions_usage_by_activity('core_question_preview',
             get_context_instance_by_id($category->contextid));
     $quba->set_preferred_interaction_model($model);
-    $question->maxmark = $maxmark;
-    $qnumber = $quba->add_question($question);
+    $qnumber = $quba->add_question($question, $maxmark);
     $quba->start_all_questions();
     question_engine::save_questions_usage_by_activity($quba);
 
@@ -112,30 +94,36 @@ $actionurl = $CFG->wwwroot . '/question/preview.php?id=' . $question->id . '&amp
 // Create the settings form, and initialise the fields.
 $optionsform = new preview_options_form($actionurl);
 $currentoptions = new stdClass();
-$currentoptions->model = $model;
-$currentoptions->maxmark = $question->maxmark;
+$currentoptions->model = $quba->get_preferred_interaction_model();
+$currentoptions->maxmark = $quba->get_question_max_mark($qnumber);
 $currentoptions->markdp = $displayoptions->markdp;
 $optionsform->set_data($currentoptions);
 
 // Process change of settings, if that was requested.
 if ($newoptions = $optionsform->get_submitted_data()) {
-    redirect(restart_url($question->id, $newoptions->model, $newoptions->maxmark,
-            $newoptions->markdp));
+    restart_preview($previewid, $question->id, $newoptions->model,
+            $newoptions->maxmark, $newoptions->markdp);
 }
 
 // Process any actions from the buttons at the bottom of the form.
 if (data_submitted() && confirm_sesskey()) {
     if (optional_param('restart', false, PARAM_BOOL)) {
-        redirect(restart_url($question->id, $quba->get_preferred_interaction_model(),
-                $question->maxmark, $displayoptions->markdp));
+        restart_preview($previewid, $question->id, $quba->get_preferred_interaction_model(),
+                $quba->get_question_max_mark($qnumber), $displayoptions->markdp);
 
     } else if (optional_param('fill', null, PARAM_BOOL)) {
         // TODO
 
     } else if (optional_param('finish', null, PARAM_BOOL)) {
+        $quba->process_all_actions();
         $quba->finish_all_questions();
-        redirect($actionurl);
+//        redirect($actionurl);
+
+    } else {
+        $quba->process_all_actions();
+//        redirect($actionurl);
     }
+
 }
 
 // Output
@@ -148,7 +136,7 @@ print_heading($title);
 echo '<form method="post" action="' . $actionurl .
         '" enctype="multipart/form-data" id="responseform">', "\n";
 echo '<input type="hidden" name="sesskey" value="' . sesskey() . '" />', "\n";
-echo '<input type="hidden" name="questionid" value="' . $quba->get_id() . '" />', "\n";
+echo '<input type="hidden" name="qnumbers" value="' . $qnumber . '" />', "\n";
 
 // Output the question.
 echo $quba->render_question($qnumber, $displayoptions, '1');

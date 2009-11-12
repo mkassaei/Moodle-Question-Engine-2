@@ -191,9 +191,9 @@ class qim_walkthrough_test_base extends UnitTestCase {
         $this->quba = null;
     }
 
-    protected function start_attempt_at_question($question, $preferredmodel) {
+    protected function start_attempt_at_question($question, $preferredmodel, $maxmark = null) {
         $this->quba->set_preferred_interaction_model($preferredmodel);
-        $this->qnumber = $this->quba->add_question($question);
+        $this->qnumber = $this->quba->add_question($question, $maxmark);
         $this->quba->start_all_questions();
     }
     protected function process_submission($data) {
@@ -232,8 +232,12 @@ class qim_walkthrough_test_base extends UnitTestCase {
         }
     }
 
+    protected function get_question_attempt() {
+        return $this->quba->get_question_attempt($this->qnumber);
+    }
+
     protected function get_step_count() {
-        return $this->quba->get_question_attempt($this->qnumber)->get_num_steps();
+        return $this->get_question_attempt()->get_num_steps();
     }
 
     protected function check_step_count($expectednumsteps) {
@@ -241,7 +245,7 @@ class qim_walkthrough_test_base extends UnitTestCase {
     }
 
     protected function get_step($stepnum) {
-        return $this->quba->get_question_attempt($this->qnumber)->get_step($stepnum);
+        return $this->get_question_attempt()->get_step($stepnum);
     }
 
     protected function get_contains_question_text_expectation($question) {
@@ -332,7 +336,7 @@ class qim_walkthrough_test_base extends UnitTestCase {
     }
 
     protected function get_mc_right_answer_index($mc) {
-        $order = $mc->get_order($this->quba->get_question_attempt($this->qnumber));
+        $order = $mc->get_order($this->get_question_attempt());
         foreach ($order as $i => $ansid) {
             if ($mc->answers[$ansid]->fraction == 1) {
                 return $i;

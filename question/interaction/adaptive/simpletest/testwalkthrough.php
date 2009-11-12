@@ -34,9 +34,8 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
 
         // Create a true-false question with correct answer true.
         $mc = test_question_maker::make_a_multichoice_single_question();
-        $mc->maxmark = 3;
         $mc->penalty = 0.3333333;
-        $this->start_attempt_at_question($mc, 'adaptive');
+        $this->start_attempt_at_question($mc, 'adaptive', 3);
 
         $rightindex = $this->get_mc_right_answer_index($mc);
         $wrongindex = ($rightindex + 1) % 3;

@@ -111,6 +111,10 @@ WHERE
     qas.id = $stepid
         ");
 
+        if (!$records) {
+            throw new Exception('Failed to load question_attempt_step ' . $stepid);
+        }
+
         return question_attempt_step::load_from_records($records, $stepid);
     }
 
@@ -140,7 +144,7 @@ SELECT
     qasd.name,
     qasd.value
 
-FROM {$CFG->prefix}question_attempt_new qa
+FROM {$CFG->prefix}question_attempts_new qa
 LEFT JOIN {$CFG->prefix}question_attempt_steps qas ON qas.questionattemptid = qa.id
 LEFT JOIN {$CFG->prefix}question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
 
@@ -151,10 +155,14 @@ ORDER BY
     qas.sequencenumber
         ");
 
+        if (!$records) {
+            throw new Exception('Failed to load question_attempt ' . $questionattemptid);
+        }
+
         return question_attempt::load_from_records($records, $questionattemptid);
     }
 
-    public function load_questions_usage_by_activity($usageid) {
+    public function load_questions_usage_by_activity($qubaid) {
         global $CFG;
         $records = get_records_sql("
 SELECT
@@ -190,14 +198,33 @@ LEFT JOIN {$CFG->prefix}question_attempt_steps qas ON qas.questionattemptid = qa
 LEFT JOIN {$CFG->prefix}question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
 
 WHERE
-    quba.id = $usageid
+    quba.id = $qubaid
 
 ORDER BY
     qa.numberinusage,
     qas.sequencenumber
     ");
 
-        return question_usage_by_activity::load_from_records($records);
+        if (!$records) {
+            throw new Exception('Failed to load questions_usage_by_activity ' . $qubaid);
+        }
+
+        return question_usage_by_activity::load_from_records($records, $qubaid);
+    }
+
+    public function delete_questions_usage_by_activity($qubaid) {
+        global $CFG;
+        delete_records_select('question_attempt_step_data', "attemptstepid IN (
+                SELECT qa.id
+                FROM {$CFG->prefix}question_attempts_new qa
+                WHERE qa.questionusageid = $qubaid)");
+        delete_records_select('question_attempt_steps', "questionattemptid IN (
+                SELECT qas.id
+                FROM {$CFG->prefix}question_attempts_new qa
+                JOIN {$CFG->prefix}question_attempt_steps qas ON qas.questionattemptid = qa.id
+                WHERE qa.questionusageid = $qubaid)");
+        delete_records('question_attempts_new', 'questionusageid', $qubaid);
+        delete_records('question_usages', 'id', $qubaid);
     }
 }
 

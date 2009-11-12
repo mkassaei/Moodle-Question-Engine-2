@@ -119,6 +119,7 @@ $string['howquestionsbehave'] = 'How questions behave';
 $string['incorrect'] = 'Incorrect';
 $string['markedoutof'] = 'Marked out of';
 $string['notanswered'] = 'Not answered';
+$string['notgraded'] = 'Not graded';
 $string['notyetanswered'] = 'Not yet answered';
 $string['notyourpreview'] = 'This preview does not belong to you';
 $string['partiallycorrect'] = 'Partially correct';

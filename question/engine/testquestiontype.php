@@ -31,7 +31,7 @@ class qtype_truefalse_question extends question_definition {
     public $truefeedback;
     public $falsefeedback;
 
-    public function get_interaction_model(question_attempt $qa, $preferredmodel) {
+    public function make_interaction_model(question_attempt $qa, $preferredmodel) {
         question_engine::load_interaction_model_class($preferredmodel);
         $class = 'qim_' . $preferredmodel;
         return new $class($qa);
@@ -218,7 +218,7 @@ class qtype_multichoice_single_question extends question_definition {
 
     protected $order = null;
 
-    public function get_interaction_model(question_attempt $qa, $preferredmodel) {
+    public function make_interaction_model(question_attempt $qa, $preferredmodel) {
         question_engine::load_interaction_model_class($preferredmodel);
         $class = 'qim_' . $preferredmodel;
         return new $class($qa);
@@ -369,7 +369,7 @@ class qtype_multichoice_single_renderer extends qtype_renderer {
 
 
 class qtype_essay_question extends question_definition {
-    public function get_interaction_model(question_attempt $qa, $preferredmodel) {
+    public function make_interaction_model(question_attempt $qa, $preferredmodel) {
         question_engine::load_interaction_model_class('manualgraded');
         return new qim_manualgraded($qa);
     }
@@ -454,7 +454,7 @@ class qtype_essay_renderer extends qtype_renderer {
 }
 
 class qtype_description_question extends question_definition {
-    public function get_interaction_model(question_attempt $qa, $preferredmodel) {
+    public function make_interaction_model(question_attempt $qa, $preferredmodel) {
         question_engine::load_interaction_model_class('informationitem');
         return new qim_informationitem($qa);
     }

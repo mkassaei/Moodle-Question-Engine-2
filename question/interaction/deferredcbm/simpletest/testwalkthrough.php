@@ -34,8 +34,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
 
         // Create a true-false question with correct answer true.
         $tf = test_question_maker::make_a_truefalse_question();
-        $tf->maxmark = 2;
-        $this->start_attempt_at_question($tf, 'deferredcbm');
+        $this->start_attempt_at_question($tf, 'deferredcbm', 2);
 
         // Verify.
         $this->check_current_state(question_state::INCOMPLETE);
@@ -109,8 +108,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
 
         // Create a true-false question with correct answer true.
         $tf = test_question_maker::make_a_truefalse_question();
-        $tf->maxmark = 2;
-        $this->start_attempt_at_question($tf, 'deferredcbm');
+        $this->start_attempt_at_question($tf, 'deferredcbm', 2);
 
         // Verify.
         $this->check_current_state(question_state::INCOMPLETE);

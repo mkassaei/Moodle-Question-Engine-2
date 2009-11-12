@@ -34,8 +34,7 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
 
         // Create a true-false question with correct answer true.
         $tf = test_question_maker::make_a_truefalse_question();
-        $tf->maxmark = 2;
-        $this->start_attempt_at_question($tf, 'deferredfeedback');
+        $this->start_attempt_at_question($tf, 'deferredfeedback', 2);
 
         // Check the initial state.
         $this->check_current_state(question_state::INCOMPLETE);
@@ -99,8 +98,7 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
 
         // Create a true-false question with correct answer true.
         $mc = test_question_maker::make_a_multichoice_single_question();
-        $mc->maxmark = 3;
-        $this->start_attempt_at_question($mc, 'deferredfeedback');
+        $this->start_attempt_at_question($mc, 'deferredfeedback', 3);
 
         // Start a deferred feedback attempt and add the question to it.
         $rightindex = $this->get_mc_right_answer_index($mc);
