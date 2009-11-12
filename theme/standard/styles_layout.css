@@ -2620,7 +2620,6 @@ body.notes .notesgroup {
 .que.description .generalfeedback {
   margin-left: 1.2em;
   margin-bottom: 0.5em;
-  float: none;
   width: auto;
 }
 .que.description .qtext {
@@ -2647,13 +2646,7 @@ body.notes .notesgroup {
   margin-bottom: 0.5em;
 }
 .que .submit {
-  position: relative;
   clear: both;
-  float: left;
-}
-/* MSIE Hack */
-* html .que .submit {
-  float: none;
 }
 .multianswer .submit {
   margin-top: 1em;
