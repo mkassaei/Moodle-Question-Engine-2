@@ -90,25 +90,22 @@ DROP TABLE git_question_attempt_step_data;
 
 -- Note: code to create the database tables in Postgres:
 
-
 CREATE TABLE git_question_usages (
     id BIGSERIAL,
     contextid BIGINT NOT NULL,
-    owningplugin VARCHAR(255) NOT NULL,
-    preferredmodel VARCHAR(32) NOT NULL,
-CONSTRAINT git_quesusag_id_pk PRIMARY KEY (id)
+    owningplugin VARCHAR(255) NOT NULL DEFAULT '',
+    preferredmodel VARCHAR(32) NOT NULL DEFAULT '',
+CONSTRAINT git_quesusag_id2_pk PRIMARY KEY (id),
+CONSTRAINT git_quesusag_con_fk FOREIGN KEY (contextid) REFERENCES git_context (id)
 );
 
-COMMENT ON TABLE git_question_usages IS 'This table\'s main purpose it to assign a unique id to each attempt at a set of questions by some part of Moodle.';
-
-CREATE INDEX git_quesusag_con_ix ON git_question_usages (contextid);
-
+COMMENT ON TABLE git_question_usages IS 'This table\'s main purpose it to assign a unique id to each attempt at a set of questions by some part of Moodle. A question usage is made up of a number of question_attempts.';
 
 CREATE TABLE git_question_attempts_new (
     id BIGSERIAL,
     questionusageid BIGINT NOT NULL,
     numberinusage BIGINT NOT NULL,
-    interactionmodel VARCHAR(32) NOT NULL,
+    interactionmodel VARCHAR(32) NOT NULL DEFAULT '',
     questionid BIGINT NOT NULL,
     maxmark NUMERIC(12,7) NOT NULL,
     minfraction NUMERIC(12,7) NOT NULL,
@@ -117,15 +114,14 @@ CREATE TABLE git_question_attempts_new (
     rightanswer TEXT,
     responsesummary TEXT,
     timemodified BIGINT NOT NULL,
-CONSTRAINT git_quesattenew_id_pk PRIMARY KEY (id)
+CONSTRAINT git_quesattenew_id2_pk PRIMARY KEY (id),
+CONSTRAINT git_quesattenew_que_fk FOREIGN KEY (questionid) REFERENCES git_question (id),
+CONSTRAINT git_quesattenew_que2_fk FOREIGN KEY (questionusageid) REFERENCES git_question_usages (id)
 );
 
 COMMENT ON TABLE git_question_attempts_new IS 'Each row here corresponds to an attempt at one question, as part of a question_usage. A question_attempt will have some question_attempt_steps';
 
-CREATE UNIQUE INDEX git_quesattenew_quenum_uix ON git_question_attempts_new (questionusageid, numberinusage);
-
-CREATE INDEX git_quesattenew_que_ix ON git_question_attempts_new (questionid);
-
+CREATE INDEX git_quesattenew_que2_ix ON git_question_attempts_new (questionusageid);
 
 CREATE TABLE git_question_attempt_steps (
     id BIGSERIAL,
@@ -135,28 +131,20 @@ CREATE TABLE git_question_attempt_steps (
     fraction NUMERIC(12,7),
     timecreated BIGINT NOT NULL,
     userid BIGINT,
-CONSTRAINT git_quesattestep_id_pk PRIMARY KEY (id)
+CONSTRAINT git_quesattestep_id2_pk PRIMARY KEY (id),
+CONSTRAINT git_quesattestep_que_fk FOREIGN KEY (questionattemptid) REFERENCES git_question_attempts_new (id),
+CONSTRAINT git_quesattestep_use_fk FOREIGN KEY (userid) REFERENCES git_user (id)
 );
 
 COMMENT ON TABLE git_question_attempt_steps IS 'Stores one step in in a question attempt. As well as the data here, the step will have some data in the question_attempt_step_data table.';
 
-CREATE UNIQUE INDEX git_quesattestep_queseq_uix ON git_question_attempt_steps (questionattemptid, sequencenumber);
-
-CREATE INDEX git_quesattestep_que_ix ON git_question_attempt_steps (questionattemptid);
-
-CREATE INDEX git_quesattestep_use_ix ON git_question_attempt_steps (userid);
-
-
 CREATE TABLE git_question_attempt_step_data (
     id BIGSERIAL,
     attemptstepid BIGINT NOT NULL,
-    name VARCHAR(32) NOT NULL,
+    name VARCHAR(32) NOT NULL DEFAULT '',
     value TEXT,
-CONSTRAINT git_quesattestepdata_id_pk PRIMARY KEY (id)
+CONSTRAINT git_quesattestepdata_id2_pk PRIMARY KEY (id),
+CONSTRAINT git_quesattestepdata_att_fk FOREIGN KEY (attemptstepid) REFERENCES git_question_attempt_steps (id)
 );
 
 COMMENT ON TABLE git_question_attempt_step_data IS 'Each question_attempt_step has an associative array of the data that was submitted by the user in the POST request. It can also contain extra data from the question type or interaction model to avoid re-computation. The convention is that names belon';
-
-CREATE UNIQUE INDEX git_quesattestepdata_attnam_uix ON git_question_attempt_step_data (attemptstepid, name);
-
-CREATE INDEX git_quesattestepdata_att_ix ON git_question_attempt_step_data (attemptstepid);
