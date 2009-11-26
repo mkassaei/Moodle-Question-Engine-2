@@ -222,7 +222,7 @@ if ($mform->is_cancelled()){
     }
 } else {
 
-    list($streditingquestion,) = $QTYPES[$question->qtype]->get_heading();
+    $streditingquestion = $QTYPES[$question->qtype]->get_heading();
     $headtags = get_editing_head_contributions($question);
     if ($cm !== null) {
         $strmodule = get_string('modulename', $cm->modname);

@@ -46,13 +46,7 @@ class question_type {
      */
     function menu_name() {
         $name = $this->name();
-        $menu_name = get_string($name, 'qtype_' . $name);
-        if ($menu_name[0] == '[') {
-            // Legacy behavior, if the string was not in the proper qtype_name
-            // language file, look it up in the quiz one.
-            $menu_name = get_string($name, 'quiz');
-        }
-        return $menu_name;
+        return get_string($name, 'qtype_' . $name);
     }
 
     /**
@@ -165,9 +159,9 @@ class question_type {
      * @param object $question
      * @param string $wizardnow is '' for first page.
      */
-    function display_question_editing_page(&$mform, $question, $wizardnow){
-        list($heading, $langmodule) = $this->get_heading(empty($question->id));
-        print_heading_with_help($heading, $this->name(), $langmodule);
+    function display_question_editing_page(&$mform, $question, $wizardnow) {
+        $name = $this->name();
+        print_heading_with_help($this->get_heading(empty($question->id)), $name, 'qtype_' . $name);
         $permissionstrs = array();
         if (!empty($question->id)){
             if ($question->formoptions->canedit){
@@ -195,24 +189,16 @@ class question_type {
     /**
      * Method called by display_question_editing_page and by question.php to get heading for breadcrumbs.
      *
-     * @return array a string heading and the langmodule in which it was found.
+     * @return string the heading
      */
     function get_heading($adding = false){
         $name = $this->name();
-        $langmodule = 'qtype_' . $name;
-        if (!$adding){
-            $strtoget = 'editing' . $name;
+        if ($adding){
+            $action = 'adding';
         } else {
-            $strtoget = 'adding' . $name;
+            $action = 'editing';
         }
-        $strheading = get_string($strtoget, $langmodule);
-        if ($strheading[0] == '[') {
-            // Legacy behavior, if the string was not in the proper qtype_name
-            // language file, look it up in the quiz one.
-            $langmodule = 'quiz';
-            $strheading = get_string($strtoget, $langmodule);
-        }
-        return array($strheading, $langmodule);
+        return get_string($action . $name, 'qtype_' . $name);
     }
 
     /**

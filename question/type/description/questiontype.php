@@ -20,7 +20,7 @@
  * Question type class for the description 'question' type.
  *
  * @package qtype_description
- * @copyright 2009 The Open University
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,7 +28,7 @@
 /**
  * The description 'question' type.
  *
- * @copyright © 2009 The Open University
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

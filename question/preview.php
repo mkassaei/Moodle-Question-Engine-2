@@ -132,11 +132,14 @@ if ($question->length) {
 } else {
     $displaynumber = 'i';
 }
+$restartdisabled = '';
 $finishdisabled = '';
 if (question_state::is_finished($quba->get_question_state($qnumber))) {
     $finishdisabled = ' disabled="disabled"';
 }
-
+if (!$previewid) {
+    $restartdisabled = ' disabled="disabled"';
+}
 // Output
 $title = get_string('previewquestion', 'question', format_string($question->name));
 $headtags = implode("\n", $quba->render_question_head_html($qnumber));
@@ -157,7 +160,8 @@ echo '<p class="notifytiny">' . get_string('interactionmodelbeingused', 'questio
         get_interaction_model_name())) . '</p>';
 // Finish the question form.
 echo '<div id="previewcontrols" class="controls">';
-echo '<input type="submit" name="restart" value="' . get_string('restart', 'question') . '" />', "\n";
+echo '<input type="submit" name="restart"' . $restartdisabled .
+        ' value="' . get_string('restart', 'question') . '" />', "\n";
 // TODO Fill with correct button.
 echo '<input type="submit" name="finish"' . $finishdisabled .
         ' value="' . get_string('submitandfinish', 'question') . '" />', "\n";
@@ -170,5 +174,6 @@ echo '</form>';
 $optionsform->display();
 
 // Finish output.
+use_html_editor();
 print_footer('empty');
 

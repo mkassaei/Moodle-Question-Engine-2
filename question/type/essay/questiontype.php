@@ -1,31 +1,44 @@
-<?php  // $Id$
+<?php
 
-//////////////////
-///   ESSAY   ///
-/////////////////
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/// QUESTION TYPE CLASS //////////////////
+
 /**
- * @package questionbank
- * @subpackage questiontypes
+ * Question type class for the essay question type.
+ *
+ * @package qtype_essay
+ * @copyright © 2005 Mark Nielsen
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+
+/**
+ * The essay question type.
+ *
+ * @copyright © 2005 Mark Nielsen
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 class qtype_essay extends question_type {
-    var $usablebyrandom;
-
-    function qtype_essay() {
-        $this->usablebyrandom = get_config('qtype_random', 'selectmanual');
-    }
-
-    function name() {
-        return 'essay';
-    }
-
     function is_manual_graded() {
         return true;
     }
 
     function is_usable_by_random() {
-        return $this->usablebyrandom;
+        return true;
     }
 
     function save_question_options($question) {
@@ -52,77 +65,6 @@ class qtype_essay extends question_type {
             }
         }
         return $result;
-    }
-
-    function print_question_formulation_and_controls(&$question, &$state, $cmoptions, $options) {
-        global $CFG;
-        static $htmleditorused = false;
-
-        $answers       = &$question->options->answers;
-        $readonly      = empty($options->readonly) ? '' : 'disabled="disabled"';
-
-        // Only use the rich text editor for the first essay question on a page.
-        $usehtmleditor = can_use_html_editor() && !$htmleditorused;
-
-        $formatoptions          = new stdClass;
-        $formatoptions->noclean = true;
-        $formatoptions->para    = false;
-
-        $inputname = $question->name_prefix;
-        $stranswer = get_string("answer", "quiz").': ';
-
-        /// set question text and media
-        $questiontext = format_text($question->questiontext,
-                                   $question->questiontextformat,
-                                   $formatoptions, $cmoptions->course);
-
-        $image = get_question_image($question);
-
-        // feedback handling
-        $feedback = '';
-        if ($options->feedback && !empty($answers)) {
-            foreach ($answers as $answer) {
-                $feedback = format_text($answer->feedback, '', $formatoptions, $cmoptions->course);
-            }
-        }
-
-        // get response value
-        if (isset($state->responses[''])) {
-            $value = stripslashes_safe($state->responses['']);
-        } else {
-            $value = "";
-        }
-
-        // answer
-        if (empty($options->readonly)) {
-            // the student needs to type in their answer so print out a text editor
-            $answer = print_textarea($usehtmleditor, 18, 80, 630, 400, $inputname, $value, $cmoptions->course, true);
-        } else {
-            // it is read only, so just format the students answer and output it
-            $safeformatoptions = new stdClass;
-            $safeformatoptions->para = false;
-            $answer = format_text($value, FORMAT_MOODLE,
-                                  $safeformatoptions, $cmoptions->course);
-            $answer = '<div class="answerreview">' . $answer . '</div>';
-        }
-
-        include("$CFG->dirroot/question/type/essay/display.html");
-
-        if ($usehtmleditor && empty($options->readonly)) {
-            use_html_editor($inputname);
-            $htmleditorused = true;
-        }
-    }
-
-    function grade_responses(&$question, &$state, $cmoptions) {
-        // All grading takes place in Manual Grading
-
-        $state->responses[''] = clean_param($state->responses[''], PARAM_CLEAN);
-
-        $state->raw_grade = 0;
-        $state->penalty = 0;
-
-        return true;
     }
 
     function response_summary($question, $state, $length = 80) {
@@ -162,13 +104,5 @@ class qtype_essay extends question_type {
 
         return $this->save_question($question, $form, $course);
     }
-
-    // Restore method not needed.
 }
-//// END OF CLASS ////
-
-//////////////////////////////////////////////////////////////////////////
-//// INITIATION - Without this line the question type is not in use... ///
-//////////////////////////////////////////////////////////////////////////
-question_register_questiontype(new qtype_essay());
-?>
+question_register_questiontype(question_engine::get_qtype('essay'));

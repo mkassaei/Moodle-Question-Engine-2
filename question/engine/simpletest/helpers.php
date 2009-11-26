@@ -125,6 +125,7 @@ class test_question_maker {
      * @return question_truefalse
      */
     public static function make_an_essay_question() {
+        question_engine::load_question_definition_classes('essay');
         $essay = new qtype_essay_question();
         self::initialise_a_question($essay);
         $essay->name = 'Essay question';

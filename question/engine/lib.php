@@ -47,7 +47,6 @@ abstract class question_engine {
      * in testquestiontype.php.
      */
     private static $loadedqdefs = array(
-        'essay' => 1,
         'multichoice' => 1,
         'truefalse' => 1,
     );
@@ -527,7 +526,7 @@ abstract class question_definition {
      */
     public abstract function get_expected_data();
 
-    protected function format_text($text, $clean = false) {
+    public function format_text($text, $clean = false) {
         $formatoptions = new stdClass;
         $formatoptions->noclean = !$clean;
         $formatoptions->para = false;

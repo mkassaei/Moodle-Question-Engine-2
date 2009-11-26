@@ -13,6 +13,7 @@ Refactor all the renderer code
 Redo the question preview window
   Fill with correct
   More display options
+  Think about manually graded qestions
 
 Database load/save code
   Update functions
@@ -24,7 +25,6 @@ Convert existing question type code
   Split qtype classes in three
     truefalse
     multichoice
-    essay
     shortanswer
     numerical
     random
@@ -34,6 +34,7 @@ Convert existing question type code
     multianswer
     randomsamatch
   New fields for editing hints
+  Update qtype plugin version nubmers and requires numbers, when this is merged into core code
 
 Integrate new code into the quiz
   attempting code
