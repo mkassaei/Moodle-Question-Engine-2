@@ -14,12 +14,12 @@ if (!defined('MOODLE_INTERNAL')) {
 
 require_once($CFG->dirroot . '/question/type/numerical/questiontype.php');
 
-class question_numerical_qtype_test extends UnitTestCase {
+class qtype_numerical_test extends UnitTestCase {
     var $tolerance = 0.00000001;        
     var $qtype;
     
     function setUp() {
-        $this->qtype = new question_numerical_qtype();
+        $this->qtype = new qtype_numerical();
     }
     
     function tearDown() {

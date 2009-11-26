@@ -22,7 +22,6 @@ Database load/save code
 
 Convert existing question type code
   Split qtype classes in three
-    description
     truefalse
     multichoice
     essay

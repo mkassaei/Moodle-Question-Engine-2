@@ -17,30 +17,34 @@
 
 
 /**
- * Renderer for outputting parts of a question belonging to the information
- * item interaction model.
+ * Description 'question' definition class.
  *
- * @package qim_deferredfeedback
+ * @package qtype_description
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
-class qim_informationitem_renderer extends qim_renderer {
-    public function get_state_string(question_attempt $qa) {
-        return '';
+/**
+ * Represents a description 'question'.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class qtype_description_question extends question_definition {
+    public function __construct() {
+        parent::__construct();
+        $this->defaultgrade = 0;
+        $this->penalty = 0;
+        $this->length = 0;
     }
 
-    public function controls(question_attempt $qa, question_display_options $options) {
-        if ($qa->get_state() != question_state::INCOMPLETE) {
-            return '';
-        }
+    public function make_interaction_model(question_attempt $qa, $preferredmodel) {
+        question_engine::load_interaction_model_class('informationitem');
+        return new qim_informationitem($qa);
+    }
 
-        // Hidden input to move the question into the complete state.
-        return $this->output_empty_tag('input', array(
-            'type' => 'hidden',
-            'name' => $qa->get_im_field_name('seen'),
-            'value' => 1,
-        ));
+    public function get_expected_data() {
+        return array();
     }
 }

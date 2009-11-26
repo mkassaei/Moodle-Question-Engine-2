@@ -35,8 +35,17 @@
 class core_question_renderer extends moodle_renderer_base {
 
     protected function number($number) {
-        return $this->output_tag('h2', array('class' => 'no'),
-                get_string('questionx', 'question', $this->output_tag('span', array('class' => 'qno'), $number)));
+        $numbertext = '';
+        if (is_numeric($number)) {
+            $numbertext = get_string('questionx', 'question',
+                    $this->output_tag('span', array('class' => 'qno'), $number));
+        } else if ($number == 'i') {
+            $numbertext = get_string('information', 'question');
+        }
+        if (!$numbertext) {
+            return '';
+        }
+        return $this->output_tag('h2', array('class' => 'no'), $numbertext);
     }
 
     public function question(question_attempt $qa, qim_renderer $qimoutput,

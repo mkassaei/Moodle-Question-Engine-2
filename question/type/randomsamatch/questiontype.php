@@ -12,7 +12,7 @@
  * @package questionbank
  * @subpackage questiontypes
 */
-class question_randomsamatch_qtype extends question_match_qtype {
+class qtype_randomsamatch extends qtype_match {
 /// Extends 'match' as there are quite a few simularities...
 
     function name() {
@@ -359,5 +359,5 @@ class question_randomsamatch_qtype extends question_match_qtype {
 //////////////////////////////////////////////////////////////////////////
 //// INITIATION - Without this line the question type is not in use... ///
 //////////////////////////////////////////////////////////////////////////
-question_register_questiontype(new question_randomsamatch_qtype());
+question_register_questiontype(new qtype_randomsamatch());
 ?>

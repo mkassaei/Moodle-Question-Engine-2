@@ -16,7 +16,7 @@
  */
 require_once("$CFG->dirroot/question/type/questiontype.php");
 
-class question_shortanswer_qtype extends default_questiontype {
+class qtype_shortanswer extends question_type {
 
     function name() {
         return 'shortanswer';
@@ -385,5 +385,5 @@ class question_shortanswer_qtype extends default_questiontype {
 //////////////////////////////////////////////////////////////////////////
 //// INITIATION - Without this line the question type is not in use... ///
 //////////////////////////////////////////////////////////////////////////
-question_register_questiontype(new question_shortanswer_qtype());
+question_register_questiontype(new qtype_shortanswer());
 ?>

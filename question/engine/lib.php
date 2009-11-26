@@ -39,6 +39,19 @@ require_once(dirname(__FILE__) . '/testquestiontype.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class question_engine {
+    /** @var array question type name => default_qtype subclass. */
+    private static $questiontypes = array();
+    /**
+     * @var array question type name => 1. Records which question definition
+     * classes have been loaded. Currently initialised to account for the classes
+     * in testquestiontype.php.
+     */
+    private static $loadedqdefs = array(
+        'essay' => 1,
+        'multichoice' => 1,
+        'truefalse' => 1,
+    );
+    /** @var array interaction model name => 1. Records which interaction models have been loaded. */
     private static $loadedmodels = array();
 
     /**
@@ -74,8 +87,8 @@ abstract class question_engine {
     }
 
     /**
-     * @param integer $qubaid the id of the usage to load.
-     * @return question_usage_by_activity loaded from the database.
+     * @param integer $questionid the id of the question to load.
+     * @return question_definition loaded from the database.
      */
     public static function load_question($questionid) {
         $questiondata = get_record('question', 'id', $questionid);
@@ -83,47 +96,65 @@ abstract class question_engine {
             throw new Exception('Unknown question id ' . $questionid);
         }
         get_question_options($questiondata);
+        return self::get_qtype($questiondata->qtype)->make_question($questiondata);
 
-        $question = new qtype_truefalse_question();
-        $question->id = $questiondata->id;
-        $question->category = $questiondata->category;
-        $question->parent = $questiondata->parent;
-        $question->qtype = question_engine::get_qtype($questiondata->qtype);
-        $question->name = $questiondata->name;
-        $question->questiontext = $questiondata->questiontext;
-        $question->questiontextformat = $questiondata->questiontextformat;
-        $question->generalfeedback = $questiondata->generalfeedback;
-        $question->defaultmark = $questiondata->defaultgrade + 0;
-        $question->length = $questiondata->length;
-        $question->penalty = $questiondata->penalty;
-        $question->stamp = $questiondata->stamp;
-        $question->version = $questiondata->version;
-        $question->hidden = $questiondata->hidden;
-        $question->timecreated = $questiondata->timecreated;
-        $question->timemodified = $questiondata->timemodified;
-        $question->createdby = $questiondata->createdby;
-        $question->modifiedby = $questiondata->modifiedby;
-
-        $answers = $questiondata->options->answers;
-        if ($answers[$questiondata->options->trueanswer]->fraction > 0.99) {
-            $question->rightanswer = true;
-        } else {
-            $question->rightanswer = false;
-        }
-        $question->truefeedback = $answers[$questiondata->options->trueanswer]->feedback;
-        $question->falsefeedback = $answers[$questiondata->options->falseanswer]->feedback;
-
-        return $question;
+//        // Spare code for truefalse.
+//        $answers = $questiondata->options->answers;
+//        if ($answers[$questiondata->options->trueanswer]->fraction > 0.99) {
+//            $question->rightanswer = true;
+//        } else {
+//            $question->rightanswer = false;
+//        }
+//        $question->truefeedback = $answers[$questiondata->options->trueanswer]->feedback;
+//        $question->falsefeedback = $answers[$questiondata->options->falseanswer]->feedback;
     }
 
     /**
      * Get the question type class for a particular question type.
      * @param string $typename the question type name. For example 'multichoice' or 'shortanswer'.
-     * @return default_questiontype the corresponding question type class.
+     * @return question_type the corresponding question type class.
      */
     public static function get_qtype($typename) {
-        global $QTYPES;
-        return $QTYPES[$typename];
+        global $CFG;
+        if (isset(self::$questiontypes[$typename])) {
+            return self::$questiontypes[$typename];
+        }
+        $file = $CFG->dirroot . '/question/type/' . $typename . '/questiontype.php';
+        if (!is_readable($file)) {
+            throw new Exception('Unknown question type ' . $typename);
+        }
+        include_once($file);
+        $class = 'qtype_' . $typename;
+        self::$questiontypes[$typename] = new $class();
+        return self::$questiontypes[$typename];
+    }
+
+    public static function load_question_definition_classes($qtype) {
+        global $CFG;
+        if (isset(self::$loadedqdefs[$qtype])) {
+            return;
+        }
+        $file = $CFG->dirroot . '/question/type/' . $qtype . '/question.php';
+        if (!is_readable($file)) {
+            throw new Exception('Unknown question type (no definition) ' . $qtype);
+        }
+        include_once($file);
+        self::$loadedqdefs[$qtype] = 1;
+    }
+
+    /**
+     * Create an archetypal interaction model for a particular question attempt.
+     * @param string $preferredmodel the type of model required.
+     * @param question_attempt $qa the question attempt the model will process.
+     * @return question_interaction_model an instance of appropriate interaction model class.
+     */
+    public static function make_archetypal_interaction_model($preferredmodel, question_attempt $qa) {
+        question_engine::load_interaction_model_class($preferredmodel);
+        $class = 'qim_' . $preferredmodel;
+        if (!constant($class . '::IS_ARCHETYPAL')) {
+            throw new Exception('The requested interaction model is not actually an archetypal one.');
+        }
+        return new $class($qa);
     }
 
     public static function load_interaction_model_class($model) {
@@ -155,13 +186,22 @@ abstract class question_engine {
             self::load_interaction_model_class($model);
             $plugin = 'qim_' . $model;
             if (constant($plugin . '::IS_ARCHETYPAL')) {
-                $archetypes[$model] = get_string($model, $plugin);
+                $archetypes[$model] = self::get_interaction_model_name($model);
             }
         }
         asort($archetypes, SORT_LOCALE_STRING);
         return $archetypes;
     }
 
+    public static function get_interaction_model_name($model) {
+        return get_string($model, 'qim_' . $model);
+    }
+
+    /**
+     * Returns the valid choices for the number of decimal places for showing
+     * question marks. For use in the user interface.
+     * @return array suitable for passing to {@link choose_from_menu()} or similar.
+     */
     public static function get_dp_options() {
         return question_display_options::get_dp_options();
     }
@@ -395,7 +435,7 @@ class question_display_options {
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class question_definition {
+abstract class question_definition {
     /** @var integer id of the question in the datase, or null if this question
      * is not in the database. */
     public $id;
@@ -403,7 +443,7 @@ class question_definition {
     public $category;
     /** @var integer parent question id. */
     public $parent = 0;
-    /** @var default_questiontype the question type this question is. */
+    /** @var question_type the question type this question is. */
     public $qtype;
     /** @var string question name. */
     public $name;
@@ -434,6 +474,16 @@ class question_definition {
     /** @var integer userid of the use who modified this question. */
     public $modifiedby;
 
+    public function __construct() {
+    }
+
+    public function make_interaction_model(question_attempt $qa, $preferredmodel) {
+        return question_engine::make_archetypal_interaction_model($preferredmodel, $qa);
+        question_engine::load_interaction_model_class($preferredmodel);
+        $class = 'qim_' . $preferredmodel;
+        return new $class($qa);
+    }
+
     /**
      * Initialise the first step of an attempt at this quetsion.
      *
@@ -458,8 +508,35 @@ class question_definition {
         return 0;
     }
 
-    protected function format_text($text) {
-        return format_text($text);
+    /**
+     * Get the renderer to use for outputting this question.
+     * @return unknown_type
+     */
+    public function get_renderer() {
+        return renderer_factory::get_renderer('qtype_' . $this->qtype->name());
+    }
+
+    /**
+     * What data may be included in the form submission when a student submits
+     * this question in its current state?
+     *
+     * This information is used in calls to optional_param. The parameter name
+     * has {question_attempt::get_field_prefix()} automatically prepended.
+     *
+     * @return array parameter name => PARAM_... type constant.
+     */
+    public abstract function get_expected_data();
+
+    protected function format_text($text, $clean = false) {
+        $formatoptions = new stdClass;
+        $formatoptions->noclean = !$clean;
+        $formatoptions->para = false;
+
+        return format_text($text, $this->questiontextformat, $formatoptions);
+    }
+
+    public function format_questiontext() {
+        return $this->format_text($this->questiontext);
     }
 
     public function format_generalfeedback() {

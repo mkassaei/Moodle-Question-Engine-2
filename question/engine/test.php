@@ -18,25 +18,25 @@ require_once($CFG->dirroot . '/question/interaction/immediatefeedback/simpletest
 require_once($CFG->dirroot . '/question/interaction/immediatecbm/simpletest/testwalkthrough.php');
 require_once($CFG->dirroot . '/question/interaction/missing/simpletest/testmissingmodel.php');
 
-class question_truefalse_qtype {
+class qtype_truefalse {
     public function name() {
         return 'truefalse';
     }
 }
 
-class question_multichoice_qtype {
+class qtype_multichoice {
     public function name() {
         return 'multichoice';
     }
 }
 
-class question_essay_qtype {
+class qtype_essay {
     public function name() {
         return 'essay';
     }
 }
 
-class question_description_qtype {
+class qtype_description {
     public function name() {
         return 'description';
     }
@@ -44,10 +44,10 @@ class question_description_qtype {
 
 global $QTYPES;
 $QTYPES = array(
-    'essay' => new question_essay_qtype(),
-    'multichoice' => new question_multichoice_qtype(),
-    'truefalse' => new question_truefalse_qtype(),
-    'description' => new question_description_qtype(),
+    'essay' => new qtype_essay(),
+    'multichoice' => new qtype_multichoice(),
+    'truefalse' => new qtype_truefalse(),
+    'description' => new qtype_description(),
 );
 
 $reporter = new HtmlReporter();

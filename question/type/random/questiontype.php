@@ -10,7 +10,7 @@
  * @package questionbank
  * @subpackage questiontypes
  */
-class random_qtype extends default_questiontype {
+class random_qtype extends question_type {
     var $selectmanual;
     var $excludedqtypes = null;
     var $manualqtypes = null;

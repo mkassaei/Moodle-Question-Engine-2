@@ -2600,7 +2600,7 @@ body.notes .notesgroup {
   padding: 0.5em;
 }
 .que h2.no {
-    margin: 0.5em 0;
+    margin: 0 0 0.5em;
 }
 .que .content {
   margin: 0 0 0 7.5em;
@@ -2611,22 +2611,6 @@ body.notes .notesgroup {
 .que .history {
     padding: 0.5em;
     margin: 0 0 0.5em;
-}
-.que.description .info {
-  margin: 0.5em 0 0.5em 0.2em;
-  width: 1em;
-}
-.que.description .content,
-.que.description .generalfeedback {
-  margin-left: 1.2em;
-  margin-bottom: 0.5em;
-  width: auto;
-}
-.que.description .qtext {
-  margin-bottom: 0;
-}
-.que .qtext {
-  margin-bottom: 1.5em;
 }
 .que .ablock {
   margin: 0.7em 0 0.3em 0;
@@ -2689,7 +2673,6 @@ body.notes .notesgroup {
 .que .grading,
 .que .comment,
 .que .commentlink,
-.que .generalfeedback,
 .que .history {
   margin-top: 0.5em;
 }

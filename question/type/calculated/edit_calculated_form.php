@@ -16,7 +16,7 @@ class question_edit_calculated_form extends question_edit_form {
     /**
      * Handle to the question type for this question.
      *
-     * @var question_calculated_qtype
+     * @var qtype_calculated
      */
     var $qtypeobj;
 

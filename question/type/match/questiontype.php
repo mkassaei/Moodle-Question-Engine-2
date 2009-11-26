@@ -9,7 +9,7 @@
  * @package questionbank
  * @subpackage questiontypes
  */
-class question_match_qtype extends default_questiontype {
+class qtype_match extends question_type {
 
     function name() {
         return 'match';
@@ -718,5 +718,5 @@ class question_match_qtype extends default_questiontype {
 //////////////////////////////////////////////////////////////////////////
 //// INITIATION - Without this line the question type is not in use... ///
 //////////////////////////////////////////////////////////////////////////
-question_register_questiontype(new question_match_qtype());
+question_register_questiontype(new qtype_match());
 ?>

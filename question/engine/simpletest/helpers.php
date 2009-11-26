@@ -141,13 +141,12 @@ class test_question_maker {
      * @return question_truefalse
      */
     public static function make_a_description_question() {
+        question_engine::load_question_definition_classes('description');
         $description = new qtype_description_question();
         self::initialise_a_question($description);
         $description->name = 'Description question';
         $description->questiontext = 'This text tells you a bit about the next few questions in this quiz.';
         $description->generalfeedback = 'This is what this seciton of the quiz should have taught you.';
-        $description->defaultgrade = 0;
-        $description->penalty = 0;
         $description->qtype = question_engine::get_qtype('description');
 
         return $description;

@@ -14,11 +14,11 @@ if (!defined('MOODLE_INTERNAL')) {
 
 require_once($CFG->dirroot . '/question/type/questiontype.php');
 
-class question_shortanswer_qtype_test extends UnitTestCase {
+class qtype_shortanswer_test extends UnitTestCase {
     var $qtype;
     
     function setUp() {
-        $this->qtype = new question_shortanswer_qtype();
+        $this->qtype = new qtype_shortanswer();
     }
     
     function tearDown() {

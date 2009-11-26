@@ -9,7 +9,7 @@
  * @package questionbank
  * @subpackage questiontypes
  */
-class question_truefalse_qtype extends default_questiontype {
+class qtype_truefalse extends question_type {
 
     function name() {
         return 'truefalse';
@@ -370,5 +370,5 @@ class question_truefalse_qtype extends default_questiontype {
 //////////////////////////////////////////////////////////////////////////
 //// INITIATION - Without this line the question type is not in use... ///
 //////////////////////////////////////////////////////////////////////////
-question_register_questiontype(new question_truefalse_qtype());
+question_register_questiontype(new qtype_truefalse());
 ?>

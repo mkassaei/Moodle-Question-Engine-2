@@ -9,7 +9,7 @@
 require_once("$CFG->dirroot/question/type/datasetdependent/abstractqtype.php");
 
 
-class question_calculated_qtype extends question_dataset_dependent_questiontype {
+class qtype_calculated extends question_dataset_dependent_questiontype {
 
     // Used by the function custom_generator_tools:
     var $calcgenerateidhasbeenadded = false;
@@ -473,7 +473,7 @@ class question_calculated_qtype extends question_dataset_dependent_questiontype 
     function create_virtual_qtype() {
         global $CFG;
         require_once("$CFG->dirroot/question/type/numerical/questiontype.php");
-        return new question_numerical_qtype();
+        return new qtype_numerical();
     }
 
     function supports_dataset_item_generation() {
@@ -1149,7 +1149,7 @@ class question_calculated_qtype extends question_dataset_dependent_questiontype 
 //////////////////////////////////////////////////////////////////////////
 //// INITIATION - Without this line the question type is not in use... ///
 //////////////////////////////////////////////////////////////////////////
-question_register_questiontype(new question_calculated_qtype());
+question_register_questiontype(new qtype_calculated());
 
 function qtype_calculated_calculate_answer($formula, $individualdata,
         $tolerance, $tolerancetype, $answerlength, $answerformat='1', $unit='') {

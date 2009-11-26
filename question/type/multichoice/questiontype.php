@@ -8,7 +8,7 @@
  * @package questionbank
  * @subpackage questiontypes
  */
-class question_multichoice_qtype extends default_questiontype {
+class qtype_multichoice extends question_type {
 
     function name() {
         return 'multichoice';
@@ -709,5 +709,5 @@ class question_multichoice_qtype extends default_questiontype {
 }
 
 // Register this question type with the question bank.
-question_register_questiontype(new question_multichoice_qtype());
+question_register_questiontype(new qtype_multichoice());
 ?>

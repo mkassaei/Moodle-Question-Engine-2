@@ -20,7 +20,7 @@ require_once("$CFG->dirroot/question/type/shortanswer/questiontype.php");
  * @package questionbank
  * @subpackage questiontypes
  */
-class question_numerical_qtype extends question_shortanswer_qtype {
+class qtype_numerical extends qtype_shortanswer {
 
     function name() {
         return 'numerical';
@@ -487,7 +487,7 @@ class question_numerical_qtype extends question_shortanswer_qtype {
      * Alternate DB table prefix may be used to facilitate data deletion.
      */
     function generate_test($name, $courseid = null) {
-        list($form, $question) = default_questiontype::generate_test($name, $courseid);
+        list($form, $question) = question_type::generate_test($name, $courseid);
         $question->category = $form->category;
 
         $form->questiontext = "What is 674 * 36?";
@@ -513,5 +513,5 @@ class question_numerical_qtype extends question_shortanswer_qtype {
 }
 
 // INITIATION - Without this line the question type is not in use.
-question_register_questiontype(new question_numerical_qtype());
+question_register_questiontype(new qtype_numerical());
 ?>

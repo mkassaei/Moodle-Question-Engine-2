@@ -127,6 +127,16 @@ if (data_submitted() && confirm_sesskey()) {
     }
 }
 
+if ($question->length) {
+    $displaynumber = '1';
+} else {
+    $displaynumber = 'i';
+}
+$finishdisabled = '';
+if (question_state::is_finished($quba->get_question_state($qnumber))) {
+    $finishdisabled = ' disabled="disabled"';
+}
+
 // Output
 $title = get_string('previewquestion', 'question', format_string($question->name));
 $headtags = implode("\n", $quba->render_question_head_html($qnumber));
@@ -140,13 +150,17 @@ echo '<input type="hidden" name="sesskey" value="' . sesskey() . '" />', "\n";
 echo '<input type="hidden" name="qnumbers" value="' . $qnumber . '" />', "\n";
 
 // Output the question.
-echo $quba->render_question($qnumber, $displayoptions, '1');
+echo $quba->render_question($qnumber, $displayoptions, $displaynumber);
 
+echo '<p class="notifytiny">' . get_string('interactionmodelbeingused', 'question',
+        question_engine::get_interaction_model_name($quba->get_question_attempt($qnumber)->
+        get_interaction_model_name())) . '</p>';
 // Finish the question form.
 echo '<div id="previewcontrols" class="controls">';
 echo '<input type="submit" name="restart" value="' . get_string('restart', 'question') . '" />', "\n";
 // TODO Fill with correct button.
-echo '<input type="submit" name="finish" value="' . get_string('submitandfinish', 'question') . '" />', "\n";
+echo '<input type="submit" name="finish"' . $finishdisabled .
+        ' value="' . get_string('submitandfinish', 'question') . '" />', "\n";
 echo '</div>';
 echo '<script type="text/javascript">question_preview_close_button("' .
         get_string('closepreview', 'question') . '", "previewcontrols");</script>', "\n";

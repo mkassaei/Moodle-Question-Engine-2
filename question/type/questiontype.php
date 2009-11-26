@@ -29,18 +29,13 @@ require_once($CFG->libdir . '/questionlib.php');
  * @package questionbank
  * @subpackage questiontypes
  */
-class default_questiontype {
+class question_type {
 
     /**
-     * Name of the question type
-     *
-     * The name returned should coincide with the name of the directory
-     * in which this questiontype is located
-     *
      * @return string the name of this question type.
      */
-    function name() {
-        return 'default';
+    public function name() {
+        return substr(get_class($this), 6);
     }
 
     /**
@@ -465,6 +460,39 @@ class default_questiontype {
         }
 
         return true;
+    }
+
+    public function make_question($questiondata) {
+        $question = $this->make_question_instance($questiondata);
+        $this->initialise_question_instance($question, $questiondata);
+        return $question;
+    }
+
+    protected function make_question_instance($questiondata) {
+        question_engine::load_question_definition_classes($this->name());
+        $class = 'qtype_' . $this->name() . '_question';
+        return new $class();
+    }
+
+    protected function initialise_question_instance($question, $questiondata) {
+        $question->id = $questiondata->id;
+        $question->category = $questiondata->category;
+        $question->parent = $questiondata->parent;
+        $question->qtype = $this;
+        $question->name = $questiondata->name;
+        $question->questiontext = $questiondata->questiontext;
+        $question->questiontextformat = $questiondata->questiontextformat;
+        $question->generalfeedback = $questiondata->generalfeedback;
+        $question->defaultmark = $questiondata->defaultgrade + 0;
+        $question->length = $questiondata->length;
+        $question->penalty = $questiondata->penalty;
+        $question->stamp = $questiondata->stamp;
+        $question->version = $questiondata->version;
+        $question->hidden = $questiondata->hidden;
+        $question->timecreated = $questiondata->timecreated;
+        $question->timemodified = $questiondata->timemodified;
+        $question->createdby = $questiondata->createdby;
+        $question->modifiedby = $questiondata->modifiedby;
     }
 
     /**

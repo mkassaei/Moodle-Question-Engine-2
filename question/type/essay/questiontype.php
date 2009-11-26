@@ -9,10 +9,10 @@
  * @package questionbank
  * @subpackage questiontypes
  */
-class question_essay_qtype extends default_questiontype {
+class qtype_essay extends question_type {
     var $usablebyrandom;
 
-    function question_essay_qtype() {
+    function qtype_essay() {
         $this->usablebyrandom = get_config('qtype_random', 'selectmanual');
     }
 
@@ -170,5 +170,5 @@ class question_essay_qtype extends default_questiontype {
 //////////////////////////////////////////////////////////////////////////
 //// INITIATION - Without this line the question type is not in use... ///
 //////////////////////////////////////////////////////////////////////////
-question_register_questiontype(new question_essay_qtype());
+question_register_questiontype(new qtype_essay());
 ?>
