@@ -41,10 +41,6 @@ class qtype_truefalse_question extends question_definition {
         return renderer_factory::get_renderer('qtype_truefalse');
     }
 
-    public function get_min_fraction() {
-        return 0;
-    }
-
     /**
      * Return an array of the question type variables that could be submitted
      * as part of a question of this type, with their types, so they can be
@@ -378,10 +374,6 @@ class qtype_essay_question extends question_definition {
         return renderer_factory::get_renderer('qtype_essay');
     }
 
-    public function get_min_fraction() {
-        return 0;
-    }
-
     /**
      * Return an array of the question type variables that could be submitted
      * as part of a question of this type, with their types, so they can be
@@ -461,10 +453,6 @@ class qtype_description_question extends question_definition {
 
     public function get_renderer() {
         return renderer_factory::get_renderer('qtype_description');
-    }
-
-    public function get_min_fraction() {
-        return 0;
     }
 
     /**

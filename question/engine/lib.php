@@ -389,33 +389,73 @@ class question_display_options {
 /**
  * The definition of a question of a particular type.
  *
- * This class matches the question table in the database. It will normally be
- * subclassed by the particular question type.
+ * This class is a close match to the question table in the database.
+ * It will normally be subclassed by the particular question type.
  *
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_definition {
+    /** @var integer id of the question in the datase, or null if this question
+     * is not in the database. */
     public $id;
+    /** @var integer question category id. */
     public $category;
+    /** @var integer parent question id. */
     public $parent = 0;
+    /** @var default_questiontype the question type this question is. */
     public $qtype;
+    /** @var string question name. */
     public $name;
+    /** @var string question text. */
     public $questiontext;
+    /** @var integer question test format. */
     public $questiontextformat;
+    /** @var string question general feedback. */
     public $generalfeedback;
+    /** @var number what this quetsion is marked out of, by default. */
     public $defaultmark = 1;
+    /** @var integer How many question numbers this question consumes. */
     public $length = 1;
+    /** @var number penalty factor of this question. */
     public $penalty = 0;
+    /** @var string unique identifier of this question. */
     public $stamp;
+    /** @var string unique identifier of this version of this question. */
     public $version;
+    /** @var boolean whethre this question has been deleted/hidden in the question bank. */
     public $hidden = 0;
+    /** @var integer timestamp when this question was created. */
     public $timecreated;
+    /** @var integer timestamp when this question was modified. */
     public $timemodified;
+    /** @var integer userid of the use who created this question. */
     public $createdb;
+    /** @var integer userid of the use who modified this question. */
     public $modifiedby;
 
+    /**
+     * Initialise the first step of an attempt at this quetsion.
+     *
+     * For example, the multiple choice question type uses this method to
+     * randomly shuffle the choices, if that option has been set in the question.
+     * It then stores that order by calling $step->set_qt_var(...).
+     *
+     * @param question_attempt_step $step the step to be initialised.
+     */
     public function init_first_step(question_attempt_step $step) {
+    }
+
+    /**
+     * Some questions can return a negative mark if the student gets it wrong.
+     *
+     * This method returns the lowest mark the question can return, on the
+     * fraction scale. that is, where the maximum possible mark is 1.0.
+     *
+     * @return number minimum mark this question will every return.
+     */
+    public function get_min_fraction() {
+        return 0;
     }
 
     protected function format_text($text) {
@@ -1346,13 +1386,9 @@ class question_null_step {
 abstract class question_interaction_model {
     const IS_ARCHETYPAL = false;
 
-    /**
-     * @var question_attempt
-     */
+    /** @var question_attempt */
     protected $qa;
-    /**
-     * @var question_definition
-     */
+    /** @var question_definition */
     protected $question;
 
     public function __construct(question_attempt $qa) {

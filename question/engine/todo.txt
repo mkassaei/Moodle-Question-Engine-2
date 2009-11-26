@@ -22,6 +22,18 @@ Database load/save code
 
 Convert existing question type code
   Split qtype classes in three
+    description
+    truefalse
+    multichoice
+    essay
+    shortanswer
+    numerical
+    random
+    match
+    missingtype
+    calculated
+    multianswer
+    randomsamatch
   New fields for editing hints
 
 Integrate new code into the quiz
