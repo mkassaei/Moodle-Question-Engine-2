@@ -43,6 +43,10 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qim_missing extends question_interaction_model {
+    public function required_question_definition_class() {
+        return 'question_definition';
+    }
+
     public function init_first_step(question_attempt_step $step) {
         throw new Exception('The interaction model used for this question is not available. No processing is possible.');
     }

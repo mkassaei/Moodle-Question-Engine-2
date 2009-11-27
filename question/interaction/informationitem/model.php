@@ -36,6 +36,11 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qim_informationitem extends question_interaction_model {
+
+    public function required_question_definition_class() {
+        return 'question_information_item';
+    }
+
     public function get_expected_data() {
         if ($this->qa->get_state() == question_state::INCOMPLETE) {
             return array('seen' => PARAM_BOOL);

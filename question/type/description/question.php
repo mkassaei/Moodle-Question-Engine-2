@@ -31,20 +31,5 @@
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_description_question extends question_definition {
-    public function __construct() {
-        parent::__construct();
-        $this->defaultgrade = 0;
-        $this->penalty = 0;
-        $this->length = 0;
-    }
-
-    public function make_interaction_model(question_attempt $qa, $preferredmodel) {
-        question_engine::load_interaction_model_class('informationitem');
-        return new qim_informationitem($qa);
-    }
-
-    public function get_expected_data() {
-        return array();
-    }
+class qtype_description_question extends question_information_item {
 }

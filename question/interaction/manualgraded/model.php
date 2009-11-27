@@ -38,6 +38,10 @@
 class qim_manualgraded extends question_interaction_model {
     const IS_ARCHETYPAL = true;
 
+    public function required_question_definition_class() {
+        return 'question_with_responses';
+    }
+
     public function process_action(question_attempt_step $pendingstep) {
         if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);

@@ -26,7 +26,7 @@
  */
 
 
-class qtype_truefalse_question extends question_definition {
+class qtype_truefalse_question extends question_graded_automatically {
     public $rightanswer;
     public $truefeedback;
     public $falsefeedback;
@@ -198,7 +198,7 @@ class question_answer {
 }
 
 
-class qtype_multichoice_single_question extends question_definition {
+class qtype_multichoice_single_question extends question_graded_automatically {
     public $shuffleanswers;
     public $answers;
     public $answernumbering;

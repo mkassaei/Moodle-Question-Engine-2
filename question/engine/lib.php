@@ -476,6 +476,10 @@ abstract class question_definition {
     public function __construct() {
     }
 
+    public function get_type_name() {
+        return $this->qtype->name();
+    }
+
     public function make_interaction_model(question_attempt $qa, $preferredmodel) {
         return question_engine::make_archetypal_interaction_model($preferredmodel, $qa);
         question_engine::load_interaction_model_class($preferredmodel);
@@ -526,6 +530,15 @@ abstract class question_definition {
      */
     public abstract function get_expected_data();
 
+    /**
+     * Apply {@link format_text()} to some content with appropriate settings for
+     * this question.
+     *
+     * @param string $text some content that needs to be output.
+     * @param boolean $clean Whether the HTML needs to be cleaned. Generally,
+     *      parts of the question do not need to be cleaned, and student input does.
+     * @return string the text formatted for output by format_text.
+     */
     public function format_text($text, $clean = false) {
         $formatoptions = new stdClass;
         $formatoptions->noclean = !$clean;
@@ -534,13 +547,103 @@ abstract class question_definition {
         return format_text($text, $this->questiontextformat, $formatoptions);
     }
 
+    /** @return the result of applying {@link format_text()} to the question text. */
     public function format_questiontext() {
         return $this->format_text($this->questiontext);
     }
 
+    /** @return the result of applying {@link format_text()} to the general feedback. */
     public function format_generalfeedback() {
         return $this->format_text($this->generalfeedback);
     }
+}
+
+
+/**
+ * This class represents a 'question' that actually does not allow the student
+ * to respond, like the description 'question' type.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_information_item extends question_definition {
+    public function make_interaction_model(question_attempt $qa, $preferredmodel) {
+        question_engine::load_interaction_model_class('informationitem');
+        return new qim_informationitem($qa);
+    }
+
+    public function __construct() {
+        parent::__construct();
+        $this->defaultgrade = 0;
+        $this->penalty = 0;
+        $this->length = 0;
+    }
+
+    public function get_expected_data() {
+        return array();
+    }
+}
+
+
+/**
+ * This class represents a real question. That is, one that is not a
+ * {@link question_information_item}.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+abstract class question_with_responses extends question_definition {
+    /**
+     * Used by many of the interaction models, to work out whether the student's
+     * response to the question is complete. That is, whether the question attempt
+     * should move to the COMPLETE or INCOMPLETE state.
+     *
+     * @param array $response responses, as returned by {@link question_attempt_step::get_qt_data()}.
+     * @return boolean whether this response is a complete answer to this question.
+     */
+    public abstract function is_complete_response(array $response);
+
+    /**
+     * Use by many of the interaction models to determine whether the student's
+     * response has changed. This is normally used to determine that a new set
+     * of responses can safely be discarded.
+     *
+     * @param array $prevresponse the responses previously recorded for this question,
+     *      as returned by {@link question_attempt_step::get_qt_data()}
+     * @param array $newresponse the new responses, in the same format.
+     * @return boolean whether the two sets of responses are the same - that is
+     *      whether the new set of responses can safely be discarded.
+     */
+    public abstract function is_same_response(array $prevresponse, array $newresponse);
+}
+
+
+/**
+ * This class represents a question that can be graded automatically.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+abstract class question_graded_automatically extends question_with_responses {
+    /**
+     * Use by many of the interaction models to determine whether the student
+     * has provided enough of an answer for the question to be graded automatically,
+     * or whether it must be considered aborted.
+     *
+     * @param array $response responses, as returned by {@link question_attempt_step::get_qt_data()}.
+     * @return boolean whether this response can be graded.
+     */
+    public function is_gradable_response(array $response) {
+        return $this->is_complete_response($response);
+    }
+
+    /**
+     * Grade a response to the question, returning a fraction between get_min_fraction() and 1.0,
+     * and the corresponding state CORRECT, PARTIALLY_CORRECT or INCORRECT.
+     * @param array $response responses, as returned by {@link question_attempt_step::get_qt_data()}.
+     * @return array (number, integer) the fraction, and the state.
+     */
+    public abstract function grade_response(array $response);
 }
 
 
@@ -1470,6 +1573,11 @@ abstract class question_interaction_model {
     public function __construct(question_attempt $qa) {
         $this->qa = $qa;
         $this->question = $qa->get_question();
+        $requiredclass = $this->required_question_definition_class();
+        if (!$this->question instanceof $requiredclass) {
+            throw new Exception('This interaction model (' . $this->get_name() .
+                    ') cannot work with this question (' . get_class($this->question) . ')');
+        }
     }
 
     public function get_name() {
@@ -1480,6 +1588,15 @@ abstract class question_interaction_model {
         list($ignored, $type) = explode('_', get_class($this), 3);
         return renderer_factory::get_renderer('qim_' . $type);
     }
+
+    /**
+     * Most interaction models can only work with a particular subclass of
+     * question_definition. This method lets the interaction model document
+     * that. The type of question passed to the constructor is then checked
+     * against this.
+     * @return string class name.
+     */
+    public abstract function required_question_definition_class();
 
     public function adjust_display_options(question_display_options $options) {
         if (question_state::is_finished($this->qa->get_state())) {

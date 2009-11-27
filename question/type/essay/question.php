@@ -31,7 +31,7 @@
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_essay_question extends question_definition {
+class qtype_essay_question extends question_with_responses {
     public function make_interaction_model(question_attempt $qa, $preferredmodel) {
         question_engine::load_interaction_model_class('manualgraded');
         return new qim_manualgraded($qa);
@@ -41,13 +41,13 @@ class qtype_essay_question extends question_definition {
         return array('answer' => PARAM_CLEANHTML);
     }
 
+    public function is_complete_response(array $response) {
+        return !empty($response['answer']);
+    }
+
     public function is_same_response(array $prevresponse, array $newresponse) {
         return (empty($prevresponse['answer']) && empty($newresponse['answer'])) ||
                 (!empty($prevresponse['answer']) && !empty($newresponse['answer']) &&
                 $prevresponse['answer'] == $newresponse['answer']);
-    }
-
-    public function is_complete_response(array $response) {
-        return !empty($response['answer']);
     }
 }
