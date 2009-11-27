@@ -8,8 +8,6 @@ Finish interaction models and core of the engine
   Minor refactoring of the different interaction models
   Questionline and answerline
 
-Refactor all the renderer code
-
 Redo the question preview window
   Fill with correct
   More display options

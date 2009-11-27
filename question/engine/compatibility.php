@@ -343,37 +343,3 @@ function format_backtrace($callers, $plaintext = false) {
 
     return $from;
 }
-
-class question_truefalse_dummy_qtype {
-    public function name() {
-        return 'truefalse';
-    }
-}
-
-class question_multichoice_dummy_qtype {
-    public function name() {
-        return 'multichoice';
-    }
-}
-
-class question_essay_dummy_qtype {
-    public function name() {
-        return 'essay';
-    }
-}
-
-class question_description_dummy_qtype {
-    public function name() {
-        return 'description';
-    }
-}
-
-global $QTYPES;
-if (empty($QTYPES)) {
-    $QTYPES = array(
-        'essay' => new question_essay_dummy_qtype(),
-        'multichoice' => new question_multichoice_dummy_qtype(),
-        'truefalse' => new question_truefalse_dummy_qtype(),
-        'description' => new question_description_dummy_qtype(),
-    );
-}
