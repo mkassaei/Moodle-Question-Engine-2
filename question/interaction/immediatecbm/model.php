@@ -98,7 +98,7 @@ class qim_immediatecbm extends qim_immediatefeedback {
             if ($laststep->has_im_var('certainty')) {
                 $certainty = $laststep->get_im_var('certainty');
             } else {
-                $certainty = self::LOW;
+                $certainty = question_cbm::LOW;
                 $pendingstep->set_im_var('_assumedcertainty', $certainty);
             }
 
