@@ -55,9 +55,8 @@ class qim_deferredcbm_renderer extends qim_renderer {
 
     public function controls(question_attempt $qa, question_display_options $options) {
 
-        return $this->output_tag('div', array('class' => 'controls'),
-                get_string('howcertainareyou', 'qim_deferredcbm',
+        return get_string('howcertainareyou', 'qim_deferredcbm',
                 $this->certainly_choices($qa->get_im_field_name('certainty'),
-                $qa->get_last_im_var('certainty'), $options->readonly)));
+                $qa->get_last_im_var('certainty'), $options->readonly));
     }
 }

@@ -34,10 +34,9 @@ class qim_immediatecbm_renderer extends qim_deferredcbm_renderer {
         if (!question_state::is_active($qa->get_state())) {
             return '';
         }
-        return $this->output_tag('div', array('class' => 'controls'),
-                get_string('howcertainareyou', 'qim_deferredcbm',
+        return get_string('howcertainareyou', 'qim_deferredcbm',
                 $this->certainly_choices($qa->get_im_field_name('certainty'),
-                $qa->get_last_im_var('certainty'), $options->readonly))) .
+                $qa->get_last_im_var('certainty'), $options->readonly)) .
                 $this->output_empty_tag('input', array(
                     'type' => 'submit',
                     'name' => $qa->get_im_field_name('submit'),

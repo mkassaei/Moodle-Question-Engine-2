@@ -121,15 +121,18 @@ class core_question_renderer extends moodle_renderer_base {
             qtype_renderer $qtoutput, question_display_options $options) {
         $output = '';
         $output .= $qtoutput->formulation_and_controls($qa, $options);
-        $output .= $qimoutput->controls($qa, $options);
+        $output .= $this->output_nonempty_tag('div', array('class' => 'im-controls'),
+                $qimoutput->controls($qa, $options));
         return $output;
     }
 
     public function outcome(question_attempt $qa, qim_renderer $qimoutput,
             qtype_renderer $qtoutput, question_display_options $options) {
         $output = '';
-        $output .= $qtoutput->feedback($qa, $options);
-        $output .= $qimoutput->feedback($qa, $options);
+        $output .= $this->output_nonempty_tag('div', array('class' => 'feedback'),
+                $qtoutput->feedback($qa, $options));
+        $output .= $this->output_nonempty_tag('div', array('class' => 'im-feedback'),
+                $qimoutput->feedback($qa, $options));
         return $output;
     }
 
