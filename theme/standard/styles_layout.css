@@ -2603,7 +2603,7 @@ body.notes .notesgroup {
     margin: 0 0 0.5em;
 }
 .que .content {
-  margin: 0 0 0 7.5em;
+    margin: 0 0 0 7.5em;
 }
 .que .formulation,
 .que .outcome,
@@ -2613,38 +2613,29 @@ body.notes .notesgroup {
     margin: 0 0 0.5em;
 }
 .que .ablock {
-  margin: 0.7em 0 0.3em 0;
+    margin: 0.7em 0 0.3em 0;
 }
-.que .prompt {
-  float: left;
-  width: 15%;
-  height: 2em;
-  padding-top: 0.3em;
+.que .im-controls {
+    margin-top: 0.5em;
+    text-align: left;
 }
-.que .control {
-  width: 5%;
-}
-.que .answer {
-  float: left;
-  width: 83%;
-  margin-bottom: 0.5em;
-}
-.que .submit {
-  clear: both;
+.que.shortanswer .answer {
+    display: inline;
 }
 .multianswer .submit {
-  margin-top: 1em;
+    margin-top: 1em;
 }
 .que .c0,
 .que .c1 {
-  padding: 0.3em 0 0.3em 0.3em;
   vertical-align: top;
 }
-.que .feedback {
-  clear: both;
-  padding: 0 0 0.3em 0.3em;
-  margin-bottom: 0.5em;
-  border: 1px solid;
+.que .specificfeedback,
+.que .generalfeedback,
+.que .correctresponse,
+.que .im-feedback,
+.que .feedback,
+.que p {
+  margin: 0 0 0.5em;
 }
 .multichoice td.feedback {
   width: auto;
@@ -2652,32 +2643,29 @@ body.notes .notesgroup {
   padding-top: 0.3em;
   border-style: none;
 }
-.essay .feedback {
-  border-style: none;
-}
 .multichoice .text {
-  width: auto;
+    width: auto;
 }
 .calculated .answer,
 .numerical .answer,
 .shortanswer .answer {
-  padding: 0.3em;
-  width: auto;
+    padding: 0.3em;
+    width: auto;
 }
 .truefalse .answer span {
-  float: left;
-  clear: left;
-  padding: 0.3em;
-  width: 100%;
+    float: left;
+    clear: left;
+    padding: 0.3em;
+    width: 100%;
 }
 .que .grading,
 .que .comment,
 .que .commentlink,
 .que .history {
-  margin-top: 0.5em;
+    margin-top: 0.5em;
 }
 .que .grade {
-  margin-top: 0.5em;
+    margin-top: 0.5em;
 }
 
 .importerror {

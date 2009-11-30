@@ -7,11 +7,12 @@ Finish interaction models and core of the engine
   Scroll-down JavaScript on adaptive submit button
   Minor refactoring of the different interaction models
   Questionline and answerline
+  Fix manual grading of automatically graded quetsion types.
 
 Redo the question preview window
   Fill with correct
   More display options
-  Think about manually graded qestions
+  Think about implementing manual grading UI.
 
 Database load/save code
   Update functions

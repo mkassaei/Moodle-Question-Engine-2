@@ -248,3 +248,93 @@ abstract class question_graded_automatically extends question_with_responses {
      */
     public abstract function grade_response(array $response);
 }
+
+
+/**
+ * This class represents a question that can be graded automatically.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+abstract class question_graded_by_strategy extends question_graded_automatically {
+    protected $gradingstrategy;
+
+    public function __construct($strategy) {
+        parent::__construct();
+        $this->gradingstrategy = $strategy;
+    }
+
+    public function get_matching_answer(array $response) {
+        return $this->gradingstrategy->grade($response);
+    }
+
+    /**
+     * Grade a response to the question, returning a fraction between get_min_fraction() and 1.0,
+     * and the corresponding state CORRECT, PARTIALLY_CORRECT or INCORRECT.
+     * @param array $response responses, as returned by {@link question_attempt_step::get_qt_data()}.
+     * @return array (number, integer) the fraction, and the state.
+     */
+    public function grade_response(array $response) {
+        $answer = $this->get_matching_answer($response);
+        if ($answer) {
+            return array($answer->fraction, question_state::graded_state_for_fraction($answer->fraction));
+        } else {
+            return array(0, question_state::GRADED_INCORRECT);
+        }
+    }
+}
+
+
+class question_answer {
+    public $answer;
+    public $fraction;
+    public $feedback;
+    public function __construct($answer, $fraction, $feedback) {
+        $this->answer = $answer;
+        $this->fraction = $fraction;
+        $this->feedback = $feedback;
+    }
+}
+
+
+interface question_grading_strategy {
+    /**
+     *
+     * @param $response
+     * @return question_answer
+     */
+    public function grade(array $response);
+}
+
+
+interface question_response_answer_comparer {
+    /**
+     * @return array of {@link question_answers}.
+     */
+    public function get_answers();
+
+    /**
+     * @param $response
+     * @param $answer
+     * @return boolean
+     */
+    public function compare_response_with_answer(array $response, question_answer $answer);
+}
+
+
+class question_first_matching_answer_grading_strategy implements question_grading_strategy {
+    protected $question;
+    public function __construct(question_response_answer_comparer $question) {
+        $this->question = $question;
+    }
+
+    /** @var array of {@link question_answer} or similar. */
+    public function grade(array $response) {
+        foreach ($this->question->get_answers() as $answer) {
+            if ($this->question->compare_response_with_answer($response, $answer)) {
+                return $answer;
+            }
+        }
+        return null;
+    }
+}

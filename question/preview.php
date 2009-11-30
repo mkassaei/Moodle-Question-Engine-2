@@ -17,11 +17,6 @@
 
 
 /**
- * Helper code for the question preview UI.
- *
- */
-
-/**
  * This page displays a preview of a question
  *
  * The preview uses the option settings from the activity within which the question

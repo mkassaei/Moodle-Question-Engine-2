@@ -31,7 +31,6 @@
  * @copyright © 2005 Mark Nielsen
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class qtype_essay extends question_type {
     function is_manual_graded() {
         return true;

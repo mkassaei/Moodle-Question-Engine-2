@@ -186,18 +186,6 @@ class qtype_truefalse_renderer extends qtype_renderer {
 }
 
 
-class question_answer {
-    public $answer;
-    public $fraction;
-    public $feedback;
-    public function __construct($answer, $fraction, $feedback) {
-        $this->answer = $answer;
-        $this->fraction = $fraction;
-        $this->feedback = $feedback;
-    }
-}
-
-
 class qtype_multichoice_single_question extends question_graded_automatically {
     public $shuffleanswers;
     public $answers;

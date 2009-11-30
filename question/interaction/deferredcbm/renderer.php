@@ -54,9 +54,31 @@ class qim_deferredcbm_renderer extends qim_renderer {
     }
 
     public function controls(question_attempt $qa, question_display_options $options) {
-
         return get_string('howcertainareyou', 'qim_deferredcbm',
                 $this->certainly_choices($qa->get_im_field_name('certainty'),
                 $qa->get_last_im_var('certainty'), $options->readonly));
+    }
+
+    public function feedback(question_attempt $qa, question_display_options $options) {
+        if (!$options->feedback) {
+            return '';
+        }
+
+        $feedback = '';
+        if (!$qa->get_last_im_var('certainty')) {
+            $feedback .= $this->output_tag('p', array(),
+                    get_string('assumingcertainty', 'qim_deferredcbm',
+                    get_string('certainty' . $qa->get_last_im_var('_assumedcertainty'),
+                    'qim_deferredcbm')));
+        }
+
+        if ($options->marks) {
+            $a->rawmark = format_float(
+                    $qa->get_last_im_var('_rawfraction') * $qa->get_max_mark(), $options->markdp);
+            $a->mark = $qa->format_mark($options->markdp);
+            $feedback .= $this->output_tag('p', array(), get_string('markadjustment', 'qim_deferredcbm', $a));
+        }
+
+        return $feedback;
     }
 }

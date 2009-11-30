@@ -122,7 +122,29 @@ class test_question_maker {
 
     /**
      * Makes a truefalse question with correct ansewer true, defaultgrade 1.
-     * @return question_truefalse
+     * @return qtype_shortanswer_question
+     */
+    public static function make_a_shortanswer_question() {
+        question_engine::load_question_definition_classes('shortanswer');
+        $sa = new qtype_shortanswer_question();
+        self::initialise_a_question($sa);
+        $sa->name = 'Short answer question';
+        $sa->questiontext = 'Name an amphibian: __________';
+        $sa->generalfeedback = 'Generalfeedback: frog or toad would have been OK.';
+        $sa->usecasle = false;
+        $sa->answers = array(
+            new question_answer('frog', 1.0, 'Frog is a very good answer.'),
+            new question_answer('toad', 0.8, 'Toad is an OK good answer.'),
+            new question_answer('*', 0.0, 'That is a bad answer.'),
+        );
+        $sa->qtype = question_engine::get_qtype('shortanswer');
+
+        return $sa;
+    }
+
+    /**
+     * Makes a truefalse question with correct ansewer true, defaultgrade 1.
+     * @return qtype_essay_question
      */
     public static function make_an_essay_question() {
         question_engine::load_question_definition_classes('essay');

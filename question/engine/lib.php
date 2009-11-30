@@ -29,6 +29,7 @@
 require_once(dirname(__FILE__) . '/compatibility.php');
 require_once(dirname(__FILE__) . '/datalib.php');
 require_once(dirname(__FILE__) . '/renderer.php');
+require_once(dirname(__FILE__) . '/../type/questiontype.php');
 require_once(dirname(__FILE__) . '/../type/questionbase.php');
 require_once(dirname(__FILE__) . '/../type/rendererbase.php');
 require_once(dirname(__FILE__) . '/../interaction/modelbase.php');
@@ -545,7 +546,6 @@ class question_usage_by_activity {
             $submitteddata = $this->extract_responses($qnumber, $postdata);
             $this->process_action($qnumber, $submitteddata);
         }
-        $this->get_question_attempt($qnumber)->process_action($submitteddata);
     }
 
     public function extract_responses($qnumber, $postdata = null) {

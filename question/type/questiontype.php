@@ -460,7 +460,7 @@ class question_type {
         return new $class();
     }
 
-    protected function initialise_question_instance($question, $questiondata) {
+    protected function initialise_question_instance(question_definition $question, $questiondata) {
         $question->id = $questiondata->id;
         $question->category = $questiondata->category;
         $question->parent = $questiondata->parent;
@@ -479,6 +479,16 @@ class question_type {
         $question->timemodified = $questiondata->timemodified;
         $question->createdby = $questiondata->createdby;
         $question->modifiedby = $questiondata->modifiedby;
+    }
+
+    protected function initialise_question_answers(question_definition $question, $questiondata) {
+        $question->answers = array();
+        if (empty($questiondata->options->answers)) {
+            return;
+        }
+        foreach ($questiondata->options->answers as $a) {
+            $question->answers[$a->id] = new question_answer($a->answer, $a->fraction, $a->feedback);
+        }
     }
 
     /**

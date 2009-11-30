@@ -31,17 +31,17 @@ require_once(dirname(__FILE__) . '/../deferredcbm/renderer.php');
 
 class qim_immediatecbm_renderer extends qim_deferredcbm_renderer {
     public function controls(question_attempt $qa, question_display_options $options) {
-        if (!question_state::is_active($qa->get_state())) {
-            return '';
-        }
-        return get_string('howcertainareyou', 'qim_deferredcbm',
+        $controls = get_string('howcertainareyou', 'qim_deferredcbm',
                 $this->certainly_choices($qa->get_im_field_name('certainty'),
-                $qa->get_last_im_var('certainty'), $options->readonly)) .
-                $this->output_empty_tag('input', array(
-                    'type' => 'submit',
-                    'name' => $qa->get_im_field_name('submit'),
-                    'value' => get_string('submit', 'qim_immediatefeedback'),
-                    'class' => 'submit btn',
-                ));
+                $qa->get_last_im_var('certainty'), $options->readonly));
+        if (question_state::is_active($qa->get_state())) {
+            $controls .= $this->output_empty_tag('input', array(
+                'type' => 'submit',
+                'name' => $qa->get_im_field_name('submit'),
+                'value' => get_string('submit', 'qim_immediatefeedback'),
+                'class' => 'submit btn',
+            ));
+        }
+        return $controls;
     }
 }

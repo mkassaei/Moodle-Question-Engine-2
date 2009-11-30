@@ -71,16 +71,12 @@ class qim_immediatecbm extends qim_immediatefeedback {
             return question_attempt::DISCARD;
         }
 
-        if (!$this->is_complete_response($pendingstep)) {
+        if (!parent::is_complete_response($pendingstep)) {
             $pendingstep->set_state(question_state::INCOMPLETE);
-
-        } else {
-            list($fraction, $state) = $this->question->grade_response($pendingstep->get_qt_data());
-            $pendingstep->set_fraction(question_cbm::adjust_fraction($fraction,
-                    $pendingstep->get_im_var('certainty')));
-            $pendingstep->set_state($state);
+            return question_attempt::KEEP;
         }
-        return question_attempt::KEEP;
+
+        return $this->do_grading($pendingstep, $pendingstep);
     }
 
     public function process_finish(question_attempt_step $pendingstep) {
@@ -89,19 +85,24 @@ class qim_immediatecbm extends qim_immediatefeedback {
         }
 
         $laststep = $this->qa->get_last_step();
-        if (!$this->question->is_gradable_response($laststep->get_qt_data())) {
+        return $this->do_grading($laststep, $pendingstep);
+    }
+
+    protected function do_grading(question_attempt_step $responsesstep, question_attempt_step $pendingstep) {
+        if (!$this->question->is_gradable_response($responsesstep->get_qt_data())) {
             $pendingstep->set_state(question_state::GAVE_UP);
 
         } else {
-            list($fraction, $state) = $this->question->grade_response($laststep->get_qt_data());
+            list($fraction, $state) = $this->question->grade_response($responsesstep->get_qt_data());
 
-            if ($laststep->has_im_var('certainty')) {
-                $certainty = $laststep->get_im_var('certainty');
+            if ($responsesstep->has_im_var('certainty')) {
+                $certainty = $responsesstep->get_im_var('certainty');
             } else {
-                $certainty = question_cbm::LOW;
+                $certainty = question_cbm::default_certainty();
                 $pendingstep->set_im_var('_assumedcertainty', $certainty);
             }
 
+            $pendingstep->set_im_var('_rawfraction', $fraction);
             $pendingstep->set_fraction(question_cbm::adjust_fraction($fraction, $certainty));
             $pendingstep->set_state($state);
         }

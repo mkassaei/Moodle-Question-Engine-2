@@ -179,6 +179,10 @@ abstract class question_cbm {
         self::HIGH => self::HIGH_OFFSET,
     );
 
+    public static function default_certainty() {
+        return self::LOW;
+    }
+
     public static function adjust_fraction($fraction, $certainty) {
         return self::$offset[$certainty] + self::$factor[$certainty] * $fraction;
     }

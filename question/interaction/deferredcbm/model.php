@@ -74,10 +74,11 @@ class qim_deferredcbm extends qim_deferredfeedback {
             if ($this->qa->get_last_step()->has_im_var('certainty')) {
                 $certainty = $this->qa->get_last_step()->get_im_var('certainty');
             } else {
-                $certainty = question_cbm::LOW;
+                $certainty = question_cbm::default_certainty();
                 $pendingstep->set_im_var('_assumedcertainty', $certainty);
             }
             if (!is_null($fraction)) {
+                $pendingstep->set_im_var('_rawfraction', $fraction);
                 $pendingstep->set_fraction(question_cbm::adjust_fraction($fraction, $certainty));
             }
         }

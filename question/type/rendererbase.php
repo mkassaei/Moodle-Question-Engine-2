@@ -35,13 +35,16 @@ abstract class qtype_renderer extends moodle_renderer_base {
     public function feedback(question_attempt $qa, question_display_options $options) {
         $output = '';
         if ($options->feedback) {
-            $output .= $this->specific_feedback($qa);
+            $output .= $this->output_nonempty_tag('div', array('class' => 'specificfeedback'),
+                    $this->specific_feedback($qa));
         }
         if ($options->generalfeedback) {
-            $output .= $this->general_feedback($qa);
+            $output .= $this->output_nonempty_tag('div', array('class' => 'generalfeedback'),
+                    $this->general_feedback($qa));
         }
         if ($options->correctresponse) {
-            $output .= $this->correct_response($qa);
+            $output .= $this->output_nonempty_tag('div', array('class' => 'correctresponse'),
+                    $this->correct_response($qa));
         }
         return $output;
     }
@@ -51,8 +54,7 @@ abstract class qtype_renderer extends moodle_renderer_base {
     }
 
     public function general_feedback(question_attempt $qa) {
-        return $this->output_nonempty_tag('div', array('class' => 'generalfeedback'),
-                $qa->get_question()->format_generalfeedback());
+        return $qa->get_question()->format_generalfeedback();
     }
 
     public function correct_response(question_attempt $qa) {

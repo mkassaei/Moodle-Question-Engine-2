@@ -1,27 +1,37 @@
-<?php  // $Id$
+<?php
 
-///////////////////
-/// SHORTANSWER ///
-///////////////////
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/// QUESTION TYPE CLASS //////////////////
 
-///
-/// This class contains some special features in order to make the
-/// question type embeddable within a multianswer (cloze) question
-///
 /**
- * @package questionbank
- * @subpackage questiontypes
+ * Question type class for the short answer question type.
+ *
+ * @package qtype_shortanswer
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-require_once("$CFG->dirroot/question/type/questiontype.php");
 
+
+/**
+ * The short answer question type.
+ *
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class qtype_shortanswer extends question_type {
-
-    function name() {
-        return 'shortanswer';
-    }
-
     function extra_question_fields() {
         return array('question_shortanswer','answers','usecase');
     }
@@ -97,96 +107,10 @@ class qtype_shortanswer extends question_type {
         }
     }
 
-    function print_question_formulation_and_controls(&$question, &$state, $cmoptions, $options) {
-        global $CFG;
-    /// This implementation is also used by question type 'numerical'
-        $readonly = empty($options->readonly) ? '' : 'readonly="readonly"';
-        $formatoptions = new stdClass;
-        $formatoptions->noclean = true;
-        $formatoptions->para = false;
-        $nameprefix = $question->name_prefix;
-
-        /// Print question text and media
-
-        $questiontext = format_text($question->questiontext,
-                $question->questiontextformat,
-                $formatoptions, $cmoptions->course);
-        $image = get_question_image($question);
-
-        /// Print input controls
-
-        if (isset($state->responses['']) && $state->responses[''] != '') {
-            $value = ' value="'.s($state->responses[''], true).'" ';
-        } else {
-            $value = ' value="" ';
-        }
-        $inputname = ' name="'.$nameprefix.'" ';
-
-        $feedback = '';
-        $class = '';
-        $feedbackimg = '';
-
-        if ($options->feedback) {
-            $class = question_get_feedback_class(0);
-            $feedbackimg = question_get_feedback_image(0);
-            foreach($question->options->answers as $answer) {
-
-                if ($this->test_response($question, $state, $answer)) {
-                    // Answer was correct or partially correct.
-                    $class = question_get_feedback_class($answer->fraction);
-                    $feedbackimg = question_get_feedback_image($answer->fraction);
-                    if ($answer->feedback) {
-                        $feedback = format_text($answer->feedback, true, $formatoptions, $cmoptions->course);
-                    }
-                    break;
-                }
-            }
-        }
-
-        /// Removed correct answer, to be displayed later MDL-7496
-        include("$CFG->dirroot/question/type/shortanswer/display.html");
-    }
-
-    function check_response(&$question, &$state) {
-        foreach($question->options->answers as $aid => $answer) {
-            if ($this->test_response($question, $state, $answer)) {
-                return $aid;
-            }
-        }
-        return false;
-    }
-
-    function compare_responses($question, $state, $teststate) {
-        if (isset($state->responses['']) && isset($teststate->responses[''])) {
-            return $state->responses[''] === $teststate->responses[''];
-        }
-        return false;
-    }
-
-    function test_response(&$question, $state, $answer) {
-        // Trim the response before it is saved in the database. See MDL-10709
-        $state->responses[''] = trim($state->responses['']);
-        return $this->compare_string_with_wildcard(stripslashes_safe($state->responses['']),
-                $answer->answer, !$question->options->usecase);
-    }
-
-    function compare_string_with_wildcard($string, $pattern, $ignorecase) {
-        // Break the string on non-escaped asterisks.
-        $bits = preg_split('/(?<!\\\\)\*/', $pattern);
-        // Escape regexp special characters in the bits.
-        $excapedbits = array();
-        foreach ($bits as $bit) {
-            $excapedbits[] = preg_quote(str_replace('\*', '*', $bit));
-        }
-        // Put it back together to make the regexp.
-        $regexp = '|^' . implode('.*', $excapedbits) . '$|u';
-
-        // Make the match insensitive if requested to.
-        if ($ignorecase) {
-            $regexp .= 'i';
-        }
-
-        return preg_match($regexp, trim($string));
+    protected function initialise_question_instance(question_definition $question, $questiondata) {
+        parent::initialise_question_instance($question, $questiondata);
+        $question->usecase = $questiondata->options->usecase;
+        $this->initialise_question_answers($question, $questiondata);
     }
 
     /*
@@ -245,113 +169,6 @@ class qtype_shortanswer extends question_type {
         return $status;
     }
 
-
-        /**
-    * Prints the score obtained and maximum score available plus any penalty
-    * information
-    *
-    * This function prints a summary of the scoring in the most recently
-    * graded state (the question may not have been submitted for marking at
-    * the current state). The default implementation should be suitable for most
-    * question types.
-    * @param object $question The question for which the grading details are
-    *                         to be rendered. Question type specific information
-    *                         is included. The maximum possible grade is in
-    *                         ->maxgrade.
-    * @param object $state    The state. In particular the grading information
-    *                          is in ->grade, ->raw_grade and ->penalty.
-    * @param object $cmoptions
-    * @param object $options  An object describing the rendering options.
-    */
-    function print_question_grading_details(&$question, &$state, $cmoptions, $options) {
-        /* The default implementation prints the number of marks if no attempt
-        has been made. Otherwise it displays the grade obtained out of the
-        maximum grade available and a warning if a penalty was applied for the
-        attempt and displays the overall grade obtained counting all previous
-        responses (and penalties) */
-        global $QTYPES ;
-        // MDL-7496 show correct answer after "Incorrect"
-        $correctanswer = '';
-        if ($correctanswers =  $QTYPES[$question->qtype]->get_correct_responses($question, $state)) {
-            if ($options->readonly && $options->correct_responses) {
-                $delimiter = '';
-                if ($correctanswers) {
-                    foreach ($correctanswers as $ca) {
-                        $correctanswer .= $delimiter.$ca;
-                        $delimiter = ', ';
-                    }
-                }
-            }
-        }
-
-        if (QUESTION_EVENTDUPLICATE == $state->event) {
-            echo ' ';
-            print_string('duplicateresponse', 'quiz');
-        }
-        if (!empty($question->maxgrade) && $options->scores) {
-            if (question_state_is_graded($state->last_graded)) {
-                // Display the grading details from the last graded state
-                $grade = new stdClass;
-                $grade->cur = round($state->last_graded->grade, $cmoptions->decimalpoints);
-                $grade->max = $question->maxgrade;
-                $grade->raw = round($state->last_graded->raw_grade, $cmoptions->decimalpoints);
-
-                // let student know wether the answer was correct
-                echo '<div class="correctness ';
-                if ($state->last_graded->raw_grade >= $question->maxgrade/1.01) { // We divide by 1.01 so that rounding errors dont matter.
-                    echo ' correct">';
-                    print_string('correct', 'quiz');
-                } else if ($state->last_graded->raw_grade > 0) {
-                    echo ' partiallycorrect">';
-                    print_string('partiallycorrect', 'quiz');
-                    // MDL-7496
-                    if ($correctanswer) {
-                        echo ('<div class="correctness">');
-                        print_string('correctansweris', 'quiz', s($correctanswer, true));
-                        echo ('</div>');
-                    }
-                } else {
-                    echo ' incorrect">';
-                    // MDL-7496
-                    print_string('incorrect', 'quiz');
-                    if ($correctanswer) {
-                        echo ('<div class="correctness">');
-                        print_string('correctansweris', 'quiz', s($correctanswer, true));
-                        echo ('</div>');
-                    }
-                }
-                echo '</div>';
-
-                echo '<div class="gradingdetails">';
-                // print grade for this submission
-                print_string('gradingdetails', 'quiz', $grade);
-                if ($cmoptions->penaltyscheme) {
-                    // print details of grade adjustment due to penalties
-                    if ($state->last_graded->raw_grade > $state->last_graded->grade){
-                        echo ' ';
-                        print_string('gradingdetailsadjustment', 'quiz', $grade);
-                    }
-                    // print info about new penalty
-                    // penalty is relevant only if the answer is not correct and further attempts are possible
-                    if (($state->last_graded->raw_grade < $question->maxgrade) and (QUESTION_EVENTCLOSEANDGRADE != $state->event)) {
-                        if ('' !== $state->last_graded->penalty && ((float)$state->last_graded->penalty) > 0.0) {
-                            // A penalty was applied so display it
-                            echo ' ';
-                            print_string('gradingdetailspenalty', 'quiz', $state->last_graded->penalty);
-                        } else {
-                            /* No penalty was applied even though the answer was
-                            not correct (eg. a syntax error) so tell the student
-                            that they were not penalised for the attempt */
-                            echo ' ';
-                            print_string('gradingdetailszeropenalty', 'quiz');
-                        }
-                    }
-                }
-                echo '</div>';
-            }
-        }
-    }
-
     /**
      * Runs all the code required to set up and save an essay question for testing purposes.
      * Alternate DB table prefix may be used to facilitate data deletion.
@@ -380,10 +197,4 @@ class qtype_shortanswer extends question_type {
         return $this->save_question($question, $form, $course);
     }
 }
-//// END OF CLASS ////
-
-//////////////////////////////////////////////////////////////////////////
-//// INITIATION - Without this line the question type is not in use... ///
-//////////////////////////////////////////////////////////////////////////
-question_register_questiontype(new qtype_shortanswer());
-?>
+question_register_questiontype(question_engine::get_qtype('shortanswer'));

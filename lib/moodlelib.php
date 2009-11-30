@@ -90,6 +90,13 @@ define('HOURMINS', 60);
 define('PARAM_RAW', 666);
 
 /**
+ * PARAM_RAW specifies a parameter that is not cleaned/processed in any way;
+ * originally was 0, but changed because we need to detect unknown
+ * parameter types and swiched order in clean_param().
+ */
+define('PARAM_TRIM', 667);
+
+/**
  * PARAM_CLEAN - obsoleted, please try to use more specific type of parameter.
  * It was one of the first types, that is why it is abused so much ;-)
  */
@@ -397,6 +404,9 @@ function clean_param($param, $type) {
     switch ($type) {
         case PARAM_RAW:          // no cleaning at all
             return $param;
+
+        case PARAM_TRIM:         // no cleaning, but strip leading and trailing whitespace.
+            return trim($param);
 
         case PARAM_CLEAN:        // General HTML cleaning, try to use more specific type if possible
             if (is_numeric($param)) {
