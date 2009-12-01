@@ -189,13 +189,13 @@ class question_information_item extends question_definition {
 
 
 /**
- * This class represents a real question. That is, one that is not a
- * {@link question_information_item}.
+ * Interface that a {@link question_definition} must implement to be usable by
+ * the manual graded interaction model.
  *
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class question_with_responses extends question_definition {
+interface question_manually_gradable {
     /**
      * Used by many of the interaction models, to work out whether the student's
      * response to the question is complete. That is, whether the question attempt
@@ -204,7 +204,7 @@ abstract class question_with_responses extends question_definition {
      * @param array $response responses, as returned by {@link question_attempt_step::get_qt_data()}.
      * @return boolean whether this response is a complete answer to this question.
      */
-    public abstract function is_complete_response(array $response);
+    public function is_complete_response(array $response);
 
     /**
      * Use by many of the interaction models to determine whether the student's
@@ -217,7 +217,47 @@ abstract class question_with_responses extends question_definition {
      * @return boolean whether the two sets of responses are the same - that is
      *      whether the new set of responses can safely be discarded.
      */
-    public abstract function is_same_response(array $prevresponse, array $newresponse);
+    public function is_same_response(array $prevresponse, array $newresponse);
+}
+
+
+/**
+ * Interface that a {@link question_definition} must implement to be usable by
+ * the various automatic grading interaction models.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+interface question_automatically_gradable extends question_manually_gradable {
+    /**
+     * Use by many of the interaction models to determine whether the student
+     * has provided enough of an answer for the question to be graded automatically,
+     * or whether it must be considered aborted.
+     *
+     * @param array $response responses, as returned by {@link question_attempt_step::get_qt_data()}.
+     * @return boolean whether this response can be graded.
+     */
+    public function is_gradable_response(array $response);
+
+    /**
+     * Grade a response to the question, returning a fraction between get_min_fraction() and 1.0,
+     * and the corresponding state CORRECT, PARTIALLY_CORRECT or INCORRECT.
+     * @param array $response responses, as returned by {@link question_attempt_step::get_qt_data()}.
+     * @return array (number, integer) the fraction, and the state.
+     */
+    public function grade_response(array $response);
+}
+
+
+/**
+ * This class represents a real question. That is, one that is not a
+ * {@link question_information_item}.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+abstract class question_with_responses extends question_definition
+        implements question_manually_gradable {
 }
 
 
@@ -227,26 +267,11 @@ abstract class question_with_responses extends question_definition {
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class question_graded_automatically extends question_with_responses {
-    /**
-     * Use by many of the interaction models to determine whether the student
-     * has provided enough of an answer for the question to be graded automatically,
-     * or whether it must be considered aborted.
-     *
-     * @param array $response responses, as returned by {@link question_attempt_step::get_qt_data()}.
-     * @return boolean whether this response can be graded.
-     */
+abstract class question_graded_automatically extends question_with_responses
+        implements question_automatically_gradable {
     public function is_gradable_response(array $response) {
         return $this->is_complete_response($response);
     }
-
-    /**
-     * Grade a response to the question, returning a fraction between get_min_fraction() and 1.0,
-     * and the corresponding state CORRECT, PARTIALLY_CORRECT or INCORRECT.
-     * @param array $response responses, as returned by {@link question_attempt_step::get_qt_data()}.
-     * @return array (number, integer) the fraction, and the state.
-     */
-    public abstract function grade_response(array $response);
 }
 
 

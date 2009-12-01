@@ -41,7 +41,7 @@ class qim_immediatefeedback extends question_interaction_model {
     const IS_ARCHETYPAL = true;
 
     public function required_question_definition_class() {
-        return 'question_graded_automatically';
+        return 'question_automatically_gradable';
     }
 
     public function get_min_fraction() {
