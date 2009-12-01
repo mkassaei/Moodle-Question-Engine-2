@@ -2619,8 +2619,9 @@ body.notes .notesgroup {
     margin-top: 0.5em;
     text-align: left;
 }
+.que.numerical .answer,
 .que.shortanswer .answer {
-    display: inline;
+        display: inline;
 }
 .multianswer .submit {
     margin-top: 1em;

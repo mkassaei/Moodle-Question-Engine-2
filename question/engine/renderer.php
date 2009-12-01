@@ -54,7 +54,8 @@ class core_question_renderer extends moodle_renderer_base {
         $output = '';
         $output .= $this->output_start_tag('div', array(
             'id' => 'q' . $qa->get_question()->id,
-            'class' => 'que clearfix ' . $qa->get_question()->qtype->name(),
+            'class' => 'que ' . $qa->get_question()->qtype->name() . ' ' .
+                    $qa->get_interaction_model_name(),
         ));
 
         $output .= $this->output_tag('div', array('class' => 'info'),

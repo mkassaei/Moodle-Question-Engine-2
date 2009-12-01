@@ -1,37 +1,48 @@
-<?php  // $Id$
+<?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+
 /**
- * @version $Id$
- * @author Martin Dougiamas and many others. Tim Hunt.
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package questionbank
- * @subpackage questiontypes
- *//** */
+ * Question type class for the numerical question type.
+ *
+ * @package qtype_numerical
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 require_once("$CFG->dirroot/question/type/shortanswer/questiontype.php");
 
 /**
- * NUMERICAL QUESTION TYPE CLASS
+ * The numerical question type class.
  *
  * This class contains some special features in order to make the
  * question type embeddable within a multianswer (cloze) question
  *
- * This question type behaves like shortanswer in most cases.
- * Therefore, it extends the shortanswer question type...
- * @package questionbank
- * @subpackage questiontypes
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_numerical extends qtype_shortanswer {
-
-    function name() {
-        return 'numerical';
-    }
-
+class qtype_numerical extends question_type {
     function get_question_options(&$question) {
+        global $CFG;
+
         // Get the question answers and their respective tolerances
         // Note: question_numerical is an extension of the answer table rather than
         //       the question table as is usually the case for qtype
         //       specific tables.
-        global $CFG;
         if (!$question->options->answers = get_records_sql(
                                 "SELECT a.*, n.tolerance " .
                                 "FROM {$CFG->prefix}question_answers a, " .
@@ -118,9 +129,9 @@ class qtype_numerical extends qtype_shortanswer {
             if (trim($dataanswer) === '*') {
                 $answer->answer = '*';
             } else {
-                $answer->answer = $this->apply_unit($dataanswer, $units);
+                $answer->answer = self::apply_unit($dataanswer, $units);
                 if ($answer->answer === false) {
-                    $result->notice = get_string('invalidnumericanswer', 'quiz');
+                    $result->notice = get_string('invalidnumericanswer', 'qtype_numerical');
                 }
             }
             $answer->fraction = $question->fraction[$key];
@@ -148,9 +159,9 @@ class qtype_numerical extends qtype_shortanswer {
             if (trim($question->tolerance[$key]) == '') {
                 $options->tolerance = '';
             } else {
-                $options->tolerance = $this->apply_unit($question->tolerance[$key], $units);
+                $options->tolerance = self::apply_unit($question->tolerance[$key], $units);
                 if ($options->tolerance === false) {
-                    $result->notice = get_string('invalidnumerictolerance', 'quiz');
+                    $result->notice = get_string('invalidnumerictolerance', 'qtype_numerical');
                 }
             }
 
@@ -208,7 +219,7 @@ class qtype_numerical extends qtype_shortanswer {
             if (!empty($question->multiplier[$i]) && !empty($question->unit[$i])) {
                 $units[$i] = new stdClass;
                 $units[$i]->question = $question->id;
-                $units[$i]->multiplier = $this->apply_unit($question->multiplier[$i], array());
+                $units[$i]->multiplier = self::apply_unit($question->multiplier[$i], array());
                 $units[$i]->unit = $question->unit[$i];
                 if (! insert_record('question_numerical_units', $units[$i])) {
                     $result->error = 'Unable to save unit ' . $units[$i]->unit . ' to the Databse';
@@ -222,6 +233,22 @@ class qtype_numerical extends qtype_shortanswer {
         return $result;
     }
 
+    protected function initialise_question_instance(question_definition $question, $questiondata) {
+        parent::initialise_question_instance($question, $questiondata);
+        $this->initialise_numerical_answers($question, $questiondata);
+    }
+
+    protected function initialise_numerical_answers(question_definition $question, $questiondata) {
+        $question->answers = array();
+        if (empty($questiondata->options->answers)) {
+            return;
+        }
+        foreach ($questiondata->options->answers as $a) {
+            $question->answers[$a->id] = new qtype_numerical_answer($a->answer,
+                    $a->fraction, $a->feedback, $a->tolerance);
+        }
+    }
+
     /**
      * Deletes question from the question-type specific tables
      *
@@ -232,35 +259,6 @@ class qtype_numerical extends qtype_shortanswer {
         delete_records("question_numerical", "question", $questionid);
         delete_records("question_numerical_units", "question", $questionid);
         return true;
-    }
-
-    function compare_responses(&$question, $state, $teststate) {
-        if (isset($state->responses['']) && isset($teststate->responses[''])) {
-            return $state->responses[''] == $teststate->responses[''];
-        }
-        return false;
-    }
-
-    /**
-     * Checks whether a response matches a given answer, taking the tolerance
-     * and units into account. Returns a true for if a response matches the
-     * answer, false if it doesn't.
-     */
-    function test_response(&$question, &$state, $answer) {
-        // Deal with the match anything answer.
-        if ($answer->answer === '*') {
-            return true;
-        }
-
-        $response = $this->apply_unit(stripslashes($state->responses['']), $question->options->units);
-
-        if ($response === false) {
-            return false; // The student did not type a number.
-        }
-
-        // The student did type a number, so check it with tolerances.
-        $this->get_tolerance_interval($answer);
-        return ($answer->min <= $response && $response <= $answer->max);
     }
 
     function get_correct_responses(&$question, &$state) {
@@ -286,9 +284,9 @@ class qtype_numerical extends qtype_shortanswer {
                 if ($r->answer != '*' && $unit) {
                     $r->answer .= ' ' . $unit->unit;
                 }
-                if ($answer->max != $answer->min) {
-                    $max = "$answer->max"; //format_float($answer->max, 2);
-                    $min = "$answer->min"; //format_float($answer->max, 2);
+                if ($r->answer != '*') {
+                    $ans = new qtype_numerical_answer($answer->answer, $answer->fraction, $answer->feedback, $answer->tolerance);
+                    list($min, $max) = $ans->get_tolerance_interval();
                     $r->answer .= ' ('.$min.'..'.$max.')';
                 }
                 $answers[$aid] = $r;
@@ -297,57 +295,6 @@ class qtype_numerical extends qtype_shortanswer {
         $result->id = $question->id;
         $result->responses = $answers;
         return $result;
-    }
-
-    function get_tolerance_interval(&$answer) {
-        // No tolerance
-        if (empty($answer->tolerance)) {
-            $answer->tolerance = 0;
-        }
-
-        // Calculate the interval of correct responses (min/max)
-        if (!isset($answer->tolerancetype)) {
-            $answer->tolerancetype = 2; // nominal
-        }
-
-        // We need to add a tiny fraction depending on the set precision to make the
-        // comparison work correctly. Otherwise seemingly equal values can yield
-        // false. (fixes bug #3225)
-        $tolerance = (float)$answer->tolerance + ("1.0e-".ini_get('precision'));
-        switch ($answer->tolerancetype) {
-            case '1': case 'relative':
-                /// Recalculate the tolerance and fall through
-                /// to the nominal case:
-                $tolerance = $answer->answer * $tolerance;
-                // Do not fall through to the nominal case because the tiny fraction is a factor of the answer
-                 $tolerance = abs($tolerance); // important - otherwise min and max are swapped
-                $max = $answer->answer + $tolerance;
-                $min = $answer->answer - $tolerance;
-                break;
-            case '2': case 'nominal':
-                $tolerance = abs($tolerance); // important - otherwise min and max are swapped
-                // $answer->tolerance 0 or something else
-                if ((float)$answer->tolerance == 0.0  &&  abs((float)$answer->answer) <= $tolerance ){
-                    $tolerance = (float) ("1.0e-".ini_get('precision')) * abs((float)$answer->answer) ; //tiny fraction
-                } else if ((float)$answer->tolerance != 0.0 && abs((float)$answer->tolerance) < abs((float)$answer->answer) &&  abs((float)$answer->answer) <= $tolerance){
-                    $tolerance = (1+("1.0e-".ini_get('precision')) )* abs((float) $answer->tolerance) ;//tiny fraction
-               }
-
-                $max = $answer->answer + $tolerance;
-                $min = $answer->answer - $tolerance;
-                break;
-            case '3': case 'geometric':
-                $quotient = 1 + abs($tolerance);
-                $max = $answer->answer * $quotient;
-                $min = $answer->answer / $quotient;
-                break;
-            default:
-                error("Unknown tolerance type $answer->tolerancetype");
-        }
-
-        $answer->min = $min;
-        $answer->max = $max;
-        return true;
     }
 
     /**
@@ -359,7 +306,7 @@ class qtype_numerical extends qtype_shortanswer {
      * @return float               The rawresponse with the unit taken into
      *                             account as a float.
      */
-    function apply_unit($rawresponse, $units) {
+    public static function apply_unit($rawresponse, $units) {
         // Make units more useful
         $tmpunits = array();
         foreach ($units as $unit) {
@@ -511,7 +458,4 @@ class qtype_numerical extends qtype_shortanswer {
     }
 
 }
-
-// INITIATION - Without this line the question type is not in use.
-question_register_questiontype(new qtype_numerical());
-?>
+question_register_questiontype(question_engine::get_qtype('numerical'));

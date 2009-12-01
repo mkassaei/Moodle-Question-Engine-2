@@ -121,7 +121,8 @@ class test_question_maker {
     }
 
     /**
-     * Makes a truefalse question with correct ansewer true, defaultgrade 1.
+     * Makes a shortanswer question with correct ansewer 'frog', partially
+     * correct answer 'toad' and defaultgrade 1.
      * @return qtype_shortanswer_question
      */
     public static function make_a_shortanswer_question() {
@@ -131,7 +132,7 @@ class test_question_maker {
         $sa->name = 'Short answer question';
         $sa->questiontext = 'Name an amphibian: __________';
         $sa->generalfeedback = 'Generalfeedback: frog or toad would have been OK.';
-        $sa->usecasle = false;
+        $sa->usecase = false;
         $sa->answers = array(
             new question_answer('frog', 1.0, 'Frog is a very good answer.'),
             new question_answer('toad', 0.8, 'Toad is an OK good answer.'),
@@ -140,6 +141,30 @@ class test_question_maker {
         $sa->qtype = question_engine::get_qtype('shortanswer');
 
         return $sa;
+    }
+
+    /**
+     * Makes a numerical question with correct ansewer 3.14, and various incorrect
+     * answers with different feedback.
+     * @return qtype_numerical_question
+     */
+    public static function make_a_numerical_question() {
+        question_engine::load_question_definition_classes('numerical');
+        $num = new qtype_numerical_question();
+        self::initialise_a_question($num);
+        $num->name = 'Pi to two d.p.';
+        $num->questiontext = 'What is pi to two d.p.?';
+        $num->generalfeedback = 'Generalfeedback: 3.14 is the right answer.';
+        $num->answers = array(
+            new qtype_numerical_answer('3.14', 1.0, 'Very good.', 0),
+            new qtype_numerical_answer('3.142', 0.0, 'Too accurate.', 0.005),
+            new qtype_numerical_answer('3.1', 0.0, 'Not accurate enough.', 0.05),
+            new qtype_numerical_answer('3', 0.0, 'Not accurate enough.', 0.5),
+            new qtype_numerical_answer('*', 0.0, 'Completely wrong.', 0),
+        );
+        $num->qtype = question_engine::get_qtype('shortanswer');
+
+        return $num;
     }
 
     /**

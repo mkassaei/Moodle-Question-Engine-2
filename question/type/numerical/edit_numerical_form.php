@@ -1,23 +1,41 @@
-<?php  // $Id$
+<?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+
 /**
  * Defines the editing form for the numerical question type.
  *
+ * @package qtype_numerical
  * @copyright &copy; 2007 Jamie Pratt
- * @author Jamie Pratt me@jamiep.org
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package questionbank
- * @subpackage questiontypes
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
  * numerical editing form definition.
+ *
+ * @copyright &copy; 2007 Jamie Pratt
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_edit_numerical_form extends question_edit_form {
 
     function get_per_answer_fields(&$mform, $label, $gradeoptions, &$repeatedoptions, &$answersoption) {
         $repeated = parent::get_per_answer_fields($mform, $label, $gradeoptions, $repeatedoptions, $answersoption);
 
-        $tolerance =& $mform->createElement('text', 'tolerance', get_string('acceptederror', 'quiz'));
+        $tolerance =& $mform->createElement('text', 'tolerance', get_string('acceptederror', 'qtype_numerical'));
         $repeatedoptions['tolerance']['type'] = PARAM_NUMBER;
         array_splice($repeated, 3, 0, array($tolerance));
         $repeated[1]->setSize(10);
@@ -40,10 +58,10 @@ class question_edit_numerical_form extends question_edit_form {
         $repeated = array();
         $repeated[] =& $mform->createElement('header', 'unithdr', get_string('unithdr', 'qtype_numerical', '{no}'));
 
-        $repeated[] =& $mform->createElement('text', 'unit', get_string('unit', 'quiz'));
+        $repeated[] =& $mform->createElement('text', 'unit', get_string('unit', 'qtype_numerical'));
         $mform->setType('unit', PARAM_NOTAGS);
 
-        $repeated[] =& $mform->createElement('text', 'multiplier', get_string('multiplier', 'quiz'));
+        $repeated[] =& $mform->createElement('text', 'multiplier', get_string('multiplier', 'qtype_numerical'));
         $mform->setType('multiplier', PARAM_NUMBER);
 
         if (isset($this->question->options)){

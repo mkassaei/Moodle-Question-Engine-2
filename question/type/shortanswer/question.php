@@ -47,7 +47,8 @@ class qtype_shortanswer_question extends question_graded_by_strategy
     }
 
     public function is_complete_response(array $response) {
-        return !empty($response['answer']);
+        return array_key_exists('answer', $response) &&
+                ($response['answer'] || $response['answer'] === '0');
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {

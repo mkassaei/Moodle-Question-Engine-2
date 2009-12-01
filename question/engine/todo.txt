@@ -24,12 +24,12 @@ Convert existing question type code
   Split qtype classes in three
     truefalse
     multichoice
-    numerical
     random
     match
     calculated
     multianswer
     randomsamatch
+  Numerical units
   Test missing qtype
   Update qtype plugin version nubmers and requires numbers, when this is merged into core code
   New fields for editing hints

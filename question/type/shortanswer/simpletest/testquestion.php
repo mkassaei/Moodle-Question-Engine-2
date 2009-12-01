@@ -81,6 +81,8 @@ class qtype_shortanswer_question_test extends UnitTestCase {
 
         $this->assertFalse($question->is_complete_response(array()));
         $this->assertFalse($question->is_complete_response(array('answer' => '')));
+        $this->assertTrue($question->is_complete_response(array('answer' => '0')));
+        $this->assertTrue($question->is_complete_response(array('answer' => '0.0')));
         $this->assertTrue($question->is_complete_response(array('answer' => 'x')));
     }
 
@@ -89,6 +91,8 @@ class qtype_shortanswer_question_test extends UnitTestCase {
 
         $this->assertFalse($question->is_gradable_response(array()));
         $this->assertFalse($question->is_gradable_response(array('answer' => '')));
+        $this->assertTrue($question->is_gradable_response(array('answer' => '0')));
+        $this->assertTrue($question->is_gradable_response(array('answer' => '0.0')));
         $this->assertTrue($question->is_gradable_response(array('answer' => 'x')));
     }
 
