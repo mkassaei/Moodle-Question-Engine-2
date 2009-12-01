@@ -24,16 +24,15 @@ Convert existing question type code
   Split qtype classes in three
     truefalse
     multichoice
-    shortanswer
     numerical
     random
     match
-    missingtype
     calculated
     multianswer
     randomsamatch
-  New fields for editing hints
+  Test missing qtype
   Update qtype plugin version nubmers and requires numbers, when this is merged into core code
+  New fields for editing hints
 
 Integrate new code into the quiz
   attempting code

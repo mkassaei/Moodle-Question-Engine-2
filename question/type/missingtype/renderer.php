@@ -17,36 +17,26 @@
 
 
 /**
- * Question type class for the 'missingtype' type.
+ * Defines the 'missingtype' question renderer class.
  *
  * @package qtype_missingtype
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 /**
- * Missing question type class
+ * This question renderer class is used when the actual question type of this
+ * question cannot be found.
  *
- * When we encounter a question of a type that is not currently installed, then
- * we use this question type class instead so that some of the information about
- * this question can be seen, and the rest of the system keeps working.
- *
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_missingtype extends question_type {
-    function menu_name() {
-        return false;
-    }
-
-    function is_usable_by_random() {
-        return false;
-    }
-
-    function display_question_editing_page($mform, $question, $wizardnow){
-        print_heading(get_string('missingqtypewarning', 'qtype_missingtype'));
-        $mform->display();
+class qtype_missing_renderer extends qtype_renderer {
+    public function formulation_and_controls(question_attempt $qa,
+            question_display_options $options) {
+        return $this->output_tag('div', array('class' => 'error missingqtypewarning'),
+                get_string('missingqtypewarning', 'qtype_missingtype')) .
+                parent::formulation_and_controls($qa, $options);
     }
 }
-question_register_questiontype(question_engine::get_qtype('missingtype'));

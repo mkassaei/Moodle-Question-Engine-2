@@ -31,7 +31,6 @@
  * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class qtype_description extends question_type {
     public function is_usable_by_random() {
         return false;

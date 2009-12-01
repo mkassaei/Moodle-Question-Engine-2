@@ -17,36 +17,35 @@
 
 
 /**
- * Question type class for the 'missingtype' type.
+ * Defines the 'qtype_missingtype' question definition class.
  *
  * @package qtype_missingtype
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 /**
- * Missing question type class
+ * This question definition class is used when the actual question type of this
+ * question cannot be found.
  *
- * When we encounter a question of a type that is not currently installed, then
- * we use this question type class instead so that some of the information about
- * this question can be seen, and the rest of the system keeps working.
- *
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_missingtype extends question_type {
-    function menu_name() {
+class qtype_missing_question extends question_definition implements question_automatically_gradable {
+    public function get_expected_data() {
+        return array();
+    }
+
+    public function is_complete_response(array $response) {
         return false;
     }
 
-    function is_usable_by_random() {
-        return false;
+    public function is_same_response(array $prevresponse, array $newresponse) {
+        return true;
     }
 
-    function display_question_editing_page($mform, $question, $wizardnow){
-        print_heading(get_string('missingqtypewarning', 'qtype_missingtype'));
-        $mform->display();
+    public function grade_response(array $response) {
+        throw new Exception('This question is of a type that is not installed on your system. No processing is possible.');
     }
 }
-question_register_questiontype(question_engine::get_qtype('missingtype'));
