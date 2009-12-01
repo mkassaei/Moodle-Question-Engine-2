@@ -52,29 +52,19 @@
       This is work-in-progress of my <a href="http://docs.moodle.org/en/Development:Question_Engine_2">rewrite of the Moodle question engine</a>.
     </div>
 
-    <p>At the moment, there is not much to see.</p>
+<p>Work is progressing on the <a href="http://github.com/timhunt/Moodle-Question-Engine-2">new_qe</a> branch, which is the default branch. This is a branch off the MOODLE_19_STABLE branch.</p>
 
-<p>The interesting code is in <a href=" http://github.com/timhunt/Moodle-Question-Engine-2/tree/new_qe2/question/engine/">question/engine</a> and <a href=" http://github.com/timhunt/Moodle-Question-Engine-2/tree/new_qe2/question/interaction/">question/interaction</a>.</p>
+<p>To see the new code in action, go into the question bank and create questions (that has not changed) and then preview the questions in the question preview pop-up window. You can also run the unit tests by going to Administration -> Reports -> Unit tests. Choose the option 'Only run tests in' 'question'.</p>
 
-<p>The only way you can execute any of it is to checkout the new_qe2 branch, install Moodle as normal, and then run the unit tests in either question/engine or question/interaction.</p>
+<p>The new code is in <a href=" http://github.com/timhunt/Moodle-Question-Engine-2/tree/new_qe/question/engine/">question/engine</a> and <a href=" http://github.com/timhunt/Moodle-Question-Engine-2/tree/new_qe/question/interaction/">question/interaction</a>. There are also interesting changes in <a href=" http://github.com/timhunt/Moodle-Question-Engine-2/tree/new_qe/question/type/">question/type</a>.</p>
 
-<p>Code in <a href=" http://github.com/timhunt/Moodle-Question-Engine-2/tree/new_qe2/question/interaction/deferredfeedback/simpletest/testwalkthrough.php">question/interaction/deferredfeedback/simpletest/testwalkthrough.php</a> would be a good place to start looking. This walks a single question through being attempted, using the API that an activity module using the question bank would use.</p>
-
-<p>Note that this is work in progress. In particular:</p>
-
-<ol>
-<li>Does not use the real question types yet. Uses fake code in <a href=" http://github.com/timhunt/Moodle-Question-Engine-2/tree/new_qe2/question/question/engine/testquestiontype.php">question/engine/testquestiontype.php</a>.</li>
-<li>The way the renderers are currently implemented is not exemplary. They roughly work, but need refactoring.</li>
-<li>The code in <a href=" http://github.com/timhunt/Moodle-Question-Engine-2/tree/new_qe2/question/engine/lib.php">question/engine/lib.php</a> is the heart of the new question engine, and is mostly solid.</li>
-</ol>
+<p>Note that new_qe branch gets rebased regularly, so you cannot just follow developments using <tt>git pull</tt>. You will get errors about the merge not being a fast-forward if a rebase has been done. When that happens, the easiest solution is to delete your old copy of the new_qe branch, and checkout a new one.</p>
 
 <h2>Install</h2>
 
 <ol>
-<li>Checkout the new_qe2 branch.
+<li>Checkout the new_qe branch.
 <li>Install Moodle as usual.
-<li>Run the unit tests in question/engine and question/interaction.
-<li>Look at the code in either of those folders.
 </ol>
 
 <h2>License</h2>
