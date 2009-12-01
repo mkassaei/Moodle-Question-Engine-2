@@ -19,10 +19,14 @@ class question_edit_shortanswer_form extends question_edit_form {
      * @param MoodleQuickForm $mform the form being built.
      */
     function definition_inner(&$mform) {
-        $menu = array(get_string('caseno', 'quiz'), get_string('caseyes', 'quiz'));
-        $mform->addElement('select', 'usecase', get_string('casesensitive', 'quiz'), $menu);
+        $menu = array(
+            get_string('caseno', 'qtype_shortanswer'),
+            get_string('caseyes', 'qtype_shortanswer')
+        );
+        $mform->addElement('select', 'usecase', get_string('casesensitive', 'qtype_shortanswer'), $menu);
 
-        $mform->addElement('static', 'answersinstruct', get_string('correctanswers', 'quiz'), get_string('filloutoneanswer', 'quiz'));
+        $mform->addElement('static', 'answersinstruct', get_string('correctanswers', 'qtype_shortanswer'),
+                get_string('filloutoneanswer', 'qtype_shortanswer'));
         $mform->closeHeaderBefore('answersinstruct');
 
         $creategrades = get_grade_options();
@@ -65,7 +69,7 @@ class question_edit_shortanswer_form extends question_edit_form {
             }
         }
         if ($answercount==0){
-            $errors['answer[0]'] = get_string('notenoughanswers', 'quiz', 1);
+            $errors['answer[0]'] = get_string('notenoughanswers', 'qtype_shortanswer', 1);
         }
         if ($maxgrade == false) {
             $errors['fraction[0]'] = get_string('fractionsnomax', 'question');
