@@ -107,5 +107,3 @@ class qtype_shortanswer_question_test extends UnitTestCase {
                 $question->grade_response(array('answer' => 'toad')));
     }
 }
-
-?>

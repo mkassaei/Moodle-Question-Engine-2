@@ -24,7 +24,6 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once("$CFG->dirroot/question/type/shortanswer/questiontype.php");
 
 /**
  * The numerical question type class.

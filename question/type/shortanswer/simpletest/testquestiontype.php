@@ -221,5 +221,3 @@ class qtype_shortanswer_test extends UnitTestCase {
     }
 */
 }
-
-?>

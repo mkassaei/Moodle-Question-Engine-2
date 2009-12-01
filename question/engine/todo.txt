@@ -22,7 +22,6 @@ Database load/save code
 
 Convert existing question type code
   Split qtype classes in three
-    truefalse
     multichoice
     random
     match
@@ -30,6 +29,7 @@ Convert existing question type code
     multianswer
     randomsamatch
   Numerical units
+  Refactor out commonalities between multiplechoice and truefalse rendering.
   Test missing qtype
   Update qtype plugin version nubmers and requires numbers, when this is merged into core code
   New fields for editing hints
@@ -40,6 +40,7 @@ Integrate new code into the quiz
   reports
 
 Database upgrade script
+  Deal with question images
 
 Backup and restore code
   Restore old backup code

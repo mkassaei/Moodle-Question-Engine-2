@@ -17,25 +17,34 @@
 
 
 /**
- * Description 'question' renderer class.
+ * Unit tests for the true-false question definition class.
  *
- * @package qtype_description
- * @copyright 2009 The Open University
+ * @package qtype_truefalse
+ * @copyright &copy; 2007 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+require_once($CFG->dirroot . '/question/type/shortanswer/questiontype.php');
 
 /**
- * Generates the output for description 'question's.
+ * Unit tests for the true-false question definition class.
  *
- * @copyright © 2009 The Open University
+ * @copyright &copy; 2007 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_description_renderer extends qtype_renderer {
-    public function formulation_and_controls(question_attempt $qa,
-            question_display_options $options) {
+class qtype_truefalse_test extends UnitTestCase {
+    var $qtype;
 
-        return $this->output_tag('div', array('class' => 'qtext'),
-                $qa->get_question()->format_questiontext());
+    function setUp() {
+        $this->qtype = new qtype_truefalse();
     }
+
+    function tearDown() {
+        $this->qtype = null;
+    }
+
+    function test_name() {
+        $this->assertEqual($this->qtype->name(), 'truefalse');
+    }
+
 }

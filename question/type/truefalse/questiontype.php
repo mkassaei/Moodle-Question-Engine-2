@@ -1,20 +1,37 @@
-<?php  // $Id$
+<?php
 
-/////////////////
-/// TRUEFALSE ///
-/////////////////
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/// QUESTION TYPE CLASS //////////////////
+
 /**
- * @package questionbank
- * @subpackage questiontypes
+ * Question type class for the true-false question type.
+ *
+ * @package qtype_truefalse
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+
+/**
+ * The true-false question type class.
+ *
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_truefalse extends question_type {
-
-    function name() {
-        return 'truefalse';
-    }
-
     function save_question_options($question) {
         $result = new stdClass;
 
@@ -112,6 +129,18 @@ class qtype_truefalse extends question_type {
         }
 
         return true;
+    }
+
+    protected function initialise_question_instance(question_definition $question, $questiondata) {
+        parent::initialise_question_instance($question, $questiondata);
+        $answers = $questiondata->options->answers;
+        if ($answers[$questiondata->options->trueanswer]->fraction > 0.99) {
+            $question->rightanswer = true;
+        } else {
+            $question->rightanswer = false;
+        }
+        $question->truefeedback = $answers[$questiondata->options->trueanswer]->feedback;
+        $question->falsefeedback = $answers[$questiondata->options->falseanswer]->feedback;
     }
 
     /**
@@ -365,10 +394,4 @@ class qtype_truefalse extends question_type {
         return $this->save_question($question, $form, $course);
     }
 }
-//// END OF CLASS ////
-
-//////////////////////////////////////////////////////////////////////////
-//// INITIATION - Without this line the question type is not in use... ///
-//////////////////////////////////////////////////////////////////////////
-question_register_questiontype(new qtype_truefalse());
-?>
+question_register_questiontype(question_engine::get_qtype('truefalse'));

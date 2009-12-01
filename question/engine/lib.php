@@ -54,7 +54,6 @@ abstract class question_engine {
      */
     private static $loadedqdefs = array(
         'multichoice' => 1,
-        'truefalse' => 1,
     );
     /** @var array interaction model name => 1. Records which interaction models have been loaded. */
     private static $loadedmodels = array();
@@ -102,16 +101,6 @@ abstract class question_engine {
         }
         get_question_options($questiondata);
         return self::get_qtype($questiondata->qtype)->make_question($questiondata);
-
-//        // Spare code for truefalse.
-//        $answers = $questiondata->options->answers;
-//        if ($answers[$questiondata->options->trueanswer]->fraction > 0.99) {
-//            $question->rightanswer = true;
-//        } else {
-//            $question->rightanswer = false;
-//        }
-//        $question->truefeedback = $answers[$questiondata->options->trueanswer]->feedback;
-//        $question->falsefeedback = $answers[$questiondata->options->falseanswer]->feedback;
     }
 
     /**
