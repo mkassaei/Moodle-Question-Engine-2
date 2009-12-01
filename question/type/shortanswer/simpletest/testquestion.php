@@ -19,8 +19,7 @@
 /**
  * Unit tests for the short answer question definition class.
  *
- * @package moodlecore
- * @subpackage questiontypes
+ * @package qtype_shortanswer
  * @copyright 2008 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,6 +27,12 @@
 require_once($CFG->dirroot . '/question/type/shortanswer/question.php');
 require_once($CFG->dirroot . '/question/engine/simpletest/helpers.php');
 
+/**
+ * Unit tests for the short answer question definition class.
+ *
+ * @copyright 2008 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class qtype_shortanswer_question_test extends UnitTestCase {
     public function test_compare_string_with_wildcard() {
         // Test case sensitive literal matches.
