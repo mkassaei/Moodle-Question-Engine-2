@@ -111,7 +111,10 @@ if (data_submitted() && confirm_sesskey()) {
                 $quba->get_question_max_mark($qnumber), $displayoptions);
 
     } else if (optional_param('fill', null, PARAM_BOOL)) {
-        // TODO
+        $correctresponse = $quba->get_correct_response($qnumber);
+        $quba->process_action($qnumber, $correctresponse);
+        question_engine::save_questions_usage_by_activity($quba);
+        redirect($actionurl);
 
     } else if (optional_param('finish', null, PARAM_BOOL)) {
         $quba->process_all_actions();
@@ -133,8 +136,10 @@ if ($question->length) {
 }
 $restartdisabled = '';
 $finishdisabled = '';
+$filldisabled = '';
 if (question_state::is_finished($quba->get_question_state($qnumber))) {
     $finishdisabled = ' disabled="disabled"';
+    $filldisabled = ' disabled="disabled"';
 }
 if (!$previewid) {
     $restartdisabled = ' disabled="disabled"';
@@ -161,7 +166,8 @@ echo '<p class="notifytiny">' . get_string('interactionmodelbeingused', 'questio
 echo '<div id="previewcontrols" class="controls">';
 echo '<input type="submit" name="restart"' . $restartdisabled .
         ' value="' . get_string('restart', 'question') . '" />', "\n";
-// TODO Fill with correct button.
+echo '<input type="submit" name="fill"' . $filldisabled .
+        ' value="' . get_string('fillincorrect', 'question') . '" />', "\n";
 echo '<input type="submit" name="finish"' . $finishdisabled .
         ' value="' . get_string('submitandfinish', 'question') . '" />', "\n";
 echo '</div>';

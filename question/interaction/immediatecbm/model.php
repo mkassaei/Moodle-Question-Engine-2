@@ -57,6 +57,13 @@ class qim_immediatecbm extends qim_immediatefeedback {
         return array();
     }
 
+    public function get_correct_response() {
+        if (question_state::is_active($this->qa->get_state())) {
+            return array('certainty' => question_cbm::HIGH);
+        }
+        return array();
+    }
+
     protected function is_same_response($pendingstep) {
         return parent::is_same_response($pendingstep) &&
                 $this->qa->get_last_im_var('certainty') == $pendingstep->get_im_var('certainty');

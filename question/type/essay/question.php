@@ -41,6 +41,10 @@ class qtype_essay_question extends question_with_responses {
         return array('answer' => PARAM_CLEANHTML);
     }
 
+    public function get_correct_response() {
+        return array();
+    }
+
     public function is_complete_response(array $response) {
         return !empty($response['answer']);
     }

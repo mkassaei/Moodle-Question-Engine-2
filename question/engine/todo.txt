@@ -9,10 +9,6 @@ Finish interaction models and core of the engine
   Questionline and answerline
   Fix manual grading of automatically graded quetsion types.
 
-Redo the question preview window
-  Fill with correct
-  Think about implementing manual grading UI.
-
 Database load/save code
   Update functions
   Unit tests for Unit of Work
@@ -33,9 +29,12 @@ Convert existing question type code
   Update qtype plugin version nubmers and requires numbers, when this is merged into core code
   New fields for editing hints
 
+<- Christmas target milestone.
+
 Integrate new code into the quiz
-  attempting code
-  reviewing code
+  attempt code
+  review code
+  review single question code
   reports
     overview
     responses
@@ -47,6 +46,9 @@ Database upgrade script
 
 Backup and restore code
   Restore old backup code
+
+Redo the question preview window
+  Think about implementing manual grading UI.
 
 
 --------------------------------------------------------------------------------

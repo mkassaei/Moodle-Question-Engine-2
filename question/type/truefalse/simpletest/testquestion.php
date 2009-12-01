@@ -58,4 +58,11 @@ class qtype_truefalse_question_test extends UnitTestCase {
         $this->assertEqual(array(1, question_state::GRADED_CORRECT),
                 $question->grade_response(array('answer' => 1)));
     }
+
+    public function test_get_correct_response() {
+        $question = test_question_maker::make_a_truefalse_question();
+
+        $this->assertEqual(array('answer' => 1),
+                $question->get_correct_response());
+    }
 }

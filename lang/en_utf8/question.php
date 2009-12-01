@@ -50,6 +50,7 @@ $string['exportcategory'] = 'Export category';
 $string['filesareasite']= 'the site files area';
 $string['filesareacourse']= 'the course files area';
 $string['filestomove']= 'Move / copy files to $a?';
+$string['fillincorrect'] = 'Fill in correct responses';
 $string['fractionsnomax'] = 'One of the answers should have a score of 100%% so it is possible to get full marks for this question.';
 $string['getcategoryfromfile'] = 'Get category from file';
 $string['getcontextfromfile'] = 'Get context from file';

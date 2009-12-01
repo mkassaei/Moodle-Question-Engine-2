@@ -134,6 +134,15 @@ abstract class question_definition {
     public abstract function get_expected_data();
 
     /**
+     * What data would need to be submitted to get this question correct.
+     * If there is more than one correct answer, this question only needs to
+     * return one possibility.
+     *
+     * @return array parameter name => value.
+     */
+    public abstract function get_correct_response();
+
+    /**
      * Apply {@link format_text()} to some content with appropriate settings for
      * this question.
      *
@@ -183,6 +192,10 @@ class question_information_item extends question_definition {
     }
 
     public function get_expected_data() {
+        return array();
+    }
+
+    public function get_correct_response() {
         return array();
     }
 }
@@ -293,6 +306,19 @@ abstract class question_graded_by_strategy extends question_graded_automatically
         return $this->gradingstrategy->grade($response);
     }
 
+    public function get_correct_response() {
+        $answer = $this->get_correct_answer();
+        if (!$answer) {
+            return array();
+        }
+
+        return array('answer' => $answer->answer);
+    }
+
+    public function get_correct_answer() {
+        return $this->gradingstrategy->get_correct_answer();
+    }
+
     /**
      * Grade a response to the question, returning a fraction between get_min_fraction() and 1.0,
      * and the corresponding state CORRECT, PARTIALLY_CORRECT or INCORRECT.
@@ -329,6 +355,11 @@ interface question_grading_strategy {
      * @return question_answer
      */
     public function grade(array $response);
+
+    /**
+     * @return question_answer
+     */
+    public function get_correct_answer();
 }
 
 
@@ -353,10 +384,18 @@ class question_first_matching_answer_grading_strategy implements question_gradin
         $this->question = $question;
     }
 
-    /** @var array of {@link question_answer} or similar. */
     public function grade(array $response) {
         foreach ($this->question->get_answers() as $answer) {
             if ($this->question->compare_response_with_answer($response, $answer)) {
+                return $answer;
+            }
+        }
+        return null;
+    }
+
+    public function get_correct_answer() {
+        foreach ($this->question->get_answers() as $answer) {
+            if ($answer->fraction > 0.9999999) {
                 return $answer;
             }
         }

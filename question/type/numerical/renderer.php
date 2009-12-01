@@ -105,9 +105,7 @@ class qtype_numerical_renderer extends qtype_renderer {
     }
 
     public function correct_response(question_attempt $qa) {
-        $question = $qa->get_question();
-
-        $answer = reset($question->get_answers());
+        $answer = $qa->get_question()->get_correct_answer();
         if (!$answer) {
             return '';
         }

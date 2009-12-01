@@ -48,6 +48,13 @@ class qim_informationitem extends question_interaction_model {
         return array();
     }
 
+    public function get_correct_response() {
+        if ($this->qa->get_state() == question_state::INCOMPLETE) {
+            return array('seen' => 1);
+        }
+        return array();
+    }
+
     public function process_action(question_attempt_step $pendingstep) {
         if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);

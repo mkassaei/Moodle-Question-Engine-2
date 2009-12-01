@@ -537,6 +537,10 @@ class question_usage_by_activity {
         }
     }
 
+    public function get_correct_response($qnumber) {
+        return $this->get_question_attempt($qnumber)->get_correct_response();
+    }
+
     public function extract_responses($qnumber, $postdata = null) {
         return $this->get_question_attempt($qnumber)->get_submitted_data($postdata);
     }
@@ -919,6 +923,15 @@ class question_attempt {
             }
         }
         return $submitteddata;
+    }
+
+    public function get_correct_response() {
+        $response = $this->question->get_correct_response();
+        $imvars = $this->interactionmodel->get_correct_response();
+        foreach ($imvars as $name => $value) {
+            $response['!' . $name] = $value;
+        }
+        return $response;
     }
 
     public function process_action($submitteddata, $timestamp = null, $userid = null) {

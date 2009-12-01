@@ -105,6 +105,15 @@ abstract class question_interaction_model {
         return array();
     }
 
+    /**
+     * Return an array of any im variables, and the value required to get full
+     * marks.
+     * @return array variable name => value.
+     */
+    public function get_correct_response() {
+        return array();
+    }
+
     public abstract function process_action(question_attempt_step $pendingstep);
 
     protected function is_same_response($pendingstep) {

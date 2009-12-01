@@ -106,4 +106,11 @@ class qtype_shortanswer_question_test extends UnitTestCase {
         $this->assertEqual(array(0.8, question_state::GRADED_PARTCORRECT),
                 $question->grade_response(array('answer' => 'toad')));
     }
+
+    public function test_get_correct_response() {
+        $question = test_question_maker::make_a_shortanswer_question();
+
+        $this->assertEqual(array('answer' => 'frog'),
+                $question->get_correct_response());
+    }
 }

@@ -40,6 +40,10 @@ class qtype_truefalse_question extends question_graded_automatically {
         return array('answer' => PARAM_INTEGER);
     }
 
+    public function get_correct_response() {
+        return array('answer' => $this->rightanswer);
+    }
+
     public function is_complete_response(array $response) {
         return array_key_exists('answer', $response);
     }

@@ -37,6 +37,10 @@ class qtype_missing_question extends question_definition implements question_aut
         return array();
     }
 
+    public function get_correct_response() {
+        return array();
+    }
+
     public function is_complete_response(array $response) {
         return false;
     }

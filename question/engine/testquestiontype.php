@@ -72,6 +72,11 @@ class qtype_multichoice_single_question extends question_graded_automatically {
         return array('answer' => PARAM_INT);
     }
 
+    public function get_correct_response() {
+        // TODO
+        return array();
+    }
+
     public function is_same_response(array $prevresponse, array $newresponse) {
         return array_key_exists('answer', $newresponse) == array_key_exists('answer', $prevresponse) &&
             (!array_key_exists('answer', $prevresponse) || $newresponse['answer'] == $prevresponse['answer']);

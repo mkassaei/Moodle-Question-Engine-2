@@ -59,4 +59,11 @@ class qtype_numerical_question_test extends UnitTestCase {
         $this->assertEqual(array(1, question_state::GRADED_CORRECT),
                 $question->grade_response(array('answer' => '3.14')));
     }
+
+    public function test_get_correct_response() {
+        $question = test_question_maker::make_a_numerical_question();
+
+        $this->assertEqual(array('answer' => '3.14'),
+                $question->get_correct_response());
+    }
 }
