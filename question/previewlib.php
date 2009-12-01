@@ -47,7 +47,20 @@ class preview_options_form extends moodleform {
         $mform->addElement('select', 'markdp', get_string('decimalplacesingrades', 'question'),
                 question_engine::get_dp_options());
 
-        // TODO Other fields from http://moodle.org/mod/forum/discuss.php?d=134156#p595000
+        $mform->addElement('selectyesno', 'feedback', get_string('specificfeedbackvisible', 'question'));
+
+        $mform->addElement('selectyesno', 'generalfeedback', get_string('generalfeedbackvisible', 'question'));
+
+        $mform->addElement('selectyesno', 'correctresponse', get_string('correctresponsevisible', 'question'));
+
+        $marksoptions = array(
+            question_display_options::HIDDEN => get_string('no'),
+            question_display_options::MAX_ONLY => get_string('maxmarkonly', 'question'),
+            question_display_options::MARK_AND_MAX => get_string('markandmax', 'question'),
+        );
+        $mform->addElement('select', 'marks', get_string('marksvisible', 'question'), $marksoptions);
+
+        $mform->addElement('selectyesno', 'history', get_string('responsehistoryvisible', 'question'));
 
         $mform->addElement('submit', 'submit', get_string('restartwiththeseoptions', 'question'));
     }
@@ -61,10 +74,17 @@ class preview_options_form extends moodleform {
  * @param integer $markdp
  * @return string the URL.
  */
-function restart_url($questionid, $preferredmodel, $maxmark, $markdp) {
+function restart_url($questionid, $preferredmodel, $maxmark, $displayoptions) {
     global $CFG;
-    return $CFG->wwwroot . '/question/preview.php?id=' . $questionid . '&model=' .
-                $preferredmodel . '&maxmark=' . $maxmark . '&markdp=' . $markdp;
+    return $CFG->wwwroot . '/question/preview.php?id=' . $questionid .
+                '&model=' . $preferredmodel .
+                '&maxmark=' . $maxmark .
+                '&markdp=' . $displayoptions->markdp .
+                '&feedback=' . $displayoptions->feedback;
+                '&generalfeedback=' . $displayoptions->generalfeedback;
+                '&correctresponse=' . $displayoptions->correctresponse;
+                '&marks=' . $displayoptions->marks;
+                '&history=' . $displayoptions->history;
 }
 
 /**
@@ -75,9 +95,9 @@ function restart_url($questionid, $preferredmodel, $maxmark, $markdp) {
  * @param float $maxmark
  * @param integer $markdp
  */
-function restart_preview($previewid, $questionid, $preferredmodel, $maxmark, $markdp) {
+function restart_preview($previewid, $questionid, $preferredmodel, $maxmark, $displayoptions) {
     if ($previewid) {
         question_engine::delete_questions_usage_by_activity($previewid);
     }
-    redirect(restart_url($questionid, $preferredmodel, $maxmark, $markdp));
+    redirect(restart_url($questionid, $preferredmodel, $maxmark, $displayoptions));
 }

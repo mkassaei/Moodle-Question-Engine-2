@@ -339,17 +339,17 @@ class question_display_options {
 
     const MAX_DP = 7;
 
-    public $correctness = true;
+    public $readonly = false;
+    public $responses = self::VISIBLE;
+    public $correctness = self::VISIBLE;
+    public $feedback = self::VISIBLE;
+    public $generalfeedback = self::VISIBLE;
+    public $correctresponse = self::VISIBLE;
     public $marks = self::MARK_AND_MAX;
     public $markdp = 2;
+    public $manualcomment = self::VISIBLE;
+    public $history = self::HIDDEN;
     public $flags = self::VISIBLE;
-    public $readonly = false;
-    public $feedback = true;
-    public $correctresponse = true;
-    public $generalfeedback = true;
-    public $responses = true;
-    public $history = false;
-    public $manualcomment = true;
 
     public function set_review_options($bitmask) {
         global $CFG;

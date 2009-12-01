@@ -51,9 +51,14 @@ if (!$category = get_record("question_categories", "id", $question->category)) {
 $displayoptions = new question_display_options();
 $displayoptions->set_review_options($CFG->quiz_review); // Quiz-specific, but a sensible source of defaults.
 $displayoptions->markdp = optional_param('markdp', $CFG->quiz_decimalpoints, PARAM_INT);
-// TODO various review options.
+$displayoptions->feedback = optional_param('feedback', question_display_options::VISIBLE, PARAM_INT);
+$displayoptions->generalfeedback = optional_param('generalfeedback', question_display_options::VISIBLE, PARAM_INT);
+$displayoptions->correctresponse = optional_param('correctresponse', question_display_options::VISIBLE, PARAM_INT);
+$displayoptions->marks = optional_param('marks', question_display_options::VISIBLE, PARAM_INT);
+$displayoptions->history = optional_param('history', question_display_options::HIDDEN, PARAM_INT);
 $displayoptions->flags = question_display_options::HIDDEN;
-$displayoptions->manualcomment = question_display_options::EDITABLE;
+$displayoptions->manualcomment = question_display_options::VISIBLE;
+
 
 // Get and validate exitsing preview, or start a new one.
 $previewid = optional_param('previewid', 0, PARAM_ALPHANUM);
@@ -88,23 +93,22 @@ $actionurl = $CFG->wwwroot . '/question/preview.php?id=' . $question->id . '&amp
 
 // Create the settings form, and initialise the fields.
 $optionsform = new preview_options_form($actionurl);
-$currentoptions = new stdClass();
+$currentoptions = clone($displayoptions);
 $currentoptions->model = $quba->get_preferred_interaction_model();
 $currentoptions->maxmark = $quba->get_question_max_mark($qnumber);
-$currentoptions->markdp = $displayoptions->markdp;
 $optionsform->set_data($currentoptions);
 
 // Process change of settings, if that was requested.
 if ($newoptions = $optionsform->get_submitted_data()) {
     restart_preview($previewid, $question->id, $newoptions->model,
-            $newoptions->maxmark, $newoptions->markdp);
+            $newoptions->maxmark, $newoptions);
 }
 
 // Process any actions from the buttons at the bottom of the form.
 if (data_submitted() && confirm_sesskey()) {
     if (optional_param('restart', false, PARAM_BOOL)) {
         restart_preview($previewid, $question->id, $quba->get_preferred_interaction_model(),
-                $quba->get_question_max_mark($qnumber), $displayoptions->markdp);
+                $quba->get_question_max_mark($qnumber), $displayoptions);
 
     } else if (optional_param('fill', null, PARAM_BOOL)) {
         // TODO

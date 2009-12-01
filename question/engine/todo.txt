@@ -11,7 +11,6 @@ Finish interaction models and core of the engine
 
 Redo the question preview window
   Fill with correct
-  More display options
   Think about implementing manual grading UI.
 
 Database load/save code
@@ -38,6 +37,10 @@ Integrate new code into the quiz
   attempting code
   reviewing code
   reports
+    overview
+    responses
+    manual grading
+    statistics
 
 Database upgrade script
   Deal with question images
