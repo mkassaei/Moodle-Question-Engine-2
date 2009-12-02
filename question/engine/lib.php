@@ -26,7 +26,6 @@
  */
 
 
-require_once(dirname(__FILE__) . '/compatibility.php');
 require_once(dirname(__FILE__) . '/datalib.php');
 require_once(dirname(__FILE__) . '/renderer.php');
 require_once(dirname(__FILE__) . '/../type/questiontype.php');
@@ -35,23 +34,26 @@ require_once(dirname(__FILE__) . '/../type/rendererbase.php');
 require_once(dirname(__FILE__) . '/../interaction/modelbase.php');
 require_once(dirname(__FILE__) . '/../interaction/rendererbase.php');
 
+require_once(dirname(__FILE__) . '/compatibility.php');
 require_once(dirname(__FILE__) . '/testquestiontype.php');
 
 
 /**
  * This static class provides access to the other question engine classes.
  *
+ * It provides functions for managing the various types of plugins (question
+ * types and interaction models), and for creating, loading, saving and deleting
+ * {@link question_usage_by_activity}s, which is the main class that is used by
+ * other code that wants to use questions.
+ *
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class question_engine {
-    /** @var array question type name => default_qtype subclass. */
+    /** @var array question type name => question_type subclass. */
     private static $questiontypes = array();
-    /**
-     * @var array question type name => 1. Records which question definition
-     * classes have been loaded. Currently initialised to account for the classes
-     * in testquestiontype.php.
-     */
+
+    /** @var array question type name => 1. Records which question definitions have been loaded. */
     private static $loadedqdefs = array(
         'multichoice' => 1,
     );
@@ -59,14 +61,20 @@ abstract class question_engine {
     private static $loadedmodels = array();
 
     /**
-     * @param string $owningplugin
-     * @return question_usage_by_activity
+     * Create a new {@link question_usage_by_activity}. The usage is
+     * created in memory. If you want it to persist, you will need to call
+     * {@link save_questions_usage_by_activity()}.
+     *
+     * @param string $owningplugin the plugin creating this attempt. For example mod_quiz.
+     * @param object $context the context this usage belongs to.
+     * @return question_usage_by_activity the newly created object.
      */
     public static function make_questions_usage_by_activity($owningplugin, $context) {
         return new question_usage_by_activity($owningplugin, $context);
     }
 
     /**
+     * Load a {@link question_usage_by_activity} from the database, based on its id.
      * @param integer $qubaid the id of the usage to load.
      * @return question_usage_by_activity loaded from the database.
      */
@@ -75,6 +83,12 @@ abstract class question_engine {
         return $dm->load_questions_usage_by_activity($qubaid);
     }
 
+    /**
+     * Save a {@link question_usage_by_activity} to the database. This works either
+     * if the usage was newly created by {@link make_questions_usage_by_activity()}
+     * or loaded from the database using {@link load_questions_usage_by_activity()}
+     * @param question_usage_by_activity the usage to save.
+     */
     public static function save_questions_usage_by_activity(question_usage_by_activity $quba) {
         $observer = $quba->get_observer();
         if ($observer instanceof question_engine_unit_of_work) {
@@ -85,12 +99,18 @@ abstract class question_engine {
         }
     }
 
+    /**
+     * Delete a {@link question_usage_by_activity} from the database, based on its id.
+     * @param integer $qubaid the id of the usage to delete.
+     */
     public static function delete_questions_usage_by_activity($qubaid) {
         $dm = new question_engine_data_mapper();
         $dm->delete_questions_usage_by_activity($qubaid);
     }
 
     /**
+     * Load a question definition from the database. The object returned
+     * will actually be of an appropriate {@link question_definition} subclass.
      * @param integer $questionid the id of the question to load.
      * @return question_definition loaded from the database.
      */
@@ -105,39 +125,47 @@ abstract class question_engine {
 
     /**
      * Get the question type class for a particular question type.
-     * @param string $typename the question type name. For example 'multichoice' or 'shortanswer'.
+     * @param string $qtypename the question type name. For example 'multichoice' or 'shortanswer'.
      * @return question_type the corresponding question type class.
      */
-    public static function get_qtype($typename) {
+    public static function get_qtype($qtypename) {
         global $CFG;
-        if (isset(self::$questiontypes[$typename])) {
-            return self::$questiontypes[$typename];
+        if (isset(self::$questiontypes[$qtypename])) {
+            return self::$questiontypes[$qtypename];
         }
-        $file = $CFG->dirroot . '/question/type/' . $typename . '/questiontype.php';
+        $file = $CFG->dirroot . '/question/type/' . $qtypename . '/questiontype.php';
         if (!is_readable($file)) {
-            throw new Exception('Unknown question type ' . $typename);
+            throw new Exception('Unknown question type ' . $qtypename);
         }
         include_once($file);
-        $class = 'qtype_' . $typename;
-        self::$questiontypes[$typename] = new $class();
-        return self::$questiontypes[$typename];
+        $class = 'qtype_' . $qtypename;
+        self::$questiontypes[$qtypename] = new $class();
+        return self::$questiontypes[$qtypename];
     }
 
-    public static function load_question_definition_classes($qtype) {
+    /**
+     * Load the question definition class(es) belonging to a question type. That is,
+     * include_once('/question/type/' . $qtypename . '/question.php'), with a bit
+     * of checking.
+     * @param string $qtypename the question type name. For example 'multichoice' or 'shortanswer'.
+     */
+    public static function load_question_definition_classes($qtypename) {
         global $CFG;
-        if (isset(self::$loadedqdefs[$qtype])) {
+        if (isset(self::$loadedqdefs[$qtypename])) {
             return;
         }
-        $file = $CFG->dirroot . '/question/type/' . $qtype . '/question.php';
+        $file = $CFG->dirroot . '/question/type/' . $qtypename . '/question.php';
         if (!is_readable($file)) {
-            throw new Exception('Unknown question type (no definition) ' . $qtype);
+            throw new Exception('Unknown question type (no definition) ' . $qtypename);
         }
         include_once($file);
-        self::$loadedqdefs[$qtype] = 1;
+        self::$loadedqdefs[$qtypename] = 1;
     }
 
     /**
      * Create an archetypal interaction model for a particular question attempt.
+     * Used by {@link question_definition::make_interaction_model()}.
+     *
      * @param string $preferredmodel the type of model required.
      * @param question_attempt $qa the question attempt the model will process.
      * @return question_interaction_model an instance of appropriate interaction model class.
@@ -151,6 +179,12 @@ abstract class question_engine {
         return new $class($qa);
     }
 
+    /**
+     * Load the interaction model class(es) belonging to a particular model. That is,
+     * include_once('/question/interaction/' . $model . '/model.php'), with a bit
+     * of checking.
+     * @param string $qtypename the question type name. For example 'multichoice' or 'shortanswer'.
+     */
     public static function load_interaction_model_class($model) {
         global $CFG;
         if (isset(self::$loadedmodels[$model])) {
@@ -165,10 +199,10 @@ abstract class question_engine {
     }
 
     /**
-     * Return an array where the keys are the internal names of the
-     * archetypal interaction models, and the values are a human-readable
-     * name. By archetypal interaction model, I mean a string that is suitable
-     * to be passed to archetypal {@link interaction model::set_preferred_interaction_model()}.
+     * Return an array where the keys are the internal names of the archetypal
+     * interaction models, and the values are a human-readable name. An
+     * archetypal interaction model is one that is suitable to pass the name of to
+     * {@link question_usage_by_activity::set_preferred_interaction_model()}.
      *
      * @return array model name => lang string for this model name.
      */
@@ -187,6 +221,11 @@ abstract class question_engine {
         return $archetypes;
     }
 
+    /**
+     * Get the translated name of an interaction model, for display in the UI.
+     * @param string $model the internal name of the model.
+     * @return string name from the current language pack.
+     */
     public static function get_interaction_model_name($model) {
         return get_string($model, 'qim_' . $model);
     }
@@ -203,14 +242,18 @@ abstract class question_engine {
 
 
 /**
- * An enumration representing the states a question can be in after a step.
+ * An enumration representing the states a question can be in after a
+ * {@link question_attempt_step}.
  *
- * With some useful methods to help manipulate states.
+ * There are also some useful methods for testing and manipulating states.
  *
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class question_state {
+    /**#@+
+     * @var integer a state the question can be in.
+     */
     const NOT_STARTED = -1;
     const UNPROCESSED = 0;
     const INCOMPLETE = 1;
@@ -226,25 +269,55 @@ abstract class question_state {
     const MANUALLY_GRADED_INCORRECT = 56;
     const MANUALLY_GRADED_PARTCORRECT = 57;
     const MANUALLY_GRADED_CORRECT = 58;
+    /**#@-*/
 
+    /**
+     * Is this state one of the ones that mean the question attempt is in progress?
+     * That is, started, but no finished.
+     * @param integer $state one of the state constants.
+     * @return boolean
+     */
     public static function is_active($state) {
         return $state == self::INCOMPLETE || $state == self::COMPLETE;
     }
 
+    /**
+     * Is this state one of the ones that mean the question attempt is finished?
+     * That is, not furthre interaction possible, apart from manual grading.
+     * @param $state
+     * @return boolean
+     */
     public static function is_finished($state) {
         return $state >= self::NEEDS_GRADING;
     }
 
+    /**
+     * Is this state one of the ones that mean the question attempt has been graded?
+     * @param integer $state one of the state constants.
+     * @return boolean
+     */
     public static function is_graded($state) {
         return ($state >= self::GRADED_INCORRECT && $state <= self::GRADED_CORRECT) ||
                 ($state >= self::MANUALLY_GRADED_INCORRECT && $state <= self::MANUALLY_GRADED_CORRECT);
     }
 
-
+    /**
+     * Is this state one of the ones that mean the question attempt has had a manual comment added?
+     * @param integer $state one of the state constants.
+     * @return boolean
+     */
     public static function is_commented($state) {
         return $state >= self::FINISHED_COMMENTED;
     }
 
+    /**
+     * Return the appropriate graded state based on a fraction. That is 0 or less
+     * is GRADED_INCORRECT, 1 is GRADED_CORRECT, otherwise it is GRADED_PARTCORRECT.
+     * Appropriate allowance is made for rounding float values.
+     *
+     * @param number $fraction the grade, on the fraction scale.
+     * @return integer one of the state constants.
+     */
     public static function graded_state_for_fraction($fraction) {
         if ($fraction < 0.0000001) {
             return self::GRADED_INCORRECT;
@@ -255,6 +328,13 @@ abstract class question_state {
         }
     }
 
+    /**
+     * Compute an appropriate state to move to after a manual comment has been
+     * added to another state.
+     * @param integer $state the starting state.
+     * @param number $fraction the manual grade (if any) on the fraction scale.
+     * @return integer the new state.
+     */
     public static function manually_graded_state_for_other_state($state, $fraction) {
         $oldstate = $state & 0xFFFFFFDF;
         switch ($oldstate) {
@@ -275,6 +355,12 @@ abstract class question_state {
         }
     }
 
+    /**
+     * Return an appropriate CSS class name ''/'correct'/'partiallycorrect'/'incorrect',
+     * for a state.
+     * @param $state one of the state constants.
+     * @return string
+     */
     public static function get_feedback_class($state) {
         switch ($state) {
             case self::GRADED_CORRECT:
@@ -293,6 +379,15 @@ abstract class question_state {
         }
     }
 
+    /**
+     * Return an appropriate string from the language pack for a state. This is
+     * used, for example, by {@link qim_renderer::get_state_string()}. However,
+     * some interaction models sometimes change this default string for
+     * soemthing more specific.
+     *
+     * @param integer $state one of the state constants.
+     * @return string a string from the lang pack that can be used in the UI.
+     */
     public static function default_string($state) {
         switch ($state) {
             case self::INCOMPLETE;
@@ -326,21 +421,48 @@ abstract class question_state {
 /**
  * This class contains all the options that controls how a question is displayed.
  *
+ * Normally, what will happen is that the calling code will set up some display
+ * options to indicate what sort of question display it wants, and then before the
+ * question is rendered, the interaction model will be given a chance to modify the
+ * display options, so that, for example, A question that is finished will only
+ * be shown read-only, and a question that has not been submitted will not have
+ * any sort of feedback displayed.
+ *
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_display_options {
+    /**#@+ @var integer named constants for the values that most of the options take. */
     const HIDDEN = 0;
     const VISIBLE = 1;
     const EDITABLE = 2;
+    /**#@-*/
 
+    /**#@+ @var integer named constants for the {@link $marks} option. */
     const MAX_ONLY = 1;
     const MARK_AND_MAX = 2;
+    /**#@-*/
 
+    /**
+     * @var integer maximum value for the {@link $markpd} option. This is
+     * effectively set by the database structure, which uses NUMBER(12,7) columns
+     * for question marks/fractions.
+     */
     const MAX_DP = 7;
 
+    /**
+     * @var boolean whether the question should be displayed as a read-only review,
+     * or in an active state where you can change the answer.
+     */
     public $readonly = false;
+
+    /**
+     * @var integer {@link question_display_options::HIDDEN} or {@link question_display_options::VISIBLE}
+     */
     public $responses = self::VISIBLE;
+    /**TODO
+     * @var unknown_type
+     */
     public $correctness = self::VISIBLE;
     public $feedback = self::VISIBLE;
     public $generalfeedback = self::VISIBLE;
@@ -351,6 +473,14 @@ class question_display_options {
     public $history = self::HIDDEN;
     public $flags = self::VISIBLE;
 
+    /**
+     * Initialise an instance of this class from the kind of bitmask values stored
+     * in the quiz.review fields in the databas.
+     *
+     * This function probably does not belong here.
+     *
+     * @param integer $bitmask a review options bitmask from the quiz module.
+     */
     public function set_review_options($bitmask) {
         global $CFG;
         require_once($CFG->dirroot . '/mod/quiz/lib.php');
@@ -361,17 +491,34 @@ class question_display_options {
         $this->correctresponse = ($bitmask & QUIZ_REVIEW_ANSWERS) != 0;
     }
 
+    /**
+     * Set all the feedback-related fields {@link $feedback}, {@link generalfeedback},
+     * {@link correctresponse} and {@link manualcomment} to
+     * {@link question_display_options::HIDDEN}.
+     */
     public function hide_all_feedback() {
         $this->feedback = self::HIDDEN;
-        $this->correctresponse = self::HIDDEN;
         $this->generalfeedback = self::HIDDEN;
+        $this->correctresponse = self::HIDDEN;
         $this->manualcomment = self::HIDDEN;
     }
 
+    /**
+     * @return boolean Whether the link to manually grade this question should be shown.
+     */
     public function can_edit_comment() {
         return is_string($this->manualcomment);
     }
 
+    /**
+     * Returns the valid choices for the number of decimal places for showing
+     * question marks. For use in the user interface.
+     *
+     * Calling code should probably use {@link question_engine::get_dp_options()}
+     * rather than calling this method directly.
+     *
+     * @return array suitable for passing to {@link choose_from_menu()} or similar.
+     */
     public static function get_dp_options() {
         $options = array();
         for ($i = 0; $i <= self::MAX_DP; $i += 1) {
@@ -384,47 +531,84 @@ class question_display_options {
 
 /**
  * This class keeps track of a group of questions that are being attempted,
- * and which state each one is currently in.
+ * and which state, and so on, each one is currently in.
  *
  * A quiz attempt or a lesson attempt could use an instance of this class to
  * keep track of all the questions in the attempt and process student submissions.
  * It is basically a collection of {@question_attempt} objects.
  *
+ * The questions being attempted as part of this usage are identified by an integer
+ * that is passed into many of the methods as $qnumber. ($question->id is not
+ * used so that the same question can be used more than once in an attempt.)
+ *
+ * Normally, calling code should be able to do everything it needs to be calling
+ * methods of this class. You should not normally need to get individual
+ * {@question_attempt} objects and play around with their inner workind, in code
+ * that it outside the quetsion engine.
+ *
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_usage_by_activity {
+    /**
+     * @var integer|string the id for this usage. If this usage was loaded from
+     * the database, then this is the database id. Otherwise a unique random
+     * string is used.
+     */
     protected $id = null;
+
+    /**
+     * @var string name of an archetypal interaction model, that should be used
+     * by questions in this usage if possible.
+     */
     protected $preferredmodel = null;
     protected $context;
     protected $owningplugin;
     protected $questionattempts = array();
     protected $observer;
 
+    /**
+     * Create a new instance. Normally, calling code should use
+     * {@link question_engine::make_questions_usage_by_activity()} or
+     * {@link question_engine::load_questions_usage_by_activity()} rather than
+     * calling this constructor directly.
+     *
+     * @param string $owningplugin the plugin creating this attempt. For example mod_quiz.
+     * @param object $context the context this usage belongs to.
+     */
     public function __construct($owningplugin, $context) {
         $this->owningplugin = $owningplugin;
         $this->context = $context;
         $this->observer = new question_usage_null_observer();
     }
 
+    /**
+     * @param string $model the name of an archetypal interaction model, that should
+     * be used by questions in this usage if possible.
+     */
     public function set_preferred_interaction_model($model) {
         $this->preferredmodel = $model;
         $this->observer->notify_modified();
     }
 
+    /** @return string the name of the preferred interaction model. */
     public function get_preferred_interaction_model() {
         return $this->preferredmodel;
     }
 
-    /** @return stdClass */
+    /** @return stdClass the context this usage belongs to. */
     public function get_owning_context() {
         return $this->context;
     }
 
+    /** @return string the name of the plugin that owns this attempt. */
     public function get_owning_plugin() {
         return $this->owningplugin;
     }
 
+    /** @return integer|string If this usage came from the database, then the id
+     * from the question_usages table is returned. Otherwise a random string is
+     * returned. */
     public function get_id() {
         if (is_null($this->id)) {
             $this->id = random_string(10);
@@ -432,10 +616,16 @@ class question_usage_by_activity {
         return $this->id;
     }
 
+    /** @return question_usage_observer that is tracking changes made to this usage. */
     public function get_observer() {
         return $this->observer;
     }
 
+    /**
+     * For internal use only. Used by {@link question_engine_data_mapper} to set
+     * the id when a usage is saved to the database.
+     * @param integer $id the newly determined id for this usage.
+     */
     public function set_id_from_database($id) {
         $this->id = $id;
         foreach ($this->questionattempts as $qa) {
@@ -443,6 +633,17 @@ class question_usage_by_activity {
         }
     }
 
+    /**
+     * Add another question to this usage.
+     *
+     * The added question is not started until you call {@link start_question()}
+     * on it.
+     *
+     * @param question_definition $question the question to add.
+     * @param number $maxmark the maximum this question will be marked out of in
+     *      this attempt (optional). If not given, $question->defaultmark is used.
+     * @return integer the number used to identify this question within this usage.
+     */
     public function add_question(question_definition $question, $maxmark = null) {
         $qa = new question_attempt($question, $this->get_id(), $this->observer, $maxmark);
         if (count($this->questionattempts) == 0) {
@@ -456,33 +657,49 @@ class question_usage_by_activity {
     }
 
     /**
-     * @param integer $qnumber
-     * @return question_definition
+     * Get the question_definition for a question in this attempt.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @return question_definition the requested question object.
      */
     public function get_question($qnumber) {
         return $this->get_question_attempt($qnumber)->get_question();
     }
 
+    /** @return array all the identifying numbers of all the questions in this usage. */
     public function get_question_numbers() {
         return array_keys($this->questionattempts);
     }
 
+    /** @return integer the identifying number of the first question that was added to this usage. */
     public function get_first_question_number() {
         reset($this->questionattempts);
         return key($this->questionattempts);
     }
 
+    /** @return integer the number of questions that are currently in this usage. */
     public function question_count() {
         return count($this->questionattempts);
     }
 
+    /**
+     * Note the part of the {@link question_usage_by_activity} comment that explains
+     * that {@link question_attempt} objects should be considered part of the inner
+     * workings of the question engine, and should not, if possible, be accessed directly.
+     *
+     * @return question_attempt_iterator for iterating over all the questions being
+     * attempted. as part of this usage.
+     */
     public function get_attempt_iterator() {
         return new question_attempt_iterator($this);
     }
 
     /**
-     * @param integer $qnumber
-     * @return question_attempt
+     * Note the part of the {@link question_usage_by_activity} comment that explains
+     * that {@link question_attempt} objects should be considered part of the inner
+     * workings of the question engine, and should not, if possible, be accessed directly.
+     *
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @return question_attempt the corresponding {@link question_attempt} object.
      */
     public function get_question_attempt($qnumber) {
         if (!array_key_exists($qnumber, $this->questionattempts)) {
@@ -491,10 +708,21 @@ class question_usage_by_activity {
         return $this->questionattempts[$qnumber];
     }
 
+    /**
+     * Get the current state of the attempt at a question.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @return integer one of the {@link question_state} constants.
+     */
     public function get_question_state($qnumber) {
         return $this->get_question_attempt($qnumber)->get_state();
     }
 
+    /**
+     * Get the current mark awarded for the attempt at a question.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @return number|null The current mark for this question, or null if one has
+     * not been assigned yet.
+     */
     public function get_question_mark($qnumber) {
         return $this->get_question_attempt($qnumber)->get_mark();
     }
@@ -513,6 +741,12 @@ class question_usage_by_activity {
 
     public function get_field_prefix($qnumber) {
         return $this->get_question_attempt($qnumber)->get_field_prefix();
+    }
+
+    public function start_question($qnumber) {
+        $qa = $this->get_question_attempt($qnumber);
+        $qa->start($this->preferredmodel);
+        $this->observer->notify_attempt_modified($qa);
     }
 
     public function start_all_questions() {
@@ -548,6 +782,12 @@ class question_usage_by_activity {
     public function process_action($qnumber, $submitteddata) {
         $qa = $this->get_question_attempt($qnumber);
         $qa->process_action($submitteddata);
+        $this->observer->notify_attempt_modified($qa);
+    }
+
+    public function finish_question($qnumber) {
+        $qa = $this->get_question_attempt($qnumber);
+        $qa->finish();
         $this->observer->notify_attempt_modified($qa);
     }
 

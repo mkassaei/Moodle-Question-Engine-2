@@ -10,10 +10,10 @@ Finish interaction models and core of the engine
   Fix manual grading of automatically graded quetsion types.
 
 Database load/save code
-  Update functions
   Unit tests for Unit of Work
   Database update on regrading
   Make more efficient code using lazy-loading, etc.
+  Garbage collect old preview question usages.
 
 Convert existing question type code
   Split qtype classes in three
