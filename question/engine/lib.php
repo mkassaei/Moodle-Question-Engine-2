@@ -26,6 +26,8 @@
  */
 
 
+require_once(dirname(__FILE__) . '/compatibility.php');
+
 require_once(dirname(__FILE__) . '/datalib.php');
 require_once(dirname(__FILE__) . '/renderer.php');
 require_once(dirname(__FILE__) . '/../type/questiontype.php');
@@ -34,7 +36,6 @@ require_once(dirname(__FILE__) . '/../type/rendererbase.php');
 require_once(dirname(__FILE__) . '/../interaction/modelbase.php');
 require_once(dirname(__FILE__) . '/../interaction/rendererbase.php');
 
-require_once(dirname(__FILE__) . '/compatibility.php');
 require_once(dirname(__FILE__) . '/testquestiontype.php');
 
 
@@ -457,20 +458,77 @@ class question_display_options {
     public $readonly = false;
 
     /**
-     * @var integer {@link question_display_options::HIDDEN} or {@link question_display_options::VISIBLE}
+     * Not really used withing the question engine (at least at the moment.)
+     * The only way to not show the response the student entered is to not display
+     * the question in its current state at all. (This is how this field is
+     * used in the quiz at the moment.)
+     * @var integer {@link question_display_options::HIDDEN} or
+     * {@link question_display_options::VISIBLE}
      */
     public $responses = self::VISIBLE;
-    /**TODO
-     * @var unknown_type
+
+    /**
+     * Should the one-line summary of the current state of the question that
+     * appears by the question number be shown?
+     * @var integer {@link question_display_options::HIDDEN} or
+     * {@link question_display_options::VISIBLE}
      */
     public $correctness = self::VISIBLE;
+
+    /**
+     * Should the specific feedback be visible.
+     * @var integer {@link question_display_options::HIDDEN} or
+     * {@link question_display_options::VISIBLE}
+     */
     public $feedback = self::VISIBLE;
+
+    /**
+     * Should the general feedback be visible?
+     * @var integer {@link question_display_options::HIDDEN} or
+     * {@link question_display_options::VISIBLE}
+     */
     public $generalfeedback = self::VISIBLE;
+
+    /**
+     * Should the automatically generated display of what the correct answer is
+     * be visible?
+     * @var integer {@link question_display_options::HIDDEN} or
+     * {@link question_display_options::VISIBLE}
+     */
     public $correctresponse = self::VISIBLE;
+
+    /**
+     * The the mark and/or the maximum available mark for this question be visible?
+     * @var integer {@link question_display_options::HIDDEN},
+     * {@link question_display_options::MAX_ONLY} or {@link question_display_options::MARK_AND_MAX}
+     */
     public $marks = self::MARK_AND_MAX;
+
+    /** @var number of decimal places to use when formatting marks for output. */
     public $markdp = 2;
+
+    /**
+     * Should the manually added marker's comment be visible. Should the link for
+     * adding/editing the comment be there.
+     * @var integer|string {@link question_display_options::HIDDEN},
+     * {@link question_display_options::VISIBLE}, or string base URL for the edit
+     * comment script (meaning show any comment, and the link).
+     */
     public $manualcomment = self::VISIBLE;
+
+    /**
+     * Should the history of previous question states table be visible?
+     * @var integer {@link question_display_options::HIDDEN} or
+     * {@link question_display_options::VISIBLE}
+     */
     public $history = self::HIDDEN;
+
+    /**
+     * Should the flag this question UI element be visible, and if so, should the
+     * flag state be changable?
+     * @var integer {@link question_display_options::HIDDEN},
+     * {@link question_display_options::VISIBLE} or {@link question_display_options::EDITABLE}
+     */
     public $flags = self::VISIBLE;
 
     /**
@@ -546,6 +604,8 @@ class question_display_options {
  * {@question_attempt} objects and play around with their inner workind, in code
  * that it outside the quetsion engine.
  *
+ * Instances of this class correspond to rows in the question_usages table.
+ *
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -562,9 +622,17 @@ class question_usage_by_activity {
      * by questions in this usage if possible.
      */
     protected $preferredmodel = null;
+
+    /** @var object the context this usage belongs to. */
     protected $context;
+
+    /** @var string plugin name of the plugin this usage belongs to. */
     protected $owningplugin;
+
+    /** @var array {@link question_attempt}s that make up this usage. */
     protected $questionattempts = array();
+
+    /** @var question_usage_observer that tracks changes to this usage. */
     protected $observer;
 
     /**
@@ -727,28 +795,62 @@ class question_usage_by_activity {
         return $this->get_question_attempt($qnumber)->get_mark();
     }
 
+    /**
+     * Get the maximum mark possible for the attempt at a question.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @return number the available marks for this question.
+     */
     public function get_question_max_mark($qnumber) {
         return $this->get_question_attempt($qnumber)->get_max_mark();
     }
 
+    /**
+     * Get the {@link core_question_renderer}, in collaboration with appropriate
+     * {@link qim_renderer} and {@link qtype_renderer} subclasses, to generate the
+     * HTML to display this question.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param question_display_options $options controls how the question is rendered.
+     * @param string|null $number The question number to display.
+     * @return string HTML fragment representing the question.
+     */
     public function render_question($qnumber, $options, $number = null) {
         return $this->get_question_attempt($qnumber)->render($options, $number);
     }
 
+    /**
+     * Generate any bits of HTML that needs to go in the <head> tag when this question
+     * is displayed in the body.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @return string HTML fragment.
+     */
     public function render_question_head_html($qnumber) {
         return $this->get_question_attempt($qnumber)->render_head_html();
     }
 
+    /**
+     * You should probably not use this method in code outside the question engine.
+     * The main reason for exposing it was for the benefit of unit tests.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @return string return the prefix that is pre-pended to field names in the HTML
+     * that is output.
+     */
     public function get_field_prefix($qnumber) {
         return $this->get_question_attempt($qnumber)->get_field_prefix();
     }
 
+    /**
+     * Start the attempt at a question that has been added to this usage.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     */
     public function start_question($qnumber) {
         $qa = $this->get_question_attempt($qnumber);
         $qa->start($this->preferredmodel);
         $this->observer->notify_attempt_modified($qa);
     }
 
+    /**
+     * Start the attempt at all questions that has been added to this usage.
+     */
     public function start_all_questions() {
         foreach ($this->questionattempts as $qa) {
             $qa->start($this->preferredmodel);
@@ -756,8 +858,18 @@ class question_usage_by_activity {
         }
     }
 
+    /**
+     * Process all the question actions in the current request.
+     *
+     * If there is a parameter qnumbers included in the post data, then only
+     * those question numbers will be processed, otherwise all questions in this
+     * useage will be.
+     *
+     * @param $postdata optional, only intended for testing. Use this data
+     * instead of the data from $_POST.
+     */
     public function process_all_actions($postdata = null) {
-        $qnumbers = optional_param('qnumbers', null, PARAM_SEQUENCE);
+        $qnumbers = question_attempt::get_submitted_var('qnumbers', PARAM_SEQUENCE, $postdata);
         if (is_null($qnumbers)) {
             $qnumbers = $this->get_question_numbers();
         } else if (!$qnumbers) {
@@ -771,26 +883,63 @@ class question_usage_by_activity {
         }
     }
 
-    public function get_correct_response($qnumber) {
-        return $this->get_question_attempt($qnumber)->get_correct_response();
-    }
-
+    /**
+     * Get the submitted data from the current request that belongs to this
+     * particular question.
+     *
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param $postdata optional, only intended for testing. Use this data
+     * instead of the data from $_POST.
+     * @return array submitted data specific to this question.
+     */
     public function extract_responses($qnumber, $postdata = null) {
         return $this->get_question_attempt($qnumber)->get_submitted_data($postdata);
     }
 
+    /**
+     * Process a specific action on a specific question.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param $submitteddata the submitted data that constitutes the action.
+     */
     public function process_action($qnumber, $submitteddata) {
         $qa = $this->get_question_attempt($qnumber);
         $qa->process_action($submitteddata);
         $this->observer->notify_attempt_modified($qa);
     }
 
+    /**
+     * Get the correct response to a particular question. Passing the results of
+     * this method to {@link process_action()} will probably result in full marks.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @return array that constitutes a correct response to this question.
+     */
+    public function get_correct_response($qnumber) {
+        return $this->get_question_attempt($qnumber)->get_correct_response();
+    }
+
+    /**
+     * Finish the active phase of an attempt at a question.
+     *
+     * This is an external act of finishing the attempt. Think, for example, of
+     * the 'Submit all and finish' button in the quiz. Some interaction models,
+     * (for example, immediatefeedback) give a way of finishing the active phase
+     * of a question attempt as part of a {@link process_action()} call.
+     *
+     * After the active phase is over, the only changes possible are things like
+     * manual grading, or changing the flag state.
+     *
+     * @param integer $qnumber the number used to identify this question within this usage.
+     */
     public function finish_question($qnumber) {
         $qa = $this->get_question_attempt($qnumber);
         $qa->finish();
         $this->observer->notify_attempt_modified($qa);
     }
 
+    /**
+     * Finish the active phase of an attempt at a question. See {@link finish_question()}
+     * for a fuller description of what 'finish' means.
+     */
     public function finish_all_questions() {
         foreach ($this->questionattempts as $qa) {
             $qa->finish();
@@ -798,12 +947,25 @@ class question_usage_by_activity {
         }
     }
 
+    /**
+     * Perform a manual grading action on a question attempt.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param string $comment the comment being added to the question attempt.
+     * @param number $mark the mark that is being assigned. Can be null to just
+     * add a comment.
+     */
     public function manual_grade($qnumber, $comment, $mark) {
         $qa = $this->get_question_attempt($qnumber);
         $qa->manual_grade($mark, $comment);
         $this->observer->notify_attempt_modified($qa);
     }
 
+    /**
+     * Regrade a question in this usage. This replays the sequence of submitted
+     * actions to recompute the outcomes.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param $newmaxmark (optional) if given, will change the max mark while regrading.
+     */
     public function regrade_question($qnumber, $newmaxmark = null) {
         $oldqa = $this->get_question_attempt($qnumber);
         if (is_null($newmaxmark)) {
@@ -816,6 +978,9 @@ class question_usage_by_activity {
         // TODO notify observer.
     }
 
+    /**
+     * Regrade all the questions in this usage (without changing their max mark).
+     */
     public function regrade_all_questions() {
         foreach ($this->questionattempts as $qnumber => $notused) {
             $this->regrade_question($qnumber);
@@ -824,6 +989,9 @@ class question_usage_by_activity {
 
     /**
      * Create a question_usage_by_activity from records loaded from the database.
+     *
+     * For internal use only.
+     *
      * @param array $records Raw records loaded from the database.
      * @param integer $questionattemptid The id of the question_attempt to extract.
      * @return question_attempt The newly constructed question_attempt_step.
@@ -857,15 +1025,29 @@ class question_usage_by_activity {
 
 
 /**
- * A class abstracting access to the question_attempt::states array.
+ * A class abstracting access to the
+ * {@link question_usage_by_activity::$questionattempts} array.
+ *
+ * This class snapshots the list of {@link question_attempts} to iterate over
+ * when it is created. If a question is added to the usage mid-iteration, it
+ * will now show up.
+ *
+ * To create an instance of this class, use
+ * {@link question_usage_by_activity::get_attempt_iterator()}
  *
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt_iterator implements Iterator, ArrayAccess {
+    /** @var question_usage_by_activity that we are iterating over. */
     protected $quba;
+    /** @var array of question numbers. */
     protected $qnumbers;
 
+    /**
+     * To create an instance of this class, use {@link question_usage_by_activity::get_attempt_iterator()}.
+     * @param $quba the usage to iterate over.
+     */
     public function __construct(question_usage_by_activity $quba) {
         $this->quba = $quba;
         $this->qnumbers = $quba->get_question_numbers();
@@ -909,29 +1091,86 @@ class question_attempt_iterator implements Iterator, ArrayAccess {
 
 
 /**
- * Tracks an attempt at one particular question.
+ * Tracks an attempt at one particular question in a {@link question_usage_by_activity}.
+ *
+ * Most calling code should need to access objects of this class. They should be
+ * able to do everything through the usage interface. This class is an internal
+ * implementation detail of the question engine.
+ *
+ * Instances of this class correspond to rows in the question_attempts table, and
+ * a collection of {@link question_attempt_steps}. Question inteaction models and
+ * question types do work with question_attempt objects.
  *
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt {
+    /** @var integer if this attempts is stored in the question_attempts table, the id of that row. */
     protected $id = null;
+
+    /** @var integer|string the id of the question_usage_by_activity we belong to. */
     protected $usageid;
+
+    /** @var integer the number used to identify this question_attempt within the usage. */
     protected $numberinusage = null;
+
+    /**
+     * @var question_interaction_model the interaction model controlling this attempt.
+     * null until {@link start()} is called.
+     */
     protected $interactionmodel = null;
+
+    /** @var question_definition the question this is an attempt at. */
     protected $question;
+
+    /** @var number the maximum mark that can be scored at this question. */
     protected $maxmark;
+
+    /**
+     * @var number the minimum fraction that can be scored at this question, so
+     * the minimum mark is $this->minfraction * $this->maxmark.
+     */
     protected $minfraction = null;
+
+    /** @var string not currently used, but in the database schema. */
+    protected $questionsummary = '';
+
+    /** @var string not currently used, but in the database schema. */
+    protected $rightanswer = '';
+
+    /** @var string not currently used, but in the database schema. */
     protected $responsesummary = '';
+
+    /** @var array of {@link question_attempt_step}s. The steps in this attempt. */
     protected $steps = array();
+
+    /** @var boolean whether the user has flagged this attempt within the usage. */
     protected $flagged = false;
-    protected $pendingstep = null;
-    /** @var question_usage_observer */
+
+    /** @var question_usage_observer tracks changes to the useage this attempt is part of.*/
     protected $observer;
 
+    /**#@+
+     * Constants used by the intereaction models to indicate whether the current
+     * pending step should be kept or discarded.
+     */
     const KEEP = true;
     const DISCARD = false;
+    /**#@-*/
 
+    /**
+     * Create a new {@link question_attempt}. Normally you should create question_attempts
+     * indirectly, by calling {@link question_usage_by_activity::add_question()}.
+     *
+     * @param question_definition $question the question this is an attempt at.
+     * @param integer|string $usageid The id of the
+     *      {@link question_usage_by_activity} we belong to. Used by {@link get_field_prefix()}.
+     * @param question_usage_observer $observer tracks changes to the useage this
+     *      attempt is part of. (Optional, a {@link question_usage_null_observer} is
+     *      used if one is not passed.
+     * @param number $maxmark the maximum grade for this question_attempt. If not
+     * passed, $question->defaultmark is used.
+     */
     public function __construct(question_definition $question, $usageid,
             question_usage_observer $observer = null, $maxmark = null) {
         $this->question = $question;
@@ -947,60 +1186,112 @@ class question_attempt {
         }
     }
 
-    /**
-     * @return question_definition
-     */
+    /** @return question_definition the question this is an attempt at. */
     public function get_question() {
         return $this->question;
     }
 
+    /**
+     * Set the number used to identify this question_attempt within the usage.
+     * For internal use only.
+     * @param integer $qnumber
+     */
     public function set_number_in_usage($qnumber) {
         $this->numberinusage = $qnumber;
     }
 
+    /** @return integer the number used to identify this question_attempt within the usage. */
     public function get_number_in_usage() {
         return $this->numberinusage;
     }
 
+    /**
+     * @return integer the id of row for this question_attempt, if it is stored in the
+     * database. null if not.
+     */
     public function get_database_id() {
         return $this->id;
     }
 
+    /** @return integer|string the id of the {@link question_usage_by_activity} we belong to. */
     public function get_usage_id() {
         return $this->usageid;
     }
 
+    /**
+     * Set the id of the {@link question_usage_by_activity} we belong to.
+     * For internal use only.
+     * @param integer|string the new id.
+     */
     public function set_usage_id($usageid) {
         $this->usageid = $usageid;
     }
 
+    /** @return string the name of the interaction model that is controlling this attempt. */
     public function get_interaction_model_name() {
         return $this->interactionmodel->get_name();
     }
 
+    /**
+     * Set the flagged state of this question.
+     * @param boolean $flagged the new state.
+     */
     public function set_flagged($flagged) {
         $this->flagged = $flagged;
         $this->observer->notify_attempt_modified($this);
     }
 
+    /** @return boolean whether this question is currently flagged. */
     public function is_flagged() {
         return $this->flagged;
     }
 
+    /**
+     * Get the name (in the sense a HTML name="" attribute, or a $_POST variable
+     * name) to use for a question_type variable belonging to this question_attempt.
+     *
+     * See the comment on {@link question_attempt_step} for an explanation of
+     * question type and interaction model variables.
+     *
+     * @param $varname The short form of the variable name.
+     * @return string  The field name to use.
+     */
     public function get_qt_field_name($varname) {
         return $this->get_field_prefix() . $varname;
     }
 
+    /**
+     * Get the name (in the sense a HTML name="" attribute, or a $_POST variable
+     * name) to use for a question_type variable belonging to this question_attempt.
+     *
+     * See the comment on {@link question_attempt_step} for an explanation of
+     * question type and interaction model variables.
+     *
+     * @param $varname The short form of the variable name.
+     * @return string  The field name to use.
+     */
     public function get_im_field_name($varname) {
         return $this->get_field_prefix() . '!' . $varname;
     }
 
+    /**
+     * Get the prefix added to variable names to give field names for this
+     * question attempt.
+     *
+     * You should not use this method directly. This is an implementation detail
+     * anyway, but if you must access it, use {@link question_usage_by_activity::get_field_prefix()}.
+     *
+     * @param $varname The short form of the variable name.
+     * @return string  The field name to use.
+     */
     public function get_field_prefix() {
         return 'q' . $this->usageid . ',' . $this->numberinusage . '_';
     }
 
     /**
-     * @param integer $i
+     * Get one of the steps in this attempt.
+     * For internal/test code use only.
+     * @param integer $i the step number.
      * @return question_attempt_step
      */
     public function get_step($i) {
@@ -1010,11 +1301,18 @@ class question_attempt {
         return $this->steps[$i];
     }
 
+    /**
+     * Get the number of steps in this attempt.
+     * For internal/test code use only.
+     * @return integer the number of steps we currently have.
+     */
     public function get_num_steps() {
         return count($this->steps);
     }
 
     /**
+     * Return the latest step in this question_attempt.
+     * For internal/test code use only.
      * @return question_attempt_step
      */
     public function get_last_step() {
@@ -1025,22 +1323,26 @@ class question_attempt {
     }
 
     /**
-     * @return question_attempt_step_iterator
+     * @return question_attempt_step_iterator for iterating over the steps in
+     * this attempt, in order.
      */
     public function get_step_iterator() {
         return new question_attempt_step_iterator($this);
     }
 
     /**
-     * @return question_attempt_reverse_step_iterator
+     * @return question_attempt_reverse_step_iterator for iterating over the steps in
+     * this attempt, in reverse order.
      */
-    public function get_reverse_step_iterator() {
+        public function get_reverse_step_iterator() {
         return new question_attempt_reverse_step_iterator($this);
     }
 
     /**
-     * Get the latest value of a particular qtype variable. That is, get the value
-     * from the latest step that has it set. Return null if it is not set in any step.
+     * Get the latest value of a particular question type variable. That is, get
+     * the value from the latest step that has it set. Return null if it is not
+     * set in any step.
+     *
      * @param string $name the name of the variable to get.
      * @param mixed default the value to return in the variable has never been set.
      *      (Optional, defaults to null.)
@@ -1056,8 +1358,10 @@ class question_attempt {
     }
 
     /**
-     * Get the latest value of a particular qim variable. That is, get the value
-     * from the latest step that has it set. Return null if it is not set in any step.
+     * Get the latest value of a particular interaction model variable. That is,
+     * get the value from the latest step that has it set. Return null if it is
+     * not set in any step.
+     *
      * @param string $name the name of the variable to get.
      * @param mixed default the value to return in the variable has never been set.
      *      (Optional, defaults to null.)
@@ -1072,14 +1376,28 @@ class question_attempt {
         return $default;
     }
 
+    /**
+     * Get the current state of this question attempt. That is, the state of the
+     * latest step.
+     * @return integer one of the {@link question_state} constants.
+     */
     public function get_state() {
         return $this->get_last_step()->get_state();
     }
 
+    /**
+     * Get the current fraction of this question attempt. That is, the fraction
+     * of the latest step, or null if this question has not yet been graded.
+     * @return number the current fraction.
+     */
     public function get_fraction() {
         return $this->get_last_step()->get_fraction();
     }
 
+    /**
+     * @return number the current mark for this question.
+     * {@link get_fraction()} * {@link get_max_mark()}.
+     */
     public function get_mark() {
         $mark = $this->get_fraction();
         if (!is_null($mark)) {
@@ -1088,10 +1406,12 @@ class question_attempt {
         return $mark;
     }
 
+    /** @return number the maximum mark possible for this question attempt. */
     public function get_max_mark() {
         return $this->maxmark;
     }
 
+    /** @return number the maximum mark possible for this question attempt. */
     public function get_min_fraction() {
         if (is_null($this->minfraction)) {
             throw new Exception('This question_attempt has not been started yet, the min fraction is not yet konwn.');
@@ -1099,30 +1419,72 @@ class question_attempt {
         return $this->minfraction;
     }
 
+    /**
+     * The current mark, formatted to the stated number of decimal places. Uses
+     * {@link format_float()} to format floats according to the current locale.
+     * @param integer $dp number of decimal places.
+     * @return string formatted mark.
+     */
     public function format_mark($dp) {
         return format_float($this->get_mark(), $dp);
     }
 
+    /**
+     * The maximum mark for this question attempt, formatted to the stated number
+     * of decimal places. Uses {@link format_float()} to format floats according
+     * to the current locale.
+     * @param integer $dp number of decimal places.
+     * @return string formatted maximum mark.
+     */
     public function format_max_mark($dp) {
         return format_float($this->maxmark, $dp);
     }
 
+    /**
+     * Get the {@link core_question_renderer}, in collaboration with appropriate
+     * {@link qim_renderer} and {@link qtype_renderer} subclasses, to generate the
+     * HTML to display this question attempt in its current state.
+     * @param question_display_options $options controls how the question is rendered.
+     * @param string|null $number The question number to display.
+     * @return string HTML fragment representing the question.
+     */
     public function render($options, $number) {
         $qoutput = renderer_factory::get_renderer('core', 'question');
         $qtoutput = $this->question->get_renderer();
         return $this->interactionmodel->render($options, $number, $qoutput, $qtoutput);
     }
 
+    /**
+     * Generate any bits of HTML that needs to go in the <head> tag when this question
+     * attempt is displayed in the body.
+     * @return string HTML fragment.
+     */
     public function render_head_html() {
         return $this->question->qtype->get_html_head_contributions($this->question, 'TODO');
     }
 
+    /**
+     * Add a step to this question attempt.
+     * @param question_attempt_step $step the new step.
+     */
     protected function add_step(question_attempt_step $step) {
         $this->steps[] = $step;
         end($this->steps);
         $this->observer->notify_step_added($step, $this, key($this->steps));
     }
 
+    /**
+     * Start (or re-start) this question attempt.
+     *
+     * You should not call this method directly. Call
+     * {@link question_usage_by_activity::start_question()} instead.
+     *
+     * @param string|question_interaction_model $preferredmodel the name of the
+     *      desired archetypal interaction model, or an actual model instance.
+     * @param $submitteddata optional, used when re-starting to keep the same initial state.
+     * @param $timestamp optional, the timstamp to record for this action. Defaults to now.
+     * @param $userid optional, the user to attribute this action to. Defaults to the current user.
+     */
     public function start($preferredmodel, $submitteddata = array(), $timestamp = null, $userid = null) {
         if (is_string($preferredmodel)) {
             $this->interactionmodel =
@@ -1138,7 +1500,14 @@ class question_attempt {
         $this->add_step($firststep);
     }
 
-    protected function get_submitted_var($name, $type, $postdata = null) {
+    /**
+     * TODO PHPdoc comments complete up to this point.
+     * @param $name
+     * @param $type
+     * @param $postdata
+     * @return unknown_type
+     */
+    public static function get_submitted_var($name, $type, $postdata = null) {
         if (is_null($postdata)) {
             return optional_param($name, null, $type);
         } else if (array_key_exists($name, $postdata)) {
@@ -1151,13 +1520,13 @@ class question_attempt {
     public function get_submitted_data($postdata = null) {
         $submitteddata = array();
         foreach ($this->interactionmodel->get_expected_data() as $name => $type) {
-            $value = $this->get_submitted_var($this->get_im_field_name($name), $type, $postdata);
+            $value = self::get_submitted_var($this->get_im_field_name($name), $type, $postdata);
             if (!is_null($value)) {
                 $submitteddata['!' . $name] = $value;
             }
         }
         foreach ($this->question->get_expected_data() as $name => $type) {
-            $value = $this->get_submitted_var($this->get_qt_field_name($name), $type, $postdata);
+            $value = self::get_submitted_var($this->get_qt_field_name($name), $type, $postdata);
             if (!is_null($value)) {
                 $submitteddata[$name] = $value;
             }
@@ -1228,6 +1597,9 @@ class question_attempt {
 
     /**
      * Create a question_attempt_step from records loaded from the database.
+     *
+     * For internal use only.
+     *
      * @param array $records Raw records loaded from the database.
      * @param integer $questionattemptid The id of the question_attempt to extract.
      * @return question_attempt The newly constructed question_attempt_step.
@@ -1251,6 +1623,7 @@ class question_attempt {
         $qa->set_flagged($record->flagged);
         $qa->questionsummary = $record->questionsummary;
         $qa->rightanswer = $record->rightanswer;
+        $qa->responsesummary = $record->responsesummary;
         $qa->timemodified = $record->timemodified;
 
         $qa->interactionmodel = $question->make_interaction_model($qa, $record->interactionmodel);
@@ -1269,14 +1642,25 @@ class question_attempt {
 
 
 /**
- * A class abstracting access to the question_attempt::states array.
+ * A class abstracting access to the {@link question_attempt::$states} array.
+ *
+ * This is actively linked to question_attempt. If you add an new step
+ * mid-iteration, then it will be included.
  *
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt_step_iterator implements Iterator, ArrayAccess {
+    /** @var question_attempt the question_attempt being iterated over. */
     protected $qa;
+    /** @var integer records the current position in the iteration. */
     protected $i;
+
+    /**
+     * Do not call this constructor directly.
+     * Use {@link question_attempt::get_step_iterator()}.
+     * @param question_attempt $qa the attempt to iterate over.
+     */
     public function __construct(question_attempt $qa) {
         $this->qa = $qa;
         $this->rewind();
@@ -1318,6 +1702,13 @@ class question_attempt_step_iterator implements Iterator, ArrayAccess {
 }
 
 
+/**
+ * A variant of {@link question_attempt_step_iterator} that iterates through the
+ * steps in reverse order.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class question_attempt_reverse_step_iterator extends question_attempt_step_iterator {
     public function next() {
         --$this->i;

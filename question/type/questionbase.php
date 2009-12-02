@@ -127,7 +127,7 @@ abstract class question_definition {
      * this question in its current state?
      *
      * This information is used in calls to optional_param. The parameter name
-     * has {question_attempt::get_field_prefix()} automatically prepended.
+     * has {@link question_attempt::get_field_prefix()} automatically prepended.
      *
      * @return array parameter name => PARAM_... type constant.
      */
