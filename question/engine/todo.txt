@@ -1,52 +1,77 @@
-Finish interaction models and core of the engine
-  Interactive mode
-  Opaque mode
-  Each attempt builds on last
-  Scroll-down JavaScript on adaptive submit button
-  Minor refactoring of the different interaction models
-  Questionline and answerline
-  Fix manual grading of automatically graded question types.
+Finish question engine core
+    Questionline and answerline
 
 Database load/save code
-  Unit tests for Unit of Work
-  Database update on regrading
-  Make more efficient code using lazy-loading, etc.
-  Garbage collect old preview question usages.
+    Garbage collect old preview question usages.
+    Unit tests for Unit of Work
+
+Finish interaction models
+    Interactive model
+    Opaque model
+    Each attempt builds on last model
+    Scroll-down JavaScript on adaptive/immediate/interactive submit button - but not the first on the page.
+    Minor refactoring of the different interaction models' process_action methods.
+    Fix manual grading of automatically graded question types.
 
 Convert existing question type code
-  Split qtype classes in three
-    multichoice
-    random
-    match
-    calculated
-    multianswer
-    randomsamatch
-  Numerical units
-  Refactor out commonalities between multiplechoice and truefalse rendering.
-  Test missing qtype
-  Update qtype plugin version nubmers and requires numbers, when this is merged into core code
-  New fields for editing hints
+    Convert question types to the new API
+        multichoice
+        random
+        match
+    Numerical units
+    Refactor out commonalities between multiplechoice and truefalse rendering.
+    Test missing qtype
 
-<- Christmas target milestone.
+<-- Christmas target milestone.
+
+Convert existing question type code
+    New fields for editing hints
+    Convert question types to the new API
+        calculated
+        multianswer
+        randomsamatch
+    Update qtype plugin version nubmers and requires numbers, when this is merged into core code
 
 Integrate new code into the quiz
-  attempt code
-  review code
-  review single question code
-  reports
-    overview
-    responses
-    manual grading
-    statistics
+    attempt code
+    review code
+    review single question code
+    reports
+        overview
+        responses
+        manual grading
+        statistics
+
+Database load/save code
+    Database update on regrading
+    Make more efficient code using lazy-loading, etc.
+
+Incorporate other OU-specific quiz customisations into this code
+    Needs to be quantified
+    ...
+
+Port the code to Moodle 2.x
+    Convert question/engine/datalib.php
+    Get rid of question/engine/compatibility
+    Update file handling.
+
+Documentation
+    Finish http://docs.moodle.org/en/Development:Developing_a_Question_Type
+    Overview of how the system works.
+    Guide for module (or other plugin authors) wanting to use the question engine in their code.
 
 Database upgrade script
-  Deal with question images
+    For OU Moodle
+    For Moodle 2.x
+    Deal with question images
 
 Backup and restore code
-  Restore old backup code
+    Implement backup and restore of the new database tables
+    Restore old backup code
+    Decide what to do about pre-Moodle 1.5 backups
 
-Redo the question preview window
-  Think about implementing manual grading UI.
+Enhance the question preview window
+    Think about implementing manual grading UI
 
 
 --------------------------------------------------------------------------------
