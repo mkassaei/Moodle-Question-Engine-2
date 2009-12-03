@@ -1,5 +1,3 @@
-Write lots of JavaDoc
-
 Finish interaction models and core of the engine
   Interactive mode
   Opaque mode
@@ -7,7 +5,7 @@ Finish interaction models and core of the engine
   Scroll-down JavaScript on adaptive submit button
   Minor refactoring of the different interaction models
   Questionline and answerline
-  Fix manual grading of automatically graded quetsion types.
+  Fix manual grading of automatically graded question types.
 
 Database load/save code
   Unit tests for Unit of Work

@@ -17,7 +17,7 @@
 
 
 /**
- * Renderer base classes for question types.
+ * Defines the renderer base classes for question types.
  *
  * @package moodlecore
  * @subpackage questiontypes
@@ -26,12 +26,41 @@
  */
 
 
+/**
+ * Renderer base classes for question types.
+ *
+ * @copyright 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 abstract class qtype_renderer extends moodle_renderer_base {
+    /**
+     * Generate the display of the formulation part of the question. This is the
+     * area that contains the quetsion text, and the controls for students to
+     * input their answers. Some question types also embed bits of feedback, for
+     * example ticks and crosses, in this area.
+     *
+     * @param question_attempt $qa the question attempt to display.
+     * @param question_display_options $options controls what should and should not be displayed.
+     * @return HTML fragment.
+     */
     public function formulation_and_controls(question_attempt $qa,
             question_display_options $options) {
         return $qa->get_question()->questiontext;
     }
 
+    /**
+     * Generate the display of the outcome part of the question. This is the
+     * area that contains the various forms of feedback. This function generates
+     * the content of this area belonging to the question type.
+     *
+     * Subclasses will normally want to override the more specific methods
+     * {specific_feedback()}, {general_feedback()} and {correct_response()}
+     * that this method calls.
+     *
+     * @param question_attempt $qa the question attempt to display.
+     * @param question_display_options $options controls what should and should not be displayed.
+     * @return HTML fragment.
+     */
     public function feedback(question_attempt $qa, question_display_options $options) {
         $output = '';
         if ($options->feedback) {
@@ -49,15 +78,35 @@ abstract class qtype_renderer extends moodle_renderer_base {
         return $output;
     }
 
-    public function specific_feedback(question_attempt $qa) {
+    /**
+     * Gereate the specific feedback. This is feedback that varies accordin to
+     * the reponse the student gave.
+     * @param question_attempt $qa the question attempt to display.
+     * @return HTML fragment.
+     */
+    protected function specific_feedback(question_attempt $qa) {
         return '';
     }
 
-    public function general_feedback(question_attempt $qa) {
+    /**
+     * Gereate the general feedback. This is feedback is shown ot all students.
+     *
+     * @param question_attempt $qa the question attempt to display.
+     * @return HTML fragment.
+     */
+    protected function general_feedback(question_attempt $qa) {
         return $qa->get_question()->format_generalfeedback();
     }
 
-    public function correct_response(question_attempt $qa) {
+    /**
+     * Gereate an automatic description of the correct response to this quetsion.
+     * Not all question types can do this. If it is not possible, this method
+     * should just return an empty string.
+     *
+     * @param question_attempt $qa the question attempt to display.
+     * @return HTML fragment.
+     */
+    protected function correct_response(question_attempt $qa) {
         return '';
     }
 }

@@ -41,53 +41,98 @@ abstract class question_definition {
     /** @var integer id of the question in the datase, or null if this question
      * is not in the database. */
     public $id;
+
     /** @var integer question category id. */
     public $category;
+
     /** @var integer parent question id. */
     public $parent = 0;
+
     /** @var question_type the question type this question is. */
     public $qtype;
+
     /** @var string question name. */
     public $name;
+
     /** @var string question text. */
     public $questiontext;
+
     /** @var integer question test format. */
     public $questiontextformat;
+
     /** @var string question general feedback. */
     public $generalfeedback;
+
     /** @var number what this quetsion is marked out of, by default. */
     public $defaultmark = 1;
+
     /** @var integer How many question numbers this question consumes. */
     public $length = 1;
+
     /** @var number penalty factor of this question. */
     public $penalty = 0;
+
     /** @var string unique identifier of this question. */
     public $stamp;
+
     /** @var string unique identifier of this version of this question. */
     public $version;
+
     /** @var boolean whethre this question has been deleted/hidden in the question bank. */
     public $hidden = 0;
+
     /** @var integer timestamp when this question was created. */
     public $timecreated;
+
     /** @var integer timestamp when this question was modified. */
     public $timemodified;
+
     /** @var integer userid of the use who created this question. */
     public $createdb;
+
     /** @var integer userid of the use who modified this question. */
     public $modifiedby;
 
+    /**
+     * Constructor. Normally to get a question, you call
+     * {@link question_engine::load_question()}, but questions can be created
+     * directly, for example in unit test code.
+     * @return unknown_type
+     */
     public function __construct() {
     }
 
+    /**
+     * @return the name of the question type (for example multichoice) that this
+     * question is.
+     */
     public function get_type_name() {
         return $this->qtype->name();
     }
 
+    /**
+     * Creat the appropriate interaction model for an attempt at this quetsion,
+     * given the desired (archetypal) interaction model.
+     *
+     * This default implementation will suit most normal graded questions.
+     *
+     * If your question is of a patricular type, then it may need to do something
+     * different. For example, if your question can only be graded manually, then
+     * it should probably return a manualgraded interaction model, irrespective of
+     * what is asked for.
+     *
+     * If your question wants to do somthing especially complicated is some situations,
+     * then you may wish to return a particular interaction model related to the
+     * one asked for. For example, you migth want to return a
+     * qim_interactive_adapted_for_myqtype.
+     *
+     * @param question_attempt $qa the attempt we are creating an interaction
+     *      model for.
+     * @param string $preferredmodel the requested type of interaction.
+     * @return question_interaction_model the new interaction model object.
+     */
     public function make_interaction_model(question_attempt $qa, $preferredmodel) {
         return question_engine::make_archetypal_interaction_model($preferredmodel, $qa);
-        question_engine::load_interaction_model_class($preferredmodel);
-        $class = 'qim_' . $preferredmodel;
-        return new $class($qa);
     }
 
     /**
@@ -108,15 +153,14 @@ abstract class question_definition {
      * This method returns the lowest mark the question can return, on the
      * fraction scale. that is, where the maximum possible mark is 1.0.
      *
-     * @return number minimum mark this question will every return.
+     * @return number minimum fraction this question will ever return.
      */
     public function get_min_fraction() {
         return 0;
     }
 
     /**
-     * Get the renderer to use for outputting this question.
-     * @return unknown_type
+     * @return qtype_renderer the renderer to use for outputting this question.
      */
     public function get_renderer() {
         return renderer_factory::get_renderer('qtype_' . $this->qtype->name());
@@ -179,16 +223,16 @@ abstract class question_definition {
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_information_item extends question_definition {
-    public function make_interaction_model(question_attempt $qa, $preferredmodel) {
-        question_engine::load_interaction_model_class('informationitem');
-        return new qim_informationitem($qa);
-    }
-
     public function __construct() {
         parent::__construct();
         $this->defaultgrade = 0;
         $this->penalty = 0;
         $this->length = 0;
+    }
+
+    public function make_interaction_model(question_attempt $qa, $preferredmodel) {
+        question_engine::load_interaction_model_class('informationitem');
+        return new qim_informationitem($qa);
     }
 
     public function get_expected_data() {
@@ -289,21 +333,20 @@ abstract class question_graded_automatically extends question_with_responses
 
 
 /**
- * This class represents a question that can be graded automatically.
+ * This class represents a question that can be graded automatically by using
+ * a {@link question_grading_strategy}.
  *
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class question_graded_by_strategy extends question_graded_automatically {
+    /** @var question_grading_strategy the strategy to use for grading. */
     protected $gradingstrategy;
 
-    public function __construct($strategy) {
+    /** @param question_grading_strategy  $strategy the strategy to use for grading. */
+    public function __construct(question_grading_strategy $strategy) {
         parent::__construct();
         $this->gradingstrategy = $strategy;
-    }
-
-    public function get_matching_answer(array $response) {
-        return $this->gradingstrategy->grade($response);
     }
 
     public function get_correct_response() {
@@ -315,16 +358,24 @@ abstract class question_graded_by_strategy extends question_graded_automatically
         return array('answer' => $answer->answer);
     }
 
+    /**
+     * Get an answer that contains the feedback and fraction that should be
+     * awarded for this resonse.
+     * @param array $response a response.
+     * @return question_answer the matching answer.
+     */
+    public function get_matching_answer(array $response) {
+        return $this->gradingstrategy->grade($response);
+    }
+
+    /**
+     * @return question_answer an answer that contains the a response that would
+     *      get full marks.
+     */
     public function get_correct_answer() {
         return $this->gradingstrategy->get_correct_answer();
     }
 
-    /**
-     * Grade a response to the question, returning a fraction between get_min_fraction() and 1.0,
-     * and the corresponding state CORRECT, PARTIALLY_CORRECT or INCORRECT.
-     * @param array $response responses, as returned by {@link question_attempt_step::get_qt_data()}.
-     * @return array (number, integer) the fraction, and the state.
-     */
     public function grade_response(array $response) {
         $answer = $this->get_matching_answer($response);
         if ($answer) {
@@ -336,10 +387,29 @@ abstract class question_graded_by_strategy extends question_graded_automatically
 }
 
 
+/**
+ * Class to represent a question answer, loaded from the question_answers table
+ * in the database.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class question_answer {
+    /** @var string the answer. */
     public $answer;
+
+    /** @var number the fraction this answer is worth. */
     public $fraction;
+
+    /** @var string the feedback for this answer. */
     public $feedback;
+
+    /**
+     * Constructor.
+     * @param string $answer the answer.
+     * @param number $fraction the fraction this answer is worth.
+     * @param string $feedback the feedback for this answer.
+     */
     public function __construct($answer, $fraction, $feedback) {
         $this->answer = $answer;
         $this->fraction = $fraction;
@@ -348,38 +418,71 @@ class question_answer {
 }
 
 
+/**
+ * This question_grading_strategy interface. Used to share grading code between
+ * questions that that subclass {@link question_graded_by_strategy}.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 interface question_grading_strategy {
     /**
-     *
-     * @param $response
-     * @return question_answer
+     * Return a question answer that describes the outcome (fraction and feeback)
+     * for a particular respons.
+     * @param array $response the response.
+     * @return question_answer the answer describing the outcome.
      */
     public function grade(array $response);
 
     /**
-     * @return question_answer
+     * @return question_answer an answer that contains the a response that would
+     *      get full marks.
      */
     public function get_correct_answer();
 }
 
 
+/**
+ * This interface defines the methods that a {@link question_definition} must
+ * implement if it is to be graded by the
+ * {@link question_first_matching_answer_grading_strategy}.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 interface question_response_answer_comparer {
-    /**
-     * @return array of {@link question_answers}.
-     */
+    /** @return array of {@link question_answers}. */
     public function get_answers();
 
     /**
-     * @param $response
-     * @param $answer
-     * @return boolean
+     * @param array $response the response.
+     * @param question_answer $answer an answer.
+     * @return boolean whether the response matches the answer.
      */
     public function compare_response_with_answer(array $response, question_answer $answer);
 }
 
 
+/**
+ * This grading strategy is used by question types like shortanswer an numerical.
+ * It gets a list of possible answers from the question, and returns the first one
+ * that matches the given response. It returns the first answer with fraction 1.0
+ * when asked for the correct answer.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class question_first_matching_answer_grading_strategy implements question_grading_strategy {
+    /**
+     * @var question_response_answer_comparer (presumably also a
+     * {@link question_definition}) the question we are doing the grading for.
+     */
     protected $question;
+
+    /**
+     * @param question_response_answer_comparer $question (presumably also a
+     * {@link question_definition}) the question we are doing the grading for.
+     */
     public function __construct(question_response_answer_comparer $question) {
         $this->question = $question;
     }
