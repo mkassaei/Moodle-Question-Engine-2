@@ -17,7 +17,7 @@
 
 
 /**
- * Renderer base class for question interaction models.
+ * Defines the renderer base class for question interaction models.
  *
  * @package moodlecore
  * @subpackage questioninteractions
@@ -26,19 +26,65 @@
  */
 
 
+/**
+ * Renderer base class for question interaction models.
+ *
+ * The methods in this class are mostly called from {@link core_question_renderer}
+ * which coordinates the overall output of questions.
+ *
+ * @copyright 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 abstract class qim_renderer extends moodle_renderer_base {
+    /**
+     * Generate a brief textual description of the current state of the question,
+     * normally displayed under the question number.
+     * @param question_attempt $qa a question attempt.
+     * @return string a brief summary of the current state of the qestion attempt.
+     */
     public function get_state_string(question_attempt $qa) {
+        // TODO get options here and don't display correctness if we are not supposed to.
         return question_state::default_string($qa->get_state());
     }
 
+    /**
+     * Generate some HTML (which may be blank) that appears in the question
+     * formulation area, afer the question type generated output.
+     *
+     * For example.
+     * immediatefeedback and interactive mode use this to show the Submit button,
+     * and CBM use this to display the certainty choices.
+     *
+     * @param question_attempt $qa a question attempt.
+     * @param question_display_options $options controls what should and should not be displayed.
+     * @return string HTML fragment.
+     */
     public function controls(question_attempt $qa, question_display_options $options) {
         return '';
     }
 
+    /**
+     * Generate some HTML (which may be blank) that appears in the outcome area,
+     * after the question-type generated output.
+     *
+     * For example, the CBM models use this to display an explanation of the score
+     * adjustment that was made based on the certainty selected.
+     *
+     * @param question_attempt $qa a question attempt.
+     * @param question_display_options $options controls what should and should not be displayed.
+     * @return string HTML fragment.
+     */
     public function feedback(question_attempt $qa, question_display_options $options) {
         return '';
     }
 
+    /**
+     * Display the manual comment, and a link to edit it, if appropriate.
+     *
+     * @param question_attempt $qa a question attempt.
+     * @param question_display_options $options controls what should and should not be displayed.
+     * @return string HTML fragment.
+     */
     public function manual_comment(question_attempt $qa, question_display_options $options) {
         $output = '';
 
@@ -53,52 +99,6 @@ abstract class qim_renderer extends moodle_renderer_base {
                     'commentquestion', $strcomment, 480, 750, $strcomment, 'none', true);
             $output .= $this->output_tag('div', array('class' => 'commentlink'), $link);
         }
-
-        return $output;
-    }
-
-    /**
-    * Prints the mark obtained and maximum score available plus any penalty
-    * information
-    *
-    * This function prints a summary of the scoring in the most recently
-    * markd state (the question may not have been submitted for marking at
-    * the current state). The default implementation should be suitable for most
-    * question types.
-    * @param object $question The question for which the grading details are
-    *                         to be rendered. Question type specific information
-    *                         is included. The maximum possible mark is in
-    *                         ->maxmark.
-    * @param object $state    The state. In particular the grading information
-    *                          is in ->mark, ->raw_mark and ->penalty.
-    * @param object $cmoptions
-    * @param object $options  An object describing the rendering options.
-    */
-    function grading_details(question_attempt $qa, question_display_options $options) {
-        /* The default implementation prints the number of marks if no attempt
-        has been made. Otherwise it displays the mark obtained out of the
-        maximum mark available and a warning if a penalty was applied for the
-        attempt and displays the overall mark obtained counting all previous
-        responses (and penalties) */
-
-        if ($qa->get_max_mark() == 0 || !$options->marks || !question_state::is_graded($qa->get_state())) {
-            return '';
-        }
-
-        // Display the grading details from the last graded state
-        $mark = new stdClass;
-        $mark->cur = $qa->format_mark($options->markdp);
-        $mark->max = $qa->format_max_mark($options->markdp);
-        $mark->raw = $qa->format_mark($options->markdp);
-
-        // let student know wether the answer was correct
-        $class = question_state::get_feedback_class($qa->get_state());
-
-        $output = '';
-        $output .= $this->output_tag('div', array('class' => 'correctness ' . $class),
-                get_string($class, 'question'));
-        $output .= $this->output_tag('div', array('class' => 'gradingdetails'),
-                get_string('gradingdetails', 'question', $mark));
 
         return $output;
     }

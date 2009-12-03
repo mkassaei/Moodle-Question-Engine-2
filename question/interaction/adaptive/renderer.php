@@ -60,7 +60,7 @@ class qim_adaptive_renderer extends qim_renderer {
         ));
     }
 
-    public function grading_details(question_attempt $qa, question_display_options $options) {
+    public function feedback(question_attempt $qa, question_display_options $options) {
         // Try to find the last graded step.
 
         $gradedstep = $this->get_graded_step($qa);

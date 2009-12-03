@@ -37,7 +37,7 @@
  */
 class qim_informationitem extends question_interaction_model {
 
-    public function required_question_definition_class() {
+    public function required_question_definition_type() {
         return 'question_definition';
     }
 

@@ -37,10 +37,10 @@
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qim_immediatefeedback extends question_interaction_model {
+class qim_immediatefeedback extends question_interaction_model_with_save {
     const IS_ARCHETYPAL = true;
 
-    public function required_question_definition_class() {
+    public function required_question_definition_type() {
         return 'question_automatically_gradable';
     }
 
