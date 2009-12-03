@@ -43,7 +43,6 @@ abstract class qim_renderer extends moodle_renderer_base {
      * @return string a brief summary of the current state of the qestion attempt.
      */
     public function get_state_string(question_attempt $qa) {
-        // TODO get options here and don't display correctness if we are not supposed to.
         return question_state::default_string($qa->get_state());
     }
 

@@ -91,11 +91,11 @@ abstract class question_engine {
      * @param question_usage_by_activity the usage to save.
      */
     public static function save_questions_usage_by_activity(question_usage_by_activity $quba) {
+        $dm = new question_engine_data_mapper();
         $observer = $quba->get_observer();
         if ($observer instanceof question_engine_unit_of_work) {
-            $observer->save();
+            $observer->save($dm);
         } else {
-            $dm = new question_engine_data_mapper();
             $dm->insert_questions_usage_by_activity($quba);
         }
     }
@@ -810,7 +810,8 @@ class question_usage_by_activity {
      * HTML to display this question.
      * @param integer $qnumber the number used to identify this question within this usage.
      * @param question_display_options $options controls how the question is rendered.
-     * @param string|null $number The question number to display.
+     * @param string|null $number The question number to display. 'i' is a special
+     *      value that gets displayed as Information. Null means no number is displayed.
      * @return string HTML fragment representing the question.
      */
     public function render_question($qnumber, $options, $number = null) {
@@ -1501,11 +1502,13 @@ class question_attempt {
     }
 
     /**
-     * TODO PHPdoc comments complete up to this point.
-     * @param $name
-     * @param $type
-     * @param $postdata
-     * @return unknown_type
+     * Get a particular parameter from the current request. A wrapper round
+     * {@link optional_param()}.
+     * @param string $name the paramter name.
+     * @param integer $type one of the PARAM_... constants.
+     * @param array $postdata (optional, only inteded for testing use) take the
+     *      data from this array, instead of from $_POST.
+     * @return mixed the requested value.
      */
     public static function get_submitted_var($name, $type, $postdata = null) {
         if (is_null($postdata)) {
@@ -1517,6 +1520,13 @@ class question_attempt {
         }
     }
 
+    /**
+     * Get all the sumbitted data belonging to this question attempt from the
+     * current request.
+     * @param array $postdata (optional, only inteded for testing use) take the
+     *      data from this array, instead of from $_POST.
+     * @return array name => value pairs that could be passed to {@link process_action()}.
+     */
     public function get_submitted_data($postdata = null) {
         $submitteddata = array();
         foreach ($this->interactionmodel->get_expected_data() as $name => $type) {
@@ -1534,6 +1544,11 @@ class question_attempt {
         return $submitteddata;
     }
 
+    /**
+     * Get a set of response data for this question attempt that would get the
+     * best possible mark.
+     * @return array name => value pairs that could be passed to {@link process_action()}.
+     */
     public function get_correct_response() {
         $response = $this->question->get_correct_response();
         $imvars = $this->interactionmodel->get_correct_response();
@@ -1543,6 +1558,12 @@ class question_attempt {
         return $response;
     }
 
+    /**
+     * Perform the action described by $submitteddata.
+     * @param array $submitteddata the submitted data the determines the action.
+     * @param integer $timestamp the time to record for the action. (If not given, use now.)
+     * @param integer $userid the user to attribute the aciton to. (If not given, use the current user.)
+     */
     public function process_action($submitteddata, $timestamp = null, $userid = null) {
         $pendingstep = new question_attempt_step($submitteddata, $timestamp, $userid);
         if ($this->interactionmodel->process_action($pendingstep) == self::KEEP) {
@@ -1550,10 +1571,24 @@ class question_attempt {
         }
     }
 
+    /**
+     * Perform a finish action on this question attempt. This corresponds to an
+     * external finish action, for example the user pressing Submit all and finish
+     * in the quiz, rather than using one of the controls that is part of the
+     * question.
+     *
+     * @param integer $timestamp the time to record for the action. (If not given, use now.)
+     * @param integer $userid the user to attribute the aciton to. (If not given, use the current user.)
+     */
     public function finish($timestamp = null, $userid = null) {
         $this->process_action(array('!finish' => 1), $timestamp, $userid);
     }
 
+    /**
+     * Perform a regrade. This replays all the actions from $oldqa into this
+     * attempt.
+     * @param question_attempt $oldqa the attempt to regrade.
+     */
     public function regrade(question_attempt $oldqa) {
         $first = true;
         foreach ($oldqa->get_step_iterator() as $step) {
@@ -1568,6 +1603,14 @@ class question_attempt {
         }
     }
 
+    /**
+     * Perform a manual grading action on this attempt.
+     * @param $comment the comment being added.
+     * @param $mark the new mark. (Optional, if not given, then only a comment is added.)
+     * @param integer $timestamp the time to record for the action. (If not given, use now.)
+     * @param integer $userid the user to attribute the aciton to. (If not given, use the current user.)
+     * @return unknown_type
+     */
     public function manual_grade($comment, $mark, $timestamp = null, $userid = null) {
         $submitteddata = array('!comment' => $comment);
         if (!is_null($mark)) {
@@ -1577,6 +1620,7 @@ class question_attempt {
         $this->process_action($submitteddata, $timestamp, $userid);
     }
 
+    /** @return boolean Whether this question attempt has had a manual comment added. */
     public function has_manual_comment() {
         foreach ($this->steps as $step) {
             if ($step->has_im_var('comment')) {
@@ -1586,6 +1630,10 @@ class question_attempt {
         return false;
     }
 
+    /**
+     * @return string the most recent manual comment that was added to this question.
+     * null, if none.
+     */
     public function get_manual_comment() {
         foreach ($this->get_reverse_step_iterator() as $step) {
             if ($step->has_im_var('comment')) {
@@ -1723,17 +1771,66 @@ class question_attempt_reverse_step_iterator extends question_attempt_step_itera
 /**
  * Stores one step in a {@link question_attempt}.
  *
+ * The most important attributes of a step are the state, which is one of the
+ * {@link question_state} constants, the fraction, which may be null, or a
+ * number bewteen the attempt's minfraction and 1.0, and the array of submitted
+ * data, about which more later.
+ *
+ * A step also tracks the time it was created, and the user responsible for
+ * creating it.
+ *
+ * The submitted data is basically just an array of name => value pairs, with
+ * certain conventions about the to divide the variables into four = two times two
+ * categories.
+ *
+ * Variables may either belong to the interaction model, in which case the
+ * name starts with a !, or they may belong to the question type in which case
+ * they name does not start with a !.
+ *
+ * Second, variables may either be ones that came form the original request, in
+ * which case the name does not start with an _, or they are cached values that
+ * were created during processing, in which case the name does start with an _.
+ *
+ * That is, each name will start with one of '', '_'. '!' or '!_'. The remainder
+ * of the name should match the regex [a-z][a-z0-9]*.
+ *
+ * These variables can be accessed with {@link get_im_var()} and {@link get_qt_var()},
+ * - to be clear, ->get_im_var('x') gets the variable with name '!x' -
+ * and values whose names start with '_' can be set using {@link set_im_var()}
+ * and {@link set_qt_var()}. There are some other methods like {@link has_im_var()}
+ * to check wether a varaible with a particular name is set, and {@link get_im_data()}
+ * to get all the interaction model data as an associative array.
+ *
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt_step {
+    /** @var integer if this attempts is stored in the question_attempts table, the id of that row. */
     private $id = null;
+
+    /** @var integer one of the {@link question_state} constants. The state after this step. */
     private $state = question_state::UNPROCESSED;
+
+    /** @var null|number the fraction (grade on a scale of minfraction .. 1.0) or null. */
     private $fraction = null;
+
+    /** @var integer the timestamp when this step was created. */
     private $timecreated;
+
+    /** @var integer the id of the user resonsible for creating this step. */
     private $userid;
+
+    /** @var array name => value pairs. The submitted data. */
     private $data;
 
+    /**
+     * You should not need to call this constructor in your own code. Steps are
+     * normally created by {@link question_attempt} methods like
+     * {@link question_attempt::process_action()}.
+     * @param array $data the submitted data that defines this step.
+     * @param integer $timestamp the time to record for the action. (If not given, use now.)
+     * @param integer $userid the user to attribute the aciton to. (If not given, use the current user.)
+     */
     public function __construct($data = array(), $timecreated = null, $userid = null) {
         global $USER;
         $this->data = $data;
@@ -1749,30 +1846,49 @@ class question_attempt_step {
         }
     }
 
+    /** @return integer one of the {@link question_state} constants. The state after this step. */
     public function get_state() {
         return $this->state;
     }
 
+    /**
+     * Set the state. Normally only called by interaction models.
+     * @param $state one of the {@link question_state} constants.
+     */
     public function set_state($state) {
         $this->state = $state;
     }
 
+    /**
+     * @return null|number the fraction (grade on a scale of minfraction .. 1.0)
+     * or null if this step has not been marked.
+     */
     public function get_fraction() {
         return $this->fraction;
     }
 
+    /**
+     * Set the fraction. Normally only called by interaction models.
+     * @param null|number $fraction the fraction to set.
+     */
     public function set_fraction($fraction) {
         $this->fraction = $fraction;
     }
 
+    /** @return integer the id of the user resonsible for creating this step. */
     public function get_user_id() {
         return $this->userid;
     }
 
+    /** @return integer the timestamp when this step was created. */
     public function get_timecreated() {
         return $this->timecreated;
     }
 
+    /**
+     * @param string $name the name of a question type variable to look for in the submitted data.
+     * @return boolean whether a variable with this name exists in the question type data.
+     */
     public function has_qt_var($name) {
         return array_key_exists($name, $this->data);
     }
@@ -1788,6 +1904,11 @@ class question_attempt_step {
         return $this->data[$name];
     }
 
+    /**
+     * Set a cached question type variable.
+     * @param string $name the name of the variable to set. Must match _[a-z][a-z0-9]*.
+     * @param string $value the value to set.
+     */
     public function set_qt_var($name, $value) {
         if ($name[0] != '_') {
             throw new Exception('Cannot set question type data ' . $name . ' on an attempt step. You can only set variables with names begining with _.');
@@ -1795,10 +1916,10 @@ class question_attempt_step {
         $this->data[$name] = $value;
     }
 
-    public function get_all_data() {
-        return $this->data;
-    }
-
+    /**
+     * Get all the question type variables.
+     * @param array name => value pairs.
+     */
     public function get_qt_data() {
         $result = array();
         foreach ($this->data as $name => $value) {
@@ -1809,6 +1930,10 @@ class question_attempt_step {
         return $result;
     }
 
+    /**
+     * @param string $name the name of an interaction model variable to look for in the submitted data.
+     * @return boolean whether a variable with this name exists in the question type data.
+     */
     public function has_im_var($name) {
         return array_key_exists('!' . $name, $this->data);
     }
@@ -1824,6 +1949,11 @@ class question_attempt_step {
         return $this->data['!' . $name];
     }
 
+    /**
+     * Set a cached interaction model variable.
+     * @param string $name the name of the variable to set. Must match _[a-z][a-z0-9]*.
+     * @param string $value the value to set.
+     */
     public function set_im_var($name, $value) {
         if ($name[0] != '_') {
             throw new Exception('Cannot set question type data ' . $name . ' on an attempt step. You can only set variables with names begining with _.');
@@ -1831,6 +1961,10 @@ class question_attempt_step {
         return $this->data['!' . $name] = $value;
     }
 
+    /**
+     * Get all the interaction model variables.
+     * @param array name => value pairs.
+     */
     public function get_im_data() {
         $result = array();
         foreach ($this->data as $name => $value) {
@@ -1841,6 +1975,13 @@ class question_attempt_step {
         return $result;
     }
 
+    /**
+     * Get all the submitted data, but not the cached data. Interaction model
+     * variables have the ! at the start of their name. This is only really
+     * intended for use by {@link question_attempt::regrade()}, it should not
+     * be considered part of the public API.
+     * @param array name => value pairs.
+     */
     public function get_submitted_data() {
         $result = array();
         foreach ($this->data as $name => $value) {
@@ -1850,6 +1991,18 @@ class question_attempt_step {
             $result[$name] = $value;
         }
         return $result;
+    }
+
+    /**
+     * Get all the data. Interaction model variables have the ! at the start of
+     * their name. This is only intended for internal use, for example by
+     * {@link question_engine_data_mapper::insert_question_attempt_step()},
+     * however, it can ocasionally be useful in test code. It should not be
+     * considered part of the public API of this class.
+     * @param array name => value pairs.
+     */
+    public function get_all_data() {
+        return $this->data;
     }
 
     /**
@@ -1911,7 +2064,7 @@ class question_attempt_step_read_only extends question_attempt_step {
 /**
  * A null {@link question_attempt_step} returned from
  * {@link question_attempt::get_last_step()} etc. when a an attempt has just been
- * started and there is no acutal step.
+ * created and there is no acutal step.
  *
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -1926,7 +2079,7 @@ class question_null_step {
     }
 
     public function get_fraction() {
-        return NULL;
+        return null;
     }
 }
 
@@ -1942,9 +2095,27 @@ class question_null_step {
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 interface question_usage_observer {
+    /** Called when a field of the question_usage_by_activity is changed. */
     public function notify_modified();
+
+    /**
+     * Called when the fields of a question attempt in this usage are modified.
+     * @param question_attempt $qa the newly added question attempt.
+     */
     public function notify_attempt_modified(question_attempt $qa);
+
+    /**
+     * Called when a new question attempt is added to this usage.
+     * @param question_attempt $qa the newly added question attempt.
+     */
     public function notify_attempt_added(question_attempt $qa);
+
+    /**
+     * Called when a new step is added to a question attempt in this usage.
+     * @param $step the new step.
+     * @param $qa the usage it is being added to.
+     * @param $seq the sequence number of the new step.
+     */
     public function notify_step_added(question_attempt_step $step, question_attempt $qa, $seq);
 }
 

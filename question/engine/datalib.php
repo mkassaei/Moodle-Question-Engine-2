@@ -34,6 +34,11 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_engine_data_mapper {
+    /**
+     * Store an entire {@link question_usage_by_activity} in the database,
+     * including all the question_attempts that comprise it.
+     * @param question_usage_by_activity $quba the usage to store.
+     */
     public function insert_questions_usage_by_activity(question_usage_by_activity $quba) {
         $record = new stdClass;
         $record->contextid = $quba->get_owning_context()->id;
@@ -51,6 +56,11 @@ class question_engine_data_mapper {
         }
     }
 
+    /**
+     * Store an entire {@link question_attempt} in the database,
+     * including all the question_attempt_steps that comprise it.
+     * @param question_attempt $qa the question attempt to store.
+     */
     public function insert_question_attempt(question_attempt $qa) {
         $record = new stdClass;
         $record->questionusageid = $qa->get_usage_id();
@@ -74,6 +84,10 @@ class question_engine_data_mapper {
         }
     }
 
+    /**
+     * Store a {@link question_attempt_step} in the database.
+     * @param question_attempt_step $qa the step to store.
+     */
     public function insert_question_attempt_step(question_attempt_step $step,
             $questionattemptid, $seq) {
         $record = new stdClass;
@@ -99,6 +113,11 @@ class question_engine_data_mapper {
         }
     }
 
+    /**
+     * Load a {@link question_attempt_step} from the database.
+     * @param integer $stepid the id of the step to load.
+     * @param question_attempt_step the step that was loaded.
+     */
     public function load_question_attempt_step($stepid) {
         global $CFG;
         $records = get_records_sql("
@@ -128,6 +147,12 @@ WHERE
         return question_attempt_step::load_from_records($records, $stepid);
     }
 
+    /**
+     * Load a {@link question_attempt} from the database, including all its
+     * steps.
+     * @param integer $questionattemptid the id of the question attempt to load.
+     * @param question_attempt the question attempt that was loaded.
+     */
     public function load_question_attempt($questionattemptid) {
         global $CFG;
         $records = get_records_sql("
@@ -172,6 +197,12 @@ ORDER BY
         return question_attempt::load_from_records($records, $questionattemptid);
     }
 
+    /**
+     * Load a {@link question_usage_by_activity} from the database, including
+     * all its {@link question_attempt}s and all their steps.
+     * @param integer $qubaid the id of the usage to load.
+     * @param question_usage_by_activity the usage that was loaded.
+     */
     public function load_questions_usage_by_activity($qubaid) {
         global $CFG;
         $records = get_records_sql("
@@ -222,6 +253,11 @@ ORDER BY
         return question_usage_by_activity::load_from_records($records, $qubaid);
     }
 
+    /**
+     * Update a question_usages row to refect any changes in a usage (but not
+     * any of its question_attempts.
+     * @param question_usage_by_activity $quba the usage that has changed.
+     */
     public function update_questions_usage_by_activity(question_usage_by_activity $quba) {
         $record = new stdClass;
         $record->id = $quba->get_id();
@@ -234,6 +270,11 @@ ORDER BY
         }
     }
 
+    /**
+     * Update a question_attempts row to refect any changes in a question_attempt
+     * (but not any of its steps).
+     * @param question_attempt $qa the question attempt that has changed.
+     */
     public function update_question_attempt(question_attempt $qa) {
         $record = new stdClass;
         $record->id = $qa->get_database_id();
@@ -250,6 +291,12 @@ ORDER BY
         }
     }
 
+    /**
+     * Delete a question_usage_by_activity and all its associated
+     * {@link question_attempts} and {@link question_attempt_steps} from the
+     * database.
+     * @param integer $qubaid the id of the usage to delete.
+     */
     public function delete_questions_usage_by_activity($qubaid) {
         global $CFG;
         delete_records_select('question_attempt_step_data', "attemptstepid IN (
@@ -269,19 +316,43 @@ ORDER BY
 /**
  * Implementation of the unit of work pattern for the question engine.
  *
- * See http://martinfowler.com/eaaCatalog/unitOfWork.html
+ * See http://martinfowler.com/eaaCatalog/unitOfWork.html. This tracks all the
+ * changes to a {@link question_usage_by_activity}, and its constituent parts,
+ * so that the changes can be saved to the database when {@link save()} is called.
  *
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_engine_unit_of_work implements question_usage_observer {
+    /** @var question_usage_by_activity the usage being tracked. */
     protected $quba;
+
+    /** @var boolean whether any of the fields of the usage have been changed. */
     protected $modified = false;
+
+    /**
+     * @var array list of number in usage => {@link question_attempt}s that
+     * were already in the usage, and which have been modified.
+     */
     protected $attemptsmodified = array();
+
+    /**
+     * @var array list of number in usage => {@link question_attempt}s that
+     * have been added to the usage.
+     */
     protected $attemptsadded = array();
+
+    /**
+     * @var array list of array(question_attempt_step, question_attempt id, seq number)
+     * of steps that have been added to question attempts in this usage.
+     */
     protected $stepsadded = array();
 
-    public function __construct($quba) {
+    /**
+     * Constructor.
+     * @param question_usage_by_activity $quba the usage to track.
+     */
+    public function __construct(question_usage_by_activity $quba) {
         $this->quba = $quba;
     }
 
@@ -308,8 +379,11 @@ class question_engine_unit_of_work implements question_usage_observer {
         $this->stepsadded[] = array($step, $qa->get_database_id(), $seq);
     }
 
-    public function save() {
-        $dm = new question_engine_data_mapper();
+    /**
+     * Write all the changes we have recorded to the database.
+     * @param question_engine_data_mapper $dm the mapper to use to update the database.
+     */
+    public function save(question_engine_data_mapper $dm) {
         foreach ($this->stepsadded as $stepinfo) {
             list($step, $questionattemptid, $seq) = $stepinfo;
             $dm->insert_question_attempt_step($step, $questionattemptid, $seq);
