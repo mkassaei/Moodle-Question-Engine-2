@@ -104,4 +104,4 @@ class qtype_essay extends question_type {
         return $this->save_question($question, $form, $course);
     }
 }
-question_register_questiontype(question_engine::get_qtype('essay'));
+question_register_questiontype(question_bank::get_qtype('essay'));

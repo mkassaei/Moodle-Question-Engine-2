@@ -86,7 +86,7 @@ class test_question_maker {
         $tf->questiontext = 'The answer is true.';
         $tf->generalfeedback = 'You should have selected true.';
         $tf->penalty = 1;
-        $tf->qtype = question_engine::get_qtype('truefalse');
+        $tf->qtype = question_bank::get_qtype('truefalse');
 
         $tf->rightanswer = true;
         $tf->truefeedback = 'This is the right answer.';
@@ -107,7 +107,7 @@ class test_question_maker {
         $mc->questiontext = 'The answer is A.';
         $mc->generalfeedback = 'You should have selected A.';
         $mc->penalty = 0.3333333;
-        $mc->qtype = question_engine::get_qtype('multichoice');
+        $mc->qtype = question_bank::get_qtype('multichoice');
 
         $mc->shuffleanswers = 1;
 
@@ -126,7 +126,7 @@ class test_question_maker {
      * @return qtype_shortanswer_question
      */
     public static function make_a_shortanswer_question() {
-        question_engine::load_question_definition_classes('shortanswer');
+        question_bank::load_question_definition_classes('shortanswer');
         $sa = new qtype_shortanswer_question();
         self::initialise_a_question($sa);
         $sa->name = 'Short answer question';
@@ -138,7 +138,7 @@ class test_question_maker {
             new question_answer('toad', 0.8, 'Toad is an OK good answer.'),
             new question_answer('*', 0.0, 'That is a bad answer.'),
         );
-        $sa->qtype = question_engine::get_qtype('shortanswer');
+        $sa->qtype = question_bank::get_qtype('shortanswer');
 
         return $sa;
     }
@@ -149,7 +149,7 @@ class test_question_maker {
      * @return qtype_numerical_question
      */
     public static function make_a_numerical_question() {
-        question_engine::load_question_definition_classes('numerical');
+        question_bank::load_question_definition_classes('numerical');
         $num = new qtype_numerical_question();
         self::initialise_a_question($num);
         $num->name = 'Pi to two d.p.';
@@ -162,7 +162,7 @@ class test_question_maker {
             new qtype_numerical_answer('3', 0.0, 'Not accurate enough.', 0.5),
             new qtype_numerical_answer('*', 0.0, 'Completely wrong.', 0),
         );
-        $num->qtype = question_engine::get_qtype('shortanswer');
+        $num->qtype = question_bank::get_qtype('shortanswer');
 
         return $num;
     }
@@ -172,14 +172,14 @@ class test_question_maker {
      * @return qtype_essay_question
      */
     public static function make_an_essay_question() {
-        question_engine::load_question_definition_classes('essay');
+        question_bank::load_question_definition_classes('essay');
         $essay = new qtype_essay_question();
         self::initialise_a_question($essay);
         $essay->name = 'Essay question';
         $essay->questiontext = 'Write an essay.';
         $essay->generalfeedback = 'I hope you wrote an interesting essay.';
         $essay->penalty = 0;
-        $essay->qtype = question_engine::get_qtype('essay');
+        $essay->qtype = question_bank::get_qtype('essay');
 
         return $essay;
     }
@@ -189,13 +189,13 @@ class test_question_maker {
      * @return question_truefalse
      */
     public static function make_a_description_question() {
-        question_engine::load_question_definition_classes('description');
+        question_bank::load_question_definition_classes('description');
         $description = new qtype_description_question();
         self::initialise_a_question($description);
         $description->name = 'Description question';
         $description->questiontext = 'This text tells you a bit about the next few questions in this quiz.';
         $description->generalfeedback = 'This is what this seciton of the quiz should have taught you.';
-        $description->qtype = question_engine::get_qtype('description');
+        $description->qtype = question_bank::get_qtype('description');
 
         return $description;
     }

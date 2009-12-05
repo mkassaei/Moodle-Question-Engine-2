@@ -40,7 +40,7 @@ require_js($CFG->httpswwwroot . '/question/preview.js');
 
 // Get and validate question id.
 $id = required_param('id', PARAM_INT); // Question id
-$question = question_engine::load_question($id);
+$question = question_bank::load_question($id);
 require_login();
 question_require_capability_on($question, 'use');
 if (!$category = get_record("question_categories", "id", $question->category)) {
@@ -66,7 +66,7 @@ if ($previewid) {
     if (!isset($SESSION->question_previews[$previewid])) {
         print_error('notyourpreview', 'question');
     }
-    $quba = question_engine::load_questions_usage_by_activity($previewid);
+    $quba = question_bank::load_questions_usage_by_activity($previewid);
     $qnumber = $quba->get_first_question_number();
     $usedquestion = $quba->get_question($qnumber);
     if ($usedquestion->id != $question->id) {

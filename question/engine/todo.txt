@@ -50,6 +50,10 @@ Incorporate other OU-specific quiz customisations into this code
     Needs to be quantified
     ...
 
+Performance testing
+    Load test the entire quiz (count DB queries and time)
+    Profile some key parts of the question processing.
+
 Port the code to Moodle 2.x
     Convert question/engine/datalib.php
     Get rid of question/engine/compatibility

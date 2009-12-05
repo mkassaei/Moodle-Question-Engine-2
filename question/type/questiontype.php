@@ -455,7 +455,7 @@ class question_type {
     }
 
     protected function make_question_instance($questiondata) {
-        question_engine::load_question_definition_classes($this->name());
+        question_bank::load_question_definition_classes($this->name());
         $class = 'qtype_' . $this->name() . '_question';
         return new $class();
     }

@@ -457,4 +457,4 @@ class qtype_numerical extends question_type {
     }
 
 }
-question_register_questiontype(question_engine::get_qtype('numerical'));
+question_register_questiontype(question_bank::get_qtype('numerical'));

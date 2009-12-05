@@ -30,6 +30,7 @@ require_once(dirname(__FILE__) . '/compatibility.php');
 
 require_once(dirname(__FILE__) . '/datalib.php');
 require_once(dirname(__FILE__) . '/renderer.php');
+require_once(dirname(__FILE__) . '/bank.php');
 require_once(dirname(__FILE__) . '/../type/questiontype.php');
 require_once(dirname(__FILE__) . '/../type/questionbase.php');
 require_once(dirname(__FILE__) . '/../type/rendererbase.php');
@@ -42,22 +43,14 @@ require_once(dirname(__FILE__) . '/testquestiontype.php');
 /**
  * This static class provides access to the other question engine classes.
  *
- * It provides functions for managing the various types of plugins (question
- * types and interaction models), and for creating, loading, saving and deleting
- * {@link question_usage_by_activity}s, which is the main class that is used by
- * other code that wants to use questions.
+ * It provides functions for managing question interaction models), and for
+ * creating, loading, saving and deleting {@link question_usage_by_activity}s,
+ * which is the main class that is used by other code that wants to use questions.
  *
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class question_engine {
-    /** @var array question type name => question_type subclass. */
-    private static $questiontypes = array();
-
-    /** @var array question type name => 1. Records which question definitions have been loaded. */
-    private static $loadedqdefs = array(
-        'multichoice' => 1,
-    );
     /** @var array interaction model name => 1. Records which interaction models have been loaded. */
     private static $loadedmodels = array();
 
@@ -107,60 +100,6 @@ abstract class question_engine {
     public static function delete_questions_usage_by_activity($qubaid) {
         $dm = new question_engine_data_mapper();
         $dm->delete_questions_usage_by_activity($qubaid);
-    }
-
-    /**
-     * Load a question definition from the database. The object returned
-     * will actually be of an appropriate {@link question_definition} subclass.
-     * @param integer $questionid the id of the question to load.
-     * @return question_definition loaded from the database.
-     */
-    public static function load_question($questionid) {
-        $questiondata = get_record('question', 'id', $questionid);
-        if (empty($questiondata)) {
-            throw new Exception('Unknown question id ' . $questionid);
-        }
-        get_question_options($questiondata);
-        return self::get_qtype($questiondata->qtype)->make_question($questiondata);
-    }
-
-    /**
-     * Get the question type class for a particular question type.
-     * @param string $qtypename the question type name. For example 'multichoice' or 'shortanswer'.
-     * @return question_type the corresponding question type class.
-     */
-    public static function get_qtype($qtypename) {
-        global $CFG;
-        if (isset(self::$questiontypes[$qtypename])) {
-            return self::$questiontypes[$qtypename];
-        }
-        $file = $CFG->dirroot . '/question/type/' . $qtypename . '/questiontype.php';
-        if (!is_readable($file)) {
-            throw new Exception('Unknown question type ' . $qtypename);
-        }
-        include_once($file);
-        $class = 'qtype_' . $qtypename;
-        self::$questiontypes[$qtypename] = new $class();
-        return self::$questiontypes[$qtypename];
-    }
-
-    /**
-     * Load the question definition class(es) belonging to a question type. That is,
-     * include_once('/question/type/' . $qtypename . '/question.php'), with a bit
-     * of checking.
-     * @param string $qtypename the question type name. For example 'multichoice' or 'shortanswer'.
-     */
-    public static function load_question_definition_classes($qtypename) {
-        global $CFG;
-        if (isset(self::$loadedqdefs[$qtypename])) {
-            return;
-        }
-        $file = $CFG->dirroot . '/question/type/' . $qtypename . '/question.php';
-        if (!is_readable($file)) {
-            throw new Exception('Unknown question type (no definition) ' . $qtypename);
-        }
-        include_once($file);
-        self::$loadedqdefs[$qtypename] = 1;
     }
 
     /**
@@ -638,7 +577,7 @@ class question_usage_by_activity {
     /**
      * Create a new instance. Normally, calling code should use
      * {@link question_engine::make_questions_usage_by_activity()} or
-     * {@link question_engine::load_questions_usage_by_activity()} rather than
+     * {@link question_bank::load_questions_usage_by_activity()} rather than
      * calling this constructor directly.
      *
      * @param string $owningplugin the plugin creating this attempt. For example mod_quiz.
@@ -1662,7 +1601,7 @@ class question_attempt {
             }
         }
 
-        $question = question_engine::load_question($record->questionid);
+        $question = question_bank::load_question($record->questionid);
 
         $qa = new question_attempt($question, $record->questionusageid, null, $record->maxmark + 0);
         $qa->id = $record->questionattemptid;

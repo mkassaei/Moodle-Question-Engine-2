@@ -95,7 +95,7 @@ abstract class question_definition {
 
     /**
      * Constructor. Normally to get a question, you call
-     * {@link question_engine::load_question()}, but questions can be created
+     * {@link question_bank::load_question()}, but questions can be created
      * directly, for example in unit test code.
      * @return unknown_type
      */
