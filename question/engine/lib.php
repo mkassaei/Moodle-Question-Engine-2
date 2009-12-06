@@ -577,7 +577,7 @@ class question_usage_by_activity {
     /**
      * Create a new instance. Normally, calling code should use
      * {@link question_engine::make_questions_usage_by_activity()} or
-     * {@link question_bank::load_questions_usage_by_activity()} rather than
+     * {@link question_engine::load_questions_usage_by_activity()} rather than
      * calling this constructor directly.
      *
      * @param string $owningplugin the plugin creating this attempt. For example mod_quiz.

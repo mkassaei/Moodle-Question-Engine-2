@@ -69,8 +69,8 @@
         $out = '';
         $catcontext = get_context_instance_by_id($category->contextid);
         if (has_capability('moodle/question:useall', $catcontext)){
-            $randomusablequestions = $QTYPES['random']->get_usable_questions_from_category(
-                    $category->id, $recurse, '0');
+            $randomusablequestions = $QTYPES['random']->get_available_questions_from_category(
+                    $category->id, $recurse);
             $maxrand = count($randomusablequestions);
             if ($maxrand > 0) {
                 for ($i = 1;$i <= min(10, $maxrand); $i++) {

@@ -47,6 +47,8 @@ abstract class question_bank {
         'multichoice' => 1,
     );
 
+    protected static $questionfinder = null;
+
     /**
      * Get the question type class for a particular question type.
      * @param string $qtypename the question type name. For example 'multichoice' or 'shortanswer'.
@@ -65,6 +67,15 @@ abstract class question_bank {
         $class = 'qtype_' . $qtypename;
         self::$questiontypes[$qtypename] = new $class();
         return self::$questiontypes[$qtypename];
+    }
+
+    /**
+     * @return array all the installed question types.
+     */
+    public static function get_all_qtypes() {
+        $qtypes = array();
+        $plugins = get_list_of_plugins();
+        return $qtypes;
     }
 
     /**
@@ -99,5 +110,43 @@ abstract class question_bank {
         }
         get_question_options($questiondata);
         return self::get_qtype($questiondata->qtype)->make_question($questiondata);
+    }
+
+    /**
+     * @return question_finder a question finder.
+     */
+    public static function get_finder() {
+        if (is_null(self::$questionfinder)) {
+            self::$questionfinder = new question_finder();
+        }
+        return self::$questionfinder;
+    }
+}
+
+class question_finder {
+    /**
+     * Get the ids of all the questions in a list of categoryies.
+     * @param integer|string|array $categoryids either a categoryid, or a comma-separated list
+     *      category ids, or an array of them.
+     * @param string $extraconditions extra conditions to AND with the rest of the where clause.
+     * @return array questionid => questionid.
+     */
+    public function get_questions_from_categories($categoryids, $extraconditions) {
+        if (is_array($categoryids)) {
+            $categoryids = implode(',', $categoryids);
+        }
+
+        if ($extraconditions) {
+            $extraconditions = ' AND (' . $extraconditions . ')';
+        }
+        $questionids = get_records_select_menu('question',
+                "category IN ($categoryids)
+                 AND parent = 0
+                 AND hidden = 0
+                 $extraconditions", '', 'id,id AS id2');
+        if (!$questionids) {
+            $questionids = array();
+        }
+        return $questionids;
     }
 }

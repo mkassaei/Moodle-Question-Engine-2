@@ -66,7 +66,7 @@ if ($previewid) {
     if (!isset($SESSION->question_previews[$previewid])) {
         print_error('notyourpreview', 'question');
     }
-    $quba = question_bank::load_questions_usage_by_activity($previewid);
+    $quba = question_engine::load_questions_usage_by_activity($previewid);
     $qnumber = $quba->get_first_question_number();
     $usedquestion = $quba->get_question($qnumber);
     if ($usedquestion->id != $question->id) {
