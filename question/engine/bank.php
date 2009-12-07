@@ -74,7 +74,10 @@ abstract class question_bank {
      */
     public static function get_all_qtypes() {
         $qtypes = array();
-        $plugins = get_list_of_plugins();
+        $plugins = get_list_of_plugins('question/type', 'datasetdependent');
+        foreach ($plugins as $plugin) {
+            $qtypes[$plugin] = question_bank::get_qtype($plugin);
+        }
         return $qtypes;
     }
 

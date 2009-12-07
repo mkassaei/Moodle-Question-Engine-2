@@ -93,7 +93,7 @@ class qtype_random extends question_type {
      * This method needs to be called before the ->excludedqtypes and
      *      ->manualqtypes fields can be used.
      */
-    function init_qtype_lists() {
+    protected function init_qtype_lists() {
         if (!is_null($this->excludedqtypes)) {
             return; // Already done.
         }
