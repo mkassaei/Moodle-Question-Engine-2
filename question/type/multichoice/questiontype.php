@@ -1,12 +1,34 @@
-<?php  // $Id$
+<?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+
 /**
  * The questiontype class for the multiple choice question type.
  *
- * Note, This class contains some special features in order to make the
- * question type embeddable within a multianswer (cloze) question
+ * @package qtype_multichoice
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+/**
+ * The multiple choice question type.
  *
- * @package questionbank
- * @subpackage questiontypes
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_multichoice extends question_type {
     protected function has_html_answers() {
@@ -144,12 +166,37 @@ class qtype_multichoice extends question_type {
         return true;
     }
 
+    protected function make_question_instance($questiondata) {
+        question_bank::load_question_definition_classes($this->name());
+        if ($questiondata->options->single) {
+            $class = 'qtype_multichoice_single_question';
+        } else {
+            $class = 'qtype_multichoice_multiple_question';
+        }
+        return new $class();
+    }
+
+    protected function initialise_question_instance(question_definition $question, $questiondata) {
+        parent::initialise_question_instance($question, $questiondata);
+        $question->shuffleanswers = $questiondata->options->shuffleanswers;
+        $question->answernumbering = $questiondata->options->answernumbering;
+        if (!empty($questiondata->options->layout)) {
+            $question->layout = $questiondata->options->layout;
+        } else {
+            $question->layout = qtype_multichoice_single_question::LAYOUT_VERTICAL;
+        }
+        $question->correctfeedback = $questiondata->options->correctfeedback;
+        $question->partiallycorrectfeedback = $questiondata->options->partiallycorrectfeedback;
+        $question->incorrectfeedback = $questiondata->options->incorrectfeedback;
+        $this->initialise_question_answers($question, $questiondata);
+    }
+
     /**
-    * Deletes question from the question-type specific tables
-    *
-    * @return boolean Success/Failure
-    * @param object $question  The question being deleted
-    */
+     * Deletes question from the question-type specific tables
+     *
+     * @return boolean Success/Failure
+     * @param object $question  The question being deleted
+     */
     public function delete_question($questionid) {
         delete_records("question_multichoice", "question", $questionid);
         return true;

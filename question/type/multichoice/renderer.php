@@ -19,7 +19,7 @@
 /**
  * Multiple choice question renderer classes.
  *
- * @package qtype_shortanswer
+ * @package qtype_multichoice
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

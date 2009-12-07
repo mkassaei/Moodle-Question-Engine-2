@@ -23,6 +23,7 @@ $string['fillouttwochoices'] = 'You must fill out at least two choices.  Choices
 $string['fractionsaddwrong'] = 'The positive grades you have chosen do not add up to 100%%<br />Instead, they add up to $a%%<br />Do you want to go back and fix this question?';
 $string['fractionsnomax'] = 'One of the choices should be 100%%, so that it is<br />possible to get a full grade for this question.<br />Do you want to go back and fix this question?';
 $string['incorrectfeedback'] = 'For any incorrect response';
+$string['multichoice'] = 'Multiple choice';
 $string['notenoughanswers'] = 'This type of question requires at least $a choices';
 $string['overallfeedback'] = 'Overall Feedback';
 $string['overallcorrectfeedback'] = 'Feedback for any correct response';

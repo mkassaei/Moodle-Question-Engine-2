@@ -123,6 +123,33 @@ class test_question_maker {
     }
 
     /**
+     * Makes a multichoice question with choices 'A', 'B', 'C' and 'D' shuffled.
+     * 'A' and 'C' is correct, defaultgrade 1.
+     * @return qtype_multichoice_single_question
+     */
+    public static function make_a_multichoice_multi_question() {
+        question_bank::load_question_definition_classes('multichoice');
+        $mc = new qtype_multichoice_multi_question();
+        self::initialise_a_question($mc);
+        $mc->name = 'Multi-choice question, multiple response';
+        $mc->questiontext = 'The answer is A and C.';
+        $mc->generalfeedback = 'You should have selected A and C.';
+        $mc->penalty = 0.3333333;
+        $mc->qtype = question_bank::get_qtype('multichoice');
+
+        $mc->shuffleanswers = 1;
+
+        $mc->answers = array(
+            13 => new question_answer('A', 0.5, 'A is part of the right answer'),
+            14 => new question_answer('B', -1, 'B is wrong'),
+            15 => new question_answer('C', 0.5, 'C is part of the right answer'),
+            16 => new question_answer('D', -1, 'D is wrong'),
+        );
+
+        return $mc;
+    }
+
+    /**
      * Makes a shortanswer question with correct ansewer 'frog', partially
      * correct answer 'toad' and defaultgrade 1.
      * @return qtype_shortanswer_question

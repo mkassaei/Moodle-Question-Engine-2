@@ -25,7 +25,7 @@
  */
 
 /**
- * shortanswer editing form definition.
+ * Short answer question editing form definition.
  *
  * @copyright &copy; 2007 Jamie Pratt
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
