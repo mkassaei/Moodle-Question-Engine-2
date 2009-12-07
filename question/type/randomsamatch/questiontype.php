@@ -360,4 +360,3 @@ class qtype_randomsamatch extends qtype_match {
 //// INITIATION - Without this line the question type is not in use... ///
 //////////////////////////////////////////////////////////////////////////
 question_register_questiontype(new qtype_randomsamatch());
-?>

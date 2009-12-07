@@ -748,5 +748,3 @@ class question_dataset_dependent_questiontype extends question_type {
     }
 
 }
-//// END OF CLASS ////
-?>

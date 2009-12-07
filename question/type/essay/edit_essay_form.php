@@ -45,4 +45,3 @@ class question_edit_essay_form extends question_edit_form {
         return 'essay';
     }
 }
-?>

@@ -130,4 +130,3 @@ class question_edit_multichoice_form extends question_edit_form {
         return $errors;
     }
 }
-?>

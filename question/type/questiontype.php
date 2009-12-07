@@ -1137,4 +1137,3 @@ class question_type {
         return array($form, $question);
     }
 }
-?>

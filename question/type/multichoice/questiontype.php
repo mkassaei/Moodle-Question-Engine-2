@@ -625,4 +625,3 @@ class qtype_multichoice extends question_type {
 
 // Register this question type with the question bank.
 question_register_questiontype(question_bank::get_qtype('multichoice'));
-?>

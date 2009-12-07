@@ -60,5 +60,3 @@ class qtype_numerical_answer_test extends UnitTestCase {
         $this->assertFalse($answer->within_tolerance(14.01));
     }
 }
-
-?>

@@ -84,4 +84,3 @@ class question_edit_random_form extends question_edit_form {
         return 'random';
     }
 }
-?>

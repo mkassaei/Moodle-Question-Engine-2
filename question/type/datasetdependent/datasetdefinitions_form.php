@@ -140,4 +140,3 @@ class question_dataset_dependent_definitions_form extends moodleform {
     }
 
 }
-?>

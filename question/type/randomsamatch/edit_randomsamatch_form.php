@@ -73,4 +73,3 @@ class question_edit_randomsamatch_form extends question_edit_form {
 
     }
 }
-?>

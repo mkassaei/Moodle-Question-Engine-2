@@ -34,5 +34,3 @@ function xmldb_qtype_randomsamatch_upgrade($oldversion=0) {
 
     return $result;
 }
-
-?>

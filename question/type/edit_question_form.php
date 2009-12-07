@@ -316,5 +316,3 @@ class question_edit_form extends moodleform {
         return '';
     }
 }
-
-?>

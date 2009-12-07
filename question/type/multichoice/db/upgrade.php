@@ -70,5 +70,3 @@ function xmldb_qtype_multichoice_upgrade($oldversion=0) {
 
     return $result;
 }
-
-?>

@@ -280,4 +280,3 @@ class question_edit_multianswer_form extends question_edit_form {
         return 'multianswer';
     }
 }
-?>

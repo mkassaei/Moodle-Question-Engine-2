@@ -715,4 +715,3 @@ class qtype_match extends question_type {
 //// INITIATION - Without this line the question type is not in use... ///
 //////////////////////////////////////////////////////////////////////////
 question_register_questiontype(new qtype_match());
-?>

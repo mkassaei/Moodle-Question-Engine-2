@@ -98,4 +98,3 @@ class question_edit_shortanswer_form extends question_edit_form {
         return 'shortanswer';
     }
 }
-?>

@@ -275,4 +275,3 @@ class question_edit_calculated_form extends question_edit_form {
         return $errors;
     }
 }
-?>

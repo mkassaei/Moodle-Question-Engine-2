@@ -96,4 +96,3 @@ class question_edit_match_form extends question_edit_form {
         return $errors;
     }
 }
-?>

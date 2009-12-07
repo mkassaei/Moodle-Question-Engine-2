@@ -32,5 +32,3 @@ function xmldb_qtype_numerical_upgrade($oldversion=0) {
 
     return $result;
 }
-
-?>

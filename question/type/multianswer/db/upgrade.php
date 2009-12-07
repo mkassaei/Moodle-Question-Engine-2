@@ -64,4 +64,3 @@ function question_multianswer_fix_subquestion_parents_and_categories() {
     }
     return $result;
 }
-?>

@@ -1340,11 +1340,3 @@ function qtype_calculated_find_formula_errors($formula) {
     }
 
 }
-
-function dump($obj) {
-    echo "<pre>\n";
-    var_dump($obj);
-    echo "</pre><br />\n";
-}
-
-?>
