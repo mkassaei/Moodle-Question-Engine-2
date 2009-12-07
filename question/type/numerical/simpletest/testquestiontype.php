@@ -36,19 +36,19 @@ class qtype_numerical_test extends UnitTestCase {
     protected $tolerance = 0.00000001;
     protected $qtype;
 
-    function setUp() {
+    public function setUp() {
         $this->qtype = new qtype_numerical();
     }
 
-    function tearDown() {
+    public function tearDown() {
         $this->qtype = null;   
     }
 
-    function test_name() {
+    public function test_name() {
         $this->assertEqual($this->qtype->name(), 'numerical');
     }
 
-    function test_apply_unit() {
+    public function test_apply_unit() {
         $units = array(
             (object) array('unit' => 'm', 'multiplier' => 1),
             (object) array('unit' => 'cm', 'multiplier' => 100),

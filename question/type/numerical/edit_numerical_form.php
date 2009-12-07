@@ -32,7 +32,7 @@
  */
 class question_edit_numerical_form extends question_edit_form {
 
-    function get_per_answer_fields(&$mform, $label, $gradeoptions, &$repeatedoptions, &$answersoption) {
+    protected function get_per_answer_fields(&$mform, $label, $gradeoptions, &$repeatedoptions, &$answersoption) {
         $repeated = parent::get_per_answer_fields($mform, $label, $gradeoptions, $repeatedoptions, $answersoption);
 
         $tolerance =& $mform->createElement('text', 'tolerance', get_string('acceptederror', 'qtype_numerical'));
@@ -48,7 +48,7 @@ class question_edit_numerical_form extends question_edit_form {
      *
      * @param MoodleQuickForm $mform the form being built.
      */
-    function definition_inner(&$mform) {
+    protected function definition_inner($mform) {
 
 //------------------------------------------------------------------------------------------
         $creategrades = get_grade_options();
@@ -87,7 +87,7 @@ class question_edit_numerical_form extends question_edit_form {
         }
     }
 
-    function set_data($question) {
+    public function set_data($question) {
         if (isset($question->options)){
             $answers = $question->options->answers;
             if (count($answers)) {
@@ -111,7 +111,7 @@ class question_edit_numerical_form extends question_edit_form {
         }
         parent::set_data($question);
     }
-    function validation($data, $files) {
+    public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
         // Check the answers.
@@ -158,8 +158,8 @@ class question_edit_numerical_form extends question_edit_form {
 
         return $errors;
     }
-    function qtype() {
+
+    public function qtype() {
         return 'numerical';
     }
 }
-?>

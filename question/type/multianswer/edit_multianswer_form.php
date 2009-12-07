@@ -17,7 +17,7 @@ class question_edit_multianswer_form extends question_edit_form {
     //  $questiondisplay will contain the qtype_multianswer_extract_question from the questiontext
     var $questiondisplay ; 
 
-    function definition_inner(&$mform) {
+    protected function definition_inner($mform) {
         $question_type_names = question_type_menu();
         $mform->addRule('questiontext', null, 'required', null, 'client');
         

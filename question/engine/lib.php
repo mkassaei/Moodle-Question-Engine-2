@@ -37,8 +37,6 @@ require_once(dirname(__FILE__) . '/../type/rendererbase.php');
 require_once(dirname(__FILE__) . '/../interaction/modelbase.php');
 require_once(dirname(__FILE__) . '/../interaction/rendererbase.php');
 
-require_once(dirname(__FILE__) . '/testquestiontype.php');
-
 
 /**
  * This static class provides access to the other question engine classes.

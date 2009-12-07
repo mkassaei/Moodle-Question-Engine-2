@@ -36,7 +36,7 @@ class question_edit_shortanswer_form extends question_edit_form {
      *
      * @param MoodleQuickForm $mform the form being built.
      */
-    function definition_inner(&$mform) {
+    protected function definition_inner($mform) {
         $menu = array(
             get_string('caseno', 'qtype_shortanswer'),
             get_string('caseyes', 'qtype_shortanswer')
@@ -52,7 +52,7 @@ class question_edit_shortanswer_form extends question_edit_form {
                 $creategrades->gradeoptions);
     }
 
-    function set_data($question) {
+    public function set_data($question) {
         if (isset($question->options)){
             $answers = $question->options->answers;
             if (count($answers)) {
@@ -69,7 +69,7 @@ class question_edit_shortanswer_form extends question_edit_form {
         }
         parent::set_data($question);
     }
-    function validation($data, $files) {
+    public function validation($data, $files) {
         $errors = parent::validation($data, $files);
         $answers = $data['answer'];
         $answercount = 0;
@@ -94,7 +94,7 @@ class question_edit_shortanswer_form extends question_edit_form {
         }
         return $errors;
     }
-    function qtype() {
+    public function qtype() {
         return 'shortanswer';
     }
 }

@@ -18,7 +18,7 @@ class question_edit_multichoice_form extends question_edit_form {
      *
      * @param object $mform the form being built.
      */
-    function definition_inner(&$mform) {
+    protected function definition_inner($mform) {
         global $QTYPES;
 
         $menu = array(get_string('answersingleno', 'qtype_multichoice'), get_string('answersingleyes', 'qtype_multichoice'));
@@ -54,7 +54,7 @@ class question_edit_multichoice_form extends question_edit_form {
 
     }
 
-    function set_data($question) {
+    public function set_data($question) {
         if (isset($question->options)){
             $answers = $question->options->answers;
             if (count($answers)) {
@@ -77,11 +77,11 @@ class question_edit_multichoice_form extends question_edit_form {
         parent::set_data($question);
     }
 
-    function qtype() {
+    public function qtype() {
         return 'multichoice';
     }
 
-    function validation($data, $files) {
+    public function validation($data, $files) {
         $errors = parent::validation($data, $files);
         $answers = $data['answer'];
         $answercount = 0;

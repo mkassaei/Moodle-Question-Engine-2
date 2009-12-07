@@ -33,17 +33,17 @@ require_once($CFG->dirroot . '/question/type/shortanswer/questiontype.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_truefalse_test extends UnitTestCase {
-    var $qtype;
+    protected $qtype;
 
-    function setUp() {
+    public function setUp() {
         $this->qtype = new qtype_truefalse();
     }
 
-    function tearDown() {
+    public function tearDown() {
         $this->qtype = null;
     }
 
-    function test_name() {
+    public function test_name() {
         $this->assertEqual($this->qtype->name(), 'truefalse');
     }
 

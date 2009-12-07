@@ -35,20 +35,20 @@ require_once($CFG->dirroot . '/question/type/shortanswer/questiontype.php');
 class qtype_shortanswer_test extends UnitTestCase {
     var $qtype;
 
-    function setUp() {
+    public function setUp() {
         $this->qtype = new qtype_shortanswer();
     }
 
-    function tearDown() {
+    public function tearDown() {
         $this->qtype = null;   
     }
 
-    function test_name() {
+    public function test_name() {
         $this->assertEqual($this->qtype->name(), 'shortanswer');
     }
 
 /*
-    function test_check_response() {
+    public function test_check_response() {
         $answer1 = new stdClass;
         $answer1->id = 17;
         $answer1->answer = "celine";
@@ -113,7 +113,7 @@ class qtype_shortanswer_test extends UnitTestCase {
         $this->assertEqual($this->qtype->check_response($question, $state), 29);
     }
 
-    function test_compare_responses() {
+    public function test_compare_responses() {
         $question = new stdClass;
         $question->options->usecase = false;
 
@@ -186,7 +186,7 @@ class qtype_shortanswer_test extends UnitTestCase {
         $this->assertFalse($this->qtype->compare_responses($question, $state, $teststate));
     }
 
-    function test_get_correct_responses() {
+    public function test_get_correct_responses() {
         $answer1 = new stdClass;
         $answer1->id = 17;
         $answer1->answer = "frog";

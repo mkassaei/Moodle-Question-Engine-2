@@ -32,7 +32,7 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_truefalse extends question_type {
-    function save_question_options($question) {
+    public function save_question_options($question) {
         $result = new stdClass;
 
         // fetch old answer ids so that we can reuse them
@@ -115,7 +115,7 @@ class qtype_truefalse extends question_type {
     /**
     * Loads the question type specific options for the question.
     */
-    function get_question_options(&$question) {
+    public function get_question_options(&$question) {
         // Get additional information from database
         // and attach it to the question object
         if (!$question->options = get_record('question_truefalse', 'question', $question->id)) {
@@ -149,12 +149,12 @@ class qtype_truefalse extends question_type {
     * @return boolean Success/Failure
     * @param object $question  The question being deleted
     */
-    function delete_question($questionid) {
+    public function delete_question($questionid) {
         delete_records("question_truefalse", "question", $questionid);
         return true;
     }
 
-    function get_correct_responses(&$question, &$state) {
+    public function get_correct_responses(&$question, &$state) {
         // The correct answer is the one which gives full marks
         foreach ($question->options->answers as $answer) {
             if (((int) $answer->fraction) === 1) {
@@ -164,7 +164,7 @@ class qtype_truefalse extends question_type {
         return null;
     }
 
-    function grade_responses(&$question, &$state, $cmoptions) {
+    public function grade_responses(&$question, &$state, $cmoptions) {
         if (isset($state->responses['']) && isset($question->options->answers[$state->responses['']])) {
             $state->raw_grade = $question->options->answers[$state->responses['']]->fraction * $question->maxgrade;
         } else {
@@ -179,7 +179,7 @@ class qtype_truefalse extends question_type {
         return true;
     }
 
-    function response_summary($question, $state, $length=80) {
+    public function response_summary($question, $state, $length=80) {
         if (isset($question->options->answers[$state->answer])) {
             $responses = $question->options->answers[$state->answer]->answer;
         } else {
@@ -188,7 +188,7 @@ class qtype_truefalse extends question_type {
         return $responses;
     }
 
-    function get_actual_response($question, $state) {
+    public function get_actual_response($question, $state) {
         if (isset($question->options->answers[$state->responses['']])) {
             $responses[] = $question->options->answers[$state->responses['']]->answer;
         } else {
@@ -204,7 +204,7 @@ class qtype_truefalse extends question_type {
      *
      * This is used in question/backuplib.php
      */
-    function backup($bf,$preferences,$question,$level=6) {
+    public function backup($bf,$preferences,$question,$level=6) {
 
         $status = true;
 
@@ -232,7 +232,7 @@ class qtype_truefalse extends question_type {
      *
      * This is used in question/restorelib.php
      */
-    function restore($old_question_id,$new_question_id,$info,$restore) {
+    public function restore($old_question_id,$new_question_id,$info,$restore) {
 
         $status = true;
 
@@ -287,7 +287,7 @@ class qtype_truefalse extends question_type {
         return $status;
     }
 
-    function restore_recode_answer($state, $restore) {
+    public function restore_recode_answer($state, $restore) {
         //answer may be empty
         if ($state->answer) {
             $answer = backup_getid($restore->backup_unique_code,"question_answers",$state->answer);
@@ -303,7 +303,7 @@ class qtype_truefalse extends question_type {
      * Runs all the code required to set up and save an essay question for testing purposes.
      * Alternate DB table prefix may be used to facilitate data deletion.
      */
-    function generate_test($name, $courseid = null) {
+    public function generate_test($name, $courseid = null) {
         list($form, $question) = parent::generate_test($name, $courseid);
         $question->category = $form->category;
 

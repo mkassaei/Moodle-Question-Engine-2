@@ -36,15 +36,15 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_missingtype extends question_type {
-    function menu_name() {
+    public function menu_name() {
         return false;
     }
 
-    function is_usable_by_random() {
+    public function is_usable_by_random() {
         return false;
     }
 
-    function display_question_editing_page($mform, $question, $wizardnow){
+    public function display_question_editing_page($mform, $question, $wizardnow){
         print_heading(get_string('missingqtypewarning', 'qtype_missingtype'));
         $mform->display();
     }

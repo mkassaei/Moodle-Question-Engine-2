@@ -80,6 +80,7 @@ class test_question_maker {
      * @return qtype_truefalse_question
      */
     public static function make_a_truefalse_question() {
+        question_bank::load_question_definition_classes('truefalse');
         $tf = new qtype_truefalse_question();
         self::initialise_a_question($tf);
         $tf->name = 'True/false question';
@@ -101,6 +102,7 @@ class test_question_maker {
      * @return qtype_multichoice_single_question
      */
     public static function make_a_multichoice_single_question() {
+        question_bank::load_question_definition_classes('multichoice');
         $mc = new qtype_multichoice_single_question();
         self::initialise_a_question($mc);
         $mc->name = 'Multi-choice question, single response';

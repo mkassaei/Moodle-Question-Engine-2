@@ -20,7 +20,7 @@ class question_edit_random_form extends question_edit_form {
      * If your question type does not support all these fields, then you can
      * override this method and remove the ones you don't want with $mform->removeElement().
      */
-    function definition() {
+    public function definition() {
         global $COURSE, $CFG;
 
         $qtype = $this->qtype();
@@ -75,12 +75,12 @@ class question_edit_random_form extends question_edit_form {
         $mform->addGroup($buttonarray, 'buttonar', '', array(' '), false);
         $mform->closeHeaderBefore('buttonar');
     }
-    function validation($fromform, $files) {
+    public function validation($fromform, $files) {
         //validation of category
         //is not relevant for this question type
         return array();
     }
-    function qtype() {
+    public function qtype() {
         return 'random';
     }
 }

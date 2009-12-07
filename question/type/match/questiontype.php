@@ -11,17 +11,13 @@
  */
 class qtype_match extends question_type {
 
-    function name() {
-        return 'match';
-    }
-
-    function get_question_options(&$question) {
+    public function get_question_options(&$question) {
         $question->options = get_record('question_match', 'question', $question->id);
         $question->options->subquestions = get_records('question_match_sub', 'question', $question->id, 'id ASC');
         return true;
     }
 
-    function save_question_options($question) {
+    public function save_question_options($question) {
         $result = new stdClass;
 
         if (!$oldsubquestions = get_records("question_match_sub", "question", $question->id, "id ASC")) {
@@ -108,13 +104,13 @@ class qtype_match extends question_type {
     * @return boolean Success/Failure
     * @param integer $question->id
     */
-    function delete_question($questionid) {
+    public function delete_question($questionid) {
         delete_records("question_match", "question", $questionid);
         delete_records("question_match_sub", "question", $questionid);
         return true;
     }
 
-    function create_session_and_responses(&$question, &$state, $cmoptions, $attempt) {
+    public function create_session_and_responses(&$question, &$state, $cmoptions, $attempt) {
         if (!$state->options->subquestions = get_records('question_match_sub', 'question', $question->id, 'id ASC')) {
             notify('Error: Missing subquestions!');
             return false;
@@ -142,7 +138,7 @@ class qtype_match extends question_type {
         return true;
     }
 
-    function restore_session_and_responses(&$question, &$state) {
+    public function restore_session_and_responses(&$question, &$state) {
         // The serialized format for matching questions is a comma separated
         // list of question answer pairs (e.g. 1-1,2-3,3-2), where the ids of
         // both refer to the id in the table question_match_sub.
@@ -177,7 +173,7 @@ class qtype_match extends question_type {
         return true;
     }
 
-    function save_session_and_responses(&$question, &$state) {
+    public function save_session_and_responses(&$question, &$state) {
          $subquestions = &$state->options->subquestions;
 
         // Prepare an array to help when disambiguating equal answers.
@@ -217,7 +213,7 @@ class qtype_match extends question_type {
         return true;
     }
 
-    function get_correct_responses(&$question, &$state) {
+    public function get_correct_responses(&$question, &$state) {
         $responses = array();
         foreach ($state->options->subquestions as $sub) {
             foreach ($sub->options->answers as $answer) {
@@ -229,7 +225,7 @@ class qtype_match extends question_type {
         return empty($responses) ? null : $responses;
     }
 
-    function print_question_formulation_and_controls(&$question, &$state, $cmoptions, $options) {
+    public function print_question_formulation_and_controls(&$question, &$state, $cmoptions, $options) {
         global $CFG;
         $subquestions   = $state->options->subquestions;
         $correctanswers = $this->get_correct_responses($question, $state);
@@ -317,7 +313,7 @@ class qtype_match extends question_type {
         include("$CFG->dirroot/question/type/match/display.html");
     }
 
-    function grade_responses(&$question, &$state, $cmoptions) {
+    public function grade_responses(&$question, &$state, $cmoptions) {
         $subquestions = &$state->options->subquestions;
         $responses    = &$state->responses;
 
@@ -366,7 +362,7 @@ class qtype_match extends question_type {
         return true;
     }
 
-    function compare_responses($question, $state, $teststate) {
+    public function compare_responses($question, $state, $teststate) {
         foreach ($state->responses as $i=>$sr) {
             if (empty($teststate->responses[$i])) {
                 if (!empty($state->responses[$i])) {
@@ -380,7 +376,7 @@ class qtype_match extends question_type {
     }
 
     // ULPGC ecastro for stats report
-    function get_all_responses($question, $state) {
+    public function get_all_responses($question, $state) {
         $answers = array();
         if (is_array($question->options->subquestions)) {
             foreach ($question->options->subquestions as $aid => $answer) {
@@ -399,7 +395,7 @@ class qtype_match extends question_type {
     }
 
     // ULPGC ecastro
-    function get_actual_response($question, $state) {
+    public function get_actual_response($question, $state) {
        $subquestions = &$state->options->subquestions;
        $responses    = &$state->responses;
        $results=array();
@@ -413,7 +409,7 @@ class qtype_match extends question_type {
        return $results;
    }
 
-    function response_summary($question, $state, $length=80) {
+    public function response_summary($question, $state, $length=80) {
         // This should almost certainly be overridden
         return shorten_text(implode(', ', $this->get_actual_response($question, $state)), $length);
     }
@@ -425,7 +421,7 @@ class qtype_match extends question_type {
      *
      * This is used in question/backuplib.php
      */
-    function backup($bf,$preferences,$question,$level=6) {
+    public function backup($bf,$preferences,$question,$level=6) {
         $status = true;
 
         // Output the shuffleanswers setting.
@@ -463,7 +459,7 @@ class qtype_match extends question_type {
      *
      * This is used in question/restorelib.php
      */
-    function restore($old_question_id,$new_question_id,$info,$restore) {
+    public function restore($old_question_id,$new_question_id,$info,$restore) {
         $status = true;
 
         //Get the matchs array
@@ -542,7 +538,7 @@ class qtype_match extends question_type {
         return $status;
     }
 
-    function restore_map($old_question_id,$new_question_id,$info,$restore) {
+    public function restore_map($old_question_id,$new_question_id,$info,$restore) {
 
         $status = true;
 
@@ -598,7 +594,7 @@ class qtype_match extends question_type {
         return $status;
     }
 
-    function restore_recode_answer($state, $restore) {
+    public function restore_recode_answer($state, $restore) {
 
         //The answer is a comma separated list of hypen separated math_subs (for question and answer)
         $answer_field = "";
@@ -630,7 +626,7 @@ class qtype_match extends question_type {
      * Decode links in question type specific tables.
      * @return bool success or failure.
      */
-    function decode_content_links_caller($questionids, $restore, &$i) {
+    public function decode_content_links_caller($questionids, $restore, &$i) {
         $status = true;
 
         // Decode links in the question_match_sub table.
@@ -660,7 +656,7 @@ class qtype_match extends question_type {
         return $status;
     }
 
-    function find_file_links($question, $courseid){
+    public function find_file_links($question, $courseid){
         // find links in the question_match_sub table.
         $urls = array();
         if (isset($question->options->subquestions)){
@@ -678,7 +674,7 @@ class qtype_match extends question_type {
         return $urls;
     }
 
-    function replace_file_links($question, $fromcourseid, $tocourseid, $url, $destination){
+    public function replace_file_links($question, $fromcourseid, $tocourseid, $url, $destination){
         parent::replace_file_links($question, $fromcourseid, $tocourseid, $url, $destination);
         // replace links in the question_match_sub table.
         if (isset($question->options->subquestions)){
@@ -699,7 +695,7 @@ class qtype_match extends question_type {
      * Runs all the code required to set up and save an essay question for testing purposes.
      * Alternate DB table prefix may be used to facilitate data deletion.
      */
-    function generate_test($name, $courseid = null) {
+    public function generate_test($name, $courseid = null) {
         list($form, $question) = parent::generate_test($name, $courseid);
         $form->shuffleanswers = 1;
         $form->noanswers = 3;

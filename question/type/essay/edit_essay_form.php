@@ -18,7 +18,7 @@ class question_edit_essay_form extends question_edit_form {
      *
      * @param MoodleQuickForm $mform the form being built.
      */
-    function definition_inner(&$mform) {
+    protected function definition_inner($mform) {
         $mform->addElement('htmleditor', 'feedback', get_string("feedback", "quiz"),
                                 array('course' => $this->coursefilesid));
         $mform->setType('feedback', PARAM_RAW);
@@ -32,7 +32,7 @@ class question_edit_essay_form extends question_edit_form {
         $mform->setType('penalty', PARAM_RAW);
     }
 
-    function set_data($question) {
+    public function set_data($question) {
         if (!empty($question->options) && !empty($question->options->answers)) {      	
             $answer = reset($question->options->answers);
             $question->feedback = $answer->feedback;
@@ -41,7 +41,7 @@ class question_edit_essay_form extends question_edit_form {
         parent::set_data($question);
     }
 
-    function qtype() {
+    public function qtype() {
         return 'essay';
     }
 }

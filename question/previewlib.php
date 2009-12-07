@@ -32,7 +32,7 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class preview_options_form extends moodleform {
-    function definition() {
+    public function definition() {
         $mform = $this->_form;
 
         $mform->addElement('header', 'optionsheader', get_string('changeoptions', 'question'));

@@ -43,9 +43,7 @@ abstract class question_bank {
     private static $questiontypes = array();
 
     /** @var array question type name => 1. Records which question definitions have been loaded. */
-    private static $loadedqdefs = array(
-        'multichoice' => 1,
-    );
+    private static $loadedqdefs = array();
 
     protected static $questionfinder = null;
 

@@ -14,7 +14,7 @@
  */
 class question_edit_match_form extends question_edit_form {
 
-    function get_per_answer_fields(&$mform, $label, $gradeoptions, &$repeatedoptions, &$answersoption) {
+    protected function get_per_answer_fields(&$mform, $label, $gradeoptions, &$repeatedoptions, &$answersoption) {
         $repeated = array();
         $repeated[] =& $mform->createElement('header', 'answerhdr', $label);
         $repeated[] =& $mform->createElement('textarea', 'subquestions', get_string('question', 'quiz'), array('cols'=>40, 'rows'=>3));
@@ -30,7 +30,7 @@ class question_edit_match_form extends question_edit_form {
      *
      * @param object $mform the form being built.
      */
-    function definition_inner(&$mform) {
+    protected function definition_inner($mform) {
         $mform->addElement('advcheckbox', 'shuffleanswers', get_string('shuffle', 'quiz'), null, null, array(0,1));
         $mform->setHelpButton('shuffleanswers', array('matchshuffle', get_string('shuffle','quiz'), 'quiz'));
         $mform->setDefault('shuffleanswers', 1);
@@ -41,7 +41,7 @@ class question_edit_match_form extends question_edit_form {
         $this->add_per_answer_fields($mform, get_string('questionno', 'quiz', '{no}'), 0);
     }
 
-    function set_data($question) {
+    public function set_data($question) {
         if (isset($question->options)){
             $subquestions = $question->options->subquestions;
             if (count($subquestions)) {
@@ -58,11 +58,11 @@ class question_edit_match_form extends question_edit_form {
         parent::set_data($question);
     }
 
-    function qtype() {
+    public function qtype() {
         return 'match';
     }
 
-    function validation($data, $files) {
+    public function validation($data, $files) {
         $errors = parent::validation($data, $files);
         $answers = $data['subanswers'];
         $questions = $data['subquestions'];

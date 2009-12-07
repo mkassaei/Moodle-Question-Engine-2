@@ -42,13 +42,13 @@ class question_edit_missingtype_form extends question_edit_form {
      *
      * @param object $mform the form being built.
      */
-    function definition_inner(&$mform) {
+    protected function definition_inner($mform) {
         $creategrades = get_grade_options();
         $this->add_per_answer_fields($mform, get_string('answerno', 'qtype_missingtype', '{no}'),
                 $creategrades->gradeoptionsfull);
     }
 
-    function set_data($question) {
+    public function set_data($question) {
         if (isset($question->options) && is_array($question->options->answers)) {
             $answers = $question->options->answers;
             $default_values = array();
@@ -64,11 +64,11 @@ class question_edit_missingtype_form extends question_edit_form {
         parent::set_data($question);
     }
 
-    function qtype() {
+    public function qtype() {
         return 'missingtype';
     }
 
-    function validation($data, $files) {
+    public function validation($data, $files) {
         $errors = parent::validation($data, $files);
         $errors['name'] = get_string('cannotchangeamissingqtype', 'qtype_missingtype');
         return $errors;

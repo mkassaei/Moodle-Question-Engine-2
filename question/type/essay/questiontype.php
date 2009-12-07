@@ -32,15 +32,15 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_essay extends question_type {
-    function is_manual_graded() {
+    public function is_manual_graded() {
         return true;
     }
 
-    function is_usable_by_random() {
+    public function is_usable_by_random() {
         return true;
     }
 
-    function save_question_options($question) {
+    public function save_question_options($question) {
         $result = true;
         $update = true;
         $answer = get_record("question_answers", "question", $question->id);
@@ -66,7 +66,7 @@ class qtype_essay extends question_type {
         return $result;
     }
 
-    function response_summary($question, $state, $length = 80) {
+    public function response_summary($question, $state, $length = 80) {
         $responses = $this->get_actual_response($question, $state);
         $response = reset($responses);
         return shorten_text($response, $length);
@@ -81,7 +81,7 @@ class qtype_essay extends question_type {
      * @param $questionid the id of the question being backed up.
      * @param $level indent level in the backup file - so it can be formatted nicely.
      */
-    function backup($bf, $preferences, $questionid, $level = 6) {
+    public function backup($bf, $preferences, $questionid, $level = 6) {
         return question_backup_answers($bf, $preferences, $questionid, $level);
     }
 
@@ -89,7 +89,7 @@ class qtype_essay extends question_type {
      * Runs all the code required to set up and save an essay question for testing purposes.
      * Alternate DB table prefix may be used to facilitate data deletion.
      */
-    function generate_test($name, $courseid = null) {
+    public function generate_test($name, $courseid = null) {
         list($form, $question) = parent::generate_test($name, $courseid);
         $form->questiontext = "What is the purpose of life?";
         $form->feedback = "feedback";

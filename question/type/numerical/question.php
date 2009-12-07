@@ -85,7 +85,7 @@ class qtype_numerical_answer extends question_answer {
         $this->tolerance = abs($tolerance);
     }
 
-    function get_tolerance_interval() {
+    public function get_tolerance_interval() {
         if ($this->answer === '*') {
             throw new Exception('Cannot work out tolerance interval for answer *.');
         }

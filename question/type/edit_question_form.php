@@ -26,26 +26,23 @@ class question_edit_form extends moodleform {
      *
      * @var object
      */
-    var $question;
+    protected $question;
 
-    var $contexts;
-    var $category;
-    var $categorycontext;
-    var $coursefilesid;
+    protected $contexts;
+    protected $category;
+    protected $categorycontext;
+    protected $coursefilesid;
 
-    function question_edit_form($submiturl, $question, $category, $contexts, $formeditable = true){
-
+    public function __construct($submiturl, $question, $category, $contexts, $formeditable = true){
         $this->question = $question;
-
         $this->contexts = $contexts;
-
         $this->category = $category;
         $this->categorycontext = get_context_instance_by_id($category->contextid);
 
         //course id or site id depending on question cat context
         $this->coursefilesid =  get_filesdir_from_context(get_context_instance_by_id($category->contextid));
 
-        parent::moodleform($submiturl, null, 'post', '', null, $formeditable);
+        parent::__construct($submiturl, null, 'post', '', null, $formeditable);
 
     }
 
@@ -56,7 +53,7 @@ class question_edit_form extends moodleform {
      * If your question type does not support all these fields, then you can
      * override this method and remove the ones you don't want with $mform->removeElement().
      */
-    function definition() {
+    public function definition() {
         global $COURSE, $CFG;
 
         $qtype = $this->qtype();
@@ -220,7 +217,7 @@ class question_edit_form extends moodleform {
         }
     }
     
-    function validation($fromform, $files) {
+    public function validation($fromform, $files) {
         $errors= parent::validation($fromform, $files);
         if (empty($fromform->makecopy) && isset($this->question->id) 
                 && ($this->question->formoptions->canedit || $this->question->formoptions->cansaveasnew) 
@@ -236,7 +233,7 @@ class question_edit_form extends moodleform {
      *
      * @param object $mform the form being built.
      */
-    function definition_inner(&$mform) {
+    protected function definition_inner($mform) {
         // By default, do nothing.
     }
 
@@ -249,7 +246,7 @@ class question_edit_form extends moodleform {
      * @param $answersoption reference to return the name of $question->options field holding an array of answers
      * @return array of form fields.
      */
-    function get_per_answer_fields(&$mform, $label, $gradeoptions, &$repeatedoptions, &$answersoption) {
+    protected function get_per_answer_fields(&$mform, $label, $gradeoptions, &$repeatedoptions, &$answersoption) {
         $repeated = array();
         $repeated[] =& $mform->createElement('header', 'answerhdr', $label);
         $repeated[] =& $mform->createElement('text', 'answer', get_string('answer', 'quiz'), array('size' => 50));
@@ -271,7 +268,7 @@ class question_edit_form extends moodleform {
      * @param $minoptions the minimum number of answer blanks to display. Default QUESTION_NUMANS_START.
      * @param $addoptions the number of answer blanks to add. Default QUESTION_NUMANS_ADD.
      */
-    function add_per_answer_fields(&$mform, $label, $gradeoptions, $minoptions = QUESTION_NUMANS_START, $addoptions = QUESTION_NUMANS_ADD) {
+    protected function add_per_answer_fields(&$mform, $label, $gradeoptions, $minoptions = QUESTION_NUMANS_START, $addoptions = QUESTION_NUMANS_ADD) {
         $answersoption = '';
         $repeatedoptions = array();
         $repeated = $this->get_per_answer_fields($mform, $label, $gradeoptions, $repeatedoptions, $answersoption);
@@ -290,7 +287,7 @@ class question_edit_form extends moodleform {
         $this->repeat_elements($repeated, $repeatsatstart, $repeatedoptions, 'noanswers', 'addanswers', $addoptions, get_string('addmorechoiceblanks', 'qtype_multichoice'));
     }
 
-    function set_data($question) {
+    public function set_data($question) {
         global $QTYPES;
         $QTYPES[$question->qtype]->set_default_options($question);
         if (empty($question->image)){
@@ -315,7 +312,7 @@ class question_edit_form extends moodleform {
      * Override this in the subclass to question type name.
      * @return the question type name, should be the same as the name() method in the question type class.
      */
-    function qtype() {
+    public function qtype() {
         return '';
     }
 }

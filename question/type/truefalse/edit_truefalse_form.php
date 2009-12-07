@@ -36,7 +36,7 @@ class question_edit_truefalse_form extends question_edit_form {
      *
      * @param object $mform the form being built.
      */
-    function definition_inner(&$mform) {
+    protected function definition_inner($mform) {
         $mform->addElement('select', 'correctanswer', get_string('correctanswer', 'qtype_truefalse'),
                 array(0 => get_string('false', 'qtype_truefalse'), 1 => get_string('true', 'qtype_truefalse')));
 
@@ -53,7 +53,7 @@ class question_edit_truefalse_form extends question_edit_form {
         $mform->freeze('penalty');
     }
 
-    function set_data($question) {
+    public function set_data($question) {
         if (!empty($question->options->trueanswer)) {
             $trueanswer = $question->options->answers[$question->options->trueanswer];
             $question->correctanswer = ($trueanswer->fraction != 0);
@@ -63,7 +63,7 @@ class question_edit_truefalse_form extends question_edit_form {
         parent::set_data($question);
     }
 
-    function qtype() {
+    public function qtype() {
         return 'truefalse';
     }
 }

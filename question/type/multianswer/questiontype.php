@@ -17,7 +17,7 @@
  * @package questionbank
  * @subpackage questiontypes
  */
-class embedded_cloze_qtype extends question_type {
+class qtype_multianswer extends question_type {
 
     function name() {
         return 'multianswer';
@@ -840,7 +840,7 @@ Good luck!
 //////////////////////////////////////////////////////////////////////////
 //// INITIATION - Without this line the question type is not in use... ///
 //////////////////////////////////////////////////////////////////////////
-question_register_questiontype(new embedded_cloze_qtype());
+question_register_questiontype(new qtype_multianswer());
 
 /////////////////////////////////////////////////////////////
 //// ADDITIONAL FUNCTIONS

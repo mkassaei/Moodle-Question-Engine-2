@@ -32,15 +32,15 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_shortanswer extends question_type {
-    function extra_question_fields() {
+    public function extra_question_fields() {
         return array('question_shortanswer','answers','usecase');
     }
 
-    function questionid_column_name() {
+    protected function questionid_column_name() {
         return 'question';
     }
 
-    function save_question_options($question) {
+    public function save_question_options($question) {
         $result = new stdClass;
 
         if (!$oldanswers = get_records('question_answers', 'question', $question->id, 'id ASC')) {
@@ -116,7 +116,7 @@ class qtype_shortanswer extends question_type {
     /*
      * Override the parent class method, to remove escaping from asterisks.
      */
-    function get_correct_responses(&$question, &$state) {
+    public function get_correct_responses(&$question, &$state) {
         $response = parent::get_correct_responses($question, $state);
         if (is_array($response)) {
             $response[''] = addslashes(str_replace('\*', '*', stripslashes($response[''])));
@@ -131,7 +131,7 @@ class qtype_shortanswer extends question_type {
      *
      * This is used in question/restorelib.php
      */
-    function restore($old_question_id,$new_question_id,$info,$restore) {
+    public function restore($old_question_id,$new_question_id,$info,$restore) {
 
         $status = parent::restore($old_question_id, $new_question_id, $info, $restore);
 
@@ -173,7 +173,7 @@ class qtype_shortanswer extends question_type {
      * Runs all the code required to set up and save an essay question for testing purposes.
      * Alternate DB table prefix may be used to facilitate data deletion.
      */
-    function generate_test($name, $courseid = null) {
+    public function generate_test($name, $courseid = null) {
         list($form, $question) = parent::generate_test($name, $courseid);
         $question->category = $form->category;
 

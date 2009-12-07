@@ -9,16 +9,11 @@
  * @subpackage questiontypes
  */
 class qtype_multichoice extends question_type {
-
-    function name() {
-        return 'multichoice';
-    }
-
-    function has_html_answers() {
+    protected function has_html_answers() {
         return true;
     }
 
-    function get_question_options(&$question) {
+    public function get_question_options($question) {
         // Get additional information from database
         // and attach it to the question object
         if (!$question->options = get_record('question_multichoice', 'question',
@@ -35,7 +30,7 @@ class qtype_multichoice extends question_type {
         return true;
     }
 
-    function save_question_options($question) {
+    public function save_question_options($question) {
         $result = new stdClass;
         if (!$oldanswers = get_records("question_answers", "question",
                                        $question->id, "id ASC")) {
@@ -155,92 +150,12 @@ class qtype_multichoice extends question_type {
     * @return boolean Success/Failure
     * @param object $question  The question being deleted
     */
-    function delete_question($questionid) {
+    public function delete_question($questionid) {
         delete_records("question_multichoice", "question", $questionid);
         return true;
     }
 
-    function create_session_and_responses(&$question, &$state, $cmoptions, $attempt) {
-        // create an array of answerids ??? why so complicated ???
-        $answerids = array_values(array_map(create_function('$val',
-         'return $val->id;'), $question->options->answers));
-        // Shuffle the answers if required
-        if (!empty($cmoptions->shuffleanswers) and !empty($question->options->shuffleanswers)) {
-           $answerids = swapshuffle($answerids);
-        }
-        $state->options->order = $answerids;
-        // Create empty responses
-        if ($question->options->single) {
-            $state->responses = array('' => '');
-        } else {
-            $state->responses = array();
-        }
-        return true;
-    }
-
-
-    function restore_session_and_responses(&$question, &$state) {
-        // The serialized format for multiple choice quetsions
-        // is an optional comma separated list of answer ids (the order of the
-        // answers) followed by a colon, followed by another comma separated
-        // list of answer ids, which are the radio/checkboxes that were
-        // ticked.
-        // E.g. 1,3,2,4:2,4 means that the answers were shown in the order
-        // 1, 3, 2 and then 4 and the answers 2 and 4 were checked.
-
-        $pos = strpos($state->responses[''], ':');
-        if (false === $pos) { // No order of answers is given, so use the default
-            $state->options->order = array_keys($question->options->answers);
-        } else { // Restore the order of the answers
-            $state->options->order = explode(',', substr($state->responses[''], 0, $pos));
-            $state->responses[''] = substr($state->responses[''], $pos + 1);
-        }
-        // Restore the responses
-        // This is done in different ways if only a single answer is allowed or
-        // if multiple answers are allowed. For single answers the answer id is
-        // saved in $state->responses[''], whereas for the multiple answers case
-        // the $state->responses array is indexed by the answer ids and the
-        // values are also the answer ids (i.e. key = value).
-        if (empty($state->responses[''])) { // No previous responses
-            $state->responses = array('' => '');
-        } else {
-            if ($question->options->single) {
-                $state->responses = array('' => $state->responses['']);
-            } else {
-                // Get array of answer ids
-                $state->responses = explode(',', $state->responses['']);
-                // Create an array indexed by these answer ids
-                $state->responses = array_flip($state->responses);
-                // Set the value of each element to be equal to the index
-                array_walk($state->responses, create_function('&$a, $b',
-                 '$a = $b;'));
-            }
-        }
-        return true;
-    }
-
-    function save_session_and_responses(&$question, &$state) {
-        // Bundle the answer order and the responses into the legacy answer
-        // field.
-        // The serialized format for multiple choice quetsions
-        // is (optionally) a comma separated list of answer ids
-        // followed by a colon, followed by another comma separated
-        // list of answer ids, which are the radio/checkboxes that were
-        // ticked.
-        // E.g. 1,3,2,4:2,4 means that the answers were shown in the order
-        // 1, 3, 2 and then 4 and the answers 2 and 4 were checked.
-        $responses  = implode(',', $state->options->order) . ':';
-        $responses .= implode(',', $state->responses);
-
-        // Set the legacy answer field
-        if (!set_field('question_states', 'answer', $responses, 'id',
-         $state->id)) {
-            return false;
-        }
-        return true;
-    }
-
-    function get_correct_responses(&$question, &$state) {
+    public function get_correct_responses(&$question, &$state) {
         if ($question->options->single) {
             foreach ($question->options->answers as $answer) {
                 if (((int) $answer->fraction) === 1) {
@@ -259,7 +174,7 @@ class qtype_multichoice extends question_type {
         }
     }
 
-    function print_question_formulation_and_controls(&$question, &$state, $cmoptions, $options) {
+    public function print_question_formulation_and_controls(&$question, &$state, $cmoptions, $options) {
         global $CFG;
 
         $answers = &$question->options->answers;
@@ -350,7 +265,7 @@ class qtype_multichoice extends question_type {
         include("$CFG->dirroot/question/type/multichoice/display.html");
     }
 
-    function grade_responses(&$question, &$state, $cmoptions) {
+    public function grade_responses(&$question, &$state, $cmoptions) {
         $state->raw_grade = 0;
         if($question->options->single) {
             $response = reset($state->responses);
@@ -379,7 +294,7 @@ class qtype_multichoice extends question_type {
     }
 
     // ULPGC ecastro
-    function get_actual_response($question, $state) {
+    public function get_actual_response($question, $state) {
         $answers = $question->options->answers;
         $responses = array();
         if (!empty($state->responses)) {
@@ -394,7 +309,7 @@ class qtype_multichoice extends question_type {
         return $responses;
     }
 
-    function response_summary($question, $state, $length = 80) {
+    public function response_summary($question, $state, $length = 80) {
         return implode(',', $this->get_actual_response($question, $state));
     }
 
@@ -405,7 +320,7 @@ class qtype_multichoice extends question_type {
      *
      * This is used in question/backuplib.php
      */
-    function backup($bf,$preferences,$question,$level=6) {
+    public function backup($bf,$preferences,$question,$level=6) {
 
         $status = true;
 
@@ -440,7 +355,7 @@ class qtype_multichoice extends question_type {
      *
      * This is used in question/restorelib.php
      */
-    function restore($old_question_id,$new_question_id,$info,$restore) {
+    public function restore($old_question_id,$new_question_id,$info,$restore) {
 
         $status = true;
 
@@ -523,7 +438,7 @@ class qtype_multichoice extends question_type {
         return $status;
     }
 
-    function restore_recode_answer($state, $restore) {
+    public function restore_recode_answer($state, $restore) {
         $pos = strpos($state->answer, ':');
         $order = array();
         $responses = array();
@@ -564,7 +479,7 @@ class qtype_multichoice extends question_type {
      * Decode links in question type specific tables.
      * @return bool success or failure.
      */
-    function decode_content_links_caller($questionids, $restore, &$i) {
+    public function decode_content_links_caller($questionids, $restore, &$i) {
         $status = true;
 
         // Decode links in the question_multichoice table.
@@ -606,11 +521,11 @@ class qtype_multichoice extends question_type {
      *      language file, and a case in the switch statement in number_in_style,
      *      and it should be listed in the definition of this column in install.xml.
      */
-    function get_numbering_styles() {
+    public function get_numbering_styles() {
         return array('abc', 'ABCD', '123', 'none');
     }
 
-    function number_html($qnum) {
+    protected function number_html($qnum) {
         return '<span class="anun">' . $qnum . '<span class="anumsep">.</span></span> ';
     }
 
@@ -619,7 +534,7 @@ class qtype_multichoice extends question_type {
      * @param string $style The style to render the number in. One of the ones returned by $numberingoptions.
      * @return string the number $num in the requested style.
      */
-    function number_in_style($num, $style) {
+    protected function number_in_style($num, $style) {
         switch($style) {
             case 'abc':
                 return $this->number_html(chr(ord('a') + $num));
@@ -634,7 +549,7 @@ class qtype_multichoice extends question_type {
         }
     }
 
-    function find_file_links($question, $courseid){
+    public function find_file_links($question, $courseid){
         $urls = array();
         // find links in the answers table.
         $urls +=  question_find_file_links_from_html($question->options->correctfeedback, $courseid);
@@ -651,7 +566,7 @@ class qtype_multichoice extends question_type {
         return $urls;
     }
 
-    function replace_file_links($question, $fromcourseid, $tocourseid, $url, $destination){
+    public function replace_file_links($question, $fromcourseid, $tocourseid, $url, $destination){
         parent::replace_file_links($question, $fromcourseid, $tocourseid, $url, $destination);
         // replace links in the question_match_sub table.
         // We need to use a separate object, because in load_question_options, $question->options->answers
@@ -683,7 +598,7 @@ class qtype_multichoice extends question_type {
      * Runs all the code required to set up and save an essay question for testing purposes.
      * Alternate DB table prefix may be used to facilitate data deletion.
      */
-    function generate_test($name, $courseid = null) {
+    public function generate_test($name, $courseid = null) {
         list($form, $question) = parent::generate_test($name, $courseid);
         $question->category = $form->category;
         $form->questiontext = "How old is the sun?";
@@ -709,5 +624,5 @@ class qtype_multichoice extends question_type {
 }
 
 // Register this question type with the question bank.
-question_register_questiontype(new qtype_multichoice());
+question_register_questiontype(question_bank::get_qtype('multichoice'));
 ?>

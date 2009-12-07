@@ -18,7 +18,7 @@ class question_edit_randomsamatch_form extends question_edit_form {
      *
      * @param MoodleQuickForm $mform the form being built.
      */
-    function definition_inner(&$mform) {
+    protected function definition_inner($mform) {
         $mform->removeElement('image');
 
         $questionstoselect = array();

@@ -35,7 +35,7 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_numerical extends question_type {
-    function get_question_options(&$question) {
+    public function get_question_options(&$question) {
         global $CFG;
 
         // Get the question answers and their respective tolerances
@@ -69,7 +69,7 @@ class qtype_numerical extends question_type {
         return true;
     }
 
-    function get_numerical_units(&$question) {
+    public function get_numerical_units(&$question) {
         if ($units = get_records('question_numerical_units',
                                          'question', $question->id, 'id ASC')) {
             $units  = array_values($units);
@@ -83,7 +83,7 @@ class qtype_numerical extends question_type {
         return true;
     }
 
-    function get_default_numerical_unit(&$question) {
+    public function get_default_numerical_unit(&$question) {
         if (isset($question->options->units[0])) {
             foreach ($question->options->units as $unit) {
                 if (abs($unit->multiplier - 1.0) < '1.0e-' . ini_get('precision')) {
@@ -97,7 +97,7 @@ class qtype_numerical extends question_type {
     /**
      * Save the units and the answers associated with this question.
      */
-    function save_question_options($question) {
+    public function save_question_options($question) {
         // Get old versions of the objects
         if (!$oldanswers = get_records('question_answers', 'question', $question->id, 'id ASC')) {
             $oldanswers = array();
@@ -199,7 +199,7 @@ class qtype_numerical extends question_type {
         return true;
     }
 
-    function save_numerical_units($question) {
+    public function save_numerical_units($question) {
         $result = new stdClass;
 
         // Delete the units previously saved for this question.
@@ -254,13 +254,13 @@ class qtype_numerical extends question_type {
      * @return boolean Success/Failure
      * @param object $question  The question being deleted
      */
-    function delete_question($questionid) {
+    public function delete_question($questionid) {
         delete_records("question_numerical", "question", $questionid);
         delete_records("question_numerical_units", "question", $questionid);
         return true;
     }
 
-    function get_correct_responses(&$question, &$state) {
+    public function get_correct_responses(&$question, &$state) {
         $correct = parent::get_correct_responses($question, $state);
         $unit = $this->get_default_numerical_unit($question);
         if (isset($correct['']) && $correct[''] != '*' && $unit) {
@@ -270,7 +270,7 @@ class qtype_numerical extends question_type {
     }
 
     // ULPGC ecastro
-    function get_all_responses(&$question, &$state) {
+    public function get_all_responses(&$question, &$state) {
         $result = new stdClass;
         $answers = array();
         $unit = $this->get_default_numerical_unit($question);
@@ -346,7 +346,7 @@ class qtype_numerical extends question_type {
      *
      * This is used in question/backuplib.php
      */
-    function backup($bf,$preferences,$question,$level=6) {
+    public function backup($bf,$preferences,$question,$level=6) {
 
         $status = true;
 
@@ -376,7 +376,7 @@ class qtype_numerical extends question_type {
      *
      * This is used in question/restorelib.php
      */
-    function restore($old_question_id,$new_question_id,$info,$restore) {
+    public function restore($old_question_id,$new_question_id,$info,$restore) {
 
         $status = true;
 
@@ -432,7 +432,7 @@ class qtype_numerical extends question_type {
      * Runs all the code required to set up and save an essay question for testing purposes.
      * Alternate DB table prefix may be used to facilitate data deletion.
      */
-    function generate_test($name, $courseid = null) {
+    public function generate_test($name, $courseid = null) {
         list($form, $question) = question_type::generate_test($name, $courseid);
         $question->category = $form->category;
 
