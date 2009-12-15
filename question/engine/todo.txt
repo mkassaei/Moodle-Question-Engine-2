@@ -1,80 +1,131 @@
-Finish question engine core
-    Questionline and answerline
 
-Database load/save code
-    Garbage collect old preview question usages.
-    Unit tests for Unit of Work
-
-Finish interaction models
-    Interactive model
-    Opaque model
-    Each attempt builds on last model
-    Scroll-down JavaScript on adaptive/immediate/interactive submit button - but not the first on the page.
-    Minor refactoring of the different interaction models' process_action methods.
-    Fix manual grading of automatically graded question types.
-
-Convert existing question type code
+Convert existing question type code (3d)
     Convert question types to the new API
-        multichoice
-        match
-    Numerical units
-    Refactor out commonalities between multiplechoice and truefalse rendering.
-    Test missing qtype
+        multichoice 0.5d
+        match 1d
+        opaque 0.5d
+    Numerical units 0.5d
+    Refactor out commonalities between multiplechoice and truefalse rendering. 0.5d
 
-<-- Christmas target milestone.
+More interaction models (2d)
+    Interactive model 2d
 
-Convert existing question type code
-    New fields for editing hints
-    Convert question types to the new API
-        calculated
-        multianswer
-        randomsamatch
-    Update qtype plugin version nubmers and requires numbers, when this is merged into core code
+Integrate new code into the quiz (2d)
+    backport & update key 2.0 changes (2d)
+        attemptlib.php 0.5d
+        accessmanager.php
+        view.php 0.5d
+        startattempt.php
+        attempt.php
+        processattempt.php 0.5d
+        review.php
+        reviewquestion.php 0.5d
+        quiz.js
+    scroll-down JavaScript on adaptive/immediate/interactive submit button - but not the first on the page.
 
-Integrate new code into the quiz
-    attempt code
-    review code
-    review single question code
-    reports
-        overview
-        responses
-        manual grading
-        statistics
+<-- Christmas target milestone (7d)
 
-Database load/save code
-    Database update on regrading
-    Make more efficient code using lazy-loading, etc.
+Finish converting simple question types (5d)
+    New fields for editing hints (4d)
+        Fields on editing form 1d
+        Database columns, load/save code 1d
+        Import export 1d
+        Use by interactive mode 1d
+    Test missing qtype 1d
+    Update qtype plugin version numbers and requires numbers, when this is merged into core code 0d.
 
-Incorporate other OU-specific quiz customisations into this code
-    Needs to be quantified
-    ...
+Finish interaction models (2d)
+    Opaque model 0.5d
+    Each attempt builds on last model 1d
+    Minor refactoring of the different interaction models' process_action methods. 0d
+    Fix manual grading of automatically graded question types. 0.5d
 
-Performance testing
+Incorporate other OU-specific quiz customisations into this code (8d)
+    Check with Phil there are no changes the reports compared to what went into 2.0.
+    Plugins to convert
+        oumultiresponse 1d
+            fix import/export hack
+        ddwtos 1d
+            fix import/export hack
+    Changes to preserve
+        adaptive mode / overall feedback import-export refactoring 1d
+        new review options on the editing form/db/backup and restore/config/defaults 1.5d
+        matching question, add overall feedback fields 1d
+        ou_backup_IsConvertingToStandard WTF 0.5d
+        $DASHBOARD_COUNTER crap 0.5d
+        quiz backup version 0d
+        OCI revisioneditor stuff 0.5d
+    Changes to eliminate (with permission)
+        nasty hack  in report.php and tabs.php to prevent tutors accessing the responses report (check separate groups works). 0.5d
+    Review lang files as a double-check that nothing was missed. 0.5d
+    Don't auto redirect to edit.php for empty quizzes. 0d
+    Activity completion changes. 0d
+    Files to delete 0d
+        attempt_close_js.php
+        jstimer.php
+
+<-- Working quiz studnet interface milestone
+
+Finish question engine core (0d)
+    Questionline and answerline - probably best to do while working on quiz reports.
+
+Integrate new code into the quiz reports (7d)
+    Start with Moodle 2.0 reports.
+    overview 2d
+    responses 1d
+    manual grading 1d
+    statistics 4d
+
+Finish database load/save code (4d)
+    Garbage collect old preview question usages. 0d
+    Make more efficient code using lazy-loading, etc. 2d
+    Unit tests for Unit of Work 1d
+    Database update on regrading 0.5d
+
+<-- Working quiz reports milestone
+
+Database upgrade script (8d)
+    For OU Moodle 5d
+    For Moodle 2.x 3d
+    Deal with question images 0d
+
+Backup and restore code (7d)
+    Implement backup and restore of the new database tables 2d
+    Restore old backup code ? 5d
+    Decide what to do about pre-Moodle 1.5 backups ? 0d?
+
+<-- Working upgrade and backup/restore milestone
+
+Port the code to Moodle 2.x (4d)
+    Convert question/engine/datalib.php 1d
+    Get rid of question/engine/compatibility 0d
+    Update file handling 2.5d
+    Update unit tests to PHP Unit. 0.5d
+
+Convert complex question types to the new API (8d)
+    calculated 3d
+    multianswer 3d
+    randomsamatch 2d
+
+Documentation (2d)
+    Finish http://docs.moodle.org/en/Development:Developing_a_Question_Type 0.5d
+    Overview of how the system works. 1d
+    Guide for module (or other plugin authors) wanting to use the question engine in their code. 0.5d
+
+<-- Ready to go into Moodle core milestone.
+
+Performance testing 5d
     Load test the entire quiz (count DB queries and time)
     Profile some key parts of the question processing.
 
-Port the code to Moodle 2.x
-    Convert question/engine/datalib.php
-    Get rid of question/engine/compatibility
-    Update file handling.
+>-- The following items are things that it would be nice to do later.
 
-Documentation
-    Finish http://docs.moodle.org/en/Development:Developing_a_Question_Type
-    Overview of how the system works.
-    Guide for module (or other plugin authors) wanting to use the question engine in their code.
+Quiz module renderers (4d)
+    Make a renderer for quesion navigation 1d.
+    Make a renderer for each (student) quiz page. 3d
 
-Database upgrade script
-    For OU Moodle
-    For Moodle 2.x
-    Deal with question images
-
-Backup and restore code
-    Implement backup and restore of the new database tables
-    Restore old backup code
-    Decide what to do about pre-Moodle 1.5 backups
-
-Enhance the question preview window
-    Think about implementing manual grading UI
+Enhance the question preview window (3d)
+    Think about implementing manual grading UI 3d
 
 
 --------------------------------------------------------------------------------
