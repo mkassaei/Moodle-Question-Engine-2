@@ -1,7 +1,7 @@
 
 Convert existing question type code (3d)
     Convert question types to the new API
-        multichoice 0.5d
+√       multichoice 0.5d
         match 1d
         opaque 0.5d
     Numerical units 0.5d

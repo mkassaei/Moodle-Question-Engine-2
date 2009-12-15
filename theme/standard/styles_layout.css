@@ -2653,6 +2653,7 @@ body.notes .notesgroup {
     padding: 0.3em;
     width: auto;
 }
+.multichoice .answer span,
 .truefalse .answer span {
     display: block;
     padding: 0.3em;

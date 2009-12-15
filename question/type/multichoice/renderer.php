@@ -26,22 +26,37 @@
 
 
 /**
- * Generates the output for the multiple choice questions.
+ * Base class for generating the bits of output common to multiple choice
+ * single and multiple questions.
  *
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_multichoice_single_renderer extends qtype_renderer {
+abstract class qtype_multichoice_renderer_base extends qtype_renderer {
+    abstract protected function get_input_type();
+
+    abstract protected function get_input_name(question_attempt $qa, $value);
+
+    abstract protected function get_input_value($value);
+
+    abstract protected function get_input_id(question_attempt $qa, $value);
+
+    abstract protected function is_choice_selected($response, $value);
+
+    abstract protected function is_right(question_answer $ans);
+
+    abstract protected function get_response(question_attempt $qa);
+
     public function formulation_and_controls(question_attempt $qa,
             question_display_options $options) {
 
         $question = $qa->get_question();
         $order = $question->get_order($qa);
-        $response = $qa->get_last_qt_var('answer', 123);
+        $response = $this->get_response($qa);
 
         $inputname = $qa->get_qt_field_name('answer');
         $inputattributes = array(
-            'type' => 'radio',
+            'type' => $this->get_input_type(),
             'name' => $inputname,
         );
 
@@ -49,60 +64,215 @@ class qtype_multichoice_single_renderer extends qtype_renderer {
             $inputattributes['disabled'] = 'disabled';
         }
 
-        $formatoptions = new stdClass;
-        $formatoptions->noclean = true;
-        $formatoptions->para = false;
-
         $radiobuttons = array();
         $feedbackimg = array();
         $feedback = array();
         $classes = array();
         foreach ($order as $value => $ansid) {
             $ans = $question->answers[$ansid];
-            $inputattributes['value'] = $value;
-            $inputattributes['id'] = $inputname . $value;
-            if ($response == $value) {
+            $inputattributes['name'] = $this->get_input_name($qa, $value);
+            $inputattributes['value'] = $this->get_input_value($value);
+            $inputattributes['id'] = $this->get_input_id($qa, $value);
+            $isselected = $this->is_choice_selected($response, $value);
+            if ($isselected) {
                 $inputattributes['checked'] = 'checked';
             } else {
                 unset($inputattributes['checked']);
             }
             $radiobuttons[] = $this->output_empty_tag('input', $inputattributes) .
                     $this->output_tag('label', array('for' => $inputattributes['id']),
-                    format_text($ans->answer, true, $formatoptions));
+                    $this->number_in_style($value, $question->answernumbering) .
+                    $question->format_text($ans->answer));
 
             if (($options->feedback || $options->correctresponse) && $response !== -1) {
-                $feedbackimg[] = question_get_feedback_image($response == $value, $response == $value && $options->feedback);
+                $feedbackimg[] = question_get_feedback_image($this->is_right($ans), $isselected && $options->feedback);
             } else {
                 $feedbackimg[] = '';
             }
-            if (($options->feedback || $options->correctresponse) && $response == $value) {
-                $feedback[] = format_text($ans->feedback, true, $formatoptions);
+            if (($options->feedback || $options->correctresponse) && $isselected) {
+                $feedback[] = $question->format_text($ans->feedback);
             } else {
                 $feedback[] = '';
             }
             $classes[] = 'r' . ($value % 2);
             if ($options->correctresponse && $ans->fraction > 0) {
-                $a->class = question_get_feedback_class($ans->fraction);
+                $classes[] = question_get_feedback_class($ans->fraction);
             }
         }
 
         $result = '';
         $result .= $this->output_tag('div', array('class' => 'qtext'),
-                format_text($question->questiontext, true, $formatoptions));
+                $question->format_questiontext());
 
-        $result .= $this->output_start_tag('div', array('class' => 'ablock clearfix'));
+        $result .= $this->output_start_tag('div', array('class' => 'ablock'));
         $result .= $this->output_tag('div', array('class' => 'prompt'),
-                get_string('selectoneanswer', 'qtype_multichoice')) . "\n";
+                get_string('selectone', 'qtype_multichoice'));
 
-        $result .= $this->output_start_tag('div', array('class' => 'answer')) . "\n";
+        $result .= $this->output_start_tag('div', array('class' => 'answer'));
         foreach ($radiobuttons as $key => $radio) {
             $result .= $this->output_tag('span', array('class' => $classes[$key]),
-                    $radio . $feedbackimg[$key], $feedback[$key]) . "\n";
+                    $radio . $feedbackimg[$key] . $feedback[$key]) . "\n";
         }
         $result .= $this->output_end_tag('div'); // answer
 
         $result .= $this->output_end_tag('div'); // ablock
 
         return $result;
+            }
+
+    protected function number_html($qnum) {
+        return $qnum . '. ';
+    }
+
+    /**
+     * @param int $num The number, starting at 0.
+     * @param string $style The style to render the number in. One of the ones returned by $numberingoptions.
+     * @return string the number $num in the requested style.
+     */
+    protected function number_in_style($num, $style) {
+        switch($style) {
+            case 'abc':
+                return $this->number_html(chr(ord('a') + $num));
+            case 'ABCD':
+                return $this->number_html(chr(ord('A') + $num));
+            case '123':
+                return $this->number_html(($num + 1));
+            case 'none':
+                return '';
+            default:
+                return 'ERR';
+        }
+    }
+
+    public function specific_feedback(question_attempt $qa) {
+        $question = $qa->get_question();
+
+        $feedback = '';
+        if (question_state::is_correct($qa->get_state())) {
+            $feedback = $question->correctfeedback;
+        } else if (question_state::is_partially_correct($qa->get_state())) {
+            $feedback = $question->partiallycorrectfeedback;
+        } else if (question_state::is_incorrect($qa->get_state())) {
+            $feedback = $question->incorrectfeedback;
+        }
+
+        if ($feedback) {
+            $feedback = $question->format_text($feedback);
+        }
+
+        return $feedback;
+    }
+}
+
+
+/**
+ * Subclass for generating the bits of output specific to multiple choice
+ * single questions.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class qtype_multichoice_single_renderer extends qtype_multichoice_renderer_base {
+    protected function get_input_type() {
+        return 'radio';
+    }
+
+    protected function get_input_name(question_attempt $qa, $value) {
+        return $qa->get_qt_field_name('answer');
+    }
+
+    protected function get_input_value($value) {
+        return $value;
+    }
+
+    protected function get_input_id(question_attempt $qa, $value) {
+        return $qa->get_qt_field_name('answer' . $value);
+    }
+
+    protected function get_response(question_attempt $qa) {
+        return $qa->get_last_qt_var('answer', -1);
+    }
+
+    protected function is_choice_selected($response, $value) {
+        return $response == $value;
+    }
+
+    protected function is_right(question_answer $ans) {
+        return $ans->fraction > 0.9999999;
+    }
+
+    public function correct_response(question_attempt $qa) {
+        $question = $qa->get_question();
+
+        foreach ($question->answers as $ans) {
+            if ($ans->fraction > 0.9999999) {
+                return get_string('correctansweris', 'qtype_multichoice',
+                        $question->format_text($ans->answer));
+            }
+        }
+
+        return '';
+    }
+}
+
+/**
+ * Subclass for generating the bits of output specific to multiple choice
+ * multi=select questions.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class qtype_multichoice_multi_renderer extends qtype_multichoice_renderer_base {
+    protected function get_input_type() {
+        return 'checkbox';
+    }
+
+    protected function get_input_name(question_attempt $qa, $value) {
+        return $qa->get_qt_field_name('choice' . $value);
+    }
+
+    protected function get_input_value($value) {
+        return 1;
+    }
+
+    protected function get_input_id(question_attempt $qa, $value) {
+        return $this->get_input_name($qa, $value);
+    }
+
+    protected function get_response(question_attempt $qa) {
+        foreach ($qa->get_reverse_step_iterator() as $step) {
+//            $step = new question_attempt_step();
+            $response = $step->get_qt_data();
+            if (!empty($response)) {
+                return $response;
+            }
+        }
+        return array();
+    }
+
+    protected function is_choice_selected($response, $value) {
+        return isset($response['choice' . $value]);
+    }
+
+    protected function is_right(question_answer $ans) {
+        return $ans->fraction > 0;
+    }
+
+    public function correct_response(question_attempt $qa) {
+        $question = $qa->get_question();
+
+        $right = array();
+        foreach ($question->answers as $ans) {
+            if ($ans->fraction > 0) {
+                $right[] = $question->format_text($ans->answer);
+            }
+        }
+
+        if (!empty($right)) {
+                return get_string('correctansweris', 'qtype_multichoice',
+                        implode(', ', $right));
+            
+        }
+        return '';
     }
 }

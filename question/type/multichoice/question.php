@@ -65,7 +65,7 @@ abstract class qtype_multichoice_base extends question_graded_automatically {
         return $this->order;
     }
 
-    protected function init_order(question_attempt  $qa) {
+    protected function init_order(question_attempt $qa) {
         if (is_null($this->order)) {
             $this->order = explode(',', $qa->get_step(0)->get_qt_var('_order'));
         }
@@ -90,18 +90,6 @@ class qtype_multichoice_single_question extends qtype_multichoice_base {
             $minfraction = min($minfraction, $ans->fraction);
         }
         return $minfraction;
-    }
-
-    public function init_first_step(question_attempt_step $step) {
-        if ($step->has_qt_var('_order')) {
-            $this->order = explode(',', $step->get_qt_var('_order'));
-        } else {
-            $this->order = array_keys($this->answers);
-            if ($this->shuffleanswers) {
-                shuffle($this->order);
-            }
-            $step->set_qt_var('_order', implode(',', $this->order));
-        }
     }
 
     /**
@@ -167,12 +155,6 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
         return 'choice' . $key;
     }
 
-    /**
-     * Return an array of the question type variables that could be submitted
-     * as part of a question of this type, with their types, so they can be
-     * properly cleaned.
-     * @return array variable name => PARAM_... constant.
-     */
     public function get_expected_data() {
         $expected = array();
         foreach ($this->order as $key => $notused) {

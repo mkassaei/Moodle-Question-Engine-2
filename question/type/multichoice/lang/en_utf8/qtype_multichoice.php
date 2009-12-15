@@ -14,6 +14,7 @@ $string['answersingleyes'] = 'One answer only';
 $string['choiceno'] = 'Choice $a';
 $string['choices'] = 'Available choices';
 $string['clozeaid'] = 'Enter missing word';
+$string['correctansweris'] = 'The correct answer is: $a';
 $string['correctfeedback'] = 'For any correct response';
 $string['editingmultichoice'] = 'Editing a Multiple Choice question';
 $string['errfractionsaddwrong'] = 'The positive grades you have chosen do not add up to 100%%<br />Instead, they add up to $a%%';
@@ -30,6 +31,6 @@ $string['overallcorrectfeedback'] = 'Feedback for any correct response';
 $string['overallincorrectfeedback'] = 'Feedback for any incorrect response';
 $string['overallpartiallycorrectfeedback'] = 'Feedback for any partially correct response';
 $string['partiallycorrectfeedback'] = 'For any partially correct response';
+$string['selectone'] = 'Select one:';
 $string['shuffleanswers'] = 'Shuffle the choices?';
 $string['singleanswer'] = 'Choose one answer.';
-?>

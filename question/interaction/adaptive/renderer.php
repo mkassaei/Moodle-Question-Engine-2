@@ -86,17 +86,17 @@ class qim_adaptive_renderer extends qim_renderer {
                     question_state::graded_state_for_fraction($gradedstep->get_im_var('_rawfraction')));
         }
 
-        $gradingdetails = get_string('gradingdetails', 'question', $mark);
+        $gradingdetails = get_string('gradingdetails', 'qim_adaptive', $mark);
 
         if ($qa->get_question()->penalty) {
             // print details of grade adjustment due to penalties
             if ($mark->raw != $mark->cur){
-                $gradingdetails .= ' ' . get_string('gradingdetailsadjustment', 'quiz', $mark);
+                $gradingdetails .= ' ' . get_string('gradingdetailsadjustment', 'qim_adaptive', $mark);
             }
             // print info about new penalty
             // penalty is relevant only if the answer is not correct and further attempts are possible
             if (!question_state::is_finished($qa->get_state())) {
-                $gradingdetails .= ' ' . get_string('gradingdetailspenalty', 'quiz', $qa->get_question()->penalty);
+                $gradingdetails .= ' ' . get_string('gradingdetailspenalty', 'qim_adaptive', $qa->get_question()->penalty);
             }
         }
 

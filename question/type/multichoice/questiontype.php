@@ -171,7 +171,7 @@ class qtype_multichoice extends question_type {
         if ($questiondata->options->single) {
             $class = 'qtype_multichoice_single_question';
         } else {
-            $class = 'qtype_multichoice_multiple_question';
+            $class = 'qtype_multichoice_multi_question';
         }
         return new $class();
     }
@@ -570,30 +570,6 @@ class qtype_multichoice extends question_type {
      */
     public function get_numbering_styles() {
         return array('abc', 'ABCD', '123', 'none');
-    }
-
-    protected function number_html($qnum) {
-        return '<span class="anun">' . $qnum . '<span class="anumsep">.</span></span> ';
-    }
-
-    /**
-     * @param int $num The number, starting at 0.
-     * @param string $style The style to render the number in. One of the ones returned by $numberingoptions.
-     * @return string the number $num in the requested style.
-     */
-    protected function number_in_style($num, $style) {
-        switch($style) {
-            case 'abc':
-                return $this->number_html(chr(ord('a') + $num));
-            case 'ABCD':
-                return $this->number_html(chr(ord('A') + $num));
-            case '123':
-                return $this->number_html(($num + 1));
-            case 'none':
-                return '';
-            default:
-                return 'ERR';
-        }
     }
 
     public function find_file_links($question, $courseid){

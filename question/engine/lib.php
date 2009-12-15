@@ -240,6 +240,33 @@ abstract class question_state {
     }
 
     /**
+     * Is this state one of the ones that mean the question attempt has been graded?
+     * @param integer $state one of the state constants.
+     * @return boolean
+     */
+    public static function is_correct($state) {
+        return $state == self::GRADED_CORRECT || $state == self::MANUALLY_GRADED_CORRECT;
+    }
+
+    /**
+     * Is this state one of the ones that mean the question attempt has been graded?
+     * @param integer $state one of the state constants.
+     * @return boolean
+     */
+    public static function is_partially_correct($state) {
+        return $state == self::GRADED_PARTCORRECT || $state == self::MANUALLY_GRADED_PARTCORRECT;
+    }
+
+    /**
+     * Is this state one of the ones that mean the question attempt has been graded?
+     * @param integer $state one of the state constants.
+     * @return boolean
+     */
+    public static function is_incorrect($state) {
+        return $state == self::GRADED_INCORRECT || $state == self::MANUALLY_GRADED_INCORRECT;
+    }
+
+    /**
      * Is this state one of the ones that mean the question attempt has had a manual comment added?
      * @param integer $state one of the state constants.
      * @return boolean
@@ -1616,6 +1643,9 @@ class question_attempt {
         $i = 0;
         while (current($records)) {
             $qa->steps[$i] = question_attempt_step::load_from_records($records, $i);
+            if ($i == 0) {
+                $question->init_first_step($qa->steps[0]);
+            }
             $i++;
         }
 
