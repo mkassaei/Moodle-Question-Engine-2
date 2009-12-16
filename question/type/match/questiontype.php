@@ -1,13 +1,35 @@
-<?php  // $Id$
+<?php
 
-/////////////
-/// MATCH ///
-/////////////
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/// QUESTION TYPE CLASS //////////////////
+
 /**
- * @package questionbank
- * @subpackage questiontypes
+ * Question type class for the matching question type.
+ *
+ * @package qtype_match
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+
+/**
+ * The matching question type class.
+ *
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_match extends question_type {
 
@@ -98,280 +120,39 @@ class qtype_match extends question_type {
         return true;
     }
 
+    protected function initialise_question_instance(question_definition $question, $questiondata) {
+        parent::initialise_question_instance($question, $questiondata);
+
+        $question->shufflestems = $questiondata->options->shuffleanswers;
+
+        $question->stems = array();
+        $question->choices = array();
+        $question->right = array();
+
+        foreach ($questiondata->options->subquestions as $matchsub) {
+            $ans = $matchsub->answertext;
+            $key = array_search($matchsub->answertext, $question->choices);
+            if ($key === false) {
+                $key = $matchsub->id;
+                $question->choices[$key] = $matchsub->answertext;
+            }
+
+            if ($matchsub->questiontext !== '') {
+                $question->stems[$matchsub->id] = $matchsub->questiontext;
+                $question->right[$matchsub->id] = $key;
+            }
+        }
+    }
+
     /**
-    * Deletes question from the question-type specific tables
-    *
-    * @return boolean Success/Failure
-    * @param integer $question->id
-    */
+     * Deletes question from the question-type specific tables
+     *
+     * @return boolean Success/Failure
+     * @param integer $question->id
+     */
     public function delete_question($questionid) {
         delete_records("question_match", "question", $questionid);
         delete_records("question_match_sub", "question", $questionid);
-        return true;
-    }
-
-    public function create_session_and_responses(&$question, &$state, $cmoptions, $attempt) {
-        if (!$state->options->subquestions = get_records('question_match_sub', 'question', $question->id, 'id ASC')) {
-            notify('Error: Missing subquestions!');
-            return false;
-        }
-
-        foreach ($state->options->subquestions as $key => $subquestion) {
-            // This seems rather over complicated, but it is useful for the
-            // randomsamatch questiontype, which can then inherit the print
-            // and grading functions. This way it is possible to define multiple
-            // answers per question, each with different marks and feedback.
-            $answer = new stdClass();
-            $answer->id       = $subquestion->code;
-            $answer->answer   = $subquestion->answertext;
-            $answer->fraction = 1.0;
-            $state->options->subquestions[$key]->options->answers[$subquestion->code] = clone($answer);
-
-            $state->responses[$key] = '';
-        }
-
-        // Shuffle the answers if required
-        if ($cmoptions->shuffleanswers and $question->options->shuffleanswers) {
-           $state->options->subquestions = swapshuffle_assoc($state->options->subquestions);
-        }
-
-        return true;
-    }
-
-    public function restore_session_and_responses(&$question, &$state) {
-        // The serialized format for matching questions is a comma separated
-        // list of question answer pairs (e.g. 1-1,2-3,3-2), where the ids of
-        // both refer to the id in the table question_match_sub.
-        $responses = explode(',', $state->responses['']);
-        $responses = array_map(create_function('$val', 'return explode("-", $val);'), $responses);
-
-        if (!$questions = get_records('question_match_sub', 'question', $question->id, 'id ASC')) {
-           notify('Error: Missing subquestions!');
-           return false;
-        }
-
-        // Restore the previous responses and place the questions into the state options
-        $state->responses = array();
-        $state->options->subquestions = array();
-        foreach ($responses as $response) {
-            $state->responses[$response[0]] = $response[1];
-            $state->options->subquestions[$response[0]] = $questions[$response[0]];
-        }
-
-        foreach ($state->options->subquestions as $key => $subquestion) {
-            // This seems rather over complicated, but it is useful for the
-            // randomsamatch questiontype, which can then inherit the print
-            // and grading functions. This way it is possible to define multiple
-            // answers per question, each with different marks and feedback.
-            $answer = new stdClass();
-            $answer->id       = $subquestion->code;
-            $answer->answer   = $subquestion->answertext;
-            $answer->fraction = 1.0;
-            $state->options->subquestions[$key]->options->answers[$subquestion->code] = clone($answer);
-        }
-
-        return true;
-    }
-
-    public function save_session_and_responses(&$question, &$state) {
-         $subquestions = &$state->options->subquestions;
-
-        // Prepare an array to help when disambiguating equal answers.
-        $answertexts = array();
-        foreach ($subquestions as $subquestion) {
-            $ans = reset($subquestion->options->answers);
-            $answertexts[$ans->id] = $ans->answer;
-        }
-
-        // Serialize responses
-        $responses = array();
-        foreach ($subquestions as $key => $subquestion) {
-            $response = 0;
-            if ($subquestion->questiontext !== '' && !is_null($subquestion->questiontext)) {
-                if ($state->responses[$key]) {
-                    $response = $state->responses[$key];
-                    if (!array_key_exists($response, $subquestion->options->answers)) {
-                        // If student's answer did not match by id, but there may be
-                        // two answers with the same text, but different ids,
-                        // so we need to try matching the answer text.
-                        $expected_answer = reset($subquestion->options->answers);
-                        if ($answertexts[$response] == $expected_answer->answer) {
-                            $response = $expected_answer->id;
-                            $state->responses[$key] = $response;
-                        }
-                    }
-                }
-            }
-            $responses[] = $key.'-'.$response;
-        }
-        $responses = implode(',', $responses);
-
-        // Set the legacy answer field
-        if (!set_field('question_states', 'answer', $responses, 'id', $state->id)) {
-            return false;
-        }
-        return true;
-    }
-
-    public function get_correct_responses(&$question, &$state) {
-        $responses = array();
-        foreach ($state->options->subquestions as $sub) {
-            foreach ($sub->options->answers as $answer) {
-                if (1 == $answer->fraction && $sub->questiontext != '' && !is_null($sub->questiontext)) {
-                    $responses[$sub->id] = $answer->id;
-                }
-            }
-        }
-        return empty($responses) ? null : $responses;
-    }
-
-    public function print_question_formulation_and_controls(&$question, &$state, $cmoptions, $options) {
-        global $CFG;
-        $subquestions   = $state->options->subquestions;
-        $correctanswers = $this->get_correct_responses($question, $state);
-        $nameprefix     = $question->name_prefix;
-        $answers        = array(); // Answer choices formatted ready for output.
-        $allanswers     = array(); // This and the next used to detect identical answers
-        $answerids      = array(); // and adjust ids.
-        $responses      = &$state->responses;
-
-        // Prepare a list of answers, removing duplicates.
-        foreach ($subquestions as $subquestion) {
-            foreach ($subquestion->options->answers as $ans) {
-                $allanswers[$ans->id] = $ans->answer;
-                if (!in_array($ans->answer, $answers)) {
-                    $answers[$ans->id] = strip_tags(format_string($ans->answer, false));
-                    $answerids[$ans->answer] = $ans->id;
-                }
-            }
-        }
-
-        // Fix up the ids of any responses that point the the eliminated duplicates.
-        foreach ($responses as $subquestionid => $ignored) {
-            if ($responses[$subquestionid]) {
-                $responses[$subquestionid] = $answerids[$allanswers[$responses[$subquestionid]]];
-            }
-        }
-        foreach ($correctanswers as $subquestionid => $ignored) {
-            $correctanswers[$subquestionid] = $answerids[$allanswers[$correctanswers[$subquestionid]]];
-        }
-
-        // Shuffle the answers
-        $answers = draw_rand_array($answers, count($answers));
-
-        // Print formulation
-        $questiontext = $this->format_text($question->questiontext,
-                $question->questiontextformat, $cmoptions);
-        $image = get_question_image($question);
-
-        // Print the input controls
-        foreach ($subquestions as $key => $subquestion) {
-            if ($subquestion->questiontext !== '' && !is_null($subquestion->questiontext)) {
-                // Subquestion text:
-                $a = new stdClass;
-                $a->text = $this->format_text($subquestion->questiontext,
-                        $question->questiontextformat, $cmoptions);
-
-                // Drop-down list:
-                $menuname = $nameprefix.$subquestion->id;
-                $response = isset($state->responses[$subquestion->id])
-                            ? $state->responses[$subquestion->id] : '0';
-
-                $a->class = ' ';
-                $a->feedbackimg = ' ';
-
-                if ($options->readonly and $options->correct_responses) {
-                    if (isset($correctanswers[$subquestion->id])
-                            and ($correctanswers[$subquestion->id] == $response)) {
-                        $correctresponse = 1;
-                    } else {
-                        $correctresponse = 0;
-                    }
-
-                    if ($options->feedback && $response) {
-                        $a->class = question_get_feedback_class($correctresponse);
-                        $a->feedbackimg = question_get_feedback_image($correctresponse);
-                    }
-                }
-
-                $a->control = choose_from_menu($answers, $menuname, $response, 'choose',
-                                               '', 0, true, $options->readonly);
-
-                // Neither the editing interface or the database allow to provide
-                // fedback for this question type.
-                // However (as was pointed out in bug bug 3294) the randomsamatch
-                // type which reuses this method can have feedback defined for
-                // the wrapped shortanswer questions.
-                //if ($options->feedback
-                // && !empty($subquestion->options->answers[$responses[$key]]->feedback)) {
-                //    print_comment($subquestion->options->answers[$responses[$key]]->feedback);
-                //}
-
-                $anss[] = $a;
-            }
-        }
-        include("$CFG->dirroot/question/type/match/display.html");
-    }
-
-    public function grade_responses(&$question, &$state, $cmoptions) {
-        $subquestions = &$state->options->subquestions;
-        $responses    = &$state->responses;
-
-        // Prepare an array to help when disambiguating equal answers.
-        $answertexts = array();
-        foreach ($subquestions as $subquestion) {
-            $ans = reset($subquestion->options->answers);
-            $answertexts[$ans->id] = $ans->answer;
-        }
-
-        // Add up the grades from each subquestion.
-        $sumgrade = 0;
-        $totalgrade = 0;
-        foreach ($subquestions as $key => $sub) {
-            if ($sub->questiontext !== '' && !is_null($sub->questiontext)) {
-                $totalgrade += 1;
-                $response = $responses[$key];
-                if ($response && !array_key_exists($response, $sub->options->answers)) {
-                    // If studen's answer did not match by id, but there may be
-                    // two answers with the same text, but different ids,
-                    // so we need to try matching the answer text.
-                    $expected_answer = reset($sub->options->answers);
-                    if ($answertexts[$response] == $expected_answer->answer) {
-                        $response = $expected_answer->id;
-                    }
-                }
-                if (array_key_exists($response, $sub->options->answers)) {
-                    $sumgrade += $sub->options->answers[$response]->fraction;
-                }
-            }
-        }
-
-        $state->raw_grade = $sumgrade/$totalgrade;
-        if (empty($state->raw_grade)) {
-            $state->raw_grade = 0;
-        }
-
-        // Make sure we don't assign negative or too high marks
-        $state->raw_grade = min(max((float) $state->raw_grade,
-                            0.0), 1.0) * $question->maxgrade;
-        $state->penalty = $question->penalty * $question->maxgrade;
-
-        // mark the state as graded
-        $state->event = ($state->event ==  QUESTION_EVENTCLOSE) ? QUESTION_EVENTCLOSEANDGRADE : QUESTION_EVENTGRADE;
-
-        return true;
-    }
-
-    public function compare_responses($question, $state, $teststate) {
-        foreach ($state->responses as $i=>$sr) {
-            if (empty($teststate->responses[$i])) {
-                if (!empty($state->responses[$i])) {
-                    return false;
-                }
-            } else if ($state->responses[$i] != $teststate->responses[$i]) {
-                return false;
-            }
-        }
         return true;
     }
 
@@ -709,9 +490,4 @@ class qtype_match extends question_type {
         return $this->save_question($question, $form, $course);
     }
 }
-//// END OF CLASS ////
-
-//////////////////////////////////////////////////////////////////////////
-//// INITIATION - Without this line the question type is not in use... ///
-//////////////////////////////////////////////////////////////////////////
-question_register_questiontype(new qtype_match());
+question_register_questiontype(question_bank::get_qtype('match'));

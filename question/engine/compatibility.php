@@ -157,7 +157,7 @@ class moodle_renderer_base {
      * @param array $attributes The tag attributes (array('src' => $url, 'class' => 'class1') etc.)
      * @return string HTML fragment
      */
-    protected function output_start_tag($tagname, $attributes) {
+    protected function output_start_tag($tagname, $attributes = array()) {
         return '<' . $tagname . $this->output_attributes($attributes) . '>';
     }
 
@@ -176,7 +176,7 @@ class moodle_renderer_base {
      * @param array $attributes The tag attributes (array('src' => $url, 'class' => 'class1') etc.)
      * @return string HTML fragment
      */
-    protected function output_empty_tag($tagname, $attributes) {
+    protected function output_empty_tag($tagname, $attributes = array()) {
         return '<' . $tagname . $this->output_attributes($attributes) . ' />';
     }
 

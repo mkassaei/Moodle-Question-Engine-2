@@ -241,7 +241,6 @@ class qtype_multichoice_multi_renderer extends qtype_multichoice_renderer_base {
 
     protected function get_response(question_attempt $qa) {
         foreach ($qa->get_reverse_step_iterator() as $step) {
-//            $step = new question_attempt_step();
             $response = $step->get_qt_data();
             if (!empty($response)) {
                 return $response;

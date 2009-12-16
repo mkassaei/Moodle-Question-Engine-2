@@ -112,6 +112,7 @@ class test_question_maker {
         $mc->qtype = question_bank::get_qtype('multichoice');
 
         $mc->shuffleanswers = 1;
+        $mc->answernumbering = 'abc';
 
         $mc->answers = array(
             13 => new question_answer('A', 1, 'A is right'),
@@ -125,7 +126,7 @@ class test_question_maker {
     /**
      * Makes a multichoice question with choices 'A', 'B', 'C' and 'D' shuffled.
      * 'A' and 'C' is correct, defaultgrade 1.
-     * @return qtype_multichoice_single_question
+     * @return qtype_multichoice_multi_question
      */
     public static function make_a_multichoice_multi_question() {
         question_bank::load_question_definition_classes('multichoice');
@@ -147,6 +148,32 @@ class test_question_maker {
         );
 
         return $mc;
+    }
+
+    /**
+     * Makes a matching question to classify 'Dog', 'Frog', 'Toad' and 'Cat' as
+     * 'Mammal', 'Amphibian' or 'Insect'.
+     * Defaultgrade 1. Stems are shuffled by default.
+     * @return qtype_match_question
+     */
+    public static function make_a_matching_question() {
+        question_bank::load_question_definition_classes('match');
+        $match = new qtype_match_question();
+        self::initialise_a_question($match);
+        $match->name = 'Matching question';
+        $match->questiontext = 'Classify the animals.';
+        $match->generalfeedback = 'Frogs and toads are amphibians, the others are mammals.';
+        $match->defaultgrade = 1;
+        $match->penalty = 0.3333333;
+        $match->qtype = question_bank::get_qtype('match');
+
+        $match->shufflestems = 1;
+
+        $match->stems = array('Dog', 'Frog', 'Toad', 'Cat');
+        $match->choices = array('Mammal', 'Amphibian', 'Insect');
+        $match->right = array(0, 1, 1, 0);
+
+        return $match;
     }
 
     /**

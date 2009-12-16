@@ -17,14 +17,14 @@
 
 
 /**
- * Unit tests for the mulitple choice question definition class.
+ * Unit tests for the matching question definition class.
  *
- * @package qtype_multichoice
+ * @package qtype_match
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once($CFG->dirroot . '/question/type/multichoice/questiontype.php');
+require_once($CFG->dirroot . '/question/type/match/questiontype.php');
 
 /**
  * Unit tests for the multiple choice question definition class.
@@ -32,11 +32,11 @@ require_once($CFG->dirroot . '/question/type/multichoice/questiontype.php');
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_multichoice_test extends UnitTestCase {
+class qtype_match_test extends UnitTestCase {
     var $qtype;
 
     public function setUp() {
-        $this->qtype = new qtype_multichoice();
+        $this->qtype = new qtype_match();
     }
 
     public function tearDown() {
@@ -44,6 +44,6 @@ class qtype_multichoice_test extends UnitTestCase {
     }
 
     public function test_name() {
-        $this->assertEqual($this->qtype->name(), 'multichoice');
+        $this->assertEqual($this->qtype->name(), 'match');
     }
 }
