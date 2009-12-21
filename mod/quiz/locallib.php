@@ -1,4 +1,20 @@
-<?php  // $Id$
+<?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * Library of functions used by the quiz module.
  *
@@ -8,12 +24,9 @@
  * the module-indpendent code for handling questions and which in turn
  * initialises all the questiontype classes.
  *
- * @author Martin Dougiamas and many others. This has recently been completely
- *         rewritten by Alex Smith, Julian Sedding and Gustav Delius as part of
- *         the Serving Mathematics project
- *         {@link http://maths.york.ac.uk/serving_maths}
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package quiz
+ * @package mod_quiz
+ * @copyright 1999 onwards Martin Dougiamas and others {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
@@ -21,6 +34,11 @@
  */
 require_once($CFG->dirroot . '/mod/quiz/lib.php');
 require_once($CFG->dirroot . '/question/editlib.php');
+require_once($CFG->dirroot . '/mod/quiz/accessrules.php');
+require_once($CFG->dirroot . '/mod/quiz/attemptlib.php');
+require_once($CFG->dirroot . '/question/editlib.php');
+require_once($CFG->dirroot . '/question/engine/compatibility.php');
+require_once($CFG->libdir . '/eventslib.php');
 
 /// Constants ///////////////////////////////////////////////////////////////////
 
@@ -52,32 +70,89 @@ define('QUIZ_STATE_TEACHERACCESS', 'teacheraccess'); // State only relevant if y
  * Creates an attempt object to represent an attempt at the quiz by the current
  * user starting at the current time. The ->id field is not set. The object is
  * NOT written to the database.
- * @return object                The newly created attempt object.
- * @param object $quiz           The quiz to create an attempt for.
- * @param integer $attemptnumber The sequence number for the attempt.
+ *
+ * @param object $quiz the quiz to create an attempt for.
+ * @param integer $attemptnumber the sequence number for the attempt.
+ * @param object $lastattempt the previous attempt by this user, if any. Only needed
+ *         if $attemptnumber > 1 and $quiz->attemptonlast is true.
+ * @param integer $timenow the time the attempt was started at.
+ * @param boolean $ispreview whether this new attempt is a preview.
+ *
+ * @return object the newly created attempt object.
  */
-function quiz_create_attempt($quiz, $attemptnumber) {
-    global $USER, $CFG;
+function quiz_create_attempt($quiz, $attemptnumber, $lastattempt, $timenow, $ispreview = false) {
+    global $USER;
 
-    if (!$attemptnumber > 1 or !$quiz->attemptonlast or !$attempt = get_record('quiz_attempts', 'quiz', $quiz->id, 'userid', $USER->id, 'attempt', $attemptnumber-1)) {
-        // we are not building on last attempt so create a new attempt
+    if ($attemptnumber == 1 || !$quiz->attemptonlast) {
+    /// We are not building on last attempt so create a new attempt.
+        $attempt = new stdClass;
         $attempt->quiz = $quiz->id;
         $attempt->userid = $USER->id;
         $attempt->preview = 0;
         if ($quiz->shufflequestions) {
-            $attempt->layout = quiz_repaginate($quiz->questions, $quiz->questionsperpage, true);
+            $attempt->layout = quiz_clean_layout(quiz_repaginate($quiz->questions, $quiz->questionsperpage, true),true);
         } else {
-            $attempt->layout = $quiz->questions;
+            $attempt->layout = quiz_clean_layout($quiz->questions,true);
         }
+    } else {
+    /// Build on last attempt.
+        if (empty($lastattempt)) {
+            print_error('cannotfindprevattempt', 'quiz');
+        }
+        $attempt = $lastattempt;
     }
 
-    $timenow = time();
     $attempt->attempt = $attemptnumber;
     $attempt->sumgrades = 0.0;
     $attempt->timestart = $timenow;
     $attempt->timefinish = 0;
     $attempt->timemodified = $timenow;
-    $attempt->uniqueid = question_new_attempt_uniqueid();
+
+/// If this is a preview, mark it as such.
+    if ($ispreview) {
+        $attempt->preview = 1;
+    }
+
+    return $attempt;
+}
+
+/**
+ * Returns the most recent attempt by a given user on a given quiz.
+ * May be finished, or may not.
+ *
+ * @param integer $quizid the id of the quiz.
+ * @param integer $userid the id of the user.
+ *
+ * @return mixed the attempt if there is one, false if not.
+ */
+function quiz_get_latest_attempt_by_user($quizid, $userid) {
+    global $CFG;
+    $attempt = get_records_sql("SELECT qa.* FROM {$CFG->prefix}quiz_attempts qa
+            WHERE qa.quiz={$quizid} AND qa.userid={$userid} ORDER BY qa.timestart DESC, qa.id DESC", 0, 1);
+    if ($attempt) {
+        return array_shift($attempt);
+    } else {
+        return false;
+    }
+}
+
+/**
+ * Load an attempt by id. You need to use this method instead of get_record, because
+ * of some ancient history to do with the upgrade from Moodle 1.4 to 1.5, See the comment
+ * after CREATE TABLE `prefix_quiz_newest_states` in mod/quiz/db/mysql.php.
+ *
+ * @param integer $attemptid the id of the attempt to load.
+ */
+function quiz_load_attempt($attemptid) {
+    $attempt = get_record('quiz_attempts', 'id', $attemptid);
+    if (!$attempt) {
+        return false;
+    }
+
+    if (!record_exists('question_sessions', 'attemptid', $attempt->uniqueid)) {
+    /// this attempt has not yet been upgraded to the new model
+        quiz_upgrade_states($attempt);
+    }
 
     return $attempt;
 }
@@ -119,7 +194,7 @@ function quiz_delete_attempt($attempt, $quiz) {
     }
 
     delete_records('quiz_attempts', 'id', $attempt->id);
-    delete_attempt($attempt->uniqueid);
+    question_engine::delete_questions_usage_by_activity($attempt->uniqueid);
 
     // Search quiz_attempts for other instances by this user.
     // If none, then delete record for this quiz, this user from quiz_grades
@@ -133,6 +208,34 @@ function quiz_delete_attempt($attempt, $quiz) {
     }
 
     quiz_update_grades($quiz, $userid);
+}
+
+/**
+ * Delete all the preview attempts at a quiz, or possibly all the attempts belonging
+ * to one user.
+ * @param object $quiz the quiz object.
+ * @param integer $userid (optional) if given, only delete the previews belonging to this user.
+ */
+function quiz_delete_previews($quiz, $userid = null) {
+    $conditions = "quiz = '$quiz->id' AND preview = '1'";
+    if (!empty($userid)) {
+        $conditions .= " AND userid = '$userid'";
+    }
+    $previewattempts = get_records_select('quiz_attempts', $conditions);
+    if (!$previewattempts) {
+        return;
+    }
+    foreach ($previewattempts as $attempt) {
+        quiz_delete_attempt($attempt, $quiz);
+    }
+}
+
+/**
+ * @param integer $quizid The quiz id.
+ * @return boolean whether this quiz has any (non-preview) attempts.
+ */
+function quiz_has_attempts($quizid) {
+    return record_exists('quiz_attempts', 'quiz', $quizid, 'preview', 0);
 }
 
 /// Functions to do with quiz layout and pages ////////////////////////////////
@@ -338,16 +441,17 @@ function quiz_feedback_for_grade($grade, $quizid) {
 }
 
 /**
- * @param integer $quizid the id of the quiz object.
+ * @param object $quiz the quiz database row.
  * @return boolean Whether this quiz has any non-blank feedback text.
  */
-function quiz_has_feedback($quizid) {
+function quiz_has_feedback($quiz) {
     static $cache = array();
-    if (!array_key_exists($quizid, $cache)) {
-        $cache[$quizid] = record_exists_select('quiz_feedback',
-                "quizid = $quizid AND " . sql_isnotempty('quiz_feedback', 'feedbacktext', false, true));
+    if (!array_key_exists($quiz->id, $cache)) {
+        $cache[$quiz->id] = quiz_has_grades($quiz) &&
+                record_exists_select('quiz_feedback', "quizid = $quiz->id AND " .
+                    sql_isnotempty('quiz_feedback', 'feedbacktext', false, true));
     }
-    return $cache[$quizid];
+    return $cache[$quiz->id];
 }
 
 /**
@@ -751,6 +855,56 @@ function quiz_get_combined_reviewoptions($quiz, $attempts, $context=null) {
         }
     }
     return array($someoptions, $alloptions);
+}
+
+/**
+ * Clean the question layout from various possible anomalies:
+ * - Remove consecutive ","'s
+ * - Remove duplicate question id's
+ * - Remove extra "," from beginning and end
+ * - Finally, add a ",0" in the end if there is none
+ * 
+ * @param $string $layout the quiz layout to clean up, usually from $quiz->questions.
+ * @param boolean $removeemptypages If true, remove empty pages from the quiz. False by default.
+ * @return $string the cleaned-up layout
+ */
+function quiz_clean_layout($layout, $removeemptypages = false){
+    // Remove duplicate "," (or triple, or...)
+    $layout = preg_replace('/,{2,}/', ',', trim($layout, ','));
+
+    // Remove duplicate question ids
+    $layout = explode(',', $layout);
+    $cleanerlayout = array();
+    $seen = array();
+    foreach ($layout as $item) {
+        if ($item == 0) {
+            $cleanerlayout[] = '0';
+        } else if (!in_array($item, $seen)) {
+            $cleanerlayout[] = $item;
+            $seen[] = $item;
+        }
+    }
+
+    if ($removeemptypages) {
+        // Avoid duplicate page breaks
+        $layout = $cleanerlayout;
+        $cleanerlayout = array();
+        $stripfollowingbreaks = true; // Ensure breaks are stripped from the start.
+        foreach ($layout as $item) {
+            if ($stripfollowingbreaks && $item == 0) {
+                continue;
+            }
+            $cleanerlayout[] = $item;
+            $stripfollowingbreaks = $item == 0;
+        }
+    }
+
+    // Add a page break at the end if there is none
+    if (end($cleanerlayout) !== '0') {
+        $cleanerlayout[] = '0';
+    }
+
+    return implode(',', $cleanerlayout);
 }
 
 /// FUNCTIONS FOR SENDING NOTIFICATION EMAILS ///////////////////////////////

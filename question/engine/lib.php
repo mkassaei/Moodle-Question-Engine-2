@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
  * This defines the core classes of the Moodle question engine.
  *
@@ -96,8 +95,16 @@ abstract class question_engine {
      * @param integer $qubaid the id of the usage to delete.
      */
     public static function delete_questions_usage_by_activity($qubaid) {
+        self::delete_questions_usage_by_activities('quba.id = ' . $qubaid);
+    }
+
+    /**
+     * Delete a {@link question_usage_by_activity} from the database, based on its id.
+     * @param integer $qubaid the id of the usage to delete.
+     */
+    public static function delete_questions_usage_by_activities($where) {
         $dm = new question_engine_data_mapper();
-        $dm->delete_questions_usage_by_activity($qubaid);
+        $dm->delete_questions_usage_by_activities($where);
     }
 
     /**

@@ -29,6 +29,43 @@
 
 
 /**
+ * Base Moodle Exception class
+ */
+class moodle_exception extends Exception {
+    public $errorcode;
+    public $module;
+    public $a;
+    public $link;
+    public $debuginfo;
+
+    /**
+     * Constructor
+     * @param string $errorcode The name of the string from error.php to print
+     * @param string $module name of module
+     * @param string $link The url where the user will be prompted to continue.
+     *      If no url is provided the user will be directed to the site index page.
+     * @param object $a Extra words and phrases that might be required in the error string
+     * @param string $debuginfo optional debugging information
+     */
+    function __construct($errorcode, $module='', $link='', $a=NULL, $debuginfo=null) {
+        if (empty($module) || $module == 'moodle' || $module == 'core') {
+            $module = 'error';
+        }
+
+        $this->errorcode = $errorcode;
+        $this->module    = $module;
+        $this->link      = $link;
+        $this->a         = $a;
+        $this->debuginfo = $debuginfo;
+
+        $message = get_string($errorcode, $module, $a);
+
+        parent::__construct($message, 0);
+    }
+}
+
+
+/**
  * This constant is used for html attributes which need to have an empty
  * value and still be output by the renderers (e.g. alt="");
  *

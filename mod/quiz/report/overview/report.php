@@ -44,7 +44,7 @@ class quiz_report extends quiz_default_report {
         }
 
         // Work out some display options - whether there is feedback, and whether scores should be shown.
-        $hasfeedback = quiz_has_feedback($quiz->id) && $quiz->grade > 1.e-7 && $quiz->sumgrades > 1.e-7;
+        $hasfeedback = quiz_has_feedback($quiz);
         $fakeattempt = new stdClass();
         $fakeattempt->preview = false;
         $fakeattempt->timefinish = $quiz->timeopen;

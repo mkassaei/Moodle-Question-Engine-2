@@ -295,21 +295,26 @@ ORDER BY
      * Delete a question_usage_by_activity and all its associated
      * {@link question_attempts} and {@link question_attempt_steps} from the
      * database.
-     * @param integer $qubaid the id of the usage to delete.
+     * @param string $where a where clause, probabl written in terms of quba.id.
      */
-    public function delete_questions_usage_by_activity($qubaid) {
+    public function delete_questions_usage_by_activities($where) {
         global $CFG;
         delete_records_select('question_attempt_step_data', "attemptstepid IN (
                 SELECT qas.id
                 FROM {$CFG->prefix}question_attempts_new qa
                 JOIN {$CFG->prefix}question_attempt_steps qas ON qas.questionattemptid = qa.id
-                WHERE qa.questionusageid = $qubaid)");
+                JOIN {$CFG->prefix}question_usages quba ON qa.questionusageid = quba.id
+                WHERE $where)");
         delete_records_select('question_attempt_steps', "questionattemptid IN (
                 SELECT qa.id
                 FROM {$CFG->prefix}question_attempts_new qa
-                WHERE qa.questionusageid = $qubaid)");
-        delete_records('question_attempts_new', 'questionusageid', $qubaid);
-        delete_records('question_usages', 'id', $qubaid);
+                JOIN {$CFG->prefix}question_usages quba ON qa.questionusageid = quba.id
+                WHERE $where)");
+        delete_records_select('question_attempts_new', "questionusageid IN (
+                SELECT quba.id
+                FROM {$CFG->prefix}question_usages quba
+                WHERE $where)");
+        delete_records_select('question_usages quba', $where);
     }
 }
 

@@ -50,7 +50,7 @@
         if ($quiz->timeclose!=0) {
             $showclosingheader=true;
         }
-        if (quiz_has_feedback($quiz->id)) {
+        if (quiz_has_feedback($quiz)) {
             $showfeedback=true;
         }
     }

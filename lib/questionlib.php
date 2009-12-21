@@ -1,4 +1,20 @@
-<?php  // $Id$
+<?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * Code for handling and processing questions
  *
@@ -10,12 +26,10 @@
  * TODO: separate those functions which form part of the API
  *       from the helper functions.
  *
- * @author Martin Dougiamas and many others. This has recently been completely
- *         rewritten by Alex Smith, Julian Sedding and Gustav Delius as part of
- *         the Serving Mathematics project
- *         {@link http://maths.york.ac.uk/serving_maths}
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package question
+ * @package moodlecore
+ * @subpackage questionbank
+ * @copyright 1999 onwards Martin Dougiamas and others {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once($CFG->dirroot . '/question/engine/lib.php');
@@ -420,31 +434,6 @@ function question_category_isused($categoryid, $recursive = false) {
 }
 
 /**
- * Deletes all data associated to an attempt from the database
- *
- * @param integer $attemptid The id of the attempt being deleted
- */
-function delete_attempt($attemptid) {
-    global $QTYPES;
-
-    $states = get_records('question_states', 'attempt', $attemptid);
-    if ($states) {
-        $stateslist = implode(',', array_keys($states));
-
-        // delete question-type specific data
-        foreach ($QTYPES as $qtype) {
-            $qtype->delete_states($stateslist);
-        }
-    }
-
-    // delete entries from all other question tables
-    // It is important that this is done only after calling the questiontype functions
-    delete_records("question_states", "attempt", $attemptid);
-    delete_records("question_sessions", "attemptid", $attemptid);
-    delete_records("question_attempts", "id", $attemptid);
-}
-
-/**
  * Deletes question and all associated data from the database
  *
  * It will not delete a question if it is used by an activity module
@@ -753,19 +742,102 @@ function questionbank_navigation_tabs(&$row, $contexts, $querystring) {
 }
 
 /**
+ * Given a list of ids, load the basic information about a set of questions from the questions table.
+ * The $join and $extrafields arguments can be used together to pull in extra data.
+ * See, for example, the usage in mod/quiz/attemptlib.php, and
+ * read the code below to see how the SQL is assembled. Throws exceptions on error.
+ *
+ * @global object
+ * @global object
+ * @param array $questionids array of question ids.
+ * @param string $extrafields extra SQL code to be added to the query.
+ * @param string $join extra SQL code to be added to the query.
+ * @param array $extraparams values for any placeholders in $join.
+ * You are strongly recommended to use named placeholder.
+ *
+ * @return array partially complete question objects. You need to call get_question_options
+ * on them before they can be properly used.
+ */
+function question_preload_questions($questionids, $extrafields = '', $join = '') {
+    global $CFG;
+    if (empty($questionids)) {
+        return array();
+    }
+    if ($join) {
+        $join = ' JOIN '.$join;
+    }
+    if ($extrafields) {
+        $extrafields = ', ' . $extrafields;
+    }
+    $sql = 'SELECT q.*' . $extrafields . " FROM {$CFG->prefix}question q" . $join .
+            ' WHERE q.id IN (' . implode(',', $questionids) . ')';
+
+    // Load the questions
+    if (!$questions = get_records_sql($sql)) {
+        return 'Could not load questions.';
+    }
+
+    foreach ($questions as $question) {
+        $question->_partiallyloaded = true;
+    }
+
+    // Note, a possible optimisation here would be to not load the TEXT fields
+    // (that is, questiontext and generalfeedback) here, and instead load them in
+    // question_load_questions. That would add one DB query, but reduce the amount
+    // of data transferred most of the time. I am not going to do this optimisation
+    // until it is shown to be worthwhile.
+
+    return $questions;
+}
+
+/**
+ * Load a set of questions, given a list of ids. The $join and $extrafields arguments can be used
+ * together to pull in extra data. See, for example, the usage in mod/quiz/attempt.php, and
+ * read the code below to see how the SQL is assembled. Throws exceptions on error.
+ *
+ * @param array $questionids array of question ids.
+ * @param string $extrafields extra SQL code to be added to the query.
+ * @param string $join extra SQL code to be added to the query.
+ * @param array $extraparams values for any placeholders in $join.
+ * You are strongly recommended to use named placeholder.
+ *
+ * @return array question objects.
+ */
+function question_load_questions($questionids, $extrafields = '', $join = '') {
+    $questions = question_preload_questions($questionids, $extrafields, $join);
+
+    // Load the question type specific information
+    if (!get_question_options($questions)) {
+        return 'Could not load the question options';
+    }
+
+    return $questions;
+}
+
+/**
  * Private function to factor common code out of get_question_options().
  *
  * @param object $question the question to tidy.
+ * @param boolean $loadtags load the question tags from the tags table. Optional, default false.
  * @return boolean true if successful, else false.
  */
-function _tidy_question(&$question) {
-    global $QTYPES;
+function _tidy_question(&$question, $loadtags = false) {
+    global $CFG, $QTYPES;
     if (!array_key_exists($question->qtype, $QTYPES)) {
         $question->qtype = 'missingtype';
         $question->questiontext = '<p>' . get_string('warningmissingtype', 'quiz') . '</p>' . $question->questiontext;
     }
     $question->name_prefix = question_make_name_prefix($question->id);
-    return $QTYPES[$question->qtype]->get_question_options($question);
+    if ($success = $QTYPES[$question->qtype]->get_question_options($question)) {
+        if (isset($question->_partiallyloaded)) {
+            unset($question->_partiallyloaded);
+        }
+    }
+    if ($loadtags && !empty($CFG->usetags)) {
+        require_once($CFG->dirroot . '/tag/lib.php');
+        $question->tags = tag_get_tags_array('question', $question->id);
+    }
+    return $success;
 }
 
 /**
@@ -777,18 +849,19 @@ function _tidy_question(&$question) {
  *
  * @param mixed $questions Either an array of question objects to be updated
  *         or just a single question object
+ * @param boolean $loadtags load the question tags from the tags table. Optional, default false.
  * @return bool Indicates success or failure.
  */
-function get_question_options(&$questions) {
+function get_question_options(&$questions, $loadtags = false) {
     if (is_array($questions)) { // deal with an array of questions
         foreach ($questions as $i => $notused) {
-            if (!_tidy_question($questions[$i])) {
+            if (!_tidy_question($questions[$i], $loadtags)) {
                 return false;
             }
         }
         return true;
     } else { // deal with single question
-        return _tidy_question($questions);
+        return _tidy_question($questions, $loadtags);
     }
 }
 

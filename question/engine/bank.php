@@ -24,7 +24,7 @@
  * starting point.
  *
  * @package moodlecore
- * @subpackage questionengine
+ * @subpackage questionbank
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -110,6 +110,16 @@ abstract class question_bank {
             throw new Exception('Unknown question id ' . $questionid);
         }
         get_question_options($questiondata);
+        return self::make_question($questiondata);
+    }
+
+    /**
+     * Convert the question information loaded with {@link get_question_options()}
+     * to a question_definintion object.
+     * @param object $questiondata raw data loaded from the database.
+     * @return question_definition loaded from the database.
+     */
+    public static function make_question($questiondata) {
         return self::get_qtype($questiondata->qtype)->make_question($questiondata);
     }
 

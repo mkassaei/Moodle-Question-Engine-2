@@ -1,13 +1,30 @@
-<?php  // $Id$
+<?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
-* Library of functions for the quiz module.
-*
-* This contains functions that are called also from outside the quiz module
-* Functions that are only called by the quiz module itself are in {@link locallib.php}
-* @author Martin Dougiamas and many others.
-* @license http://www.gnu.org/copyleft/gpl.html GNU Public License
-* @package quiz
-*/
+ * Library of functions for the quiz module.
+ *
+ * This contains functions that are called also from outside the quiz module
+ * Functions that are only called by the quiz module itself are in {@link locallib.php}
+ *
+ * @package mod_quiz
+ * @copyright 1999 onwards Martin Dougiamas and others {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 require_once($CFG->libdir.'/pagelib.php');
 
@@ -129,18 +146,7 @@ function quiz_delete_instance($id) {
 
     $result = true;
 
-    if ($attempts = get_records("quiz_attempts", "quiz", "$quiz->id")) {
-        // TODO: this should use the delete_attempt($attempt->uniqueid) function in questionlib.php
-        // require_once($CFG->libdir.'/questionlib.php');
-        foreach ($attempts as $attempt) {
-            if (! delete_records("question_states", "attempt", "$attempt->uniqueid")) {
-                $result = false;
-            }
-            if (! delete_records("question_sessions", "attemptid", "$attempt->uniqueid")) {
-                $result = false;
-            }
-        }
-    }
+    quiz_delete_all_attempts($id);
 
     $tables_to_purge = array(
         'quiz_attempts' => 'quiz',
@@ -175,6 +181,18 @@ function quiz_delete_instance($id) {
 }
 
 /**
+ * Delete all the attempts belonging to a particular quiz.
+ * @param integer $quizid the quiz id.
+ */
+function quiz_delete_all_attempts($quizid) {
+    global $CFG;
+    require_once($CFG->libdir . '/questionlib.php');
+    question_engine::delete_questions_usage_by_activities("quba.id IN (
+            SELECT uniqueid FROM {$CFG->prefix}quiz_attempts WHERE quiz = $quizid)");
+    delete_records('quiz_attempts', 'quiz', $quizid);
+}
+
+/**
  * Get the best current grade for a particular user in a quiz.
  *
  * @param object $quiz the quiz object.
@@ -190,6 +208,18 @@ function quiz_get_best_grade($quiz, $userid) {
     } else {
         return NULL;
     }
+}
+
+/**
+ * Is this a graded quiz? If this method returns true, you can assume that
+ * $quiz->grade and $quiz->sumgrades are non-zero (for example, if you want to
+ * divide by them).
+ *
+ * @param object $quiz a row from the quiz table.
+ * @return boolean whether this is a graded quiz.
+ */
+function quiz_has_grades($quiz) {
+    return $quiz->grade != 0 && $quiz->sumgrades != 0;
 }
 
 function quiz_user_outline($course, $user, $mod, $quiz) {
@@ -298,6 +328,35 @@ function quiz_get_user_grades($quiz, $userid=0) {
             GROUP BY u.id, g.grade, g.timemodified";
 
     return get_records_sql($sql);
+}
+
+/**
+ * Round a grade to to the correct number of decimal places, and format it for display.
+ *
+ * @param object $quiz The quiz table row, only $quiz->decimalpoints is used.
+ * @param float $grade The grade to round.
+ * @return float
+ */
+function quiz_format_grade($quiz, $grade) {
+    return format_float($grade, $quiz->decimalpoints);
+}
+
+/**
+ * Round a grade to to the correct number of decimal places, and format it for display.
+ *
+ * @param object $quiz The quiz table row, only $quiz->decimalpoints is used.
+ * @param float $grade The grade to round.
+ * @return float
+ */
+function quiz_format_question_grade($quiz, $grade) {
+    if (empty($quiz->questiondecimalpoints)) {
+        $quiz->questiondecimalpoints = -1;
+    }
+    if ($quiz->questiondecimalpoints == -1) {
+        return format_float($grade, $quiz->decimalpoints);
+    } else {
+        return format_float($grade, $quiz->questiondecimalpoints);
+    }
 }
 
 /**
@@ -1014,57 +1073,31 @@ function quiz_reset_gradebook($courseid, $type='') {
  * @return array status array
  */
 function quiz_reset_userdata($data) {
-    global $CFG, $QTYPES;
-    
-    if (empty($QTYPES)) {
-        require_once($CFG->libdir . '/questionlib.php');
-    }
-
-    // TODO: this should use the delete_attempt($attempt->uniqueid) function in questionlib.php
-    // require_once($CFG->libdir.'/questionlib.php');
-
     $componentstr = get_string('modulenameplural', 'quiz');
     $status = array();
 
     /// Delete attempts.
     if (!empty($data->reset_quiz_attempts)) {
 
-        $stateslistsql = "SELECT s.id
-                            FROM {$CFG->prefix}question_states s
-                                 INNER JOIN {$CFG->prefix}quiz_attempts qza ON s.attempt=qza.uniqueid
-                                 INNER JOIN {$CFG->prefix}quiz q ON qza.quiz=q.id
-                           WHERE q.course={$data->courseid}";
+        require_once($CFG->libdir.'/questionlib.php');
+        question_engine::delete_questions_usage_by_activities("quba.id IN (
+                SELECT uniqueid
+                FROM {$CFG->prefix}quiz_attempts quiza
+                JOIN {$CFG->prefix}quiz quiz ON quiza.quiz = quiz.id
+                WHERE quiz.course = $data->courseid)");
 
-        $attemptssql   = "SELECT a.uniqueid
-                            FROM {$CFG->prefix}quiz_attempts a, {$CFG->prefix}quiz q
-                           WHERE q.course={$data->courseid} AND a.quiz=q.id";
+        delete_records_select('quiz_attempts',
+                "quiz IN (SELECT id FROM {$CFG->prefix}quiz WHERE course = $data->courseid)");
+        $status[] = array('component'=>$componentstr, 'item'=>get_string('attemptsdeleted','quiz'), 'error'=>false);
 
-        $quizessql     = "SELECT q.id
-                            FROM {$CFG->prefix}quiz q
-                           WHERE q.course={$data->courseid}";
-
-        if ($states = get_records_sql($stateslistsql)) {
-            //TODO: not sure if this works
-            $stateslist = implode(',', array_keys($states));
-            foreach ($QTYPES as $qtype) {
-                $qtype->delete_states($stateslist);
-            }
-        }
-
-        delete_records_select('question_states', "attempt IN ($attemptssql)");
-        delete_records_select('question_sessions', "attemptid IN ($attemptssql)");
-        delete_records_select('question_attempts', "id IN ($attemptssql)");
-
-        // remove all grades from gradebook
+        // Remove all grades from gradebook
         if (empty($data->reset_gradebook_grades)) {
             quiz_reset_gradebook($data->courseid);
         }
 
-        delete_records_select('quiz_grades', "quiz IN ($quizessql)");
+        delete_records_select('quiz_grades',
+                "quiz IN (SELECT id FROM {$CFG->prefix}quiz WHERE course = $data->courseid)");
         $status[] = array('component'=>$componentstr, 'item'=>get_string('gradesdeleted','quiz'), 'error'=>false);
-
-        delete_records_select('quiz_attempts', "quiz IN ($quizessql)");
-        $status[] = array('component'=>$componentstr, 'item'=>get_string('attemptsdeleted','quiz'), 'error'=>false);
     }
 
     /// updating dates - shift may be negative too
