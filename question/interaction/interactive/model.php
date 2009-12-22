@@ -40,6 +40,16 @@
 class qim_interactive extends question_interaction_model_with_save {
     const IS_ARCHETYPAL = true;
 
+    /**
+     * Special value used for {@link question_display_options::$readonly when
+     * we are showing the try again button to the student during an attempt.
+     * The particular number was chosen randomly. PHP will treat it the same
+     * as true, but in the renderer we reconginse it display the try again
+     * button enabled even though the rest of the question is disabled..
+     * @var integer
+     */
+    const READONLY_EXCEPT_TRY_AGAIN = 23485299;
+
     public function required_question_definition_type() {
         return 'question_automatically_gradable';
     }
@@ -56,7 +66,9 @@ class qim_interactive extends question_interaction_model_with_save {
         $specificfeedback = $options->feedback;
         parent::adjust_display_options($options);
         if ($this->is_try_again_state()) {
-            $options->readonly = true;
+            if (!$options->readonly) {
+                $options->readonly = self::READONLY_EXCEPT_TRY_AGAIN;
+            }
             $options->feedback = $specificfeedback;
         }
     }

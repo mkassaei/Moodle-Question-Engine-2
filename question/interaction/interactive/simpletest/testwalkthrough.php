@@ -34,6 +34,20 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         return new PatternExpectation('/' . preg_quote(get_string('triesremaining', 'qim_interactive', $n)) . '/');
     }
 
+    protected function get_contains_try_again_button_expectation($enabled = null) {
+        $expectedattributes = array(
+            'type' => 'submit',
+            'name' => $this->quba->get_field_prefix($this->qnumber) . '!tryagain',
+        );
+        $forbiddenattributes = array();
+        if ($enabled === true) {
+            $forbiddenattributes['disabled'] = 'disabled';
+        } else if ($enabled === false) {
+            $expectedattributes['disabled'] = 'disabled';
+        }
+        return new ContainsTagWithAttributes('input', $expectedattributes, $forbiddenattributes);
+    }
+
     public function test_interactive_feedback_multichoice_right() {
 
         // Create a true-false question with correct answer true.
@@ -82,8 +96,15 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
                 $this->get_contains_submit_button_expectation(false),
+                $this->get_contains_try_again_button_expectation(true),
                 $this->get_does_not_contain_correctness_expectation(),
                 $this->get_tries_remaining_expectation(2));
+
+        // Check that, if we review in this state, the try again button is disabled.
+        $displayoptions = new question_display_options();
+        $displayoptions->readonly = true;
+        $html = $this->quba->render_question($this->qnumber, $displayoptions);
+        $this->assert($this->get_contains_try_again_button_expectation(false), $html);
 
         // Do try again.
         $this->process_submission(array('!tryagain' => 1));
@@ -183,6 +204,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
                 $this->get_contains_submit_button_expectation(false),
+                $this->get_contains_try_again_button_expectation(true),
                 $this->get_does_not_contain_correctness_expectation(),
                 $this->get_tries_remaining_expectation(2));
 

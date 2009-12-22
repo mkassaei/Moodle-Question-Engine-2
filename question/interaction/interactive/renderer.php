@@ -47,12 +47,16 @@ class qim_interactive_renderer extends qim_renderer {
 
     public function feedback(question_attempt $qa, question_display_options $options) {
         if (question_state::is_active($qa->get_state()) && $options->readonly) {
-            return $this->output_empty_tag('input', array(
+            $attributes = array(
                 'type' => 'submit',
                 'name' => $qa->get_im_field_name('tryagain'),
                 'value' => get_string('tryagain', 'qim_interactive'),
                 'class' => 'submit btn',
-            ));
+            );
+            if ($options->readonly !== qim_interactive::READONLY_EXCEPT_TRY_AGAIN) {
+                $attributes['disabled'] = 'disabled';
+            }
+            return $this->output_empty_tag('input', $attributes);
         }
         return '';
     }
