@@ -1506,7 +1506,7 @@ class question_attempt {
                 $submitteddata['!' . $name] = $value;
             }
         }
-        foreach ($this->question->get_expected_data() as $name => $type) {
+        foreach ($this->interactionmodel->get_expected_qt_data() as $name => $type) {
             $value = self::get_submitted_var($this->get_qt_field_name($name), $type, $postdata);
             if (!is_null($value)) {
                 $submitteddata[$name] = $value;

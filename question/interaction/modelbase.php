@@ -155,6 +155,26 @@ abstract class question_interaction_model {
     }
 
     /**
+     * Return an array of question type variables for the question in its current
+     * state. Normally, if {@link adjust_display_options()} would set
+     * {@link question_display_options::$readonly} to true, then this method
+     * should return an empty array, otherwise it should return
+     * $this->question->get_expected_data(). Thus, there should be little need to
+     * override this method.
+     * @return array variable name => PARAM_... constant.
+     */
+    public function get_expected_qt_data() {
+        $fakeoptions = new question_display_options();
+        $fakeoptions->readonly = false;
+        $this->adjust_display_options($fakeoptions);
+        if ($fakeoptions->readonly) {
+            return array();
+        } else {
+            return $this->question->get_expected_data();
+        }
+    }
+
+    /**
      * Return an array of any im variables, and the value required to get full
      * marks.
      * @return array variable name => value.
