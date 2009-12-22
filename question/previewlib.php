@@ -80,10 +80,10 @@ function restart_url($questionid, $preferredmodel, $maxmark, $displayoptions) {
                 '&model=' . $preferredmodel .
                 '&maxmark=' . $maxmark .
                 '&markdp=' . $displayoptions->markdp .
-                '&feedback=' . $displayoptions->feedback;
-                '&generalfeedback=' . $displayoptions->generalfeedback;
-                '&correctresponse=' . $displayoptions->correctresponse;
-                '&marks=' . $displayoptions->marks;
+                '&feedback=' . $displayoptions->feedback .
+                '&generalfeedback=' . $displayoptions->generalfeedback .
+                '&correctresponse=' . $displayoptions->correctresponse .
+                '&marks=' . $displayoptions->marks .
                 '&history=' . $displayoptions->history;
 }
 
