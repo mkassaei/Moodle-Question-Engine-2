@@ -49,15 +49,7 @@ class qim_adaptive_renderer extends qim_renderer {
     }
 
     public function controls(question_attempt $qa, question_display_options $options) {
-        if (!question_state::is_active($qa->get_state())) {
-            return '';
-        }
-        return $this->output_empty_tag('input', array(
-            'type' => 'submit',
-            'name' => $qa->get_im_field_name('submit'),
-            'value' => get_string('submit', 'qim_adaptive'),
-            'class' => 'submit btn',
-        ));
+        return $this->submit_button($qa, $options);
     }
 
     public function feedback(question_attempt $qa, question_display_options $options) {

@@ -101,4 +101,23 @@ abstract class qim_renderer extends moodle_renderer_base {
 
         return $output;
     }
+
+    /**
+     * Several interaction models need a submit button, so put the common code here.
+     * The button is disabled if the question is displayed read-only.
+     * @param question_display_options $options controls what should and should not be displayed.
+     * @return string HTML fragment.
+     */
+    protected function submit_button(question_attempt $qa, question_display_options $options) {
+        $attributes = array(
+            'type' => 'submit',
+            'name' => $qa->get_im_field_name('submit'),
+            'value' => get_string('submit', 'question'),
+            'class' => 'submit btn',
+        );
+        if ($options->readonly) {
+            $attributes['readonly'] = 'readonly';
+        }
+        return $this->output_empty_tag('input', $attributes);
+    }
 }

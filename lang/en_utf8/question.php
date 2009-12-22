@@ -138,4 +138,5 @@ $string['responsehistoryvisible'] = 'Response history visible';
 $string['restart'] = 'Start again';
 $string['restartwiththeseoptions'] = 'Start again with these options';
 $string['specificfeedbackvisible'] = 'Specific feedback visible';
+$string['submit'] = 'Submit';
 $string['submitandfinish'] = 'Submit and finish';
