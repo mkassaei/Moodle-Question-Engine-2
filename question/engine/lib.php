@@ -1311,6 +1311,25 @@ class question_attempt {
     }
 
     /**
+     * Get the qt data from the latest step that has any qt data. Return $default
+     * array if it is no step has qt data.
+     *
+     * @param string $name the name of the variable to get.
+     * @param mixed default the value to return no step has qt data.
+     *      (Optional, defaults to an empty array.)
+     * @return array|mixed the data, or $default if there is not any.
+     */
+    public function get_last_qt_data($default = array()) {
+        foreach ($this->get_reverse_step_iterator() as $step) {
+            $response = $step->get_qt_data();
+            if (!empty($response)) {
+                return $response;
+            }
+        }
+        return $default;
+    }
+
+    /**
      * Get the latest value of a particular question type variable. That is, get
      * the value from the latest step that has it set. Return null if it is not
      * set in any step.
