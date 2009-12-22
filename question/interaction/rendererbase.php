@@ -116,7 +116,7 @@ abstract class qim_renderer extends moodle_renderer_base {
             'class' => 'submit btn',
         );
         if ($options->readonly) {
-            $attributes['readonly'] = 'readonly';
+            $attributes['disabled'] = 'disabled';
         }
         return $this->output_empty_tag('input', $attributes);
     }
