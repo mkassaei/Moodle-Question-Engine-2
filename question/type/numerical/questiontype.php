@@ -312,9 +312,16 @@ class qtype_numerical extends question_type {
             $tmpunits[$unit->unit] = $unit->multiplier;
         }
         // remove spaces and normalise decimal places.
+        $rawresponse = trim($rawresponse) ;
         $search  = array(' ', ',');
-        $replace = array('', '.');
-        $rawresponse = str_replace($search, $replace, trim($rawresponse));
+        // test if a . is present or there are multiple , (i.e. 2,456,789 ) so that we don't need spaces and ,
+        if ( strpos($rawresponse,'.' ) !== false || substr_count($rawresponse,',') > 1 ) {
+            $replace = array('', '');
+        }else { // remove spaces and normalise , to a . . 
+            $replace = array('', '.');
+        }
+        $rawresponse = str_replace($search, $replace, $rawresponse);
+
 
         // Apply any unit that is present.
         if (ereg('^([+-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)([eE][-+]?[0-9]+)?)([^0-9].*)?$',

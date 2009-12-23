@@ -727,7 +727,7 @@ define('RESTORE_GROUPS_GROUPINGS', 3);
     *           If match mnethost and user is deleted in backup file
     *           and by email = email_without_time(backup_email) and non-zero firstaccess=> ok, return target user
     *      2D - Conflict: If match by username and mnethost and not by (email or non-zero firstaccess) => conflict, return false
-    *      1E - None of the above, return true => User needs to be created
+    *      2E - None of the above, return true => User needs to be created
     *
     * Note: for DB deleted users email is stored in username field, hence we
     *       are looking there for emails. See delete_user()
@@ -1729,7 +1729,7 @@ define('RESTORE_GROUPS_GROUPINGS', 3);
         $restoreall = true;  // set to false if any grade_item is not selected/restored
         $importing  = !empty($SESSION->restore->importing); // there should not be a way to import old backups, but anyway ;-)
 
-        if ($importing || $restore->users == 2) {
+        if ($importing) {
             $restoreall = false;
 
         } else {
@@ -1920,7 +1920,7 @@ define('RESTORE_GROUPS_GROUPINGS', 3);
         $restoreall = true;  // set to false if any grade_item is not selected/restored or already exist
         $importing  = !empty($SESSION->restore->importing);
 
-        if ($importing || $restore->users == 2) {
+        if ($importing) {
             $restoreall = false;
 
         } else {
