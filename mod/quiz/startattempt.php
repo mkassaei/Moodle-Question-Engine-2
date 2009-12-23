@@ -53,7 +53,7 @@ if (!confirm_sesskey()) {
 }
 
 // if no questions have been set up yet redirect to edit.php
-if (!$quizobj->get_question_ids() && $quizobj->has_capability('mod/quiz:manage')) {
+if (!$quizobj->has_questions() && $quizobj->has_capability('mod/quiz:manage')) {
     redirect($quizobj->edit_url());
 }
 

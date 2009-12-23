@@ -8,7 +8,11 @@
  */
 
 if (empty($quiz)) {
-    error('You cannot call this script in that way');
+    if (empty($attemptobj)) {
+        print_error('cannotcallscript');
+    }
+    $quiz = $attemptobj->get_quiz()->get_quiz();
+    $cm = $attemptobj->get_cm();
 }
 if (!isset($currenttab)) {
     $currenttab = '';

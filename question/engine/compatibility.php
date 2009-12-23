@@ -380,3 +380,32 @@ function format_backtrace($callers, $plaintext = false) {
 
     return $from;
 }
+
+/**
+ * Generate the HTML for calling a javascript funtion. You often need to do this
+ * if you have your javascript in an external file, and need to call one function
+ * to initialise it.
+ *
+ * You can pass in an optional list of arguments, which are properly escaped for
+ * you using the json_encode function.
+ *
+ * @param string $function the name of the JavaScript function to call.
+ * @param array $args an optional list of arguments to the function call.
+ * @param boolean $return if true, return the HTML code, otherwise output it.
+ * @return mixed string if $return is true, otherwise nothing.
+ */
+function print_js_call($function, $args = array(), $return = false) {
+    $quotedargs = array();
+    foreach ($args as $arg) {
+        $quotedargs[] = json_encode($arg);
+    }
+    $html = '';
+    $html .= '<script type="text/javascript">//<![CDATA[' . "\n";
+    $html .= $function . '(' . implode(', ', $quotedargs) . ");\n";
+    $html .= "//]]></script>\n";
+    if ($return) {
+        return $html;
+    } else {
+        echo $html;
+    }
+}

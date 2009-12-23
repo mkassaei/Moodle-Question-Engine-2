@@ -1110,6 +1110,33 @@ table.quizreviewsummary td.cell {
 .mod-quiz .highlightgraded {
     background:yellow;
 }
+
+#quiznavigation .qnbutton {
+  color: #00f;
+  border-color: #bbb;
+  background-color: #ddd;
+}
+#quiznavigation .qnbutton:hover {
+  color: #f00;
+}
+#quiznavigation .qnbutton.thispage {
+  border-color: black;
+}
+#quiznavigation .qnbutton.notyetanswered,
+#quiznavigation .qnbutton.requiresgrading {
+  background-color: white;
+}
+#quiznavigation .qnbutton.correct {
+  background-color: #cfc;
+}
+#quiznavigation .qnbutton.partiallycorrect {
+  background-color: #ffa;
+}
+#quiznavigation .qnbutton.notanswered,
+#quiznavigation .qnbutton.incorrect {
+      background-color: #fcc;
+}
+
 /***
  *** Modules: Resource
  ***/

@@ -62,6 +62,12 @@ define('QUIZ_STATE_CLOSED', 'closed');
 define('QUIZ_STATE_TEACHERACCESS', 'teacheraccess'); // State only relevant if you are in a studenty role.
 /**#@-*/
 
+/**
+ * We show the countdown timer if there is less than this amount of time left before the
+ * the quiz close date. (1 hour)
+ */
+define('QUIZ_SHOW_TIME_BEFORE_DEADLINE', '3600');
+
 /// Functions related to attempts /////////////////////////////////////////
 
 /**
@@ -733,24 +739,21 @@ function quiz_question_preview_button($quiz, $question) {
  * @param int $reviewoptions
  * @param object $state
  */
-function quiz_get_renderoptions($reviewoptions, $state) {
-    $options = new stdClass;
+function quiz_get_renderoptions($reviewoptions, $nolongerused) {
+    $options = new question_display_options();
 
     // Show the question in readonly (review) mode if the question is in
     // the closed state
-    $options->readonly = question_state_is_closed($state);
+    $options->readonly = false;
 
     // Show feedback once the question has been graded (if allowed by the quiz)
-    $options->feedback = question_state_is_graded($state) && ($reviewoptions & QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_IMMEDIATELY);
-
-    // Show validation only after a validation event
-    $options->validation = QUESTION_EVENTVALIDATE === $state->event;
+    $options->feedback = $reviewoptions & QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_IMMEDIATELY;
 
     // Show correct responses in readonly mode if the quiz allows it
-    $options->correct_responses = $options->readonly && ($reviewoptions & QUIZ_REVIEW_ANSWERS & QUIZ_REVIEW_IMMEDIATELY);
+    $options->correct_responses = $reviewoptions & QUIZ_REVIEW_ANSWERS & QUIZ_REVIEW_IMMEDIATELY;
 
     // Show general feedback if the question has been graded and the quiz allows it.
-    $options->generalfeedback = question_state_is_graded($state) && ($reviewoptions & QUIZ_REVIEW_GENERALFEEDBACK & QUIZ_REVIEW_IMMEDIATELY);
+    $options->generalfeedback = $reviewoptions & QUIZ_REVIEW_GENERALFEEDBACK & QUIZ_REVIEW_IMMEDIATELY;
 
     // Show overallfeedback once the attempt is over.
     $options->overallfeedback = false;
@@ -775,7 +778,7 @@ function quiz_get_renderoptions($reviewoptions, $state) {
  *          correct_responses, solutions and general feedback
  */
 function quiz_get_reviewoptions($quiz, $attempt, $context=null) {
-    $options = new stdClass;
+    $options = new question_display_options();
     $options->readonly = true;
 
     // Provide the links to the question review and comment script

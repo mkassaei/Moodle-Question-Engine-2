@@ -3817,28 +3817,37 @@ body#mod-quiz-view .generalbox#feedback .overriddennotice {
 #passwordform {
   margin: 1em 0;
 }
-#mod-quiz-attempt #page {
+#mod-quiz-attempt #middle-column,
+#mod-quiz-review #middle-column {
+  text-align: center;
+  margin: 0 0 0 12.5em;
+}
+#mod-quiz-attempt #left-column,
+#mod-quiz-review #left-column {
+  width: 11.5em;
+  float: left;
+}
+#mod-quiz-attempt .submitbtns,
+#mod-quiz-review .submitbtns {
+  text-align: left;
+  margin-top: 1.5em;
+}
+#mod-quiz-summary .submitbtns {
+  margin-top: 1.5em;
+}
+#mod-quiz-summary #content {
   text-align: center;
 }
-#mod-quiz-attempt .pagingbar {
-  margin: 1.5em auto;
+#mod-quiz-summary .questionflag {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
 }
-#mod-quiz-attempt #page {
-    text-align: center;
+#mod-quiz-attempt #quiz-timer {
+  display: none;
 }
-
-#mod-quiz-attempt #timer .generalbox {
-  width:150px
-}
-#mod-quiz-attempt.securewindow .que {
-    margin-left: 155px;
-    margin-right: 155px;
-}
-
-#mod-quiz-attempt #timer {
-  position:absolute;
-  /*top:100px; is set by js*/
-  left:10px
+#mod-quiz-attempt #quiz-time-left {
+  font-weight: bold;
 }
 
 body#question-preview .quemodname,
@@ -3851,6 +3860,7 @@ body#question-preview .quemodname, body#question-preview .controls {
 }
 
 #mod-quiz-attempt #page .controls,
+#mod-quiz-summary #page .controls,
 #mod-quiz-review #page .controls {
   text-align: center;
   margin: 8px auto;
@@ -3862,7 +3872,6 @@ body#question-preview .quemodname, body#question-preview .controls {
   margin: 1.5em auto;
 }
 table.quizreviewsummary {
-  margin-bottom: 1.8em;
   width: 100%;
 }
 table.quizreviewsummary tr {
@@ -3875,6 +3884,7 @@ table.quizreviewsummary th.cell {
 }
 table.quizreviewsummary td.cell {
   padding: 1px 1em 1px 0.5em;
+  text-align: left;
 }
 
 #mod-quiz-mod #reviewoptionshdr .fitem {
@@ -4039,10 +4049,49 @@ table.quizreviewsummary td.cell {
   font-size: small;
 }
 .quizattemptcounts {
-  text-align: center;
   clear : left;
+  text-align: center;
   margin: 6px 0;
 }
+#mod-quiz-attempt #left-column,
+#mod-quiz-review #left-column {
+  padding-top: 1px;
+}
+#quiznavigation .qnbutton {
+  display: block;
+  float: left;
+  width: 1.5em;
+  height: 1.5em;
+  overflow: hidden;
+  margin: 0.3em 0.3em 0.3em 0;
+  padding: 0;
+  border: 1px solid #bbb;
+  background: #eee no-repeat top right;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  white-space: normal;
+}
+#quiznavigation #user-picture {
+    margin: 0.5em 0;
+}
+#quiznavigation #user-picture img {
+    width: auto;
+    height: auto;
+    float: left;
+}
+#quiznavigation .othernav {
+  clear: both;
+}
+#quiznavigation .othernav a,
+#quiznavigation .othernav input {
+  display: block;
+  margin: 0.5em 0;
+}
+.mod-quiz div.tabtree a span img.iconsmall {
+  vertical-align: baseline;
+}
+
 /***
  *** Modules: Resource
  ***/

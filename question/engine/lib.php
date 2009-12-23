@@ -360,32 +360,45 @@ abstract class question_state {
      * @param integer $state one of the state constants.
      * @return string a string from the lang pack that can be used in the UI.
      */
-    public static function default_string($state) {
+    public static function get_state_class($state) {
         switch ($state) {
             case self::INCOMPLETE;
-                return get_string('notyetanswered', 'question');
+                return 'notyetanswered';
             case self::COMPLETE;
-                return get_string('answersaved', 'question');
+                return 'answersaved';
             case self::NEEDS_GRADING;
-                return get_string('requiresgrading', 'question');
+                return 'requiresgrading';
             case self::FINISHED;
             case self::FINISHED_COMMENTED;
-                return get_string('complete', 'question');
+                return 'complete';
             case self::GAVE_UP;
             case self::GAVE_UP_COMMENTED;
-                return get_string('notanswered', 'question');
+                return 'notanswered';
             case self::GRADED_INCORRECT:
             case self::MANUALLY_GRADED_INCORRECT:
-                return get_string('incorrect', 'question');
+                return 'incorrect';
             case self::GRADED_PARTCORRECT:
             case self::MANUALLY_GRADED_PARTCORRECT:
-                return get_string('partiallycorrect', 'question');
+                return 'partiallycorrect';
             case self::GRADED_CORRECT:
             case self::MANUALLY_GRADED_CORRECT:
-                return get_string('correct', 'question');
+                return 'correct';
             default:
                 throw new Exception('Unknown question state.');
         }
+    }
+
+    /**
+     * Return an appropriate string from the language pack for a state. This is
+     * used, for example, by {@link qim_renderer::get_state_string()}. However,
+     * some interaction models sometimes change this default string for
+     * soemthing more specific.
+     *
+     * @param integer $state one of the state constants.
+     * @return string a string from the lang pack that can be used in the UI.
+     */
+    public static function default_string($state) {#
+        return get_string(self::get_state_class($state), 'question');
     }
 }
 

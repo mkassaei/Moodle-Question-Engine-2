@@ -9,18 +9,24 @@ More interaction models (2d)
 
 Integrate new code into the quiz (2d)
     backport & update key 2.0 changes (2d)
-        attemptlib.php 0.5d
-        accessmanager.php
-        view.php 0.5d
-        startattempt.php
-        attempt.php
+√       attemptlib.php 0.5d
+√       accessmanager.php
+√       view.php 0.5d
+√       startattempt.php
+√       attempt.php
         processattempt.php 0.5d
         review.php
         reviewquestion.php 0.5d
-        quiz.js
+        summary.php
+√       quiz.js
+    question flag update JS
+    quiz timer JS
     scroll-down JavaScript on adaptive/immediate/interactive submit button - but not the first on the page.
+    deal with TODOs and test
 
 <-- Christmas target milestone (7d)
+
+Unit tests for mod/quiz/attemptlib.php (1d)
 
 Finish converting simple question types (6.5d)
     Opaque question type 0.5d
