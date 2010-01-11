@@ -145,7 +145,7 @@ class quiz {
 
     /** @return integer the number of attempts allowed at this quiz (0 = infinite). */
     public function get_num_attempts_allowed() {
-        return $this->quiz->get_num_attempts_allowed();
+        return $this->quiz->attempts;
     }
 
     /** @return integer the course_module id. */
@@ -339,7 +339,7 @@ class quiz_attempt {
         if (!$cm = get_coursemodule_from_instance('quiz', $quiz->id, $course->id)) {
             throw new moodle_exception('invalidcoursemodule');
         }
-        $this->quiz = new quiz($quiz, $cm, $course);
+        $this->quizobj = new quiz($quiz, $cm, $course);
         $this->quba = question_engine::load_questions_usage_by_activity($this->attempt->uniqueid);
         $this->determine_layout();
         $this->number_questions();
@@ -426,41 +426,41 @@ class quiz_attempt {
 
     // Simple getters ======================================================================
     public function get_quiz() {
-        return $this->quiz->get_quiz();
+        return $this->quizobj->get_quiz();
     }
 
     public function get_quizobj() {
-        return $this->quiz;
+        return $this->quizobj;
     }
 
     /** @return integer the course id. */
     public function get_courseid() {
-        return $this->quiz->get_courseid();
+        return $this->quizobj->get_courseid();
     }
 
     /** @return integer the course id. */
     public function get_course() {
-        return $this->quiz->get_course();
+        return $this->quizobj->get_course();
     }
 
     /** @return integer the quiz id. */
     public function get_quizid() {
-        return $this->quiz->get_quizid();
+        return $this->quizobj->get_quizid();
     }
 
     /** @return string the name of this quiz. */
     public function get_quiz_name() {
-        return $this->quiz->get_quiz_name();
+        return $this->quizobj->get_quiz_name();
     }
 
     /** @return object the course_module object. */
     public function get_cm() {
-        return $this->quiz->get_cm();
+        return $this->quizobj->get_cm();
     }
 
     /** @return object the course_module object. */
     public function get_cmid() {
-        return $this->quiz->get_cmid();
+        return $this->quizobj->get_cmid();
     }
 
     /**
@@ -468,12 +468,15 @@ class quiz_attempt {
      * rather than attempting it.
      */
     public function is_preview_user() {
-        return $this->quiz->is_preview_user();
+        return $this->quizobj->is_preview_user();
     }
 
-    /**
-     * @return integer number fo pages in this quiz.
-     */
+    /** @return integer the number of attempts allowed at this quiz (0 = infinite). */
+    public function get_num_attempts_allowed() {
+        return $this->quizobj->get_num_attempts_allowed();
+    }
+
+    /** @return integer number fo pages in this quiz. */
     public function get_num_pages() {
         return count($this->pagelayout);
     }
@@ -483,7 +486,7 @@ class quiz_attempt {
      * @return quiz_access_manager and instance of the quiz_access_manager class for this quiz at this time.
      */
     public function get_access_manager($timenow) {
-        return $this->quiz->get_access_manager($timenow);
+        return $this->quizobj->get_access_manager($timenow);
     }
 
     /** @return integer the attempt id. */
@@ -538,7 +541,14 @@ class quiz_attempt {
      * Wrapper round the has_capability funciton that automatically passes in the quiz context.
      */
     public function has_capability($capability, $userid = NULL, $doanything = true) {
-        return $this->quiz->has_capability($capability, $userid, $doanything);
+        return $this->quizobj->has_capability($capability, $userid, $doanything);
+    }
+
+    /**
+     * Wrapper round the require_capability funciton that automatically passes in the quiz context.
+     */
+    public function require_capability($capability, $userid = NULL, $doanything = true) {
+        return $this->quizobj->require_capability($capability, $userid, $doanything);
     }
 
     /**
@@ -546,11 +556,11 @@ class quiz_attempt {
      * If not, prints an error.
      */
     public function check_review_capability() {
-        if (!$this->quiz->has_capability('mod/quiz:viewreports')) {
+        if (!$this->has_capability('mod/quiz:viewreports')) {
             if ($this->get_review_options()->quizstate == QUIZ_STATE_IMMEDIATELY) {
-                $this->quiz->require_capability('mod/quiz:attempt');
+                $this->require_capability('mod/quiz:attempt');
             } else {
-                $this->quiz->require_capability('mod/quiz:reviewmyattempts');
+                $this->require_capability('mod/quiz:reviewmyattempts');
             }
         }
     }
@@ -562,7 +572,7 @@ class quiz_attempt {
      */
     public function get_review_options() {
         if (is_null($this->reviewoptions)) {
-            $this->reviewoptions = quiz_get_reviewoptions($this->get_quiz(), $this->attempt, $this->quiz->get_context());
+            $this->reviewoptions = quiz_get_reviewoptions($this->get_quiz(), $this->attempt, $this->quizobj->get_context());
         }
         return $this->reviewoptions;
     }
@@ -724,7 +734,7 @@ class quiz_attempt {
      * as the $button parameter.
      */
     public function update_module_button() {
-        return $this->quiz->update_module_button();
+        return $this->quizobj->update_module_button();
     }
 
     /**
@@ -733,7 +743,7 @@ class quiz_attempt {
      * parameter.
      */
     public function navigation($title) {
-        return $this->quiz->navigation($title);
+        return $this->quizobj->navigation($title);
     }
 
     public function get_html_head_contributions($page = 'all') {
@@ -778,8 +788,8 @@ class quiz_attempt {
     }
 
     public function quiz_send_notification_emails() {
-        quiz_send_notification_emails($this->course, $this->get_quiz(), $this->attempt,
-                $this->context, $this->cm);
+        quiz_send_notification_emails($this->get_course(), $this->get_quiz(), $this->attempt,
+                $this->quizobj->get_context(), $this->get_cm());
     }
 
     public function print_navigation_panel($panelclass, $page) {
@@ -851,7 +861,7 @@ class quiz_attempt {
         $a->attempt = $this->get_attempt_number();
 
         question_print_comment_fields($this->questions[$questionid],
-                $this->states[$questionid], $prefix, $this->quiz, get_string('gradingattempt', 'quiz_grading', $a));
+                $this->states[$questionid], $prefix, $this->get_quiz(), get_string('gradingattempt', 'quiz_grading', $a));
     }
 
     // Private methods =====================================================================
