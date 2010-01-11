@@ -2044,7 +2044,7 @@ class question_attempt_step {
         while ($currentrec->sequencenumber != $sequencenumber) {
             $currentrec = next($records);
             if (!$currentrec) {
-                throw new Exception("Question attempt step $stepid not found in the database.");
+                throw new Exception("Question attempt step with sequence number $sequencenumber not found in the database.");
             }
         }
 

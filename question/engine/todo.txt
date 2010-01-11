@@ -16,10 +16,10 @@ Integrate new code into the quiz (2d)
 √       attempt.php
 √       processattempt.php 0.5d
 √       summary.php
-        review.php
+√       review.php
         reviewquestion.php 0.5d
 √       quiz.js
-    question flag update JS
+    question flag update JS - and non-js.
     quiz timer JS
     scroll-down JavaScript on adaptive/immediate/interactive submit button - but not the first on the page.
     deal with TODOs and test

@@ -535,15 +535,22 @@ class quiz_attempt {
     }
 
     /**
+     * Wrapper round the has_capability funciton that automatically passes in the quiz context.
+     */
+    public function has_capability($capability, $userid = NULL, $doanything = true) {
+        return $this->quiz->has_capability($capability, $userid, $doanything);
+    }
+
+    /**
      * Check the appropriate capability to see whether this user may review their own attempt.
      * If not, prints an error.
      */
     public function check_review_capability() {
-        if (!$this->has_capability('mod/quiz:viewreports')) {
+        if (!$this->quiz->has_capability('mod/quiz:viewreports')) {
             if ($this->get_review_options()->quizstate == QUIZ_STATE_IMMEDIATELY) {
-                $this->require_capability('mod/quiz:attempt');
+                $this->quiz->require_capability('mod/quiz:attempt');
             } else {
-                $this->require_capability('mod/quiz:reviewmyattempts');
+                $this->quiz->require_capability('mod/quiz:reviewmyattempts');
             }
         }
     }
@@ -783,7 +790,7 @@ class quiz_attempt {
     /// List of all this user's attempts for people who can see reports.
     public function links_to_other_attempts($url) {
         $search = '/\battempt=' . $this->attempt->id . '\b/';
-        $attempts = quiz_get_user_attempts($this->quiz->id, $this->attempt->userid, 'all');
+        $attempts = quiz_get_user_attempts($this->get_quiz()->id, $this->attempt->userid, 'all');
         if (count($attempts) <= 1) {
             return false;
         }
@@ -997,9 +1004,9 @@ class quiz_attempt_nav_panel extends quiz_nav_panel_base {
 
 class quiz_review_nav_panel extends quiz_nav_panel_base {
     protected function get_question_button(question_attempt $qa, $number) {
-        $strstate = $qa->get_state_description();
+        $strstate = $qa->get_state_string();
         return '<a href="' . $this->attemptobj->review_url($qa->get_number_in_usage()) .
-                '" class="qnbutton ' . $this->get_question_state_classes($question) . '" id="' .
+                '" class="qnbutton ' . $this->get_question_state_classes($qa) . '" id="' .
                 $this->get_button_id($qa) . '" title="' . $strstate . '">' . $number . '<span class="accesshide">(' . $strstate . '</span></a>';
     }
 

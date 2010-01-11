@@ -122,7 +122,7 @@ class question_engine_data_mapper {
         global $CFG;
         $records = get_records_sql("
 SELECT
-    qasd.id,
+    COALESCE(qasd.id, -1 * qas.id) AS id,
     qas.id AS attemptstepid,
     qas.questionattemptid,
     qas.sequencenumber,
@@ -157,7 +157,7 @@ WHERE
         global $CFG;
         $records = get_records_sql("
 SELECT
-    qasd.id,
+    COALESCE(qasd.id, -1 * qas.id) AS id,
     qa.id AS questionattemptid,
     qa.questionusageid,
     qa.numberinusage,
@@ -207,7 +207,7 @@ ORDER BY
         global $CFG;
         $records = get_records_sql("
 SELECT
-    qasd.id,
+    COALESCE(qasd.id, -1 * qas.id) AS id,
     quba.id AS qubaid,
     quba.contextid,
     quba.owningplugin,
