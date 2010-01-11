@@ -426,6 +426,10 @@ class quiz_attempt {
 
     // Simple getters ======================================================================
     public function get_quiz() {
+        return $this->quiz->get_quiz();
+    }
+
+    public function get_quizobj() {
         return $this->quiz;
     }
 
@@ -465,6 +469,13 @@ class quiz_attempt {
      */
     public function is_preview_user() {
         return $this->quiz->is_preview_user();
+    }
+
+    /**
+     * @return integer number fo pages in this quiz.
+     */
+    public function get_num_pages() {
+        return count($this->pagelayout);
     }
 
     /**
@@ -544,7 +555,7 @@ class quiz_attempt {
      */
     public function get_review_options() {
         if (is_null($this->reviewoptions)) {
-            $this->reviewoptions = quiz_get_reviewoptions($this->quiz->get_quiz(), $this->attempt, $this->quiz->get_context());
+            $this->reviewoptions = quiz_get_reviewoptions($this->get_quiz(), $this->attempt, $this->quiz->get_context());
         }
         return $this->reviewoptions;
     }
@@ -555,7 +566,7 @@ class quiz_attempt {
      * @return object the render options for this user on this attempt.
      */
     public function get_render_options() {
-        return quiz_get_renderoptions($this->quiz->get_quiz()->review, null);
+        return quiz_get_renderoptions($this->get_quiz()->review, null);
     }
 
     /**
@@ -581,24 +592,69 @@ class quiz_attempt {
         }
     }
 
+    /**
+     * Get the question_attempt object for a particular question in this attempt.
+     * @param integer $qnumber the number used to identify this question within this attempt.
+     * @return question_attempt 
+     */
     public function get_question_attempt($qnumber) {
         return $this->quba->get_question_attempt($qnumber);
+    }
+
+    /**
+     * Is a particular question in this attempt a real question, or something like a description.
+     * @param integer $qnumber the number used to identify this question within this attempt.
+     * @return boolean whether that question is a real question.
+     */
+    public function is_real_question($qnumber) {
+        return $this->quba->get_question($qnumber)->length != 0;
+    }
+
+    /**
+     * Is a particular question in this attempt a real question, or something like a description.
+     * @param integer $qnumber the number used to identify this question within this attempt.
+     * @return boolean whether that question is a real question.
+     */
+    public function is_question_flagged($qnumber) {
+        return $this->quba->get_question_attempt($qnumber)->is_flagged();
     }
 
     /**
      * Return the grade obtained on a particular question, if the user is permitted to see it.
      * You must previously have called load_question_states to load the state data about this question.
      *
-     * @param integer $questionid question id of a question that belongs to this quiz.
+     * @param integer $qnumber the number used to identify this question within this attempt.
+     * @return string the formatted grade, to the number of decimal places specified by the quiz.
+     */
+    public function get_question_number($qnumber) {
+        return $this->quba->get_question($qnumber)->_number;
+    }
+
+    /**
+     * Return the grade obtained on a particular question, if the user is permitted to see it.
+     * You must previously have called load_question_states to load the state data about this question.
+     *
+     * @param integer $qnumber the number used to identify this question within this attempt.
+     * @return string the formatted grade, to the number of decimal places specified by the quiz.
+     */
+    public function get_question_status($qnumber) {
+        return $this->quba->get_question_attempt($qnumber)->get_state_string();
+    }
+
+    /**
+     * Return the grade obtained on a particular question, if the user is permitted to see it.
+     * You must previously have called load_question_states to load the state data about this question.
+     *
+     * @param integer $qnumber the number used to identify this question within this attempt.
      * @return string the formatted grade, to the number of decimal places specified by the quiz.
      */
     public function get_question_score($qnumber) {
-        $options = $this->get_render_options($this->states[$questionid]);
-        if ($options->scores >= question_display_options::MARK_AND_MAX) {
-            return quiz_format_question_grade($this->quiz, $this->quba->get_question_mark($qnumber));
-        } else {
+        $options = $this->get_render_options();
+        if ($options->scores < question_display_options::MARK_AND_MAX) {
             return '';
         }
+
+        return quiz_format_question_grade($this->get_quiz(), $this->quba->get_question_mark($qnumber));
     }
 
     // URLs related to this attempt ========================================================
@@ -617,10 +673,10 @@ class quiz_attempt {
      * to jump to a particuar question on the page.
      * @return string the URL to continue this attempt.
      */
-    public function attempt_url($questionid = 0, $page = -1) {
+    public function attempt_url($qnumber = 0, $page = -1) {
         global $CFG;
         return $CFG->wwwroot . '/mod/quiz/attempt.php?attempt=' . $this->attempt->id .
-                $this->page_and_question_fragment($questionid, $page);
+                $this->page_and_question_fragment($qnumber, $page);
     }
 
     /**
@@ -649,10 +705,10 @@ class quiz_attempt {
      * @param $otherattemptid if given, link to another attempt, instead of the one we represent.
      * @return string the URL to review this attempt.
      */
-    public function review_url($questionid = 0, $page = -1, $showall = false) {
+    public function review_url($qnumber = 0, $page = -1, $showall = false) {
         global $CFG;
         return $CFG->wwwroot . '/mod/quiz/review.php?attempt=' . $this->attempt->id .
-                $this->page_and_question_fragment($questionid, $page, $showall);
+                $this->page_and_question_fragment($qnumber, $page, $showall);
     }
 
     // Bits of content =====================================================================
@@ -715,7 +771,7 @@ class quiz_attempt {
     }
 
     public function quiz_send_notification_emails() {
-        quiz_send_notification_emails($this->course, $this->quiz, $this->attempt,
+        quiz_send_notification_emails($this->course, $this->get_quiz(), $this->attempt,
                 $this->context, $this->cm);
     }
 
@@ -743,10 +799,37 @@ class quiz_attempt {
         return implode(', ', $attemptlist);
     }
 
-    // Methods for processing manual comments ==============================================
-    // I am not sure it is a good idea to have update methods here - this class is only
-    // about getting data out of the question engine, and helping to display it, apart from
-    // this.
+    // Methods for processing ==================================================
+    public function process_all_actions($timestamp) {
+        $this->quba->process_all_actions($timestamp);
+        question_engine::save_questions_usage_by_activity($this->quba);
+
+        $this->attempt->timemodified = $timestamp;
+        $this->attempt->sumgrades = $this->quba->get_total_mark();
+        if (!update_record('quiz_attempts', $this->attempt)) {
+            throw new moodle_quiz_exception($this->get_quizobj(), 'saveattemptfailed');
+        }
+    }
+
+    public function finish_attempt($timestamp) {
+        $this->quba->process_all_actions($timestamp);
+        $this->quba->finish_all_questions($timestamp);
+
+        question_engine::save_questions_usage_by_activity($this->quba);
+
+        $this->attempt->timemodified = $timestamp;
+        $this->attempt->timefinish = $timestamp;
+        $this->attempt->sumgrades = $this->quba->get_total_mark();
+        if (!update_record('quiz_attempts', $this->attempt)) {
+            throw new moodle_quiz_exception($this->get_quizobj(), 'saveattemptfailed');
+        }
+
+        if (!$this->is_preview()) {
+            quiz_save_best_grade($this->get_quiz());
+            $this->quiz_send_notification_emails();
+        }
+    }
+
     public function process_comment($qnumber, $comment, $mark) {
         $this->quba->manual_grade($qnumber, $comment, $mark);
         question_engine::save_questions_usage_by_activity($this->quba);
@@ -782,8 +865,8 @@ class quiz_attempt {
      */
     private function page_and_question_fragment($qnumber, $page, $showall = false) {
         if ($page == -1) {
-            if ($questionid) {
-                $page = $this->questions[$questionid]->_page;
+            if ($qnumber) {
+                $page = $this->quba->get_question($qnumber)->_page;
             } else {
                 $page = 0;
             }
@@ -879,7 +962,7 @@ abstract class quiz_nav_panel_base {
     public function display() {
         $strquiznavigation = get_string('quiznavigation', 'quiz');
         $content = '';
-        if (!empty($this->attemptobj->get_quiz()->get_quiz()->showuserpicture)) {
+        if (!empty($this->attemptobj->get_quiz()->showuserpicture)) {
             $content .= $this->get_user_picture() . "\n";
         }
         $content .= $this->get_question_buttons() . "\n";

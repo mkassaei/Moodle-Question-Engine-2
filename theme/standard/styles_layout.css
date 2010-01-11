@@ -3843,8 +3843,12 @@ body#mod-quiz-view .generalbox#feedback .overriddennotice {
   height: 16px;
   vertical-align: middle;
 }
-#mod-quiz-attempt #quiz-timer {
-  display: none;
+#mod-quiz-attempt #quiz-timer,
+#mod-quiz-summary #quiz-timer {
+  display: none; /* Revealed by JavaScript if applicable */
+}
+#mod-quiz-summary #quiz-timer {
+  margin-top: 1em;
 }
 #mod-quiz-attempt #quiz-time-left {
   font-weight: bold;

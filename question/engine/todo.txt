@@ -14,10 +14,10 @@ Integrate new code into the quiz (2d)
 √       view.php 0.5d
 √       startattempt.php
 √       attempt.php
-        processattempt.php 0.5d
+√       processattempt.php 0.5d
+√       summary.php
         review.php
         reviewquestion.php 0.5d
-        summary.php
 √       quiz.js
     question flag update JS
     quiz timer JS

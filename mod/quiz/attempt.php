@@ -79,7 +79,7 @@ $qnumbers = $attemptobj->get_question_numbers($page);
 
 // Check.
 if (empty($qnumbers)) {
-    throw new moodle_quiz_exception($attemptobj->get_quiz(), 'noquestionsfound');
+    throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'noquestionsfound');
 }
 
 // Load those questions and the associated states.

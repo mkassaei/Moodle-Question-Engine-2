@@ -789,6 +789,20 @@ class question_usage_by_activity {
     }
 
     /**
+     * Get the current mark awarded for the attempt at a question.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @return number|null The current mark for this question, or null if one has
+     * not been assigned yet.
+     */
+    public function get_total_mark() {
+        $mark = 0;
+        foreach ($this->questionattempts as $qa) {
+            $mark += $qa->get_mark();
+        }
+        return $mark;
+    }
+
+    /**
      * Get the {@link core_question_renderer}, in collaboration with appropriate
      * {@link qim_renderer} and {@link qtype_renderer} subclasses, to generate the
      * HTML to display this question.
@@ -850,10 +864,11 @@ class question_usage_by_activity {
      * those question numbers will be processed, otherwise all questions in this
      * useage will be.
      *
-     * @param $postdata optional, only intended for testing. Use this data
+     * @param integer $timestamp optional, use this timestamp as 'now'.
+     * @param array $postdata optional, only intended for testing. Use this data
      * instead of the data from $_POST.
      */
-    public function process_all_actions($postdata = null) {
+    public function process_all_actions($timestamp = null, $postdata = null) {
         $qnumbers = question_attempt::get_submitted_var('qnumbers', PARAM_SEQUENCE, $postdata);
         if (is_null($qnumbers)) {
             $qnumbers = $this->get_question_numbers();
@@ -864,7 +879,7 @@ class question_usage_by_activity {
         }
         foreach ($qnumbers as $qnumber) {
             $submitteddata = $this->extract_responses($qnumber, $postdata);
-            $this->process_action($qnumber, $submitteddata);
+            $this->process_action($qnumber, $submitteddata, $timestamp);
         }
     }
 
@@ -886,9 +901,9 @@ class question_usage_by_activity {
      * @param integer $qnumber the number used to identify this question within this usage.
      * @param $submitteddata the submitted data that constitutes the action.
      */
-    public function process_action($qnumber, $submitteddata) {
+    public function process_action($qnumber, $submitteddata, $timestamp = null) {
         $qa = $this->get_question_attempt($qnumber);
-        $qa->process_action($submitteddata);
+        $qa->process_action($submitteddata, $timestamp);
         $this->observer->notify_attempt_modified($qa);
     }
 
@@ -915,9 +930,9 @@ class question_usage_by_activity {
      *
      * @param integer $qnumber the number used to identify this question within this usage.
      */
-    public function finish_question($qnumber) {
+    public function finish_question($qnumber, $timestamp = null) {
         $qa = $this->get_question_attempt($qnumber);
-        $qa->finish();
+        $qa->finish($timestamp);
         $this->observer->notify_attempt_modified($qa);
     }
 
@@ -925,9 +940,9 @@ class question_usage_by_activity {
      * Finish the active phase of an attempt at a question. See {@link finish_question()}
      * for a fuller description of what 'finish' means.
      */
-    public function finish_all_questions() {
+    public function finish_all_questions($timestamp = null) {
         foreach ($this->questionattempts as $qa) {
-            $qa->finish();
+            $qa->finish($timestamp);
             $this->observer->notify_attempt_modified($qa);
         }
     }
@@ -1387,6 +1402,13 @@ class question_attempt {
      */
     public function get_state() {
         return $this->get_last_step()->get_state();
+    }
+
+    /**
+     * @return string A brief textual description of the current state.
+     */
+    public function get_state_string() {
+        return $this->interactionmodel->get_renderer()->get_state_string($this);
     }
 
     /**

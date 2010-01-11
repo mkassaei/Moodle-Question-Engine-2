@@ -39,6 +39,9 @@ abstract class qim_renderer extends moodle_renderer_base {
     /**
      * Generate a brief textual description of the current state of the question,
      * normally displayed under the question number.
+     *
+     * TODO should this acutally be a method on $qa instead?
+     *
      * @param question_attempt $qa a question attempt.
      * @return string a brief summary of the current state of the qestion attempt.
      */
