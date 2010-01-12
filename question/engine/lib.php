@@ -75,6 +75,19 @@ abstract class question_engine {
     }
 
     /**
+     * Reload the state of one question in a {@link question_usage_by_activity}
+     * from the database. Possibly only going as far as the step with sequence number $seq.
+     * @param question_usage_by_activity $quba the id of the usage to load.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $seq (optional) If given, only load the steps up to and including
+     *      the one with this sequence number.
+     */
+    public static function reload_question_state_in_quba(question_usage_by_activity $quba, $qnumber, $seq = null) {
+        $dm = new question_engine_data_mapper();
+        $dm->reload_question_state_in_quba($quba, $qnumber, $seq);
+    }
+
+    /**
      * Save a {@link question_usage_by_activity} to the database. This works either
      * if the usage was newly created by {@link make_questions_usage_by_activity()}
      * or loaded from the database using {@link load_questions_usage_by_activity()}
@@ -746,6 +759,18 @@ class question_usage_by_activity {
     }
 
     /**
+     * Check whether $number actually corresponds to a question attempt that is
+     * part of this usage. Throws an exception if not.
+     *
+     * @param integer $qnumber a number allegedly identifying a question within this usage.
+     */
+    protected function check_qnumber($qnumber) {
+        if (!array_key_exists($qnumber, $this->questionattempts)) {
+            throw new exception("There is no question_attempt number $qnumber in this attempt.");
+        }
+    }
+
+    /**
      * Note the part of the {@link question_usage_by_activity} comment that explains
      * that {@link question_attempt} objects should be considered part of the inner
      * workings of the question engine, and should not, if possible, be accessed directly.
@@ -754,9 +779,7 @@ class question_usage_by_activity {
      * @return question_attempt the corresponding {@link question_attempt} object.
      */
     public function get_question_attempt($qnumber) {
-        if (!array_key_exists($qnumber, $this->questionattempts)) {
-            throw new exception("There is no question_attempt number $qnumber in this attempt.");
-        }
+        $this->check_qnumber($qnumber);
         return $this->questionattempts[$qnumber];
     }
 
@@ -767,6 +790,15 @@ class question_usage_by_activity {
      */
     public function get_question_state($qnumber) {
         return $this->get_question_attempt($qnumber)->get_state();
+    }
+
+    /**
+     * Get the time of the most recent action performed on a question.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @return integer timestamp.
+     */
+    public function get_question_action_time($qnumber) {
+        return $this->get_question_attempt($qnumber)->get_last_action_time();
     }
 
     /**
@@ -1020,6 +1052,21 @@ class question_usage_by_activity {
         }
 
         return $quba;
+    }
+
+    /**
+     * Replace a particular question_attempt with a different one.
+     *
+     * For internal use only. Used when reloading the state of a question from the
+     * database.
+     *
+     * @param array $records Raw records loaded from the database.
+     * @param integer $questionattemptid The id of the question_attempt to extract.
+     * @return question_attempt The newly constructed question_attempt_step.
+     */
+    public function replace_loaded_question_attempt_info($qnumber, $qa) {
+        $this->check_qnumber($qnumber);
+        $this->questionattempts[$qnumber] = $qa;
     }
 }
 
@@ -1409,6 +1456,10 @@ class question_attempt {
      */
     public function get_state_string() {
         return $this->interactionmodel->get_renderer()->get_state_string($this);
+    }
+
+    public function get_last_action_time() {
+        return $this->get_last_step()->get_timecreated();
     }
 
     /**

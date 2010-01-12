@@ -8,7 +8,7 @@ More interaction models (2d)
 √   Interactive model 2d
 
 Integrate new code into the quiz (2d)
-    backport & update key 2.0 changes (2d)
+√   backport & update key 2.0 changes (2d)
 √       attemptlib.php 0.5d
 √       accessmanager.php
 √       view.php 0.5d
@@ -17,7 +17,7 @@ Integrate new code into the quiz (2d)
 √       processattempt.php 0.5d
 √       summary.php
 √       review.php
-        reviewquestion.php 0.5d
+√       reviewquestion.php 0.5d
 √       quiz.js
     question flag update JS - and non-js.
     quiz timer JS

@@ -385,6 +385,28 @@ class quiz_attempt {
     }
 
     // Functions for loading more data =====================================================
+
+    /**
+     * Reload the state of a particular question up to and including the state with
+     * sequence number $seq, but no further.
+     * @param integer $qnumber the number used to identify this question within this attempt.
+     * @param integer $seq the sequence number to load up to.
+     */
+    public function load_question_at_state($qnumber, $seq) {
+        // Save the hacky extra fields we set on this question.
+        $question = $this->quba->get_question($qnumber);
+        $page = $question->_page;
+        $number = $question->_number;
+
+        // Do the reload of this question state.
+        question_engine::reload_question_state_in_quba($this->quba, $qnumber, $seq);
+
+        // Put back the hacky extra fields we set.
+        $question = $this->quba->get_question($qnumber);
+        $question->_page = $page;
+        $question->_number = $number;
+    }
+
 //    /**
 //     * Load the state of a number of questions that have already been loaded.
 //     *
@@ -654,6 +676,17 @@ class quiz_attempt {
      * @param integer $qnumber the number used to identify this question within this attempt.
      * @return string the formatted grade, to the number of decimal places specified by the quiz.
      */
+    public function get_question_name($qnumber) {
+        return $this->quba->get_question($qnumber)->name;
+    }
+
+    /**
+     * Return the grade obtained on a particular question, if the user is permitted to see it.
+     * You must previously have called load_question_states to load the state data about this question.
+     *
+     * @param integer $qnumber the number used to identify this question within this attempt.
+     * @return string the formatted grade, to the number of decimal places specified by the quiz.
+     */
     public function get_question_status($qnumber) {
         return $this->quba->get_question_attempt($qnumber)->get_state_string();
     }
@@ -672,6 +705,10 @@ class quiz_attempt {
         }
 
         return quiz_format_question_grade($this->get_quiz(), $this->quba->get_question_mark($qnumber));
+    }
+
+    public function get_question_action_time($qnumber) {
+        return $this->quba->get_question_action_time($qnumber);
     }
 
     // URLs related to this attempt ========================================================
