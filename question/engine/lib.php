@@ -196,6 +196,10 @@ abstract class question_engine {
     public static function get_dp_options() {
         return question_display_options::get_dp_options();
     }
+
+    public static function initialise_js() {
+        return question_flags::initialise_js();
+    }
 }
 
 
@@ -526,7 +530,7 @@ class question_display_options {
      * @var integer {@link question_display_options::HIDDEN},
      * {@link question_display_options::VISIBLE} or {@link question_display_options::EDITABLE}
      */
-    public $flags = self::VISIBLE;
+    public $flags = self::VISIBLE; // DONOTCOMMIT
 
     /**
      * Initialise an instance of this class from the kind of bitmask values stored
@@ -580,6 +584,86 @@ class question_display_options {
             $options[$i] = $i;
         }
         return $options;
+    }
+}
+
+
+/**
+ * Contains the logic for handling question flags.
+ *
+ * @copyright © 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+abstract class question_flags {
+    /**
+     * Get the checksum that validates that a toggle request is valid.
+     * @param integer $qubaid the question usage id.
+     * @param integer $questionid the question id.
+     * @param integer $sessionid the question_attempt id.
+     * @param object $user the user. If null, defaults to $USER.
+     * @return string that needs to be sent to question/toggleflag.php for it to work.
+     */
+    protected static function get_toggle_checksum($qubaid, $questionid, $qaid, $user = null) {
+        if (is_null($user)) {
+            global $USER;
+            $user = $USER;
+        }
+        return md5($qubaid . "_" . $user->secret . "_" . $questionid . "_" . $qaid);
+    }
+
+    /**
+     * Get the postdata that needs to be sent to question/toggleflag.php to change the flag state.
+     * You need to append &newstate=0/1 to this.
+     * @return the post data to send.
+     */
+    public static function get_postdate(question_attempt $qa) {
+        $qaid = $qa->get_database_id();
+        $qubaid = $qa->get_usage_id();
+        $qid = $qa->get_question()->id;
+        $checksum = self::get_toggle_checksum($qubaid, $qid, $qaid);
+        return "qaid=$qaid&qubaid=$qubaid&qid=$qid&checksum=$checksum&sesskey=" . sesskey();
+    }
+
+    /**
+     * If the request seems valid, update the flag state of a question attempt.
+     * Throws exceptions if this is not a valid update request.
+     * @param integer $qubaid the question usage id.
+     * @param integer $questionid the question id.
+     * @param integer $sessionid the question_attempt id.
+     * @param string $checksum checksum, as computed by {@link get_toggle_checksum()}
+     *      corresponding to the last three arguments.
+     * @param boolean $newstate the new state of the flag. true = flagged.
+     */
+    public static function update_flag($qubaid, $questionid, $qaid, $checksum, $newstate) {
+        // Check the checksum - it is very hard to know who a question session belongs
+        // to, so we require that checksum parameter is matches an md5 hash of the 
+        // three ids and the users username. Since we are only updating a flag, that
+        // probably makes it sufficiently difficult for malicious users to toggle
+        // other users flags.
+        if ($checksum != question_flags::get_toggle_checksum($qubaid, $questionid, $qaid)) {
+            throw new Exception('checksum failure');
+        }
+
+        $dm = new question_engine_data_mapper();
+        $dm->update_question_attempt_flag($qubaid, $questionid, $qaid, $newstate);
+    }
+
+    public static function initialise_js() {
+        global $CFG;
+
+        require_js(array('yui_yahoo','yui_event', 'yui_connection'));
+        require_js($CFG->wwwroot . '/question/qengine.js');
+
+        $config = array(
+            'actionurl' => $CFG->wwwroot . '/question/toggleflag.php',
+            'flagicon' => $CFG->pixpath . '/i/flagged.png',
+            'unflagicon' => $CFG->pixpath . '/i/unflagged.png',
+            'flagtooltip' => get_string('clicktoflag', 'question'),
+            'unflagtooltip' => get_string('clicktounflag', 'question'),
+            'flaggedalt' => get_string('flagged', 'question'),
+            'unflaggedalt' => get_string('notflagged', 'question'),
+        );
+        return print_js_config($config, 'qengine_config', true);
     }
 }
 
@@ -896,6 +980,8 @@ class question_usage_by_activity {
      * those question numbers will be processed, otherwise all questions in this
      * useage will be.
      *
+     * This function also does {@link update_question_flags()}.
+     *
      * @param integer $timestamp optional, use this timestamp as 'now'.
      * @param array $postdata optional, only intended for testing. Use this data
      * instead of the data from $_POST.
@@ -913,6 +999,7 @@ class question_usage_by_activity {
             $submitteddata = $this->extract_responses($qnumber, $postdata);
             $this->process_action($qnumber, $submitteddata, $timestamp);
         }
+        $this->update_question_flags($postdata);
     }
 
     /**
@@ -937,6 +1024,24 @@ class question_usage_by_activity {
         $qa = $this->get_question_attempt($qnumber);
         $qa->process_action($submitteddata, $timestamp);
         $this->observer->notify_attempt_modified($qa);
+    }
+
+    /**
+     * Update the flagged state for all question_attempts in this usage, if their
+     * flagged state was changed in the request.
+     *
+     * @param $postdata optional, only intended for testing. Use this data
+     * instead of the data from $_POST.
+     */
+    public function update_question_flags($postdata = null) {
+        foreach ($this->questionattempts as $qa) {
+            $flagged = question_attempt::get_submitted_var(
+                    $qa->get_flag_field_name(), PARAM_BOOL, $postdata);
+            if (!is_null($flagged) && $flagged != $qa->is_flagged()) {
+                $qa->set_flagged($flagged);
+            }
+        }
+        
     }
 
     /**
@@ -1295,6 +1400,16 @@ class question_attempt {
 
     /**
      * Get the name (in the sense a HTML name="" attribute, or a $_POST variable
+     * name) to use for the field that indicates whether this question is flagged.
+     *
+     * @return string  The field name to use.
+     */
+    public function get_flag_field_name() {
+        return $this->get_field_prefix() . '#flagged';
+    }
+
+    /**
+     * Get the name (in the sense a HTML name="" attribute, or a $_POST variable
      * name) to use for a question_type variable belonging to this question_attempt.
      *
      * See the comment on {@link question_attempt_step} for an explanation of
@@ -1537,7 +1652,8 @@ class question_attempt {
      * @return string HTML fragment.
      */
     public function render_head_html() {
-        return $this->question->qtype->get_html_head_contributions($this->question, 'TODO');
+        // TODO
+        return implode("\n", $this->question->qtype->get_html_head_contributions($this->question, 'TODO'));
     }
 
     /**

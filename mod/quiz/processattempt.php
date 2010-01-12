@@ -124,4 +124,3 @@ $accessmanager->clear_password_access();
 
 /// Send the user to the review page.
 redirect($attemptobj->review_url());
-?>

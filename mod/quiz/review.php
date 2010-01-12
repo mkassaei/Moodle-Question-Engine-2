@@ -73,11 +73,8 @@ if ($showall) {
 // Save the flag states, if they are being changed.
 if ($options->flags == question_display_options::EDITABLE && optional_param('savingflags', false, PARAM_BOOL)) {
     confirm_sesskey();
-// TODO
-//        $formdata = data_submitted();
-//
-//        question_save_flags($formdata, $attemptid, $questionids);
-//        redirect($attemptobj->review_url(0, $page, $showall));
+    $attemptobj->save_question_flags();
+    redirect($attemptobj->review_url(0, $page, $showall));
 }
 
 // Log this review.

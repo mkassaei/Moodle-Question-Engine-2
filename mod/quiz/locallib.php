@@ -734,26 +734,44 @@ function quiz_question_preview_button($quiz, $question) {
 }
 
 /**
+ * @param object $attempt the attempt.
+ * @param object $context the quiz context.
+ * @return integer whether flags should be shown/editable to the current user for this attempt.
+ */
+function quiz_get_flag_option($attempt, $context) {
+    global $USER;
+    if (!has_capability('moodle/question:flag', $context)) {
+        return question_display_options::HIDDEN;
+    } else if ($attempt->userid == $USER->id) {
+        return question_display_options::EDITABLE;
+    } else {
+        return question_display_options::VISIBLE;
+    }
+}
+
+/**
  * Determine render options
  *
  * @param int $reviewoptions
  * @param object $state
  */
-function quiz_get_renderoptions($reviewoptions, $nolongerused) {
+function quiz_get_renderoptions($quiz, $attempt, $context) {
     $options = new question_display_options();
 
     // Show the question in readonly (review) mode if the question is in
     // the closed state
     $options->readonly = false;
 
+    $options->flags = quiz_get_flag_option($attempt, $context);
+
     // Show feedback once the question has been graded (if allowed by the quiz)
-    $options->feedback = $reviewoptions & QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_IMMEDIATELY;
+    $options->feedback = $quiz->review & QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_IMMEDIATELY;
 
     // Show correct responses in readonly mode if the quiz allows it
-    $options->correct_responses = $reviewoptions & QUIZ_REVIEW_ANSWERS & QUIZ_REVIEW_IMMEDIATELY;
+    $options->correct_responses = $quiz->review & QUIZ_REVIEW_ANSWERS & QUIZ_REVIEW_IMMEDIATELY;
 
     // Show general feedback if the question has been graded and the quiz allows it.
-    $options->generalfeedback = $reviewoptions & QUIZ_REVIEW_GENERALFEEDBACK & QUIZ_REVIEW_IMMEDIATELY;
+    $options->generalfeedback = $quiz->review & QUIZ_REVIEW_GENERALFEEDBACK & QUIZ_REVIEW_IMMEDIATELY;
 
     // Show overallfeedback once the attempt is over.
     $options->overallfeedback = false;
@@ -777,9 +795,12 @@ function quiz_get_renderoptions($reviewoptions, $nolongerused) {
  * @return object an object with boolean fields responses, scores, feedback,
  *          correct_responses, solutions and general feedback
  */
-function quiz_get_reviewoptions($quiz, $attempt, $context=null) {
+function quiz_get_reviewoptions($quiz, $attempt, $context) {
     $options = new question_display_options();
+
     $options->readonly = true;
+
+    $options->flags = quiz_get_flag_option($attempt, $context);
 
     // Provide the links to the question review and comment script
     $options->questionreviewlink = '/mod/quiz/reviewquestion.php';

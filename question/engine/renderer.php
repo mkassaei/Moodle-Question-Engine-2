@@ -183,22 +183,18 @@ class core_question_renderer extends moodle_renderer_base {
                 $flagcontent = $this->get_flag_html($qa->is_flagged());
                 break;
             case question_display_options::EDITABLE:
-                $id = $question->name_prefix . '_flagged';
+                $id = $qa->get_flag_field_name();
                 if ($qa->is_flagged()) {
                     $checked = 'checked="checked" ';
                 } else {
                     $checked = '';
                 }
-                $qsid = $state->questionsessionid;
-                $aid = $state->attempt;
-                $qid = $state->question;
-                $checksum = question_get_toggleflag_checksum($aid, $qid, $qsid);
-                $postdata = "qsid=$qsid&amp;aid=$aid&amp;qid=$qid&amp;checksum=$checksum&amp;sesskey=" . sesskey();
-                $flagcontent = '<input type="checkbox" id="' . $id . '" name="' . $id .
-                        '" value="1" ' . $checked . ' />' .
+                $postdata = question_flags::get_postdate($qa);
+                $flagcontent = '<input type="hidden" name="' . $id . '" value="0" />' .
+                        '<input type="checkbox" id="' . $id . '" name="' . $id . '" value="1" ' . $checked . ' />' .
                         '<label id="' . $id . 'label" for="' . $id . '">' . $this->get_flag_html(
                         $qa->is_flagged(), $id . 'img') . '</label>' . "\n" .
-                        print_js_call('question_flag_changer.init_flag', array($id, $postdata), true);
+                        print_js_call('question_flag_changer.init_flag', array($id, $postdata, $qa->get_number_in_usage()), true);
                 break;
             default:
                 $flagcontent = '';

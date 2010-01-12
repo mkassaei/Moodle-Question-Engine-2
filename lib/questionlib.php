@@ -1756,9 +1756,11 @@ function question_hash($question) {
  * @return string some HTML code that can go inside the head tag.
  */
 function get_html_head_contributions($questionlist, $questions, $states) {
-    global $QTYPES;
+    global $CFG, $QTYPES;
 
     $contributions = array();
+    $contributions[] = question_flags::initialise_js();
+
     foreach ($questionlist as $questionid) {
         $question = $questions[$questionid];
         $contributions = array_merge($contributions,

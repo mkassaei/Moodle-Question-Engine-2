@@ -1,10 +1,10 @@
 // This script, and the YUI libraries that it needs, are inluded by
-// the require_js calls in get_html_head_contributions in lib/questionlib.php.
+// question_flags::initialise_js in question/engine/lib.php.
 
 question_flag_changer = {
     flag_state_listeners: new Object(),
 
-    init_flag: function(checkboxid, postdata) {
+    init_flag: function(checkboxid, postdata, qnumber) {
         // Create a hidden input - you can't just repurpose the old checkbox, IE
         // does not cope - and put it in place of the checkbox.
         var checkbox = document.getElementById(checkboxid);
@@ -16,6 +16,7 @@ question_flag_changer = {
         input.name = checkbox.name;
         input.value = checkbox.checked ? 1 : 0;
         input.ajaxpostdata = postdata;
+        input.qnumber = qnumber;
 
         // Create an image input to replace the img tag.
         var image = document.createElement('input');
@@ -49,38 +50,34 @@ question_flag_changer = {
         } else {
             postdata += '&newstate=0'
         }
-        YAHOO.util.Connect.asyncRequest('POST', qengine_config.wwwroot + '/question/toggleflag.php', null, postdata);
+        YAHOO.util.Connect.asyncRequest('POST', qengine_config.actionurl, null, postdata);
         question_flag_changer.fire_state_changed(input);
         YAHOO.util.Event.preventDefault(e);
     },
 
     update_image: function(image) {
         if (image.statestore.value == 1) {
-            image.src = qengine_config.pixpath + '/i/flagged.png';
+            image.src = qengine_config.flagicon;
             image.alt = qengine_config.flaggedalt;
             image.title = qengine_config.unflagtooltip;
         } else {
-            image.src = qengine_config.pixpath + '/i/unflagged.png';
+            image.src = qengine_config.unflagicon;
             image.alt = qengine_config.unflaggedalt;
             image.title = qengine_config.flagtooltip;
         }
     },
 
-    add_flag_state_listener: function(questionid, listener) {
-        var key = 'q' + questionid;
+    add_flag_state_listener: function(qnumber, listener) {
+        var key = 'q' + qnumber;
         if (!question_flag_changer.flag_state_listeners.hasOwnProperty(key)) {
             question_flag_changer.flag_state_listeners[key] = [];
         }
         question_flag_changer.flag_state_listeners[key].push(listener);
     },
 
-    questionid_from_inputid: function(inputid) {
-        return inputid.replace(/resp(\d+)__flagged/, '$1');
-    },
-
     fire_state_changed: function(input) {
-        var questionid = question_flag_changer.questionid_from_inputid(input.id);
-        var key = 'q' + questionid;
+        var qnumber = input.qnumber;
+        var key = 'q' + qnumber;
         if (!question_flag_changer.flag_state_listeners.hasOwnProperty(key)) {
             return;
         }

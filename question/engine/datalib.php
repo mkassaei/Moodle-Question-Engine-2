@@ -370,6 +370,24 @@ ORDER BY
                 WHERE $where)");
         delete_records_select('question_usages quba', $where);
     }
+
+    /**
+     * Update the flagged state of a question in the database.
+     * @param integer $qubaid the question usage id.
+     * @param integer $questionid the question id.
+     * @param integer $sessionid the question_attempt id.
+     * @param boolean $newstate the new state of the flag. true = flagged.
+     */
+    public function update_question_attempt_flag($qubaid, $questionid, $qaid, $newstate) {
+        if (!record_exists('question_attempts_new', 'id', $qaid, 
+                'questionusageid', $qubaid, 'questionid', $questionid)) {
+            throw new Exception('invalid ids');
+        }
+
+        if (!set_field('question_attempts_new', 'flagged', $newstate, 'id', $qaid)) {
+            throw new Exception('flag update failed');
+        }
+    }
 }
 
 /**

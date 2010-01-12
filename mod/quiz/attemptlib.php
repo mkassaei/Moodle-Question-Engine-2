@@ -605,7 +605,7 @@ class quiz_attempt {
      * @return object the render options for this user on this attempt.
      */
     public function get_render_options() {
-        return quiz_get_renderoptions($this->get_quiz()->review, null);
+        return quiz_get_renderoptions($this->get_quiz(), $this->attempt, $this->quizobj->get_context());
     }
 
     /**
@@ -788,6 +788,7 @@ class quiz_attempt {
         foreach ($this->get_question_numbers($page) as $qnumber) {
             $result .= $this->quba->render_question_head_html($qnumber);
         }
+        $result .= question_engine::initialise_js();
         return $result;
     }
 
@@ -854,6 +855,13 @@ class quiz_attempt {
     }
 
     // Methods for processing ==================================================
+
+    /**
+     * Process all the actions that were submitted as part of the current request.
+     *
+     * @param integer $timestamp the timestamp that should be stored as the modifed
+     * time in the database for these actions. If null, will use the current time.
+     */
     public function process_all_actions($timestamp) {
         $this->quba->process_all_actions($timestamp);
         question_engine::save_questions_usage_by_activity($this->quba);
@@ -863,6 +871,15 @@ class quiz_attempt {
         if (!update_record('quiz_attempts', $this->attempt)) {
             throw new moodle_quiz_exception($this->get_quizobj(), 'saveattemptfailed');
         }
+    }
+
+    /**
+     * Update the flagged state for all question_attempts in this usage, if their
+     * flagged state was changed in the request.
+     */
+    public function save_question_flags() {
+        $this->quba->update_question_flags();
+        question_engine::save_questions_usage_by_activity($this->quba);
     }
 
     public function finish_attempt($timestamp) {
