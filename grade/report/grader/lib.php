@@ -625,7 +625,8 @@ class grade_report_grader extends grade_report {
                 }
 // Element is a category
                 else if ($type == 'category') {
-                    $headerhtml .= '<th class=" '. $columnclass.' category'.$catlevel.'" '.$colspan.' scope="col">'
+                    //MDL-21088 - IE 7 ignores nowraps on td or th so we put this in a span with a nowrap on it.
+                    $headerhtml .= '<th class=" '. $columnclass.' category'.$catlevel.'" '.$colspan.' scope="col"><span>'
                                 . shorten_text($element['object']->get_name());
                     $headerhtml .= $this->get_collapsing_icon($element);
 
@@ -634,7 +635,7 @@ class grade_report_grader extends grade_report {
                         $headerhtml .= $this->get_icons($element);
                     }
 
-                    $headerhtml .= '</th>';
+                    $headerhtml .= '</span></th>';
                 }
 // Element is a grade_item
                 else {
@@ -657,9 +658,10 @@ class grade_report_grader extends grade_report {
                     }
 
                     $headerlink = $this->gtree->get_element_header($element, true, $this->get_pref('showactivityicons'), false);
-                    $headerhtml .= '<th class=" '.$columnclass.' '.$type.$catlevel.$hidden.'" scope="col" onclick="set_col(this.cellIndex)">'
-                                . shorten_text($headerlink) . $arrow;
-                    $headerhtml .= '</th>';
+                    //MDL-21088 - IE 7 ignores nowraps on tds or ths so we this in a span with a nowrap on it.
+                    $headerhtml .= '<th class=" '.$columnclass.' '.$type.$catlevel.$hidden.'" scope="col" onclick="set_col(this.cellIndex)"><span>'
+                                .shorten_text($headerlink) . $arrow;
+                    $headerhtml .= '</span></th>';
                 }
 
             }
@@ -1013,17 +1015,17 @@ class grade_report_grader extends grade_report {
                 }
 
                 $userreportcell = '';
-                if (has_capability('gradereport/user:view', $this->context)) {
+                if (has_capability('gradereport/'.$CFG->grade_profilereport.':view', $this->context)) {
                     $a->user = fullname($user);
                     $strgradesforuser = get_string('gradesforuser', 'grades', $a);
-                    $userreportcell = '<th class="userreport"><a href="'.$CFG->wwwroot.'/grade/report/user/index.php?id='.$this->courseid.'&amp;userid='.$user->id.'">'
+                    $userreportcell = '<th class="userreport"><a href="'.$CFG->wwwroot.'/grade/report/'.$CFG->grade_profilereport.'/index.php?id='.$this->courseid.'&amp;userid='.$user->id.'">'
                                     .'<img src="'.$CFG->pixpath.'/t/grades.gif" alt="'.$strgradesforuser.'" title="'.$strgradesforuser.'" /></a></th>';
                 }
 
                 $studentshtml .= '<tr class="r'.$this->rowcount++ . $row_classes[$this->rowcount % 2] . '">'
                               .'<th class="c0 user" scope="row" onclick="set_row(this.parentNode.rowIndex);">'.$user_pic
                               .'<a href="'.$CFG->wwwroot.'/user/view.php?id='.$user->id.'&amp;course='.$this->course->id.'">'
-                              .fullname($user)."</a>$userreportcell</th>\n";
+                              .fullname($user)."</a></th>$userreportcell\n";
 
                 if ($showuseridnumber) {
                     $studentshtml .= '<th class="c0 useridnumber" onclick="set_row(this.parentNode.rowIndex);">'. $user->idnumber."</th>\n";
