@@ -1,6 +1,6 @@
 
 Convert existing question type code (3d)
-    Convert question types to the new API
+√   Convert question types to the new API
 √       multichoice 0.5d
 √       match 1d
 
@@ -23,6 +23,8 @@ Integrate new code into the quiz (2d)
 √   quiz timer JS
     scroll-down JavaScript on adaptive/immediate/interactive submit button - but not the first on the page.
     deal with TODOs and test
+    adaptive mode submit goes to summary
+    quiz settings form and database
 
 <-- Christmas target milestone (7d)
 
