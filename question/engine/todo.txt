@@ -69,9 +69,9 @@ Incorporate other OU-specific quiz customisations into this code (8d)
     Review lang files as a double-check that nothing was missed. 0.5d
     Don't auto redirect to edit.php for empty quizzes. 0d
     Activity completion changes. 0d
-    Files to delete 0d
-        attempt_close_js.php
-        jstimer.php
+√   Files to delete 0d
+√       attempt_close_js.php
+√       jstimer.php
 
 <-- Working quiz studnet interface milestone
 
