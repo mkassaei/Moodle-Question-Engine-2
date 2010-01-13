@@ -260,7 +260,7 @@ echo '<div class="submitbtns">';
 if ($lastpage) {
     $accessmanager->print_finish_review_link($attemptobj->is_preview_user());
 } else {
-    link_arrow_right(get_string('next'), $attemptobj->review_url(0, $page + 1));
+    echo link_arrow_right(get_string('next'), $attemptobj->review_url(0, $page + 1));
 }
 echo "</div>";
 

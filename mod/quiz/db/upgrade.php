@@ -85,7 +85,211 @@ function xmldb_quiz_upgrade($oldversion=0) {
 
 //===== 1.9.0 upgrade line ======//
 
+    begin_sql();
+
+//===== The following changes are for the quetsion engine rewrite.     ======//
+// The first lot of changes repeat changes that have already been made in Moodle 2.0.
+// 2008000000 is a conventional timestamp, chosen to be after all the above changes,
+// but before any of the real 2.0 ones.
+
+    /// Changing the type of all the columns that store grades to be NUMBER(10, 5).
+    if ($result && $oldversion < 2008000000) {
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('sumgrades');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, null, null, 0, 'questions');
+        $result = $result && change_field_type($table, $field);
+        upgrade_mod_savepoint($result, 2008000000, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000001) {
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('grade');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, null, null, 0, 'sumgrades');
+        $result = $result && change_field_type($table, $field);
+        upgrade_mod_savepoint($result, 2008000001, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000002) {
+        $table = new XMLDBTable('quiz_attempts');
+        $field = new XMLDBField('sumgrades');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, null, null, 0, 'attempt');
+        $result = $result && change_field_type($table, $field);
+        upgrade_mod_savepoint($result, 2008000002, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000003) {
+        $table = new XMLDBTable('quiz_feedback');
+        $field = new XMLDBField('mingrade');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, null, null, 0, 'feedbacktext');
+        $result = $result && change_field_type($table, $field);
+        upgrade_mod_savepoint($result, 2008000003, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000004) {
+        $table = new XMLDBTable('quiz_feedback');
+        $field = new XMLDBField('maxgrade');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, null, null, 0, 'mingrade');
+        $result = $result && change_field_type($table, $field);
+        upgrade_mod_savepoint($result, 2008000004, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000005) {
+        $table = new XMLDBTable('quiz_grades');
+        $field = new XMLDBField('grade');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, null, null, 0, 'userid');
+        $result = $result && change_field_type($table, $field);
+        upgrade_mod_savepoint($result, 2008000005, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000006) {
+        $table = new XMLDBTable('quiz_question_instances');
+        $field = new XMLDBField('grade');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, null, null, 0, 'question');
+        $result = $result && change_field_type($table, $field);
+        upgrade_mod_savepoint($result, 2008000006, 'quiz');
+    }
+
+        if ($result && $oldversion < 2008000007) {
+    /// Add new questiondecimaldigits setting, separate form the overall decimaldigits one.
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('questiondecimalpoints');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, null, null, '-1', 'decimalpoints');
+        if (!field_exists($table, $field)) {
+            $result = $result && add_field($table, $field);
+        }
+
+    /// quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000007, 'quiz');
+    }
+
+    /// New field showuserpicture to be added to quiz
+    if ($result && $oldversion < 2008000010) {
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('showuserpicture');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, null, null, '0', 'delay2');
+        if (!field_exists($table, $field)) {
+            $result = $result && add_field($table, $field);
+        }
+
+        $result = $result && set_config('quiz_showuserpicture', 0);
+        $result = $result && set_config('quiz_fix_showuserpicture', 0);
+
+    /// quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000010, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000020) {
+    /// Convert quiz.timelimit from minutes to seconds.
+        $result = $result && execute_sql("UPDATE {$CFG->prefix}quiz SET timelimit = timelimit * 60");
+        $result = $result && set_config('quiz_timelimit', 60 * $CFG->quiz_timelimit);
+
+    /// quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000020, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000030) {
+
+    /// Define field introformat to be added to quiz
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('introformat');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '4', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'intro');
+
+    /// Launch add field introformat
+        $result = $result && add_field($table, $field);
+
+    /// set format to current
+        $result = $result && set_field('quiz', 'introformat', FORMAT_MOODLE, '', '');
+
+    /// quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000030, 'quiz');
+    }
+
+// The following change are new changes required by the rewrite.
+
+    // Add new preferredmodel column to the quiz table.
+    if ($result && $oldversion < 2008000100) {
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('preferredmodel');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '32', null, null, null, null, null, null, 'timeclose');
+        if (!field_exists($table, $field)) {
+            $result = $result && add_field($table, $field);
+        }
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000100, 'quiz');
+    }
+
+    // Populate preferredmodel column based on old optionflags column.
+    if ($result && $oldversion < 2008000101) {
+        $result = $result && set_field_select('quiz', 'preferredmodel', 'deferredfeedback',
+                'optionflags = 0 AND attemptonlast = 0');
+        $result = $result && set_field_select('quiz', 'preferredmodel', 'eachattemptonlast',
+                'optionflags = 0 AND attemptonlast <> 0');
+        $result = $result && set_field_select('quiz', 'preferredmodel', 'adaptive',
+                'optionflags <> 0 AND penaltyscheme <> 0');
+        $result = $result && set_field_select('quiz', 'preferredmodel', 'adaptivenopenalty',
+                'optionflags <> 0 AND penaltyscheme = 0');
+
+        $result = $result && set_config('quiz_preferredmodel', 'deferredfeedback');
+        $result = $result && set_config('quiz_fix_preferredmodel', 0);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000101, 'quiz');
+    }
+
+    // Add a not-NULL constraint to the preferredmodel field now that it is populated.
+    if ($result && $oldversion < 2008000102) {
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('preferredmodel');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null, null, null, 'timeclose');
+
+        $result = $result && change_field_notnull($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000102, 'quiz');
+    }
+
+    // Drop the old optionflags field.
+    if ($result && $oldversion < 2008000103) {
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('optionflags');
+        $result = $result && drop_field($table, $field);
+
+        $result = $result && unset_config('quiz_optionflags');
+        $result = $result && unset_config('quiz_fix_optionflags');
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000103, 'quiz');
+    }
+
+    // Drop the old penaltyscheme field.
+    if ($result && $oldversion < 2008000104) {
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('penaltyscheme');
+        $result = $result && drop_field($table, $field);
+
+        $result = $result && unset_config('quiz_penaltyscheme');
+        $result = $result && unset_config('quiz_fix_penaltyscheme');
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000104, 'quiz');
+    }
+
+    // Drop the old attemptonlast field.
+    if ($result && $oldversion < 2008000105) {
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('attemptonlast');
+        $result = $result && drop_field($table, $field);
+
+        $result = $result && unset_config('quiz_attemptonlast');
+        $result = $result && unset_config('quiz_fix_attemptonlast');
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000105, 'quiz');
+    }
+
+    commit_sql();
+
     return $result;
 }
 
-?>

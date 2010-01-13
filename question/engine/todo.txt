@@ -25,7 +25,8 @@ Integrate new code into the quiz (2d)
 √   scroll-down JavaScript on adaptive/immediate/interactive submit button - but not the first on the page.
 √   deal with TODOs and test
 √   adaptive mode submit goes to next page
-    quiz settings form and database
+√   quiz settings form and database
+    quiz defalt settings form
 
 <-- Christmas target milestone (7d)
 
@@ -45,7 +46,8 @@ Finish converting simple question types (6.5d)
 
 Finish interaction models (2d)
     Opaque model 0.5d
-    Each attempt builds on last model 1d
+    Each attempt builds on last (eachattemptonlast) model 1d
+    New Adaptive mode without penalties (adaptivenopenalty) model.
     Minor refactoring of the different interaction models' process_action methods. 0d
     Fix manual grading of automatically graded question types. 0.5d
     What happens when submit of an incomplete response is ignored - need verify failure message.
