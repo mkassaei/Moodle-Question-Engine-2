@@ -114,6 +114,7 @@ abstract class qim_renderer extends moodle_renderer_base {
     protected function submit_button(question_attempt $qa, question_display_options $options) {
         $attributes = array(
             'type' => 'submit',
+            'id' => $qa->get_im_field_name('submit'),
             'name' => $qa->get_im_field_name('submit'),
             'value' => get_string('submit', 'question'),
             'class' => 'submit btn',
@@ -121,6 +122,11 @@ abstract class qim_renderer extends moodle_renderer_base {
         if ($options->readonly) {
             $attributes['disabled'] = 'disabled';
         }
-        return $this->output_empty_tag('input', $attributes);
+        $output = $this->output_empty_tag('input', $attributes);
+        if (!$options->readonly) {
+            $output .= print_js_call('question_init_submit_button',
+                    array($attributes['id'], $qa->get_number_in_usage()), true);
+        }
+        return $output;
     }
 }

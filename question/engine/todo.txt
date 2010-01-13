@@ -21,9 +21,9 @@ Integrate new code into the quiz (2d)
 √       quiz.js
 √   question flag update JS - and non-js.
 √   quiz timer JS
-    scroll-down JavaScript on adaptive/immediate/interactive submit button - but not the first on the page.
+√   scroll-down JavaScript on adaptive/immediate/interactive submit button - but not the first on the page.
     deal with TODOs and test
-    adaptive mode submit goes to summary
+√   adaptive mode submit goes to next page
     quiz settings form and database
 
 <-- Christmas target milestone (7d)

@@ -1045,16 +1045,14 @@ abstract class quiz_nav_panel_base {
 class quiz_attempt_nav_panel extends quiz_nav_panel_base {
     protected function get_question_button(question_attempt $qa, $number) {
         $questionsonpage = $this->attemptobj->get_question_numbers($qa->get_question()->_page);
-        // TODO, don't use onclick attribute.
-        $onclick = '';
-        if ($qa->get_number_in_usage() != reset($questionsonpage)) {
-            $onclick = ' onclick="form.action = form.action + \'#q' . $qa->get_number_in_usage() .
-                '\'; return true;"';
-        }
-        return '<input type="submit" name="gotopage' . $qa->get_question()->_page .
+        $output = '<input type="submit" name="gotopage' . $qa->get_question()->_page .
                 '" value="' . $number . '" class="qnbutton ' .
-                $this->get_question_state_classes($qa) . '" id="' .
-                $this->get_button_id($qa) . '" ' . $onclick . '/>';
+                $this->get_question_state_classes($qa) . '" id="' . $this->get_button_id($qa) . '" />';
+        if ($qa->get_number_in_usage() != reset($questionsonpage)) {
+            $output .= print_js_call('quiz_init_nav_button_scroll_down',
+                    array($this->get_button_id($qa), $qa->get_number_in_usage()), true);
+        }
+        return $output;
     }
 
     protected function get_end_bits() {

@@ -87,3 +87,10 @@ question_flag_changer = {
         }
     }
 };
+
+function question_init_submit_button(id, qnumber) {
+    var button = document.getElementById(id);
+    YAHOO.util.Event.addListener(button, 'click', function(e) {
+        button.form.action = button.form.action + '#q' + qnumber;
+    });
+}

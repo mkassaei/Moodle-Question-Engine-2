@@ -38,7 +38,7 @@ $timenow = time();
 
 /// Get submitted parameters.
 $attemptid = required_param('attempt', PARAM_INT);
-$nextpage = optional_param('nextpage', 0, PARAM_INT);
+$thispage = optional_param('thispage', 0, PARAM_INT);
 $submittedquestionids = required_param('questionids', PARAM_SEQUENCE);
 $finishattempt = optional_param('finishattempt', 0, PARAM_BOOL);
 $timeup = optional_param('timeup', 0, PARAM_BOOL); // True if form was submitted by timer.
@@ -48,8 +48,8 @@ $attemptobj = new quiz_attempt($attemptid);
 /// Because IE is buggy (see http://www.peterbe.com/plog/button-tag-in-IE) we cannot
 /// do the quiz navigation buttons as <button type="submit" name="page" value="N">Caption</button>.
 /// Instead we have to do them as <input type="submit" name="gotopageN" value="Caption"/> -
-/// at lest that seemed like the least horrible work-around to me. Therefore, we need to
-/// intercept gotopageN parameters here, and adjust $pgae accordingly.
+/// at lest that seemed like the least horrible work-around to me.
+$nextpage = $thispage;
 if (optional_param('gotosummary', false, PARAM_BOOL)) {
     $nextpage = -1;
 } else {

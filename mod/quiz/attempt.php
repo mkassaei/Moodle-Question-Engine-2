@@ -153,18 +153,16 @@ foreach ($qnumbers as $qnumber) {
 // Print a link to the next page.
 echo '<div class="submitbtns">';
 if ($attemptobj->is_last_page($page)) {
-    $nextpage = -1;
-    $nextpageforie = 'gotosummary';
+    $submitname = 'gotosummary';
 } else {
-    $nextpage = $page + 1;
-    $nextpageforie = 'gotopage' . $nextpage;
+    $submitname = 'gotopage' . ($page + 1);
 }
-echo '<input type="submit" name="' . $nextpageforie . '" value="' . get_string('next') . '" />';
+echo '<input type="submit" name="' . $submitname . '" value="' . get_string('next') . '" />';
 echo "</div>";
 
 // Some hidden fields to trach what is going on.
 echo '<input type="hidden" name="attempt" value="' . $attemptobj->get_attemptid() . '" />';
-echo '<input type="hidden" name="nextpage" value="' . $nextpage . '" />';
+echo '<input type="hidden" name="thispage" value="' . $page . '" />';
 echo '<input type="hidden" name="timeup" id="timeup" value="0" />';
 echo '<input type="hidden" name="sesskey" value="' . sesskey() . '" />';
 

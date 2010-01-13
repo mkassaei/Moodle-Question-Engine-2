@@ -148,6 +148,15 @@ quiz_timer = {
     }
 };
 
+// Initialise initialise an on-click handler for navigation buttons that link to a
+// question that is not the first on a page.
+function quiz_init_nav_button_scroll_down(buttonid, qnumber) {
+    var button = document.getElementById(buttonid);
+    YAHOO.util.Event.addListener(button, 'click', function(e) {
+        button.form.action = button.form.action + '#q' + qnumber;
+    });
+}
+
 // Initialise a button on the navigation panel.
 function quiz_init_nav_button(buttonid, qnumber) {
     // Arrange to be notified if the flagged state changes.
