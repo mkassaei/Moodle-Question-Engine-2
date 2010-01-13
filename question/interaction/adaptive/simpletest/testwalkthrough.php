@@ -60,7 +60,7 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($wrongindex, true, true),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
-                $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
+                $this->get_contains_mc_radio_expectation(($wrongindex + 2) % 3, true, false),
                 $this->get_contains_incorrect_expectation());
 
         // Process a change of answer to the right one, but not sumbitted.
@@ -72,7 +72,7 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, true, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
-                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
+                $this->get_contains_mc_radio_expectation(($rightindex + 2) % 3, true, false),
                 new PatternExpectation('/' . preg_quote(get_string('answersaved', 'question')) . '/'));
 
         // Now submit the right answer.
@@ -84,7 +84,7 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, true, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
-                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
+                $this->get_contains_mc_radio_expectation(($rightindex + 2) % 3, true, false),
                 $this->get_contains_correct_expectation());
 
         // Finish the attempt.
@@ -96,11 +96,11 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, false, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
-                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
+                $this->get_contains_mc_radio_expectation(($rightindex + 2) % 3, false, false),
                 $this->get_contains_correct_expectation());
 
         // Process a manual comment.
-        $this->manual_grade(1, 'Not good enough!');
+        $this->manual_grade('Not good enough!', 1);
 
         // Verify.
         $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
@@ -121,5 +121,51 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
 
         $autogradedstep = $this->get_step($this->get_step_count() - 2);
         $this->assertWithinMargin($autogradedstep->get_fraction(), 0, 0.0000001);
+    }
+
+    public function test_adaptive_multichoice2() {
+
+        // Create a true-false question with correct answer true.
+        $mc = test_question_maker::make_a_multichoice_multi_question();
+        $mc->penalty = 0.3333333;
+        $mc->shuffleanswers = 0;
+        $this->start_attempt_at_question($mc, 'adaptive', 2);
+
+        // Check the initial state.
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_question_text_expectation($mc),
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation());
+
+        // Process a submit.
+        $this->process_submission(array('choice0' => 1, 'choice2' => 1, '!submit' => 1));
+
+        // Verify.
+        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_mark(2);
+        $this->check_current_output(
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_contains_correct_expectation());
+
+        // Save the same correct answer again. Should no do anything.
+        $numsteps = $this->get_step_count();
+        $this->process_submission(array('choice0' => 1, 'choice2' => 1));
+
+        // Verify.
+        $this->check_step_count($numsteps);
+        $this->check_current_state(question_state::COMPLETE);
+
+        // Finish the attempt.
+        $this->quba->finish_all_questions();
+
+        // Verify.
+        $this->check_step_count($numsteps + 1);
+        $this->check_current_state(question_state::GRADED_CORRECT);
+        $this->check_current_mark(2);
+        $this->check_current_output(
+                $this->get_contains_submit_button_expectation(false),
+                $this->get_contains_correct_expectation());
     }
 }

@@ -303,8 +303,8 @@ class qim_walkthrough_test_base extends UnitTestCase {
         $this->quba->process_action($this->qnumber, $data);
     }
 
-    protected function manual_grade($mark, $comment) {
-        $this->quba->manual_grade($this->qnumber, $mark, $comment);
+    protected function manual_grade($comment, $mark) {
+        $this->quba->manual_grade($this->qnumber, $comment, $mark);
     }
 
     protected function check_current_state($state) {

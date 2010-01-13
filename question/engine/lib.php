@@ -1093,7 +1093,7 @@ class question_usage_by_activity {
      */
     public function manual_grade($qnumber, $comment, $mark) {
         $qa = $this->get_question_attempt($qnumber);
-        $qa->manual_grade($mark, $comment);
+        $qa->manual_grade($comment, $mark);
         $this->observer->notify_attempt_modified($qa);
     }
 

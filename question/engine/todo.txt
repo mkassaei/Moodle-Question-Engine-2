@@ -11,6 +11,7 @@ Integrate new code into the quiz (2d)
 √   backport & update key 2.0 changes (2d)
 √       attemptlib.php 0.5d
 √       accessmanager.php
+        comment.php
 √       view.php 0.5d
 √       startattempt.php
 √       attempt.php

@@ -75,7 +75,7 @@ class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_mark(null);
 
         // Process a manual comment.
-        $this->manual_grade(10, 'Not good enough!');
+        $this->manual_grade('Not good enough!', 10);
 
         // Verify.
         $this->check_current_state(question_state::MANUALLY_GRADED_CORRECT);

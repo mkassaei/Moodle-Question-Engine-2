@@ -93,7 +93,7 @@ class qim_immediatecbm_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_correct_expectation());
 
         // Process a manual comment.
-        $this->manual_grade(0.5, 'Not good enough!');
+        $this->manual_grade('Not good enough!', 0.5);
 
         // Verify.
         $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
@@ -160,7 +160,7 @@ class qim_immediatecbm_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(2, false, false));
 
         // Process a manual comment.
-        $this->manual_grade(0.5, 'Not good enough!');
+        $this->manual_grade('Not good enough!', 0.5);
 
         // Verify.
         $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);

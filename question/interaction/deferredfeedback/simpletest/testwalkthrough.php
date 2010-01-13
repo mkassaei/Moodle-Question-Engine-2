@@ -75,7 +75,7 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_tf_true_radio_expectation(false, true));
 
         // Process a manual comment.
-        $this->manual_grade(1, 'Not good enough!');
+        $this->manual_grade('Not good enough!', 1);
 
         $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
         $this->check_current_mark(1);
