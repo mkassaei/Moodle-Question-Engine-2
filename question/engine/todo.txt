@@ -11,7 +11,7 @@ Integrate new code into the quiz (2d)
 √   backport & update key 2.0 changes (2d)
 √       attemptlib.php 0.5d
 √       accessmanager.php
-        comment.php
+√       comment.php
 √       view.php 0.5d
 √       startattempt.php
 √       attempt.php
@@ -23,7 +23,7 @@ Integrate new code into the quiz (2d)
 √   question flag update JS - and non-js.
 √   quiz timer JS
 √   scroll-down JavaScript on adaptive/immediate/interactive submit button - but not the first on the page.
-    deal with TODOs and test
+√   deal with TODOs and test
 √   adaptive mode submit goes to next page
     quiz settings form and database
 

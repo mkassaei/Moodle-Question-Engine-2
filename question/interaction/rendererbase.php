@@ -95,9 +95,9 @@ abstract class qim_renderer extends moodle_renderer_base {
         }
 
         if ($options->can_edit_comment()) {
-            $strcomment = get_string('commentormark', 'quiz');
+            $strcomment = get_string('commentormark', 'question');
             $link = link_to_popup_window($options->manualcomment .
-                    '?attempt=' . $qa->get_id() . '&amp;question=' . $qa->get_question()->id,
+                    '&amp;qnumber=' . $qa->get_number_in_usage(),
                     'commentquestion', $strcomment, 480, 750, $strcomment, 'none', true);
             $output .= $this->output_tag('div', array('class' => 'commentlink'), $link);
         }

@@ -792,7 +792,7 @@ function quiz_get_renderoptions($quiz, $attempt, $context) {
  * @param $context the roles and permissions context,
  *          normally the context for the quiz module instance.
  *
- * @return object an object with boolean fields responses, scores, feedback,
+ * @return question_display_options an object with boolean fields responses, scores, feedback,
  *          correct_responses, solutions and general feedback
  */
 function quiz_get_reviewoptions($quiz, $attempt, $context) {
@@ -807,7 +807,7 @@ function quiz_get_reviewoptions($quiz, $attempt, $context) {
 
     // Show a link to the comment box only for closed attempts
     if ($attempt->timefinish && !is_null($context) && has_capability('mod/quiz:grade', $context)) {
-        $options->questioncommentlink = '/mod/quiz/comment.php';
+        $options->manualcomment = '/mod/quiz/comment.php?attempt=' . $attempt->id;
     }
 
     if (!is_null($context) && has_capability('mod/quiz:viewreports', $context) && 

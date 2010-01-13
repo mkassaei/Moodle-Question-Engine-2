@@ -1,87 +1,95 @@
-<?php  // $Id$
+<?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
- * This page prints a review of a particular question attempt
+ * This page allows the teacher to enter a manual grade for a particular question.
+ * This page is expected to only be used in a popup window.
  *
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package quiz
+ * @package mod_quiz
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-    require_once('../../config.php');
-    require_once('locallib.php');
+require_once('../../config.php');
+require_once('locallib.php');
 
-    $attemptid =required_param('attempt', PARAM_INT); // attempt id
-    $questionid =required_param('question', PARAM_INT); // question id
+$attemptid = required_param('attempt', PARAM_INT); // attempt id
+$qnumber = required_param('qnumber', PARAM_INT); // question number in attempt
 
-    if (! $attempt = get_record('quiz_attempts', 'uniqueid', $attemptid)) {
-        error('No such attempt ID exists');
+$attemptobj = new quiz_attempt($attemptid);
+
+// Can only grade finished attempts.
+if (!$attemptobj->is_finished()) {
+    print_error('attemptclosed', 'quiz');
+}
+
+// Check login and permissions.
+require_login($attemptobj->get_courseid(), false, $attemptobj->get_cm());
+$attemptobj->require_capability('mod/quiz:grade');
+
+// Load the questions and states.
+//$attemptobj->load_questions($qnumber);
+//$attemptobj->load_question_states($qnumber);
+
+// Log this action.
+add_to_log($attemptobj->get_courseid(), 'quiz', 'manualgrade', 'comment.php?attempt=' .
+        $attemptobj->get_attemptid() . '&qnumber=' . $qnumber,
+        $attemptobj->get_quizid(), $attemptobj->get_cmid());
+
+// Print the page header
+print_header();
+print_heading(format_string($attemptobj->get_question_name($qnumber)));
+
+// Process any data that was submitted.
+if (($data = data_submitted()) && confirm_sesskey()) {
+    if (optional_param('submit', false, PARAM_BOOL)) {
+        $attemptobj->process_comment($qnumber,
+                $data->response['comment'], $data->response['grade']);
+        notify(get_string('changessaved'), 'notifysuccess');
+        print_js_call('window.opener.location.reload', array());
+        close_window(2);
+        die;
     }
-    if (! $quiz = get_record('quiz', 'id', $attempt->quiz)) {
-        error('Course module is incorrect');
-    }
-    if (! $course = get_record('course', 'id', $quiz->course)) {
-        error('Course is misconfigured');
-    }
+}
 
-    // Teachers are only allowed to comment and grade on closed attempts
-    if (!($attempt->timefinish > 0)) {
-        error('Attempt has not closed yet');
-    }
-
-    $cm = get_coursemodule_from_instance('quiz', $quiz->id);
-    require_login($course, true, $cm);
-
-    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
-    
-    require_capability('mod/quiz:grade', $context);
-
-    // Load question
-    if (! $question = get_record('question', 'id', $questionid)) {
-        error('Question for this session is missing');
-    }
-    $question->maxgrade = get_field('quiz_question_instances', 'grade', 'quiz', $quiz->id, 'question', $question->id);
-    // Some of the questions code is optimised to work with several questions
-    // at once so it wants the question to be in an array. 
-    $key = $question->id;
-    $questions[$key] = &$question;
-    // Add additional questiontype specific information to the question objects.
-    if (!get_question_options($questions)) {
-        error("Unable to load questiontype specific question information");
-    }
-
-    // Load state
-    $states = get_question_states($questions, $quiz, $attempt);
-    // The $states array is indexed by question id but because we are dealing
-    // with only one question there is only one entry in this array
-    $state = &$states[$question->id];
-
-    print_header();
-    print_heading(format_string($question->name));
-
-    //add_to_log($course->id, 'quiz', 'review', "review.php?id=$cm->id&amp;attempt=$attempt->id", "$quiz->id", "$cm->id");
-
-    if ($data = data_submitted() and confirm_sesskey()) {
-        // the following will update the state and attempt
-        $error = question_process_comment($question, $state, $attempt, $data->response['comment'], $data->response['grade']);
-        if (is_string($error)) {
-            notify($error);
-        } else {
-            // If the state has changed save it and update the quiz grade
-            if ($state->changed) {
-                save_question_session($question, $state);
-                quiz_save_best_grade($quiz, $attempt->userid);
-            }
-
-            notify(get_string('changessaved'));
-            echo '<div class="boxaligncenter"><input type="button" onclick="window.opener.location.reload(1); self.close();return false;" value="' .
-                    get_string('closewindow') . "\" /></div>";
-
-            print_footer('empty');
-            exit;
-        }
-    }
-
-    question_print_comment_box($question, $state, $attempt, $CFG->wwwroot.'/mod/quiz/comment.php');
-
-    print_footer('empty');
-
+// Print the comment form.
+echo '<form method="post" class="mform" id="manualgradingform" action="' . $CFG->wwwroot . '/mod/quiz/comment.php">';
+$attemptobj->question_print_comment_fields($qnumber, 'response');
 ?>
+<div>
+    <input type="hidden" name="attempt" value="<?php echo $attemptobj->get_attemptid(); ?>" />
+    <input type="hidden" name="qnumber" value="<?php echo $qnumber; ?>" />
+    <input type="hidden" name="sesskey" value="<?php echo sesskey(); ?>" />
+</div>
+<fieldset class="hidden">
+    <div>
+        <div class="fitem">
+            <div class="fitemtitle">
+                <div class="fgrouplabel"><label> </label></div>
+            </div>
+            <fieldset class="felement fgroup">
+                <input id="id_submitbutton" type="submit" name="submit" value="<?php print_string('save', 'quiz'); ?>"/>
+                <input id="id_cancel" type="button" value="<?php print_string('cancel'); ?>" onclick="close_window"/>
+            </fieldset>
+        </div>
+    </div>
+</fieldset>
+<?php
+echo '</form>';
+
+// End of the page.
+print_footer('empty');

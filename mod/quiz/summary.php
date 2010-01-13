@@ -133,7 +133,7 @@ $options = array(
     'attempt' => $attemptobj->get_attemptid(),
     'finishattempt' => 1,
     'timeup' => 0,
-    'questionids' => '',
+    'qnumbers' => '',
     'sesskey' => sesskey(),
 );
 print_single_button($attemptobj->processattempt_url(), $options, get_string('finishattempt', 'quiz'),

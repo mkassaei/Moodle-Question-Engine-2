@@ -590,7 +590,7 @@ class quiz_attempt {
     /**
      * Wrapper that calls quiz_get_reviewoptions with the appropriate arguments.
      *
-     * @return object the review options for this user on this attempt.
+     * @return question_display_options the review options for this user on this attempt.
      */
     public function get_review_options() {
         if (is_null($this->reviewoptions)) {
@@ -602,7 +602,7 @@ class quiz_attempt {
     /**
      * Wrapper that calls get_render_options with the appropriate arguments.
      *
-     * @return object the render options for this user on this attempt.
+     * @return question_display_options the render options for this user on this attempt.
      */
     public function get_render_options() {
         return quiz_get_renderoptions($this->get_quiz(), $this->attempt, $this->quizobj->get_context());
@@ -906,26 +906,19 @@ class quiz_attempt {
         question_engine::save_questions_usage_by_activity($this->quba);
     }
 
-    public function question_print_comment_fields($questionid, $prefix) {
-        // TODO
-    /// Work out a nice title.
+    public function question_print_comment_fields($qnumber, $prefix) {
+        // Work out a nice title.
         $student = get_record('user', 'id', $this->get_userid());
         $a = new object();
         $a->fullname = fullname($student, true);
         $a->attempt = $this->get_attempt_number();
 
-        question_print_comment_fields($this->questions[$questionid],
-                $this->states[$questionid], $prefix, $this->get_quiz(), get_string('gradingattempt', 'quiz_grading', $a));
+        question_print_comment_fields($this->quba->get_question_attempt($qnumber),
+                $prefix, $this->get_review_options()->markdp,
+                get_string('gradingattempt', 'quiz_grading', $a));
     }
 
     // Private methods =====================================================================
-    // Check that the state of a particular question is loaded, and if not throw an exception.
-    private function ensure_state_loaded($id) {
-        // TODO
-        if (!array_key_exists($id, $this->states) || isset($this->states[$id]->_partiallyloaded)) {
-            throw new moodle_quiz_exception($this, 'statenotloaded', $id);
-        }
-    }
 
     /**
      * Create part of a URL relating to this attempt.

@@ -169,7 +169,7 @@ echo '<input type="hidden" name="sesskey" value="' . sesskey() . '" />';
 // Add a hidden field with questionids. Do this at the end of the form, so
 // if you navigate before the form has finished loading, it does not wipe all
 // the student's answers.
-echo '<input type="hidden" name="questionids" value="' .
+echo '<input type="hidden" name="qnumbers" value="' .
         implode(',', $qnumbers) . "\" />\n";
 
 // End middle column.

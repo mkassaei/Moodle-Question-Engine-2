@@ -39,7 +39,6 @@ $timenow = time();
 /// Get submitted parameters.
 $attemptid = required_param('attempt', PARAM_INT);
 $thispage = optional_param('thispage', 0, PARAM_INT);
-$submittedquestionids = required_param('questionids', PARAM_SEQUENCE);
 $finishattempt = optional_param('finishattempt', 0, PARAM_BOOL);
 $timeup = optional_param('timeup', 0, PARAM_BOOL); // True if form was submitted by timer.
 

@@ -26,6 +26,7 @@ affected will continue to work in all existing quizzes until you remove them fro
 $string['cwrqpfsnoprob'] = 'No question categories in your site are affected by the \'Random questions selecting questions from sub categories\' issue.';
 $string['copy']= 'Copy from $a and change links.';
 $string['commentx'] = 'Comment: $a';
+$string['commentormark'] = 'Make comment or override mark';
 $string['contexterror'] = 'You shouldn\'t have got here if you\'re not moving a category to another context.';
 $string['created'] = 'Created';
 $string['createdmodifiedheader'] = 'Created / Last Saved';
