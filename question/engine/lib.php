@@ -530,7 +530,7 @@ class question_display_options {
      * @var integer {@link question_display_options::HIDDEN},
      * {@link question_display_options::VISIBLE} or {@link question_display_options::EDITABLE}
      */
-    public $flags = self::VISIBLE; // DONOTCOMMIT
+    public $flags = self::VISIBLE;
 
     /**
      * Initialise an instance of this class from the kind of bitmask values stored
@@ -1869,12 +1869,13 @@ class question_attempt {
         $qa->interactionmodel = $question->make_interaction_model($qa, $record->interactionmodel);
 
         $i = 0;
-        while (current($records)) {
-            $qa->steps[$i] = question_attempt_step::load_from_records($records, $i);
+        while ($record && $record->questionattemptid == $questionattemptid && !is_null($record->attemptstepid)) {
+            $qa->steps[$i] = question_attempt_step::load_from_records($records, $record->attemptstepid);
             if ($i == 0) {
                 $question->init_first_step($qa->steps[0]);
             }
             $i++;
+            $record = current($records);
         }
 
         $qa->observer = $observer;
@@ -2206,18 +2207,18 @@ class question_attempt_step {
      * @param integer $stepid The id of the records to extract.
      * @return question_attempt_step The newly constructed question_attempt_step.
      */
-    public static function load_from_records(&$records, $sequencenumber) {
+    public static function load_from_records(&$records, $attemptstepid) {
         $currentrec = current($records);
-        while ($currentrec->sequencenumber != $sequencenumber) {
+        while ($currentrec->attemptstepid != $attemptstepid) {
             $currentrec = next($records);
             if (!$currentrec) {
-                throw new Exception("Question attempt step with sequence number $sequencenumber not found in the database.");
+                throw new Exception("Question attempt step $attemptstepid not found in the database.");
             }
         }
 
         $record = $currentrec;
         $data = array();
-        while ($currentrec && $currentrec->sequencenumber == $sequencenumber) {
+        while ($currentrec && $currentrec->attemptstepid == $attemptstepid) {
             if ($currentrec->name) {
                 $data[$currentrec->name] = $currentrec->value;
             }

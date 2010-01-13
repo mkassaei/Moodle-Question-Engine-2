@@ -1048,7 +1048,7 @@ class quiz_attempt_nav_panel extends quiz_nav_panel_base {
         // TODO, don't use onclick attribute.
         $onclick = '';
         if ($qa->get_number_in_usage() != reset($questionsonpage)) {
-            $onclick = ' onclick="form.action = form.action + \'#q' . $question->id .
+            $onclick = ' onclick="form.action = form.action + \'#q' . $qa->get_number_in_usage() .
                 '\'; return true;"';
         }
         return '<input type="submit" name="gotopage' . $qa->get_question()->_page .
