@@ -10,6 +10,7 @@ More interaction models (2d)
 √   Interactive model 2d
 
 Integrate new code into the quiz (3d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9212)
 √   backport & update key 2.0 changes (2d)
 √       attemptlib.php 0.5d
 √       accessmanager.php
@@ -35,7 +36,7 @@ Integrate new code into the quiz (3d)
 
 Finish converting simple question types (6.5d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9203)
-    Opaque question type 0.5d
+√   Opaque question type 0.5d
     Numerical units 0.5d
     Refactor out commonalities between multiplechoice and truefalse rendering. 0.5d
     Test missing qtype 1d

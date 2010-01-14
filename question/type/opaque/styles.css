@@ -1,0 +1,9 @@
+.que.opaque .content,
+.que.opaque .adaptive_content {
+  background: transparent;
+}
+.que.opaque .question_aborted {
+  padding: 7em 1em;
+  text-align: center;
+  background:#eeeeee;
+}
