@@ -1,3 +1,5 @@
+The bug URLs only work within the OU network. Sorry. Overall tracking bug:
+http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8553
 
 Convert existing question type code (3d)
 √   Convert question types to the new API
@@ -7,7 +9,7 @@ Convert existing question type code (3d)
 More interaction models (2d)
 √   Interactive model 2d
 
-Integrate new code into the quiz (2d)
+Integrate new code into the quiz (3d)
 √   backport & update key 2.0 changes (2d)
 √       attemptlib.php 0.5d
 √       accessmanager.php
@@ -26,28 +28,28 @@ Integrate new code into the quiz (2d)
 √   deal with TODOs and test
 √   adaptive mode submit goes to next page
 √   quiz settings form and database
-    quiz defalt settings form
+    quiz default settings form
+    unit tests for mod/quiz/attemptlib.php (1d)
 
 <-- Christmas target milestone (7d)
 
-Unit tests for mod/quiz/attemptlib.php (1d)
-
 Finish converting simple question types (6.5d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9203)
     Opaque question type 0.5d
     Numerical units 0.5d
     Refactor out commonalities between multiplechoice and truefalse rendering. 0.5d
+    Test missing qtype 1d
     New fields for editing hints (4d)
         Fields on editing form 1d
         Database columns, load/save code 1d
         Import export 1d
         Use by interactive mode 1d
-    Test missing qtype 1d
-    Update qtype plugin version numbers and requires numbers, when this is merged into core code 0d.
 
-Finish interaction models (2d)
+Finish interaction models (2.5d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9204)
     Opaque model 0.5d
     Each attempt builds on last (eachattemptonlast) model 1d
-    New Adaptive mode without penalties (adaptivenopenalty) model.
+    New Adaptive mode without penalties (adaptivenopenalty) model. (0.5d)
     Minor refactoring of the different interaction models' process_action methods. 0d
     Fix manual grading of automatically graded question types. 0.5d
     What happens when submit of an incomplete response is ignored - need verify failure message.
@@ -55,7 +57,8 @@ Finish interaction models (2d)
             review of an in-progress attempt.)
 
 Incorporate other OU-specific quiz customisations into this code (8d)
-    Check with Phil there are no changes the reports compared to what went into 2.0.
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8558)
+√   Check with Phil there are no changes the reports compared to what went into 2.0.
     Plugins to convert
         oumultiresponse 1d
             fix import/export hack
@@ -81,9 +84,11 @@ Incorporate other OU-specific quiz customisations into this code (8d)
 <-- Working quiz studnet interface milestone
 
 Finish question engine core (0d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8557)
     Questionline and answerline - probably best to do while working on quiz reports.
 
 Integrate new code into the quiz reports (7d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9205)
     Start with Moodle 2.0 reports.
     overview 2d
     responses 1d
@@ -91,6 +96,7 @@ Integrate new code into the quiz reports (7d)
     statistics 4d
 
 Finish database load/save code (4d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9206)
     Garbage collect old preview question usages. 0d
     Make more efficient code using lazy-loading, etc. 2d
     Unit tests for Unit of Work 1d
@@ -99,11 +105,13 @@ Finish database load/save code (4d)
 <-- Working quiz reports milestone
 
 Database upgrade script (8d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9207)
     For OU Moodle 5d
     For Moodle 2.x 3d
     Deal with question images 0d
 
 Backup and restore code (7d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9208)
     Implement backup and restore of the new database tables 2d
     Restore old backup code ? 5d
     Decide what to do about pre-Moodle 1.5 backups ? 0d?
@@ -111,12 +119,15 @@ Backup and restore code (7d)
 <-- Working upgrade and backup/restore milestone
 
 Port the code to Moodle 2.x (4d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8559)
     Convert question/engine/datalib.php 1d
     Get rid of question/engine/compatibility 0d
     Update file handling 2.5d
     Update unit tests to PHP Unit. 0.5d
+    Update qtype plugin version numbers and requires numbers, when this is merged into core code 0d.
 
 Convert complex question types to the new API (8d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8559)
     calculated 3d
     multianswer 3d
     randomsamatch 2d
@@ -129,6 +140,7 @@ Documentation (2d)
 <-- Ready to go into Moodle core milestone.
 
 Performance testing 5d
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9209)
     Load test the entire quiz (count DB queries and time)
     Profile some key parts of the question processing.
 
