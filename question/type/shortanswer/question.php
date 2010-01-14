@@ -33,7 +33,7 @@
  */
 class qtype_shortanswer_question extends question_graded_by_strategy
         implements question_response_answer_comparer {
-    /** @var boolean wether answers should be graded case-sensitively. */
+    /** @var boolean whether answers should be graded case-sensitively. */
     public $usecase;
     /** @var array of question_answer. */
     public $answers = array();
