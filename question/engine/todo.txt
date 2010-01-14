@@ -28,7 +28,7 @@ Integrate new code into the quiz (3d)
 √   deal with TODOs and test
 √   adaptive mode submit goes to next page
 √   quiz settings form and database
-    quiz default settings form
+√   quiz default settings form
     unit tests for mod/quiz/attemptlib.php (1d)
 
 <-- Christmas target milestone (7d)
@@ -122,6 +122,7 @@ Port the code to Moodle 2.x (4d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8559)
     Convert question/engine/datalib.php 1d
     Get rid of question/engine/compatibility 0d
+    Change quiz settings.php to correspond to teh changes in config.html.
     Update file handling 2.5d
     Update unit tests to PHP Unit. 0.5d
     Update qtype plugin version numbers and requires numbers, when this is merged into core code 0d.

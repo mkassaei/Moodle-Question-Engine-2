@@ -759,11 +759,6 @@ function quiz_print_recent_mod_activity($activity, $courseid, $detail, $modnames
 function quiz_process_options(&$quiz) {
     $quiz->timemodified = time();
 
-    // Quiz open time.
-    if (empty($quiz->timeopen)) {
-        $quiz->preventlate = 0;
-    }
-
     // Quiz name.
     if (!empty($quiz->name)) {
         $quiz->name = trim($quiz->name);
@@ -832,12 +827,6 @@ function quiz_process_options(&$quiz) {
         $quiz->feedbackboundaries[-1] = $quiz->grade + 1; // Needs to be bigger than $quiz->grade because of '<' test in quiz_feedback_for_grade().
         $quiz->feedbackboundaries[$numboundaries] = 0;
         $quiz->feedbackboundarycount = $numboundaries;
-    }
-
-    // Settings that get combined to go into the optionflags column.
-    $quiz->optionflags = 0;
-    if (!empty($quiz->adaptive)) {
-        $quiz->optionflags |= QUESTION_ADAPTIVE;
     }
 
     // Settings that get combined to go into the review column.
