@@ -232,7 +232,7 @@ class question_information_item extends question_definition {
 
     public function make_interaction_model(question_attempt $qa, $preferredmodel) {
         question_engine::load_interaction_model_class('informationitem');
-        return new qim_informationitem($qa);
+        return new qim_informationitem($qa, $preferredmodel);
     }
 
     public function get_expected_data() {

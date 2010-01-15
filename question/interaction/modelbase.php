@@ -62,8 +62,11 @@ abstract class question_interaction_model {
      * interaction model object is created automatically as part of
      * {@link question_attempt::start()}.
      * @param question_attempt $qa the question attempt we will be managing.
+     * @param string $preferredmodel the type of interaction that was actually
+     *      requested. This information is not needed in most cases, the type of
+     *      subclass is enough, but occasionally it is needed.
      */
-    public function __construct(question_attempt $qa) {
+    public function __construct(question_attempt $qa, $preferredmodel) {
         $this->qa = $qa;
         $this->question = $qa->get_question();
         $requiredclass = $this->required_question_definition_type();

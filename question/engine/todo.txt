@@ -128,6 +128,7 @@ Port the code to Moodle 2.x (4d)
     Update file handling 2.5d
     Update unit tests to PHP Unit. 0.5d
     Update qtype plugin version numbers and requires numbers, when this is merged into core code 0d.
+    Consider using extra_question_fields more, e.g. in shortanswer initialise_question_instance
 
 Convert complex question types to the new API (8d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8559)

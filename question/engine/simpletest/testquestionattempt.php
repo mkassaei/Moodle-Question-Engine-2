@@ -236,7 +236,7 @@ class question_attempt_db_test extends data_loading_method_test_base {
             array(8, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 57, 0.5000000, 1256233790, 1, '!maxmark',  '2'),
         ));
 
-        $qa = question_attempt::load_from_records($records, 1, new question_usage_null_observer());
+        $qa = question_attempt::load_from_records($records, 1, new question_usage_null_observer(), 'deferredfeedback');
 
         $this->assertEqual(6, $qa->get_num_steps());
 

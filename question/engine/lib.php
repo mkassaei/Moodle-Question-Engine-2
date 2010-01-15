@@ -134,7 +134,7 @@ abstract class question_engine {
         if (!constant($class . '::IS_ARCHETYPAL')) {
             throw new Exception('The requested interaction model is not actually an archetypal one.');
         }
-        return new $class($qa);
+        return new $class($qa, $preferredmodel);
     }
 
     /**
@@ -145,19 +145,20 @@ abstract class question_engine {
      * call the constructor of a particular model class directly. This method
      * is only intended for use by {@link question_attempt::load_from_records()}.
      *
-     * @param string $model the type of model required.
+     * @param string $model the type of model to create.
      * @param question_attempt $qa the question attempt the model will process.
+     * @param string $preferredmodel the preferred interaction model for the containing usage.
      * @return question_interaction_model an instance of appropriate interaction model class.
      */
-    public static function make_interaction_model($model, question_attempt $qa) {
+    public static function make_interaction_model($model, question_attempt $qa, $preferredmodel) {
         try {
             question_engine::load_interaction_model_class($model);
         } catch (Exception $e) {
             question_engine::load_interaction_model_class('missing');
-            return new qim_missing($qa);
+            return new qim_missing($qa, $preferredmodel);
         }
         $class = 'qim_' . $model;
-        return new $class($qa);
+        return new $class($qa, $preferredmodel);
     }
 
     /**
@@ -1175,7 +1176,8 @@ class question_usage_by_activity {
         while ($record && $record->qubaid == $qubaid && !is_null($record->numberinusage)) {
             $quba->questionattempts[$record->numberinusage] =
                     question_attempt::load_from_records($records,
-                    $record->questionattemptid, $quba->observer);
+                    $record->questionattemptid, $quba->observer,
+                    $quba->get_preferred_interaction_model());
             $record = current($records);
         }
 
@@ -1707,7 +1709,7 @@ class question_attempt {
                     $this->question->make_interaction_model($this, $preferredmodel);
         } else {
             $class = get_class($preferredmodel);
-            $this->interactionmodel = new $class($this);
+            $this->interactionmodel = new $class($this, $preferredmodel);
         }
         $this->minfraction = $this->interactionmodel->get_min_fraction();
         $firststep = new question_attempt_step($submitteddata, $timestamp, $userid);
@@ -1868,7 +1870,7 @@ class question_attempt {
      * @return question_attempt The newly constructed question_attempt_step.
      */
     public static function load_from_records(&$records, $questionattemptid,
-            question_usage_observer $observer) {
+            question_usage_observer $observer, $preferredmodel) {
         $record = current($records);
         while ($record->questionattemptid != $questionattemptid) {
             $record = next($records);
@@ -1889,7 +1891,8 @@ class question_attempt {
         $qa->responsesummary = $record->responsesummary;
         $qa->timemodified = $record->timemodified;
 
-        $qa->interactionmodel = question_engine::make_interaction_model($record->interactionmodel, $qa);
+        $qa->interactionmodel = question_engine::make_interaction_model(
+                $record->interactionmodel, $qa, $preferredmodel);
 
         $i = 0;
         while ($record && $record->questionattemptid == $questionattemptid && !is_null($record->attemptstepid)) {

@@ -34,7 +34,7 @@
 class qtype_essay_question extends question_with_responses {
     public function make_interaction_model(question_attempt $qa, $preferredmodel) {
         question_engine::load_interaction_model_class('manualgraded');
-        return new qim_manualgraded($qa);
+        return new qim_manualgraded($qa, $preferredmodel);
     }
 
     public function get_expected_data() {

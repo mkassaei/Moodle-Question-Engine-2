@@ -32,21 +32,21 @@ require_once(dirname(__FILE__) . '/../model.php');
 class qim_missing_test extends UnitTestCase {
     public function test_missing_cannot_start() {
         $qa = new question_attempt(test_question_maker::make_a_truefalse_question(), 0);
-        $model = new qim_missing($qa);
+        $model = new qim_missing($qa, 'deferredfeedback');
         $this->expectException();
         $model->init_first_step(new question_attempt_step(array()));
     }
 
     public function test_missing_cannot_process() {
         $qa = new question_attempt(test_question_maker::make_a_truefalse_question(), 0);
-        $model = new qim_missing($qa);
+        $model = new qim_missing($qa, 'deferredfeedback');
         $this->expectException();
         $model->process_action(new question_attempt_step(array()));
     }
 
     public function test_missing_cannot_get_min_grade() {
         $qa = new question_attempt(test_question_maker::make_a_truefalse_question(), 0);
-        $model = new qim_missing($qa);
+        $model = new qim_missing($qa, 'deferredfeedback');
         $this->expectException();
         $model->get_min_fraction();
     }
@@ -63,7 +63,8 @@ class qim_missing_test extends UnitTestCase {
             array(3, 1, 1, 1, 'strangeunknown', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 2, 1,  2,      0.50, 1256233705, 1,  'choice0',  '1'),
         ));
 
-        $qa = question_attempt::load_from_records($records, 1, new question_usage_null_observer());
+        $qa = question_attempt::load_from_records($records, 1,
+                new question_usage_null_observer(), 'deferredfeedback');
 
         $this->assertEqual(2, $qa->get_num_steps());
 
