@@ -34,14 +34,14 @@ class qim_missing_test extends UnitTestCase {
         $qa = new question_attempt(test_question_maker::make_a_truefalse_question(), 0);
         $model = new qim_missing($qa);
         $this->expectException();
-        $model->init_first_step(null);
+        $model->init_first_step(new question_attempt_step(array()));
     }
 
     public function test_missing_cannot_process() {
         $qa = new question_attempt(test_question_maker::make_a_truefalse_question(), 0);
         $model = new qim_missing($qa);
         $this->expectException();
-        $model->process_action(null);
+        $model->process_action(new question_attempt_step(array()));
     }
 
     public function test_missing_cannot_get_min_grade() {
@@ -51,5 +51,39 @@ class qim_missing_test extends UnitTestCase {
         $model->get_min_fraction();
     }
 
-    // TODO test you can render an state with a missing model loaded, as if from the DB.
+    public function test_render_missing() {
+        $records = testing_db_record_builder::build_db_records(array(
+            array('id', 'questionattemptid', 'questionusageid', 'numberinusage',
+                              'interactionmodel', 'questionid', 'maxmark', 'minfraction', 'flagged',
+                                                                            'questionsummary', 'rightanswer', 'responsesummary', 'timemodified',
+                                                                                                   'attemptstepid', 'sequencenumber', 'state', 'fraction',
+                                                                                                                          'timecreated', 'userid', 'name', 'value'),
+            array(1, 1, 1, 1, 'strangeunknown', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 1, 0,  1,      null, 1256233700, 1,   '_order', '1,2,3'),
+            array(2, 1, 1, 1, 'strangeunknown', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 2, 1,  2,      0.50, 1256233705, 1,  '!submit',  '1'),
+            array(3, 1, 1, 1, 'strangeunknown', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 2, 1,  2,      0.50, 1256233705, 1,  'choice0',  '1'),
+        ));
+
+        $qa = question_attempt::load_from_records($records, 1, new question_usage_null_observer());
+
+        $this->assertEqual(2, $qa->get_num_steps());
+
+        $step = $qa->get_step(0);
+        $this->assertEqual(1, $step->get_state());
+        $this->assertNull($step->get_fraction());
+        $this->assertEqual(1256233700, $step->get_timecreated());
+        $this->assertEqual(1, $step->get_user_id());
+        $this->assertEqual(array('_order' => '1,2,3'), $step->get_all_data());
+
+        $step = $qa->get_step(1);
+        $this->assertEqual(2, $step->get_state());
+        $this->assertEqual(0.5, $step->get_fraction());
+        $this->assertEqual(1256233705, $step->get_timecreated());
+        $this->assertEqual(1, $step->get_user_id());
+        $this->assertEqual(array('!submit' => '1', 'choice0' => '1'), $step->get_all_data());
+
+        $output = $qa->render(new question_display_options(), '1');
+        $this->assertPattern('/' . preg_quote($qa->get_question()->questiontext) . '/', $output);
+        $this->assertPattern('/' . preg_quote(get_string('questionusedunknownmodel', 'qim_missing')) . '/', $output);
+        $this->assert(new ContainsTagWithAttribute('div', 'class', 'warning'), $output);
+    }
 }

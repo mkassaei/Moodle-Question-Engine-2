@@ -26,8 +26,8 @@
  */
 
 
-class qim_manualgraded_renderer extends qim_renderer {
+class qim_missing_renderer extends qim_renderer {
     public function controls(question_attempt $qa, question_display_options $options) {
-        return $this->output_tag('div', array('class' => 'warning', get_string('questionusedunknownmodel', 'qim_missing')));
+        return $this->output_tag('div', array('class' => 'warning'), get_string('questionusedunknownmodel', 'qim_missing'));
     }
 }

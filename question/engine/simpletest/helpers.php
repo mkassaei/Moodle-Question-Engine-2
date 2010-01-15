@@ -257,8 +257,8 @@ class test_question_maker {
     }
 }
 
-class data_loading_method_test_base extends UnitTestCase {
-    protected function build_db_records(array $table) {
+abstract class testing_db_record_builder {
+    public static function build_db_records(array $table) {
         $columns = array_shift($table);
         $records = array();
         foreach ($table as $row) {
@@ -272,6 +272,11 @@ class data_loading_method_test_base extends UnitTestCase {
             $records[] = $rec;
         }
         return $records;
+    }
+}
+class data_loading_method_test_base extends UnitTestCase {
+    public function build_db_records(array $table) {
+        return testing_db_record_builder::build_db_records($table);
     }
 }
 

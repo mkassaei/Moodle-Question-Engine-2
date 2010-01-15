@@ -87,6 +87,7 @@ Incorporate other OU-specific quiz customisations into this code (8d)
 Finish question engine core (0d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8557)
     Questionline and answerline - probably best to do while working on quiz reports.
+    Need a way to mock question_bank::load_question when testing then question engine.
 
 Integrate new code into the quiz reports (7d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9205)

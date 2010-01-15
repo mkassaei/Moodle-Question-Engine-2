@@ -138,6 +138,29 @@ abstract class question_engine {
     }
 
     /**
+     * Create an interaction model for a particular type. If that type cannot be
+     * found, return an instance of qim_missing.
+     *
+     * Normally you should use {@link make_archetypal_interaction_model()}, or
+     * call the constructor of a particular model class directly. This method
+     * is only intended for use by {@link question_attempt::load_from_records()}.
+     *
+     * @param string $model the type of model required.
+     * @param question_attempt $qa the question attempt the model will process.
+     * @return question_interaction_model an instance of appropriate interaction model class.
+     */
+    public static function make_interaction_model($model, question_attempt $qa) {
+        try {
+            question_engine::load_interaction_model_class($model);
+        } catch (Exception $e) {
+            question_engine::load_interaction_model_class('missing');
+            return new qim_missing($qa);
+        }
+        $class = 'qim_' . $model;
+        return new $class($qa);
+    }
+
+    /**
      * Load the interaction model class(es) belonging to a particular model. That is,
      * include_once('/question/interaction/' . $model . '/model.php'), with a bit
      * of checking.
@@ -1866,7 +1889,7 @@ class question_attempt {
         $qa->responsesummary = $record->responsesummary;
         $qa->timemodified = $record->timemodified;
 
-        $qa->interactionmodel = $question->make_interaction_model($qa, $record->interactionmodel);
+        $qa->interactionmodel = question_engine::make_interaction_model($record->interactionmodel, $qa);
 
         $i = 0;
         while ($record && $record->questionattemptid == $questionattemptid && !is_null($record->attemptstepid)) {
