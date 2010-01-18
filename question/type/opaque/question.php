@@ -44,10 +44,6 @@ class qtype_opaque_question extends question_definition {
         return new qim_opaque($qa, $preferredmodel);
     }
 
-    public function init_first_step(question_attempt_step $step) {
-        // TODO
-    }
-
     public function get_expected_data() {
         return question_attempt::USE_RAW_DATA;
     }

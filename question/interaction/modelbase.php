@@ -164,7 +164,9 @@ abstract class question_interaction_model {
      * should return an empty array, otherwise it should return
      * $this->question->get_expected_data(). Thus, there should be little need to
      * override this method.
-     * @return array variable name => PARAM_... constant.
+     * @return array|string variable name => PARAM_... constant, or, as a special case
+     *      that should only be used in unavoidable, the constant question_attempt::USE_RAW_DATA
+     *      meaning take all the raw submitted data belonging to this question.
      */
     public function get_expected_qt_data() {
         $fakeoptions = new question_display_options();

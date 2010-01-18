@@ -262,8 +262,7 @@ function get_question_metadata(&$engine, $remoteid, $remoteversion) {
  * @param int $randomseed
  * @return mixed the result of the soap call on success, or a string error message on failure.
  */
-function start_question_session(&$engine, $remoteid, $remoteversion, $randomseed, $cached_resources) {
-    global $USER;
+function start_question_session(&$engine, $remoteid, $remoteversion, $data, $cached_resources) {
     $connection = connect_to_engine($engine);
     if (is_string($connection)) {
         return format_opaque_error('startcallfailed', $connection);
@@ -278,8 +277,9 @@ function start_question_session(&$engine, $remoteid, $remoteversion, $randomseed
         $remoteid,
         $remoteversion,
         $questionbaseurl,
-        array('randomseed', 'userid', 'language', 'passKey'),
-        array($randomseed, $USER->id, $USER->lang, generate_passkey($engine->passkey, $USER->id)),
+        array('randomseed', 'userid', 'language', 'passKey', 'preferredmodel'),
+        array($data['!_randomseed'], $data['!_userid'], $data['!_language'],
+                generate_passkey($engine->passkey, $data['!_userid']), $data['!_preferredmodel']),
         $cached_resources
     ));
 
@@ -326,22 +326,45 @@ function stop_question_session($engine, $questionsessionid) {
 }
 
 /**
+ * Get a step from $qa, as if $pendingstep had already been added at the end
+ * of the list, if it is not null.
+ * @param integer $seq
+ * @param question_attempt $qa
+ * @param question_attempt_step|null $pendingstep
+ * @return question_attempt_step
+ */
+function opaque_get_step($seq, question_attempt $qa, $pendingstep) {
+    if ($seq < $qa->get_num_steps()) {
+        return $qa->get_step($seq);
+    }
+    if ($seq == $qa->get_num_steps() && !is_null($pendingstep)) {
+        return $pendingstep;
+    }
+    throw new Exception('Sequence number ' . $seq . ' out of range.');
+}
+
+/**
  * Update the $SESSION->cached_opaque_state to show the current status of $question for state
  * $state.
  * @param object $question the question
  * @param object $state
  * @return mixed $SESSION->cached_opaque_state on success, a string error message on failure.
  */
-function update_opaque_state($question, &$state) {
+function update_opaque_state(question_attempt $qa, question_attempt_step $pendingstep = null) {
     global $SESSION;
+
+    $question = $qa->get_question();
+    $targetseq = $qa->get_num_steps() - 1;
+    if (!is_null($pendingstep)) {
+        $targetseq += 1;
+    }
+
     if (empty($SESSION->cached_opaque_state) ||
-            empty($SESSION->cached_opaque_state->attemptid) ||
-            empty($SESSION->cached_opaque_state->questionid) ||
+            empty($SESSION->cached_opaque_state->qaid) ||
             empty($SESSION->cached_opaque_state->sequencenumber)) {
         $cachestatus = 'empty';
-    } else if ($SESSION->cached_opaque_state->attemptid != $state->attempt ||
-            $SESSION->cached_opaque_state->questionid != $question->id ||
-            $SESSION->cached_opaque_state->sequencenumber > $state->seq_number) {
+    } else if ($SESSION->cached_opaque_state->qaid != $qa->get_database_id() ||
+            $SESSION->cached_opaque_state->sequencenumber > $targetseq) {
         if (!empty($SESSION->cached_opaque_state->questionsessionid)) {
             $error = stop_question_session($SESSION->cached_opaque_state->engine,
                     $SESSION->cached_opaque_state->questionsessionid);
@@ -352,40 +375,37 @@ function update_opaque_state($question, &$state) {
         }
         unset($SESSION->cached_opaque_state);
         $cachestatus = 'empty';
-    } else if ($SESSION->cached_opaque_state->sequencenumber < $state->seq_number) {
+    } else if ($SESSION->cached_opaque_state->sequencenumber < $targetseq) {
         $cachestatus = 'catchup';
     } else {
         $cachestatus = 'good';
     }
 
-    $resourcecache = new opaque_resource_cache($question->options->engineid,
-            $question->options->remoteid, $question->options->remoteversion);
+    $resourcecache = new opaque_resource_cache($question->engineid,
+            $question->remoteid, $question->remoteversion);
 
     if ($cachestatus == 'empty') {
         $SESSION->cached_opaque_state = new stdClass;
-        $opaquestate =& $SESSION->cached_opaque_state;
-        $opaquestate->questionid = $question->id;
-        $opaquestate->remoteid = $question->options->remoteid;
-        $opaquestate->remoteversion = $question->options->remoteversion;
-        $opaquestate->engineid = $question->options->engineid;
-        $opaquestate->questionid = $question->id;
-        $opaquestate->attemptid = $state->attempt;
-        $opaquestate->name_prefix = $question->name_prefix;
+        $opaquestate = $SESSION->cached_opaque_state;
+        $opaquestate->qaid = $qa->get_database_id();
+        $opaquestate->remoteid = $question->remoteid;
+        $opaquestate->remoteversion = $question->remoteversion;
+        $opaquestate->engineid = $question->engineid;
+        $opaquestate->nameprefix = $qa->get_field_prefix();
         $opaquestate->questionended = false;
         $opaquestate->sequencenumber = -1;
         $opaquestate->resultssequencenumber = -1;
 
-        $engine = load_engine_def($question->options->engineid);
+        $engine = load_engine_def($question->engineid);
         if (is_string($engine)) {
             unset($SESSION->cached_opaque_state);
             return $engine;
         }
-        $opaquestate->engine =& $engine;
+        $opaquestate->engine = $engine;
 
-        $response = retrieve_responses($question, $state, $opaquestate);
-        $randomseed = $response['__randomseed'];
-        $startreturn = start_question_session($engine, $question->options->remoteid,
-                $question->options->remoteversion, $randomseed, $resourcecache->list_cached_resources());
+        $step = opaque_get_step(0, $qa, $pendingstep);
+        $startreturn = start_question_session($engine, $question->remoteid,
+                $question->remoteversion, $step->get_all_data(), $resourcecache->list_cached_resources());
         if (is_string($startreturn)) {
             unset($SESSION->cached_opaque_state);
             return $startreturn;
@@ -395,20 +415,18 @@ function update_opaque_state($question, &$state) {
         $opaquestate->sequencenumber++;
         $cachestatus = 'catchup';
     } else {
-        $opaquestate =& $SESSION->cached_opaque_state;
+        $opaquestate = $SESSION->cached_opaque_state;
     }
 
     if ($cachestatus == 'catchup') {
-        if ($opaquestate->sequencenumber >= $state->seq_number) { 
+        if ($opaquestate->sequencenumber >= $targetseq) { 
             $error = stop_question_session($opaquestate->engine,
                     $opaquestate->questionsessionid);
         }
-        while ($opaquestate->sequencenumber < $state->seq_number) {
-            $response = retrieve_responses($question, $state, $opaquestate);
+        while ($opaquestate->sequencenumber < $targetseq) {
+            $step = opaque_get_step($opaquestate->sequencenumber + 1, $qa, $pendingstep);
 
-            $response['event'] = $state->event;
-
-            $processreturn = opaque_process($opaquestate->engine, $opaquestate->questionsessionid, $response);
+            $processreturn = opaque_process($opaquestate->engine, $opaquestate->questionsessionid, $step->get_submitted_data());
             if (is_string($processreturn)) {
                 unset($SESSION->cached_opaque_state);
                 return $processreturn;
@@ -416,11 +434,11 @@ function update_opaque_state($question, &$state) {
 
             if (!empty($processreturn->results)) {
                 $opaquestate->resultssequencenumber = $opaquestate->sequencenumber + 1;
-                $opaquestate->results = &$processreturn->results;
+                $opaquestate->results = $processreturn->results;
             }
             if ($processreturn->questionEnd) {
                 $opaquestate->questionended = true;
-                $opaquestate->sequencenumber = $state->seq_number;
+                $opaquestate->sequencenumber = $targetseq;
                 $opaquestate->xhtml = strip_omact_buttons($opaquestate->xhtml);
                 unset($opaquestate->questionsessionid);
                 break;
@@ -433,25 +451,6 @@ function update_opaque_state($question, &$state) {
     }
 
     return $opaquestate;
-}
-
-function retrieve_responses($question, $state, $opaquestate) {
-    global $QTYPES, $SESSION;
-    if ($opaquestate->sequencenumber == $state->seq_number - 1) {
-        return stripslashes_recursive($state->responses);
-    } else {
-        $tempstate = get_record('question_states',
-                'question', $question->id, 'attempt', $state->attempt, 'seq_number', $opaquestate->sequencenumber + 1, 'answer');
-        if ($tempstate) {
-            $tempstate->responses = array('' => addslashes($tempstate->answer));
-        } else if (!empty($SESSION->quizpreview->states) &&
-                $SESSION->quizpreview->questionid == $question->id) {
-            // If we are doing a question preview, then the state will be in session, not the DB.
-            $tempstate = $SESSION->quizpreview->states[$opaquestate->sequencenumber + 1][$question->id];
-        }
-        $QTYPES['opaque']->restore_session_and_responses($question, $tempstate);
-        return stripslashes_recursive($tempstate->responses);
-    }
 }
 
 /**
@@ -489,7 +488,7 @@ function extract_stuff_from_response(&$opaquestate, $response, &$resourcecache) 
     $xhtml = $response->XHTML;
 
     $replaces['%%RESOURCES%%'] = $resourcecache->file_url('');
-    $replaces['%%IDPREFIX%%'] = $opaquestate->name_prefix;
+    $replaces['%%IDPREFIX%%'] = $opaquestate->nameprefix;
     $xhtml = str_replace(array_keys($replaces), $replaces, $xhtml);
 
     // TODO this is a nasty hack. Flash uses & as a separator in the FlashVars string,
@@ -521,20 +520,11 @@ function extract_stuff_from_response(&$opaquestate, $response, &$resourcecache) 
 
     // Process the other bits.
     $opaquestate->progressinfo = $response->progressInfo;
-    $matches = array();
-    if (preg_match('/\d+/', $response->progressInfo, $matches)) {
-        $opaquestate->triesleft = $matches[0];
-    } else if (preg_match('/last|one/', $response->progressInfo)) {
-        $opaquestate->triesleft = 1;
-    } else {
-        $opaquestate->triesleft = 666;
-    }
     if (!empty($response->questionSession)) {
         $opaquestate->questionsessionid = $response->questionSession;
     }
 
-    if(!empty($response->head))
-    {
+    if(!empty($response->head)) {
         $opaquestate->headXHTML = $response->head;
     }
 

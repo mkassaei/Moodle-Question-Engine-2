@@ -146,7 +146,7 @@ if (!$previewid) {
 }
 // Output
 $title = get_string('previewquestion', 'question', format_string($question->name));
-$headtags = implode("\n", $quba->render_question_head_html($qnumber));
+$headtags = $quba->render_question_head_html($qnumber);
 print_header($title, '', '', '', $headtags);
 print_heading($title);
 

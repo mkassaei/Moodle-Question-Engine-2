@@ -315,6 +315,15 @@ abstract class question_state {
     }
 
     /**
+     * Is this state one of the ones that mean the question attempt has been graded?
+     * @param integer $state one of the state constants.
+     * @return boolean
+     */
+    public static function is_gave_up($state) {
+        return $state == self::GAVE_UP || $state == self::GAVE_UP_COMMENTED;
+    }
+
+    /**
      * Is this state one of the ones that mean the question attempt has had a manual comment added?
      * @param integer $state one of the state constants.
      * @return boolean
@@ -1282,6 +1291,8 @@ class question_attempt_iterator implements Iterator, ArrayAccess {
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt {
+    const USE_RAW_DATA = 'use raw data';
+
     /** @var integer if this attempts is stored in the question_attempts table, the id of that row. */
     protected $id = null;
 
@@ -1738,6 +1749,47 @@ class question_attempt {
     }
 
     /**
+     * Get any data from the request that matches the list of expected params.
+     * @param array $expected variable name => PARAM_... constant.
+     * @param string $extraprefix '!' or ''.
+     * @return array name => value.
+     */
+    protected function get_expected_data($expected, $postdata, $extraprefix) {
+        $submitteddata = array();
+        foreach ($expected as $name => $type) {
+            $value = self::get_submitted_var(
+                    $this->get_field_prefix() . $extraprefix . $name, $type, $postdata);
+            if (!is_null($value)) {
+                $submitteddata[$extraprefix . $name] = $value;
+            }
+        }
+        return $submitteddata;
+    }
+
+    /**
+     * Get all the submitted question type data for this question, whithout checking
+     * that it is valid or cleaning it in any way.
+     * @return array name => value.
+     */
+    protected function get_all_submitted_qt_vars($postdata) {
+        if (is_null($postdata)) {
+            $postdata = $_POST;
+        }
+
+        $pattern = '/^' . preg_quote($this->get_field_prefix()) . '[^!]/';
+        $prefixlen = strlen($this->get_field_prefix());
+
+        $submitteddata = array();
+        foreach ($_POST as $name => $value) {
+            if (preg_match($pattern, $name)) {
+                $submitteddata[substr($name, $prefixlen)] = $value;
+            }
+        }
+
+        return $submitteddata;
+    }
+
+    /**
      * Get all the sumbitted data belonging to this question attempt from the
      * current request.
      * @param array $postdata (optional, only inteded for testing use) take the
@@ -1745,18 +1797,14 @@ class question_attempt {
      * @return array name => value pairs that could be passed to {@link process_action()}.
      */
     public function get_submitted_data($postdata = null) {
-        $submitteddata = array();
-        foreach ($this->interactionmodel->get_expected_data() as $name => $type) {
-            $value = self::get_submitted_var($this->get_im_field_name($name), $type, $postdata);
-            if (!is_null($value)) {
-                $submitteddata['!' . $name] = $value;
-            }
-        }
-        foreach ($this->interactionmodel->get_expected_qt_data() as $name => $type) {
-            $value = self::get_submitted_var($this->get_qt_field_name($name), $type, $postdata);
-            if (!is_null($value)) {
-                $submitteddata[$name] = $value;
-            }
+        $submitteddata = $this->get_expected_data(
+                $this->interactionmodel->get_expected_data(), $postdata, '!');
+
+        $expected = $this->interactionmodel->get_expected_qt_data();
+        if ($expected === self::USE_RAW_DATA) {
+            $submitteddata += $this->get_all_submitted_qt_vars($postdata);
+        } else {
+            $submitteddata += $this->get_expected_data($expected, $postdata, '');
         }
         return $submitteddata;
     }

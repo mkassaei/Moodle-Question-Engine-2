@@ -173,7 +173,9 @@ abstract class question_definition {
      * This information is used in calls to optional_param. The parameter name
      * has {@link question_attempt::get_field_prefix()} automatically prepended.
      *
-     * @return array parameter name => PARAM_... type constant.
+     * @return array|string variable name => PARAM_... constant, or, as a special case
+     *      that should only be used in unavoidable, the constant question_attempt::USE_RAW_DATA
+     *      meaning take all the raw submitted data belonging to this question.
      */
     public abstract function get_expected_data();
 

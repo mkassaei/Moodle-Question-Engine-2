@@ -56,7 +56,7 @@ class test_question_maker {
     /**
      * Initialise the common fields of a question of any type.
      */
-    private static function initialise_a_question($q) {
+    public static function initialise_a_question($q) {
         global $USER;
 
         $q->id = 0;
