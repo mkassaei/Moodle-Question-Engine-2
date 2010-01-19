@@ -313,7 +313,7 @@ class qtype_multianswer extends question_type {
                             }
                         }
                     }
-                    if ($correctanswer) {
+                    if ($correctanswer  != '') {
                         $feedback = '<div class="correctness">';
                         $feedback .= get_string('correctansweris', 'quiz', s($correctanswer, true));
                         $feedback .= '</div>';
