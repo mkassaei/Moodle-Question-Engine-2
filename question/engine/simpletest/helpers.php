@@ -429,18 +429,26 @@ class qim_walkthrough_test_base extends UnitTestCase {
                 ), $enabled, $checked);
     }
 
-    protected function get_contains_submit_button_expectation($enabled = null) {
+    protected function get_contains_button_expectation($name, $value = null, $enabled = null) {
         $expectedattributes = array(
             'type' => 'submit',
-            'name' => $this->quba->get_field_prefix($this->qnumber) . '!submit',
+            'name' => $name,
         );
         $forbiddenattributes = array();
+        if (!is_null($value)) {
+            $expectedattributes['value'] = $value;
+        }
         if ($enabled === true) {
             $forbiddenattributes['disabled'] = 'disabled';
         } else if ($enabled === false) {
             $expectedattributes['disabled'] = 'disabled';
         }
         return new ContainsTagWithAttributes('input', $expectedattributes, $forbiddenattributes);
+    }
+
+    protected function get_contains_submit_button_expectation($enabled = null) {
+        return $this->get_contains_button_expectation(
+                $this->quba->get_field_prefix($this->qnumber) . '!submit', null, $enabled);
     }
 
     protected function get_mc_right_answer_index($mc) {

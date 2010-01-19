@@ -1778,35 +1778,8 @@ function question_hash($question) {
 
 /// FUNCTIONS THAT SIMPLY WRAP QUESTIONTYPE METHODS //////////////////////////////////
 /**
- * Get the HTML that needs to be included in the head tag when the
- * questions in $questionlist are printed in the gives states.
- *
- * @param array $questionlist a list of questionids of the questions what will appear on this page.
- * @param array $questions an array of question objects, whose keys are question ids.
- *      Must contain all the questions in $questionlist
- * @param array $states an array of question state objects, whose keys are question ids.
- *      Must contain the state of all the questions in $questionlist
- *
- * @return string some HTML code that can go inside the head tag.
- */
-function get_html_head_contributions($questionlist, $questions, $states) {
-    global $CFG, $QTYPES;
-
-    $contributions = array();
-    $contributions[] = question_flags::initialise_js();
-
-    foreach ($questionlist as $questionid) {
-        $question = $questions[$questionid];
-        $contributions = array_merge($contributions,
-                $QTYPES[$question->qtype]->get_html_head_contributions(
-                $question, $states[$questionid]));
-    }
-    return implode("\n", array_unique($contributions));
-}
-
-/**
- * Like @see{get_html_head_contributions} but for the editing page
- * question/question.php.
+ * Get anything that needs to be included in the head of the question editing page
+ * for a particular question type. This function is called by question/question.php.
  *
  * @param $question A question object. Only $question->qtype is used.
  * @return string some HTML code that can go inside the head tag.

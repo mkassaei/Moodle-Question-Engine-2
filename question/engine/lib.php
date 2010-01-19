@@ -1688,8 +1688,8 @@ class question_attempt {
      * @return string HTML fragment.
      */
     public function render_head_html() {
-        // TODO
-        return implode("\n", $this->question->qtype->get_html_head_contributions($this->question, 'TODO'));
+        return $this->question->get_renderer()->head_code($this) .
+                $this->interactionmodel->get_renderer()->head_code($this);
     }
 
     /**

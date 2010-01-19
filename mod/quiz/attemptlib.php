@@ -793,7 +793,8 @@ class quiz_attempt {
     }
 
     public function get_question_html_head_contributions($qnumber) {
-        return $this->quba->render_question_head_html($qnumber);
+        return $this->quba->render_question_head_html($qnumber) .
+                question_engine::initialise_js();
     }
 
     public function print_restart_preview_button() {

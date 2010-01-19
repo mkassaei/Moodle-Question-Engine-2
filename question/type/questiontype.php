@@ -606,44 +606,9 @@ class question_type {
         }
     }
 
-    // Used by the following function, so that it only returns results once per quiz page.
-    var $htmlheadalreadydone = false; // no private in 1.9 yet!
     /**
-     * If this question type requires extra CSS or JavaScript to function,
-     * then this method will return an array of <link ...> tags that reference
-     * those stylesheets. This function will also call require_js()
-     * from ajaxlib.php, to get any necessary JavaScript linked in too.
-     *
-     * Remember that there may be more than one question of this type on a page.
-     * try to avoid including JS and CSS more than once.
-     *
-     * The two parameters match the first two parameters of print_question.
-     *
-     * @param object $question The question object.
-     * @param object $state    The state object.
-     *
-     * @return an array of bits of HTML to add to the head of pages where
-     * this question is print_question-ed in the body. The array should use
-     * integer array keys, which have no significance.
-     */
-    public function get_html_head_contributions($question, $state) {
-        // We only do this once for this question type, no matter how often this
-        // method is called on one page.
-        if ($this->htmlheadalreadydone) {
-            return array();
-        }
-        $this->htmlheadalreadydone = true;
-
-        // By default, we link to any of the files styles.css, styles.php,
-        // script.js or script.php that exist in the plugin folder.
-        // Core question types should not use this mechanism. Their styles
-        // should be included in the standard theme.
-        return $this->find_standard_scripts_and_css();
-    }
-
-    /**
-     * Like @see{get_html_head_contributions}, but this method is for CSS and
-     * JavaScript required on the question editing page question/question.php.
+     * Return any CSS JavaScript required on the head of the question editing
+     * page question/question.php.
      *
      * @return an array of bits of HTML to add to the head of pages where
      * this question is print_question-ed in the body. The array should use
@@ -658,12 +623,12 @@ class question_type {
     }
 
     /**
-     * Utility method used by @see{get_html_head_contributions} and
+     * Utility method used by @see{get_editing_head_contributions} and
      * @see{get_editing_head_contributions}. This looks for any of the files
      * styles.css, styles.php, script.js or script.php that exist in the plugin
      * folder and ensures they get included.
      *
-     * @return array as required by get_html_head_contributions or get_editing_head_contributions.
+     * @return array as required by get_editing_head_contributions.
      */
     public function find_standard_scripts_and_css() {
         $plugindir = $this->plugin_dir();

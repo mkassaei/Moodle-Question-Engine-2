@@ -51,27 +51,26 @@ class qim_opaque_renderer extends qim_renderer {
             // TODO
         }
 
-        return $this->output_tag('div', array('class', opaque_browser_type()), $opaquestate->xhtml);
+        return $this->output_tag('div', array('class' => opaque_browser_type()), $opaquestate->xhtml);
     }
 
-    // TODO
-    function get_html_head_contributions(question_attempt $qa, question_display_options $options) {
-        $contributions = array('<link rel="stylesheet" type="text/css" href="' .
-                    $this->plugin_baseurl() . '/styles.css" />');
-
+    public function head_code(question_attempt $qa) {
+        $output = '';
         $opaquestate =& update_opaque_state($qa);
 
-        $resourcecache = new opaque_resource_cache($question->options->engineid,
-                $question->options->remoteid, $question->options->remoteversion);
+        $question = $qa->get_question();
+        $resourcecache = new opaque_resource_cache($question->engineid,
+                $question->remoteid, $question->remoteversion);
+
         if (!empty($opaquestate->cssfilename) && $resourcecache->file_in_cache($opaquestate->cssfilename)) {
-            $contributions[] = '<link rel="stylesheet" type="text/css" href="' .
+            $output .= '<link rel="stylesheet" type="text/css" href="' .
                     $resourcecache->file_url($opaquestate->cssfilename) . '" />';
         }
 
         if(!empty($opaquestate->headXHTML)) {
-            $contributions[] = $opaquestate->headXHTML;
+            $output .= $opaquestate->headXHTML;
         }
 
-        return $contributions;
+        return $output;
     }
 }

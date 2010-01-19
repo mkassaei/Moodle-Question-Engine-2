@@ -129,4 +129,14 @@ abstract class qim_renderer extends moodle_renderer_base {
         }
         return $output;
     }
+
+    /**
+     * Return any HTML that needs to be included in the page's <head> when
+     * questions using this model are used.
+     * @param $qa the question attempt that will be displayed on the page.
+     * @return string HTML fragment.
+     */
+    public function head_code(question_attempt $qa) {
+        return '';
+    }
 }

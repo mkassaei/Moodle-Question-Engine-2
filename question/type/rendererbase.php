@@ -41,7 +41,7 @@ abstract class qtype_renderer extends moodle_renderer_base {
      *
      * @param question_attempt $qa the question attempt to display.
      * @param question_display_options $options controls what should and should not be displayed.
-     * @return HTML fragment.
+     * @return string HTML fragment.
      */
     public function formulation_and_controls(question_attempt $qa,
             question_display_options $options) {
@@ -59,7 +59,7 @@ abstract class qtype_renderer extends moodle_renderer_base {
      *
      * @param question_attempt $qa the question attempt to display.
      * @param question_display_options $options controls what should and should not be displayed.
-     * @return HTML fragment.
+     * @return string HTML fragment.
      */
     public function feedback(question_attempt $qa, question_display_options $options) {
         $output = '';
@@ -82,7 +82,7 @@ abstract class qtype_renderer extends moodle_renderer_base {
      * Gereate the specific feedback. This is feedback that varies accordin to
      * the reponse the student gave.
      * @param question_attempt $qa the question attempt to display.
-     * @return HTML fragment.
+     * @return string HTML fragment.
      */
     protected function specific_feedback(question_attempt $qa) {
         return '';
@@ -92,21 +92,31 @@ abstract class qtype_renderer extends moodle_renderer_base {
      * Gereate the general feedback. This is feedback is shown ot all students.
      *
      * @param question_attempt $qa the question attempt to display.
-     * @return HTML fragment.
+     * @return string HTML fragment.
      */
     protected function general_feedback(question_attempt $qa) {
         return $qa->get_question()->format_generalfeedback();
     }
 
     /**
-     * Gereate an automatic description of the correct response to this quetsion.
+     * Gereate an automatic description of the correct response to this question.
      * Not all question types can do this. If it is not possible, this method
      * should just return an empty string.
      *
      * @param question_attempt $qa the question attempt to display.
-     * @return HTML fragment.
+     * @return string HTML fragment.
      */
     protected function correct_response(question_attempt $qa) {
         return '';
+    }
+
+    /**
+     * Return any HTML that needs to be included in the page's <head> when this
+     * question is used.
+     * @param $qa the question attempt that will be displayed on the page.
+     * @return string HTML fragment.
+     */
+    public function head_code(question_attempt $qa) {
+        return implode("\n", $qa->get_question()->qtype->find_standard_scripts_and_css());
     }
 }

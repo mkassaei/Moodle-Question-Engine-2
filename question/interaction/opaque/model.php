@@ -124,14 +124,14 @@ class qim_opaque extends question_interaction_model {
             $pendingstep->set_fraction(0);
             foreach ($opaquestate->results->scores as $score) {
                 if ($score->axis == '') {
-                    $pendingstep->set_fraction($score->marks / $question->maxgrade);
+                    $pendingstep->set_fraction($score->marks / $this->qa->get_max_mark());
                 }
             }
 
             if ($opaquestate->results->attempts > 0) {
                 $pendingstep->set_state(question_state::GRADED_CORRECT);
             } else {
-                question_state::graded_state_for_fraction($pendingstep->get_fraction());
+                $pendingstep->set_state(question_state::graded_state_for_fraction($pendingstep->get_fraction()));
             }
 
 // TODO

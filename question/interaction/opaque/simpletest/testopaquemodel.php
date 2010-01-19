@@ -56,18 +56,20 @@ class qim_opaque_test extends qim_walkthrough_test_base {
         return $q;
     }
 
-    public function test_something() {
+    public function test_wrong_three_times() {
         $q = $this->make_standard_om_question();
         $this->start_attempt_at_question($q, 'interactive');
+        $qa = $this->quba->get_question_attempt($this->qnumber);
 
         // Check the initial state.
         $this->check_current_state(question_state::INCOMPLETE);
         $this->check_current_mark(null);
         $this->check_current_output(
                 new PatternExpectation('/Below is a plan of a proposed garden/'),
-                new PatternExpectation('/You have 3 attempts/'));
+                new PatternExpectation('/You have 3 attempts/'),
+                $this->get_contains_button_expectation($qa->get_qt_field_name('omact_gen_14'), 'Check'));
 
-        // Save the wrong answer.
+        // Submit a wrong answer.
         $this->process_submission(array('omval_response1' => 1, 'omval_response2' => 666,
                 'omact_gen_14' => 'Check'));
 
@@ -77,9 +79,91 @@ class qim_opaque_test extends qim_walkthrough_test_base {
         $this->check_current_output(
                 new PatternExpectation('/Below is a plan of a proposed garden/'),
                 new PatternExpectation('/incorrect/'),
+                new PatternExpectation('/' . preg_quote(get_string('submissionnotcorrect', 'qim_opaque')) . '/'),
+                $this->get_contains_button_expectation($qa->get_qt_field_name('omact_ok'), 'Try again'));
+
+        // Try again.
+        $this->process_submission(array('omact_ok' => 'Try again'));
+
+        // Verify.
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                new PatternExpectation('/You have 2 attempts/'));
+
+        // Submit a wrong answer again.
+        $this->process_submission(array('omval_response1' => 1, 'omval_response2' => 666,
+                'omact_gen_14' => 'Check'));
+
+        // Verify.
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                new PatternExpectation('/Below is a plan of a proposed garden/'),
+                new PatternExpectation('/still incorrect/'),
                 new PatternExpectation('/' . preg_quote(get_string('submissionnotcorrect', 'qim_opaque')) . '/'));
 
-        // TODO
+        // Try again.
+        $this->process_submission(array('omact_ok' => 'Try again'));
+
+        // Verify.
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                new PatternExpectation('/This is your last attempt/'));
+
+        // Submit a wrong answer third time.
+        $this->process_submission(array('omval_response1' => 1, 'omval_response2' => 666,
+                'omact_gen_14' => 'Check'));
+
+        // Verify.
+        $this->check_current_state(question_state::GRADED_INCORRECT);
+        $this->check_current_mark(0);
+        $this->check_current_output(
+                new PatternExpectation('/Please see MU120 Preparatory Resource Book B section 5.1/'),
+                new PatternExpectation('/still incorrect/'));
+
+                // TODO
+    }
+
+    public function test_right_first_time() {
+        $q = $this->make_standard_om_question();
+        $this->start_attempt_at_question($q, 'interactive');
+        $qa = $this->quba->get_question_attempt($this->qnumber);
+
+        // Work out right answer (yuck!)
+        $html = $this->quba->render_question($this->qnumber, $this->displayoptions);
+        preg_match('/0.5|2.0|3.0/', $html, $matches);
+        $scale = $matches[0];
+        preg_match('/Patio|Summer House|Flowerbed|Vegetable Plot|Pond/', $html, $matches);
+        $feature = $matches[0];
+        $sizes = array(
+            'Patio' => array(4, 7),
+            'Summer House' => array(3, 5),
+            'Flowerbed' => array(2, 7),
+            'Vegetable Plot' => array(3, 10),
+            'Pond' => array(2, 3),
+        );
+        $size = $sizes[$feature];
+
+        // Check the initial state.
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                new PatternExpectation('/Below is a plan of a proposed garden/'),
+                new PatternExpectation('/You have 3 attempts/'),
+                $this->get_contains_button_expectation($qa->get_qt_field_name('omact_gen_14'), 'Check'));
+
+        // Submit the right answer.
+        $this->process_submission(array('omval_response1' => $size[0] * $scale,
+                'omval_response2' => $size[1] * $scale, 'omact_gen_14' => 'Check'));
+
+        // Verify.
+        $this->check_current_state(question_state::GRADED_CORRECT);
+        $this->check_current_mark(3);
+        $this->check_current_output(
+                new PatternExpectation('/Below is a plan of a proposed garden/'),
+                new PatternExpectation('/correct/'));
     }
 
     public function test_gave_up() {
