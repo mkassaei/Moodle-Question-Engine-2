@@ -156,13 +156,26 @@ abstract class XMLStructureExpectation extends SimpleExpectation {
      */
     protected function load_xml($html) {
         $prevsetting = libxml_use_internal_errors(true);
+        libxml_clear_errors();
         $parser = new DOMDocument();
         if (!$parser->loadXML('<html>' . $html . '</html>')) {
-            $parser = new DOMDocument();
+            $parser = libxml_get_errors();
         }
         libxml_clear_errors();
         libxml_use_internal_errors($prevsetting);
         return $parser;
+    }
+
+    function testMessage($html) {
+        $parsererrors = $this->load_xml($html);
+        if (is_array($parsererrors)) {
+            foreach ($parsererrors as $key => $message) {
+                $parsererrors[$key] = $message->message;
+            }
+            return 'Could not parse XML [' . $html . '] errors were [' . 
+                    implode('], [', $parsererrors) . ']';
+        }
+        return $this->customMessage($html);
     }
 }
 /**
@@ -185,6 +198,9 @@ class ContainsTagWithAttribute extends XMLStructureExpectation {
 
     function test($html) {
         $parser = $this->load_xml($html);
+        if (is_array($parser)) {
+            return false;
+        }
         $list = $parser->getElementsByTagName($this->tag);
 
         foreach ($list as $node) {
@@ -195,7 +211,7 @@ class ContainsTagWithAttribute extends XMLStructureExpectation {
         return false;
     }
 
-    function testMessage($html) {
+    function customMessage($html) {
         return 'Content [' . $html . '] does not contain the tag [' .
                 $this->tag . '] with attribute [' . $this->attribute . '="' . $this->value . '"].';
     }
@@ -236,8 +252,11 @@ class ContainsTagWithAttributes extends XMLStructureExpectation {
 
     function test($html) {
         $parser = $this->load_xml($html);
-        $list = $parser->getElementsByTagName($this->tag);
+        if (is_array($parser)) {
+            return false;
+        }
 
+        $list = $parser->getElementsByTagName($this->tag);
         $foundamatch = false;
 
         // Iterating through inputs
@@ -278,7 +297,7 @@ class ContainsTagWithAttributes extends XMLStructureExpectation {
         return $foundamatch;
     }
 
-    function testMessage($html) {
+    function customMessage($html) {
         $output = 'Content [' . $html . '] ';
 
         if (preg_match('/forbiddenmatch:(.*):(.*)/', $this->failurereason, $matches)) {
