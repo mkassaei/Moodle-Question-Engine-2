@@ -17,10 +17,10 @@
 
 
 /**
- * This file contains tests that walks a question through the adaptive
+ * This file contains tests that walks a question through the adaptive (no penalties)k
  * interaction model.
  *
- * @package qim_adaptive
+ * @package qim_adaptivenopenalty
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -29,13 +29,13 @@
 require_once(dirname(__FILE__) . '/../../../engine/lib.php');
 require_once(dirname(__FILE__) . '/../../../engine/simpletest/helpers.php');
 
-class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
-    public function test_adaptive_multichoice() {
+class qim_adaptivenopenalty_walkthrough_test extends qim_walkthrough_test_base {
+    public function test_multichoice() {
 
         // Create a multiple choice, single response question.
         $mc = test_question_maker::make_a_multichoice_single_question();
         $mc->penalty = 0.3333333;
-        $this->start_attempt_at_question($mc, 'adaptive', 3);
+        $this->start_attempt_at_question($mc, 'adaptivenopenalty', 3);
 
         $rightindex = $this->get_mc_right_answer_index($mc);
         $wrongindex = ($rightindex + 1) % 3;
@@ -80,7 +80,7 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
 
         // Verify.
         $this->check_current_state(question_state::COMPLETE);
-        $this->check_current_mark(3 * (1 - $mc->penalty));
+        $this->check_current_mark(3);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, true, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
@@ -92,7 +92,7 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
 
         // Verify.
         $this->check_current_state(question_state::GRADED_CORRECT);
-        $this->check_current_mark(3 * (1 - $mc->penalty));
+        $this->check_current_mark(3);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, false, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
@@ -123,13 +123,13 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
         $this->assertWithinMargin($autogradedstep->get_fraction(), 0, 0.0000001);
     }
 
-    public function test_adaptive_multichoice2() {
+    public function test_multichoice2() {
 
         // Create a multiple choice, multiple response question.
         $mc = test_question_maker::make_a_multichoice_multi_question();
         $mc->penalty = 0.3333333;
         $mc->shuffleanswers = 0;
-        $this->start_attempt_at_question($mc, 'adaptive', 2);
+        $this->start_attempt_at_question($mc, 'adaptivenopenalty', 2);
 
         // Check the initial state.
         $this->check_current_state(question_state::INCOMPLETE);

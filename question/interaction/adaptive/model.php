@@ -17,8 +17,7 @@
 
 
 /**
- * Question iteraction model for the case when the student's answer is just
- * saved until they submit the whole attempt, and then it is graded.
+ * Question iteraction model for the old adaptive mode.
  *
  * @package qim_adaptive
  * @copyright 2009 The Open University
@@ -27,10 +26,9 @@
 
 
 /**
- * Question interaction model for deferred feedback.
+ * Question interaction model for adaptive mode.
  *
- * The student enters their response during the attempt, and it is saved. Later,
- * when the whole attempt is finished, their answer is graded.
+ * This is the old version of interactive mode.
  *
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -81,6 +79,10 @@ class qim_adaptive extends question_interaction_model_with_save {
         return $status;
     }
 
+    protected function adjusted_fraction($fraction, $prevtries) {
+        return $fraction - $this->question->penalty * $prevtries;
+    }
+
     public function process_submit(question_attempt_step $pendingstep) {
         $status = $this->process_save($pendingstep);
 
@@ -97,7 +99,7 @@ class qim_adaptive extends question_interaction_model_with_save {
 
         list($fraction, $state) = $this->question->grade_response($response);
 
-        $pendingstep->set_fraction(max($prevbest, $fraction - $this->question->penalty * $prevtries));
+        $pendingstep->set_fraction(max($prevbest, $this->adjusted_fraction($fraction, $prevtries)));
         if ($state == question_state::GRADED_CORRECT) {
             $pendingstep->set_state(question_state::COMPLETE);
         } else {
@@ -135,7 +137,7 @@ class qim_adaptive extends question_interaction_model_with_save {
 
         list($fraction, $state) = $this->question->grade_response($response);
 
-        $pendingstep->set_fraction(max($prevbest, $fraction - $this->question->penalty * $prevtries));
+        $pendingstep->set_fraction(max($prevbest, $this->adjusted_fraction($fraction, $prevtries)));
         $pendingstep->set_state($state);
         $pendingstep->set_im_var('_try', $prevtries + 1);
         $pendingstep->set_im_var('_rawfraction', $fraction);

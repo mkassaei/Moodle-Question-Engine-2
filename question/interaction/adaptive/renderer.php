@@ -25,7 +25,6 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 class qim_adaptive_renderer extends qim_renderer {
     protected function get_graded_step(question_attempt $qa) {
         foreach ($qa->get_reverse_step_iterator() as $step) {
@@ -65,10 +64,10 @@ class qim_adaptive_renderer extends qim_renderer {
         $mark->max = $qa->format_max_mark($options->markdp);
 
         $actualmark = $gradedstep->get_fraction() * $qa->get_max_mark();
-        $mark->cur = round($actualmark, $options->markdp);
+        $mark->cur = format_float($actualmark, $options->markdp);
 
         $rawmark = $gradedstep->get_im_var('_rawfraction') * $qa->get_max_mark();
-        $mark->raw = round($rawmark, $options->markdp);
+        $mark->raw = format_float($rawmark, $options->markdp);
 
         // let student know wether the answer was correct
         if (question_state::is_commented($qa->get_state())) {
@@ -80,23 +79,33 @@ class qim_adaptive_renderer extends qim_renderer {
 
         $gradingdetails = get_string('gradingdetails', 'qim_adaptive', $mark);
 
-        if ($qa->get_question()->penalty) {
-            // print details of grade adjustment due to penalties
-            if ($mark->raw != $mark->cur){
-                $gradingdetails .= ' ' . get_string('gradingdetailsadjustment', 'qim_adaptive', $mark);
-            }
-            // print info about new penalty
-            // penalty is relevant only if the answer is not correct and further attempts are possible
-            if (!question_state::is_finished($qa->get_state())) {
-                $gradingdetails .= ' ' . get_string('gradingdetailspenalty', 'qim_adaptive', $qa->get_question()->penalty);
-            }
-        }
+        $gradingdetails .= $this->penalty_info($qa, $mark);
 
         $output = '';
         $output .= $this->output_tag('div', array('class' => 'correctness ' . $class),
                 get_string($class, 'question'));
         $output .= $this->output_tag('div', array('class' => 'gradingdetails'),
                 $gradingdetails);
+        return $output;
+    }
+
+    protected function penalty_info($qa, $mark) {
+        if (!$qa->get_question()->penalty) {
+            return '';
+        }
+        $output = '';
+
+        // print details of grade adjustment due to penalties
+        if ($mark->raw != $mark->cur){
+            $output .= ' ' . get_string('gradingdetailsadjustment', 'qim_adaptive', $mark);
+        }
+
+        // print info about new penalty
+        // penalty is relevant only if the answer is not correct and further attempts are possible
+        if (!question_state::is_finished($qa->get_state())) {
+            $output .= ' ' . get_string('gradingdetailspenalty', 'qim_adaptive', $qa->get_question()->penalty);
+        }
+
         return $output;
     }
 }
