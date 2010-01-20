@@ -139,6 +139,13 @@ class mod_quiz_mod_form extends moodleform_mod {
         $mform->setAdvanced('preferredmodel', $CFG->quiz_fix_preferredmodel);
         $mform->setDefault('preferredmodel', $CFG->quiz_preferredmodel);
 
+    /// Each attempt builds on last.
+        $mform->addElement('selectyesno', 'attemptonlast', get_string('eachattemptbuildsonthelast', 'quiz'));
+        $mform->setHelpButton('attemptonlast', array('repeatattempts', get_string('eachattemptbuildsonthelast', 'quiz'), 'quiz'));
+        $mform->setAdvanced('attemptonlast', $CFG->quiz_fix_attemptonlast);
+        $mform->setDefault('attemptonlast', $CFG->quiz_attemptonlast);
+        $mform->disabledIf('attemptonlast', 'attempts', 'eq', 1);
+
 //-------------------------------------------------------------------------------
         $mform->addElement('header', 'reviewoptionshdr', get_string('reviewoptionsheading', 'quiz'));
         $mform->setHelpButton('reviewoptionshdr', array('reviewoptions', get_string('reviewoptionsheading','quiz'), 'quiz'));

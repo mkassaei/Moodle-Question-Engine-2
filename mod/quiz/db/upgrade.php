@@ -222,9 +222,7 @@ function xmldb_quiz_upgrade($oldversion=0) {
     // Populate preferredmodel column based on old optionflags column.
     if ($result && $oldversion < 2008000101) {
         $result = $result && set_field_select('quiz', 'preferredmodel', 'deferredfeedback',
-                'optionflags = 0 AND attemptonlast = 0');
-        $result = $result && set_field_select('quiz', 'preferredmodel', 'eachattemptonlast',
-                'optionflags = 0 AND attemptonlast <> 0');
+                'optionflags = 0');
         $result = $result && set_field_select('quiz', 'preferredmodel', 'adaptive',
                 'optionflags <> 0 AND penaltyscheme <> 0');
         $result = $result && set_field_select('quiz', 'preferredmodel', 'adaptivenopenalty',
@@ -275,17 +273,33 @@ function xmldb_quiz_upgrade($oldversion=0) {
         upgrade_mod_savepoint($result, 2008000104, 'quiz');
     }
 
-    // Drop the old attemptonlast field.
-    if ($result && $oldversion < 2008000105) {
+//    // Drop the old attemptonlast field.
+//    if ($result && $oldversion < 2008000105) {
+//        $table = new XMLDBTable('quiz');
+//        $field = new XMLDBField('attemptonlast');
+//        $result = $result && drop_field($table, $field);
+//
+//        $result = $result && unset_config('quiz_attemptonlast');
+//        $result = $result && unset_config('quiz_fix_attemptonlast');
+//
+//        // quiz savepoint reached
+//        upgrade_mod_savepoint($result, 2008000105, 'quiz');
+//    }
+
+    // Actually, we don't want to drop the old attemptonlast field. Put it back if it was dropped.
+    if ($result && $oldversion < 2008000106) {
         $table = new XMLDBTable('quiz');
         $field = new XMLDBField('attemptonlast');
-        $result = $result && drop_field($table, $field);
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, null, null, '0', 'attempts');
 
-        $result = $result && unset_config('quiz_attemptonlast');
-        $result = $result && unset_config('quiz_fix_attemptonlast');
+        if (!field_exists($table, $field)) {
+            $result = $result && add_field($table, $field);        $table = new XMLDBTable('quiz');
+            $result = $result && set_config('quiz_attemptonlast', 0);
+            $result = $result && set_config('quiz_fix_attemptonlast', 1);
+        }
 
         // quiz savepoint reached
-        upgrade_mod_savepoint($result, 2008000105, 'quiz');
+        upgrade_mod_savepoint($result, 2008000106, 'quiz');
     }
 
     commit_sql();

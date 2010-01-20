@@ -31,6 +31,9 @@
     if (!isset($form->preferredmodel)) {
         $form->preferredmodel = $CFG->quiz_preferredmodel;
     }
+    if (!isset($form->attemptonlast)) {
+        $form->attemptonlast = $CFG->quiz_attemptonlast;
+    }
     if (!isset($form->shuffleanswers)) {
         $form->shuffleanswers = $CFG->quiz_shuffleanswers;
     }
@@ -246,6 +249,20 @@
   <td align="center">
     <input type="hidden" name="fix_preferredmodel" value="0" />
     <input type="checkbox" name="fix_preferredmodel" value="1" <?php echo $CFG->quiz_fix_preferredmodel ? 'checked="checked"' : ''; ?> />
+  </td>
+</tr>
+
+<tr valign="top">
+  <td align="right"><b><?php print_string("eachattemptbuildsonthelast", "quiz") ?>:</b></td>
+  <td>
+    <?php
+       choose_from_menu ($yesnooptions, "attemptonlast", $form->attemptonlast, "", "", "");
+       helpbutton("repeatattempts", get_string("eachattemptbuildsonthelast", "quiz"), "quiz");
+    ?>
+  </td>
+  <td align="center">
+    <input type="hidden" name="fix_attemptonlast" value="0" />
+    <input type="checkbox" name="fix_attemptonlast" value="1" <?php echo $CFG->quiz_fix_attemptonlast ? 'checked="checked"' : ''; ?> />
   </td>
 </tr>
 
