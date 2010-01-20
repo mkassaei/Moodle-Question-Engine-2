@@ -38,6 +38,17 @@
 class qim_manualgraded extends question_interaction_model_with_save {
     const IS_ARCHETYPAL = true;
 
+    public function adjust_display_options(question_display_options $options) {
+        if (question_state::is_finished($this->qa->get_state())) {
+            $options->readonly = true;
+            $options->feedback = question_display_options::HIDDEN;
+            $options->correctresponse = question_display_options::HIDDEN;
+
+        } else {
+            $options->hide_all_feedback();
+        }
+    }
+
     public function process_action(question_attempt_step $pendingstep) {
         if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);

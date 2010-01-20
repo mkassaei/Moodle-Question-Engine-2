@@ -381,7 +381,11 @@ class qim_walkthrough_test_base extends UnitTestCase {
     }
 
     protected function get_does_not_contain_feedback_expectation() {
-        return new NoPatternExpectation('/class="(general)?feedback"/');
+        return new NoPatternExpectation('/class="feedback"/');
+    }
+
+    protected function get_does_not_contain_specific_feedback_expectation() {
+        return new NoPatternExpectation('/class="specificfeedback"/');
     }
 
     protected function get_contains_radio_expectation($baseattr, $enabled, $checked) {

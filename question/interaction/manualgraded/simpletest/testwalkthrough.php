@@ -36,6 +36,10 @@ class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
         $essay = test_question_maker::make_an_essay_question();
         $this->start_attempt_at_question($essay, 'deferredfeedback', 10);
 
+        // Check the right model is being used.
+        $this->assertEqual('manualgraded', $this->quba->
+                get_question_attempt($this->qnumber)->get_interaction_model_name());
+
         // Check the initial state.
         $this->check_current_state(question_state::INCOMPLETE);
         $this->check_current_mark(null);
@@ -89,5 +93,49 @@ class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
         // Verify.
         $this->check_current_state(question_state::MANUALLY_GRADED_CORRECT);
         $this->check_current_mark(1);
+    }
+
+    public function test_manual_graded_truefalse() {
+
+        // Create a true-false question with correct answer true.
+        $tf = test_question_maker::make_a_truefalse_question();
+        $this->start_attempt_at_question($tf, 'manualgraded', 2);
+
+        // Check the initial state.
+        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_question_text_expectation($tf),
+                $this->get_does_not_contain_feedback_expectation());
+
+        // Process a true answer and check the expected result.
+        $this->process_submission(array('answer' => 1));
+
+        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_tf_true_radio_expectation(true, true),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation());
+
+        // Finish the attempt.
+        $this->quba->finish_all_questions();
+
+        // Verify.
+        $this->check_current_state(question_state::NEEDS_GRADING);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_specific_feedback_expectation());
+
+        // Process a manual comment.
+        $this->manual_grade('Not good enough!', 1);
+
+        $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->check_current_mark(1);
+        $this->check_current_output(
+            $this->get_does_not_contain_correctness_expectation(),
+            $this->get_does_not_contain_specific_feedback_expectation(),
+            new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
     }
 }
