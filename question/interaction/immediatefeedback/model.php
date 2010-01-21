@@ -75,7 +75,7 @@ class qim_immediatefeedback extends question_interaction_model_with_save {
         }
 
         if (!$this->is_complete_response($pendingstep)) {
-            $pendingstep->set_state(question_state::$todo);
+            $pendingstep->set_state(question_state::$invalid);
 
         } else {
             list($fraction, $state) = $this->question->grade_response($pendingstep->get_qt_data());

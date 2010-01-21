@@ -33,22 +33,12 @@
  */
 class qtype_match_renderer extends qtype_renderer {
 
-    protected function get_response(question_attempt $qa) {
-        foreach ($qa->get_reverse_step_iterator() as $step) {
-            $response = $step->get_qt_data();
-            if (!empty($response)) {
-                return $response;
-            }
-        }
-        return array();
-    }
-
     public function formulation_and_controls(question_attempt $qa,
             question_display_options $options) {
 
         $question = $qa->get_question();
         $stemorder = $question->get_stem_order();
-        $response = $this->get_response($qa);
+        $response = $qa->get_last_qt_data();
 
         $choices = $this->format_choices($question);
 
@@ -97,12 +87,17 @@ class qtype_match_renderer extends qtype_renderer {
 
         $result .= $this->output_end_tag('div'); // ablock
 
+        if ($qa->get_state() == question_state::$invalid) {
+            $result .= $this->output_nonempty_tag('div', array('class' => 'validationerror'),
+                    $question->get_validation_error($response));
+        }
+
         return $result;
     }
 
     public function specific_feedback(question_attempt $qa) {
         $question = $qa->get_question();
-        $response = $this->get_response($qa);
+        $response = $qa->get_last_qt_data();
 
         if ($response) {
             return get_string('yougotnright', 'qtype_match', $question->get_num_right($response));

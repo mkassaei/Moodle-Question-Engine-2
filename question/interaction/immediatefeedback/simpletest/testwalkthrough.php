@@ -139,7 +139,7 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
         $this->process_submission(array('!submit' => 1));
 
         // Verify.
-        $this->check_current_state(question_state::$todo);
+        $this->check_current_state(question_state::$invalid);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation(0, true, false),
@@ -147,7 +147,8 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(2, true, false),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_correctness_expectation(),
-                $this->get_does_not_contain_feedback_expectation());
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_contains_validation_error_expectation());
 
         // Finish the attempt.
         $this->quba->finish_all_questions();

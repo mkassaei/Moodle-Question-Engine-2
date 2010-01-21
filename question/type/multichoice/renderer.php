@@ -118,8 +118,13 @@ abstract class qtype_multichoice_renderer_base extends qtype_renderer {
 
         $result .= $this->output_end_tag('div'); // ablock
 
+        if ($qa->get_state() == question_state::$invalid) {
+            $result .= $this->output_nonempty_tag('div', array('class' => 'validationerror'),
+                    $question->get_validation_error($qa->get_last_qt_data()));
+        }
+
         return $result;
-            }
+    }
 
     protected function number_html($qnum) {
         return $qnum . '. ';

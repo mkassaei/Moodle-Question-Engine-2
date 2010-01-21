@@ -127,6 +127,7 @@ $string['flagthisquestion'] = 'Flag this question';
 $string['generalfeedbackvisible'] = 'General feedback visible';
 $string['howquestionsbehave'] = 'How questions behave';
 $string['incorrect'] = 'Incorrect';
+$string['invalidanswer'] = 'Invalid answer';
 $string['markedoutof'] = 'Marked out of';
 $string['markandmax'] = 'Mark and max';
 $string['marksvisible'] = 'Marks visible';

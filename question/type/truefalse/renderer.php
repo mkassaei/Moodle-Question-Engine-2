@@ -109,6 +109,11 @@ class qtype_truefalse_renderer extends qtype_renderer {
 
         $result .= $this->output_end_tag('div'); // ablock
 
+        if ($qa->get_state() == question_state::$invalid) {
+            $result .= $this->output_nonempty_tag('div', array('class' => 'validationerror'),
+                    $question->get_validation_error(array('answer' => $currentanswer)));
+        }
+
         return $result;
     }
 

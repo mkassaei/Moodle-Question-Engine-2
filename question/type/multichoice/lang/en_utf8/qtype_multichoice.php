@@ -34,3 +34,4 @@ $string['partiallycorrectfeedback'] = 'For any partially correct response';
 $string['selectone'] = 'Select one:';
 $string['shuffleanswers'] = 'Shuffle the choices?';
 $string['singleanswer'] = 'Choose one answer.';
+$string['youmustselectananswer'] = 'You must select an answer.';

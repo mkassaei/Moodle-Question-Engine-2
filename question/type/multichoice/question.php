@@ -60,6 +60,13 @@ abstract class qtype_multichoice_base extends question_graded_automatically {
         }
     }
 
+    public function get_validation_error(array $response) {
+        if ($this->is_gradable_response($response)) {
+            return '';
+        }
+        return get_string('youmustselectananswer', 'qtype_multichoice');
+    }
+
     public function get_order(question_attempt $qa) {
         $this->init_order($qa);
         return $this->order;

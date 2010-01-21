@@ -331,6 +331,13 @@ abstract class question_graded_automatically extends question_with_responses
     public function is_gradable_response(array $response) {
         return $this->is_complete_response($response);
     }
+
+    /**
+     * In situations where is_gradable_response() returns false, this method
+     * should generate a description of what the problem is.
+     * @return string the message.
+     */
+    abstract public function get_validation_error(array $response);
 }
 
 

@@ -50,6 +50,13 @@ class qtype_numerical_question extends question_graded_by_strategy
                 ($response['answer'] || $response['answer'] === '0' || $response['answer'] === 0);
     }
 
+    public function get_validation_error(array $response) {
+        if ($this->is_gradable_response($response)) {
+            return '';
+        }
+        return get_string('youmustenterananswer', 'qtype_numerical');
+    }
+
     public function is_same_response(array $prevresponse, array $newresponse) {
         return (empty($prevresponse['answer']) && empty($newresponse['answer'])) ||
                 (!empty($prevresponse['answer']) && !empty($newresponse['answer']) &&

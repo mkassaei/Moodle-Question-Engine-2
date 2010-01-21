@@ -115,6 +115,13 @@ class qtype_match_question extends question_graded_automatically {
         return false;
     }
 
+    public function get_validation_error(array $response) {
+        if ($this->is_gradable_response($response)) {
+            return '';
+        }
+        return get_string('youmustselectananswer', 'qtype_multichoice');
+    }
+
     public function is_same_response(array $prevresponse, array $newresponse) {
         foreach ($this->stemorder as $key => $notused) {
             $fieldname = $this->field($key);

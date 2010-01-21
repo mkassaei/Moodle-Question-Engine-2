@@ -139,14 +139,15 @@ class qim_immediatecbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->process_submission(array('!submit' => 1));
 
         // Verify.
-        $this->check_current_state(question_state::$todo);
+        $this->check_current_state(question_state::$invalid);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation(0, true, false),
                 $this->get_contains_mc_radio_expectation(1, true, false),
                 $this->get_contains_mc_radio_expectation(2, true, false),
                 $this->get_contains_submit_button_expectation(true),
-                $this->get_does_not_contain_correctness_expectation());
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_contains_validation_error_expectation());
 
         // Finish the attempt.
         $this->quba->finish_all_questions();
@@ -168,6 +169,40 @@ class qim_immediatecbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_output(
                 $this->get_contains_partcorrect_expectation(),
                 new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
+    }
+
+    public function test_immediatecbm_feedback_shortanswer_try_to_submit_no_certainty() {
+
+        // Create a true-false question with correct answer true.
+        $sa = test_question_maker::make_a_shortanswer_question();
+        $this->start_attempt_at_question($sa, 'immediatecbm');
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation());
+
+        // Submit with certainty missing.
+        $this->process_submission(array('!submit' => 1, 'answer' => 'frog'));
+
+        // Verify.
+        $this->check_current_state(question_state::$invalid);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_contains_validation_error_expectation());
+
+        // Now get it right.
+        $this->process_submission(array('!submit' => 1, 'answer' => 'frog', '!certainty' => 3));
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedright);
+        $this->check_current_mark(1);
+        $this->check_current_output(
+                $this->get_does_not_contain_validation_error_expectation());
     }
 
     public function test_immediatecbm_feedback_multichoice_wrong_on_finish() {

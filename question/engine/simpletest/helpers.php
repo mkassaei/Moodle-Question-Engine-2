@@ -388,6 +388,14 @@ class qim_walkthrough_test_base extends UnitTestCase {
         return new NoPatternExpectation('/class="specificfeedback"/');
     }
 
+    protected function get_contains_validation_error_expectation() {
+        return new ContainsTagWithAttribute('div', 'class', 'validationerror');
+    }
+
+    protected function get_does_not_contain_validation_error_expectation() {
+        return new NoPatternExpectation('/class="validationerror"/');
+    }
+
     protected function get_contains_radio_expectation($baseattr, $enabled, $checked) {
         $expectedattributes = $baseattr;
         $forbiddenattributes = array();

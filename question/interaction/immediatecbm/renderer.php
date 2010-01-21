@@ -31,7 +31,12 @@ require_once(dirname(__FILE__) . '/../deferredcbm/renderer.php');
 
 class qim_immediatecbm_renderer extends qim_deferredcbm_renderer {
     public function controls(question_attempt $qa, question_display_options $options) {
-        return parent::controls($qa, $options) .
-                $this->submit_button($qa, $options);
+        $output = parent::controls($qa, $options);
+        if ($qa->get_state() == question_state::$invalid && !$qa->get_last_step()->has_im_var('certainty')) {
+            $output .= $this->output_tag('div', array('class' => 'validationerror'),
+                    get_string('youmustselectacertainty', 'qim_immediatecbm'));
+        }
+        $output .= $this->submit_button($qa, $options);
+        return $output;
     }
 }

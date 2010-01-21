@@ -16,3 +16,4 @@ $string['notenoughanswers'] = 'You must enter at least one answer.';
 $string['numerical'] = 'Numerical';
 $string['unit'] = 'Unit';
 $string['unithdr'] = 'Unit $a';
+$string['youmustenterananswer'] = 'You must enter an answer.';

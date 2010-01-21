@@ -78,8 +78,9 @@ class qim_immediatecbm extends qim_immediatefeedback {
             return question_attempt::DISCARD;
         }
 
-        if (!parent::is_complete_response($pendingstep)) {
-            $pendingstep->set_state(question_state::$todo);
+        if (!$this->qa->get_question()->is_gradable_response($pendingstep->get_qt_data()) ||
+                !$pendingstep->has_im_var('certainty')) {
+            $pendingstep->set_state(question_state::$invalid);
             return question_attempt::KEEP;
         }
 

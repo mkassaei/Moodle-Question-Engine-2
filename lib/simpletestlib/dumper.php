@@ -309,6 +309,9 @@
             if (! is_object($second)) {
                 return $this->_describeGenericDifference($first, $second);
             }
+            if (method_exists($first, '__toString') && method_exists($second, '__toString')) {
+                return "as [" . $first . "] does not match [" . $second . "]";
+            }
             return $this->_describeArrayDifference(
                     get_object_vars($first),
                     get_object_vars($second),

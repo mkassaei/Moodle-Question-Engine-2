@@ -48,6 +48,13 @@ class qtype_truefalse_question extends question_graded_automatically {
         return array_key_exists('answer', $response);
     }
 
+    public function get_validation_error(array $response) {
+        if ($this->is_gradable_response($response)) {
+            return '';
+        }
+        return get_string('youmustselectananswer', 'qtype_truefalse');
+    }
+
     public function is_same_response(array $prevresponse, array $newresponse) {
         return (!array_key_exists('answer', $prevresponse) && !array_key_exists('answer', $newresponse)) ||
                 (array_key_exists('answer', $prevresponse) && array_key_exists('answer', $newresponse) &&

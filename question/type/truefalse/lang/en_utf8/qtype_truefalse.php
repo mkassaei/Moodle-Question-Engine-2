@@ -11,3 +11,4 @@ $string['feedbacktrue'] = 'Feedback for the response \'True\'.';
 $string['selectone'] = 'Select one:';
 $string['true'] = 'True';
 $string['truefalse'] = 'True/False';
+$string['youmustselectananswer'] = 'You must select an answer.';

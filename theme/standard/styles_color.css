@@ -859,6 +859,9 @@ table.message_search_results td {
 .que .correct {
     background-color: #afa;
 }
+.que .validationerror {
+    color: #a00;
+}
 
 
 /***
