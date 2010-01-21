@@ -157,7 +157,7 @@ class core_question_renderer extends moodle_renderer_base {
             $summary = get_string('notgraded', 'question');
 
         } else if ($options->marks == question_display_options::MAX_ONLY ||
-                !question_state::is_graded($qa->get_state())) {
+                !$qa->get_state()->is_graded()) {
             $summary = get_string('markedoutofmax', 'question', $qa->format_max_mark($options->markdp));
 
         } else {

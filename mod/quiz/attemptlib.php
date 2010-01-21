@@ -1010,7 +1010,7 @@ abstract class quiz_nav_panel_base {
 
     protected function get_question_state_classes(question_attempt $qa) {
         // The current status of the question.
-        $classes = question_state::get_state_class($qa->get_state());
+        $classes = $qa->get_state()->get_state_class();
 
         // Plus a marker for the current page.
         if ($qa->get_question()->_page == $this->page) {

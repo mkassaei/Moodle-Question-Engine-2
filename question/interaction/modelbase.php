@@ -128,7 +128,7 @@ abstract class question_interaction_model {
      * the properties of this object - objects are passed by referece.
      */
     public function adjust_display_options(question_display_options $options) {
-        if (question_state::is_finished($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_finished()) {
             $options->readonly = true;
         } else {
             $options->hide_all_feedback();
@@ -261,8 +261,8 @@ abstract class question_interaction_model {
                     $pendingstep->get_im_var('maxmark'));
         }
 
-        $pendingstep->set_state(question_state::manually_graded_state_for_other_state(
-                $laststep->get_state(), $pendingstep->get_fraction()));
+        $pendingstep->set_state($laststep->get_state()->
+                corresponding_commented_state($pendingstep->get_fraction()));
         return question_attempt::KEEP;
     }
 }
@@ -313,7 +313,7 @@ abstract class question_interaction_model_with_save extends question_interaction
      * @return boolean either {@link question_attempt::KEEP} or {@link question_attempt::DISCARD}
      */
     public function process_save(question_attempt_step $pendingstep) {
-        if (!question_state::is_active($this->qa->get_state())) {
+        if (!$this->qa->get_state()->is_active()) {
             throw new Exception('Question is already closed, cannot process_actions.');
         }
         if ($this->is_same_response($pendingstep)) {
@@ -321,9 +321,9 @@ abstract class question_interaction_model_with_save extends question_interaction
         }
 
         if ($this->is_complete_response($pendingstep)) {
-            $pendingstep->set_state(question_state::COMPLETE);
+            $pendingstep->set_state(question_state::$complete);
         } else {
-            $pendingstep->set_state(question_state::INCOMPLETE);
+            $pendingstep->set_state(question_state::$todo);
         }
         return question_attempt::KEEP;
     }

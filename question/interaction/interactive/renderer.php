@@ -34,10 +34,10 @@
  */
 class qim_interactive_renderer extends qim_renderer {
     public function get_state_string(question_attempt $qa) {
-        if (question_state::is_active($qa->get_state())) {
+        if ($qa->get_state()->is_active()) {
             return get_string('triesremaining', 'qim_interactive', $qa->get_last_im_var('_triesleft'));
         } else {
-            return question_state::default_string($qa->get_state());
+            return $qa->get_state()->default_string();
         }
     }
 
@@ -46,7 +46,7 @@ class qim_interactive_renderer extends qim_renderer {
     }
 
     public function feedback(question_attempt $qa, question_display_options $options) {
-        if (question_state::is_active($qa->get_state()) && $options->readonly) {
+        if ($qa->get_state()->is_active() && $options->readonly) {
             $attributes = array(
                 'type' => 'submit',
                 'name' => $qa->get_im_field_name('tryagain'),

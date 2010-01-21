@@ -58,7 +58,7 @@ class qim_interactive extends question_interaction_model_with_save {
      * @return boolean are we are currently in the try_again state.
      */
     protected function is_try_again_state() {
-        return question_state::is_active($this->qa->get_state()) &&
+        return $this->qa->get_state()->is_active() &&
                 $this->qa->get_last_step()->get_im_var('submit');
     }
 
@@ -78,7 +78,7 @@ class qim_interactive extends question_interaction_model_with_save {
             return array(
                 'tryagain' => PARAM_BOOL,
             );
-        } else if (question_state::is_active($this->qa->get_state())) {
+        } else if ($this->qa->get_state()->is_active()) {
             return array(
                 'submit' => PARAM_BOOL,
             );
@@ -113,28 +113,28 @@ class qim_interactive extends question_interaction_model_with_save {
     }
 
     public function process_try_again(question_attempt_step $pendingstep) {
-        $pendingstep->set_state(question_state::INCOMPLETE);
+        $pendingstep->set_state(question_state::$todo);
         return question_attempt::KEEP;
     }
 
     public function process_submit(question_attempt_step $pendingstep) {
-        if (question_state::is_finished($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
 
         if (!$this->is_complete_response($pendingstep)) {
-            $pendingstep->set_state(question_state::INCOMPLETE);
+            $pendingstep->set_state(question_state::$todo);
 
         } else {
             $triesleft = $this->qa->get_last_im_var('_triesleft');
             list($fraction, $state) = $this->question->grade_response($pendingstep->get_qt_data());
-            if ($state == question_state::GRADED_CORRECT || $triesleft == 1) {
+            if ($state == question_state::$gradedright || $triesleft == 1) {
                 $pendingstep->set_state($state);
                 $pendingstep->set_fraction($this->adjust_fraction($fraction));
 
             } else {
                 $pendingstep->set_im_var('_triesleft', $triesleft - 1);
-                $pendingstep->set_state(question_state::INCOMPLETE);
+                $pendingstep->set_state(question_state::$todo);
             }
         }
         return question_attempt::KEEP;
@@ -150,13 +150,13 @@ class qim_interactive extends question_interaction_model_with_save {
     }
 
     public function process_finish(question_attempt_step $pendingstep) {
-        if (question_state::is_finished($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
 
         $response = $this->qa->get_last_qt_data();
         if (!$this->question->is_gradable_response($response)) {
-            $pendingstep->set_state(question_state::GAVE_UP);
+            $pendingstep->set_state(question_state::$gaveup);
 
         } else {
             list($fraction, $state) = $this->question->grade_response($response);
@@ -168,8 +168,8 @@ class qim_interactive extends question_interaction_model_with_save {
 
     public function process_save(question_attempt_step $pendingstep) {
         $status = parent::process_save($pendingstep);
-        if ($status == question_attempt::KEEP && $pendingstep->get_state() == question_state::COMPLETE) {
-            $pendingstep->set_state(question_state::INCOMPLETE);
+        if ($status == question_attempt::KEEP && $pendingstep->get_state() == question_state::$complete) {
+            $pendingstep->set_state(question_state::$todo);
         }
         return $status;
     }

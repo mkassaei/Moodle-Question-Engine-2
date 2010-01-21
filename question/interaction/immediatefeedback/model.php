@@ -49,7 +49,7 @@ class qim_immediatefeedback extends question_interaction_model_with_save {
     }
 
     public function get_expected_data() {
-        if (question_state::is_active($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_active()) {
             return array(
                 'submit' => PARAM_BOOL,
             );
@@ -70,12 +70,12 @@ class qim_immediatefeedback extends question_interaction_model_with_save {
     }
 
     public function process_submit(question_attempt_step $pendingstep) {
-        if (question_state::is_finished($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
 
         if (!$this->is_complete_response($pendingstep)) {
-            $pendingstep->set_state(question_state::INCOMPLETE);
+            $pendingstep->set_state(question_state::$todo);
 
         } else {
             list($fraction, $state) = $this->question->grade_response($pendingstep->get_qt_data());
@@ -86,13 +86,13 @@ class qim_immediatefeedback extends question_interaction_model_with_save {
     }
 
     public function process_finish(question_attempt_step $pendingstep) {
-        if (question_state::is_finished($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
 
         $response = $this->qa->get_last_step()->get_qt_data();
         if (!$this->question->is_gradable_response($response)) {
-            $pendingstep->set_state(question_state::GAVE_UP);
+            $pendingstep->set_state(question_state::$gaveup);
 
         } else {
             list($fraction, $state) = $this->question->grade_response($response);
@@ -104,8 +104,8 @@ class qim_immediatefeedback extends question_interaction_model_with_save {
 
     public function process_save(question_attempt_step $pendingstep) {
         $status = parent::process_save($pendingstep);
-        if ($status == question_attempt::KEEP && $pendingstep->get_state() == question_state::COMPLETE) {
-            $pendingstep->set_state(question_state::INCOMPLETE);
+        if ($status == question_attempt::KEEP && $pendingstep->get_state() == question_state::$complete) {
+            $pendingstep->set_state(question_state::$todo);
         }
         return $status;
     }

@@ -89,7 +89,7 @@ class qim_opaque extends question_interaction_model {
         if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);
         } else if ($this->is_same_response($pendingstep) ||
-                question_state::is_finished($this->qa->get_state())) {
+                $this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         } else {
             return $this->process_remote_action($pendingstep);
@@ -97,13 +97,13 @@ class qim_opaque extends question_interaction_model {
     }
 
     public function process_finish(question_attempt_step $pendingstep) {
-        if (question_state::is_finished($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
 
         // They tried to finish the usage without having finished this question.
         // That is, they gave up.
-        $pendingstep->set_state(question_state::GAVE_UP);
+        $pendingstep->set_state(question_state::$gaveup);
         return question_attempt::KEEP;
     }
 
@@ -116,7 +116,7 @@ class qim_opaque extends question_interaction_model {
         }
 
         if ($opaquestate->resultssequencenumber != $this->qa->get_num_steps()) {
-            $pendingstep->set_state(question_state::INCOMPLETE);
+            $pendingstep->set_state(question_state::$todo);
             $pendingstep->set_im_var('_statestring', $opaquestate->progressinfo);
 
         } else {
@@ -129,9 +129,10 @@ class qim_opaque extends question_interaction_model {
             }
 
             if ($opaquestate->results->attempts > 0) {
-                $pendingstep->set_state(question_state::GRADED_CORRECT);
+                $pendingstep->set_state(question_state::$gradedright);
             } else {
-                $pendingstep->set_state(question_state::graded_state_for_fraction($pendingstep->get_fraction()));
+                $pendingstep->set_state(
+                        question_state::graded_state_for_fraction($pendingstep->get_fraction()));
             }
 
 // TODO

@@ -30,8 +30,8 @@ class qim_opaque_renderer extends qim_renderer {
     public function get_state_string(question_attempt $qa) {
         $state = $qa->get_state();
         $omstate = $qa->get_last_im_var('_statestring');
-        if (question_state::is_finished($state)) {
-            return question_state::default_string($state);
+        if ($state->is_finished()) {
+            return $state->default_string();
         } else if ($omstate){
             return $omstate;
         } else {
@@ -40,7 +40,7 @@ class qim_opaque_renderer extends qim_renderer {
     }
 
     public function controls(question_attempt $qa, question_display_options $options) {
-        if (question_state::is_gave_up($qa->get_state())) {
+        if ($qa->get_state()->is_gave_up()) {
             return $this->output_tag('div', array('class' => 'question_aborted'),
                     get_string('notcompletedmessage', 'qtype_opaque'));
         }

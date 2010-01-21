@@ -41,7 +41,7 @@ class qim_adaptivenopenalty_walkthrough_test extends qim_walkthrough_test_base {
         $wrongindex = ($rightindex + 1) % 3;
 
         // Check the initial state.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_question_text_expectation($mc),
@@ -55,7 +55,7 @@ class qim_adaptivenopenalty_walkthrough_test extends qim_walkthrough_test_base {
         $this->process_submission(array('answer' => $wrongindex, '!submit' => 1));
 
         // Verify.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(0);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($wrongindex, true, true),
@@ -67,7 +67,7 @@ class qim_adaptivenopenalty_walkthrough_test extends qim_walkthrough_test_base {
         $this->process_submission(array('answer' => $rightindex));
 
         // Verify.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(0);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, true, true),
@@ -78,7 +78,7 @@ class qim_adaptivenopenalty_walkthrough_test extends qim_walkthrough_test_base {
         $this->process_submission(array('answer' => $rightindex, '!submit' => 1));
 
         // Verify.
-        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_state(question_state::$complete);
         $this->check_current_mark(3);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, true, true),
@@ -90,7 +90,7 @@ class qim_adaptivenopenalty_walkthrough_test extends qim_walkthrough_test_base {
         $this->quba->finish_all_questions();
 
         // Verify.
-        $this->check_current_state(question_state::GRADED_CORRECT);
+        $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(3);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, false, true),
@@ -102,7 +102,7 @@ class qim_adaptivenopenalty_walkthrough_test extends qim_walkthrough_test_base {
         $this->manual_grade('Not good enough!', 1);
 
         // Verify.
-        $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->check_current_state(question_state::$mangrpartial);
         $this->check_current_mark(1);
         $this->check_current_output(
                 new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
@@ -113,7 +113,7 @@ class qim_adaptivenopenalty_walkthrough_test extends qim_walkthrough_test_base {
         $this->quba->regrade_all_questions();
 
         // Verify.
-        $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->check_current_state(question_state::$mangrpartial);
         $this->check_current_mark(1);
         $this->check_current_output(
                 $this->get_contains_partcorrect_expectation());
@@ -131,7 +131,7 @@ class qim_adaptivenopenalty_walkthrough_test extends qim_walkthrough_test_base {
         $this->start_attempt_at_question($mc, 'adaptivenopenalty', 2);
 
         // Check the initial state.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_question_text_expectation($mc),
@@ -142,7 +142,7 @@ class qim_adaptivenopenalty_walkthrough_test extends qim_walkthrough_test_base {
         $this->process_submission(array('choice0' => 1, 'choice2' => 1, '!submit' => 1));
 
         // Verify.
-        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_state(question_state::$complete);
         $this->check_current_mark(2);
         $this->check_current_output(
                 $this->get_contains_submit_button_expectation(true),
@@ -154,14 +154,14 @@ class qim_adaptivenopenalty_walkthrough_test extends qim_walkthrough_test_base {
 
         // Verify.
         $this->check_step_count($numsteps);
-        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_state(question_state::$complete);
 
         // Finish the attempt.
         $this->quba->finish_all_questions();
 
         // Verify.
         $this->check_step_count($numsteps + 1);
-        $this->check_current_state(question_state::GRADED_CORRECT);
+        $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(2);
         $this->check_current_output(
                 $this->get_contains_submit_button_expectation(false),

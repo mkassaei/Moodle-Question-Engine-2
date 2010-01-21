@@ -137,7 +137,7 @@ if ($question->length) {
 $restartdisabled = '';
 $finishdisabled = '';
 $filldisabled = '';
-if (question_state::is_finished($quba->get_question_state($qnumber))) {
+if ($quba->get_question_state($qnumber)->is_finished()) {
     $finishdisabled = ' disabled="disabled"';
     $filldisabled = ' disabled="disabled"';
 }

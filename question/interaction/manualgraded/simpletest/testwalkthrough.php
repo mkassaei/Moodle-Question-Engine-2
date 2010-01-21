@@ -41,7 +41,7 @@ class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
                 get_question_attempt($this->qnumber)->get_interaction_model_name());
 
         // Check the initial state.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output($this->get_contains_question_text_expectation($essay),
                 $this->get_does_not_contain_feedback_expectation());
@@ -50,7 +50,7 @@ class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
         $this->process_submission(array('answer' => 'This is my wonderful essay!'));
 
         // Verify.
-        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_state(question_state::$complete);
         $this->check_current_mark(null);
         $this->check_current_output(
                 new ContainsTagWithAttribute('textarea', 'name',
@@ -65,7 +65,7 @@ class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
         // Process different data, check it creates a new step.
         $this->process_submission(array('answer' => ''));
         $this->check_step_count($numsteps + 1);
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
 
         // Change back, check it creates a new step.
         $this->process_submission(array('answer' => 'This is my wonderful essay!'));
@@ -75,14 +75,14 @@ class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
         $this->quba->finish_all_questions();
 
         // Verify.
-        $this->check_current_state(question_state::NEEDS_GRADING);
+        $this->check_current_state(question_state::$needsgrading);
         $this->check_current_mark(null);
 
         // Process a manual comment.
         $this->manual_grade('Not good enough!', 10);
 
         // Verify.
-        $this->check_current_state(question_state::MANUALLY_GRADED_CORRECT);
+        $this->check_current_state(question_state::$mangrright);
         $this->check_current_mark(10);
         $this->check_current_output(
                 new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
@@ -91,7 +91,7 @@ class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
         $this->quba->regrade_question($this->qnumber, 1);
 
         // Verify.
-        $this->check_current_state(question_state::MANUALLY_GRADED_CORRECT);
+        $this->check_current_state(question_state::$mangrright);
         $this->check_current_mark(1);
     }
 
@@ -102,7 +102,7 @@ class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
         $this->start_attempt_at_question($tf, 'manualgraded', 2);
 
         // Check the initial state.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_question_text_expectation($tf),
@@ -111,7 +111,7 @@ class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
         // Process a true answer and check the expected result.
         $this->process_submission(array('answer' => 1));
 
-        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_state(question_state::$complete);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_tf_true_radio_expectation(true, true),
@@ -122,7 +122,7 @@ class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
         $this->quba->finish_all_questions();
 
         // Verify.
-        $this->check_current_state(question_state::NEEDS_GRADING);
+        $this->check_current_state(question_state::$needsgrading);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_does_not_contain_correctness_expectation(),
@@ -131,7 +131,7 @@ class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
         // Process a manual comment.
         $this->manual_grade('Not good enough!', 1);
 
-        $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->check_current_state(question_state::$mangrpartial);
         $this->check_current_mark(1);
         $this->check_current_output(
             $this->get_does_not_contain_correctness_expectation(),

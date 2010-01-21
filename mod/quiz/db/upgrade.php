@@ -302,6 +302,31 @@ function xmldb_quiz_upgrade($oldversion=0) {
         upgrade_mod_savepoint($result, 2008000106, 'quiz');
     }
 
+    // Convert question_attempt_steps.state from int to char.
+    if ($result && $oldversion < 2008000107) {
+        $table = new XMLDBTable('question_attempt_steps');
+        $field = new XMLDBField('state');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '13', null, XMLDB_NOTNULL, null, null, null, null, 'sequencenumber');
+        $result = $result && change_field_type($table, $field);
+
+        $result = $result && set_field('question_attempt_steps', 'state', 'todo', 'state', 1);
+        $result = $result && set_field('question_attempt_steps', 'state', 'complete', 'state', 2);
+        $result = $result && set_field('question_attempt_steps', 'state', 'needsgrading', 'state', 16);
+        $result = $result && set_field('question_attempt_steps', 'state', 'finished', 'state', 17);
+        $result = $result && set_field('question_attempt_steps', 'state', 'gaveup', 'state', 18);
+        $result = $result && set_field('question_attempt_steps', 'state', 'gradedwrong', 'state', 24);
+        $result = $result && set_field('question_attempt_steps', 'state', 'gradedpartial', 'state', 25);
+        $result = $result && set_field('question_attempt_steps', 'state', 'gradedright', 'state', 26);
+        $result = $result && set_field('question_attempt_steps', 'state', 'manfinished', 'state', 49);
+        $result = $result && set_field('question_attempt_steps', 'state', 'mangaveup', 'state', 50);
+        $result = $result && set_field('question_attempt_steps', 'state', 'mangrwrong', 'state', 56);
+        $result = $result && set_field('question_attempt_steps', 'state', 'mangrpartial', 'state', 57);
+        $result = $result && set_field('question_attempt_steps', 'state', 'mangrright', 'state', 58);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000107, 'quiz');
+    }
+
     commit_sql();
 
     return $result;

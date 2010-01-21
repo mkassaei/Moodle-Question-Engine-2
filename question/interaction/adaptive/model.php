@@ -41,13 +41,13 @@ class qim_adaptive extends question_interaction_model_with_save {
     }
 
     public function get_expected_data() {
-        if (question_state::is_active($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_active()) {
             return array('submit' => PARAM_BOOL);
         }
     }
 
     public function adjust_display_options(question_display_options $options) {
-        if (question_state::is_finished($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_finished()) {
             $options->readonly = true;
         } else {
             $options->hide_all_feedback();
@@ -75,7 +75,7 @@ class qim_adaptive extends question_interaction_model_with_save {
         if (!is_null($prevgrade)) {
             $pendingstep->set_fraction($prevgrade);
         }
-        $pendingstep->set_state(question_state::INCOMPLETE);
+        $pendingstep->set_state(question_state::$todo);
         return $status;
     }
 
@@ -100,10 +100,10 @@ class qim_adaptive extends question_interaction_model_with_save {
         list($fraction, $state) = $this->question->grade_response($response);
 
         $pendingstep->set_fraction(max($prevbest, $this->adjusted_fraction($fraction, $prevtries)));
-        if ($state == question_state::GRADED_CORRECT) {
-            $pendingstep->set_state(question_state::COMPLETE);
+        if ($state == question_state::$gradedright) {
+            $pendingstep->set_state(question_state::$complete);
         } else {
-            $pendingstep->set_state(question_state::INCOMPLETE);
+            $pendingstep->set_state(question_state::$todo);
         }
         $pendingstep->set_im_var('_try', $prevtries + 1);
         $pendingstep->set_im_var('_rawfraction', $fraction);
@@ -112,14 +112,14 @@ class qim_adaptive extends question_interaction_model_with_save {
     }
 
     public function process_finish(question_attempt_step $pendingstep) {
-        if (question_state::is_finished($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
 
         $laststep = $this->qa->get_last_step();
         $response = $laststep->get_qt_data();
         if (!$this->question->is_gradable_response($response)) {
-            $pendingstep->set_state(question_state::GAVE_UP);
+            $pendingstep->set_state(question_state::$gaveup);
             return question_attempt::KEEP;
         }
 

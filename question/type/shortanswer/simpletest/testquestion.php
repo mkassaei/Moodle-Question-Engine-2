@@ -99,11 +99,11 @@ class qtype_shortanswer_question_test extends UnitTestCase {
     public function test_grading() {
         $question = test_question_maker::make_a_shortanswer_question();
 
-        $this->assertEqual(array(0, question_state::GRADED_INCORRECT),
+        $this->assertEqual(array(0, question_state::$gradedwrong),
                 $question->grade_response(array('answer' => 'x')));
-        $this->assertEqual(array(1, question_state::GRADED_CORRECT),
+        $this->assertEqual(array(1, question_state::$gradedright),
                 $question->grade_response(array('answer' => 'frog')));
-        $this->assertEqual(array(0.8, question_state::GRADED_PARTCORRECT),
+        $this->assertEqual(array(0.8, question_state::$gradedpartial),
                 $question->grade_response(array('answer' => 'toad')));
     }
 

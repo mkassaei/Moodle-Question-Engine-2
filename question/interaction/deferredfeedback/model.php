@@ -57,13 +57,13 @@ class qim_deferredfeedback extends question_interaction_model_with_save {
     }
 
     public function process_finish(question_attempt_step $pendingstep) {
-        if (question_state::is_finished($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
 
         $response = $this->qa->get_last_step()->get_qt_data();
         if (!$this->question->is_gradable_response($response)) {
-            $pendingstep->set_state(question_state::GAVE_UP);
+            $pendingstep->set_state(question_state::$gaveup);
         } else {
             list($fraction, $state) = $this->question->grade_response($response);
             $pendingstep->set_fraction($fraction);

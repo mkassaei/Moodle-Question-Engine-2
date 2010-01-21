@@ -42,14 +42,14 @@ class qim_informationitem extends question_interaction_model {
     }
 
     public function get_expected_data() {
-        if ($this->qa->get_state() == question_state::INCOMPLETE) {
+        if ($this->qa->get_state() == question_state::$todo) {
             return array('seen' => PARAM_BOOL);
         }
         return array();
     }
 
     public function get_correct_response() {
-        if ($this->qa->get_state() == question_state::INCOMPLETE) {
+        if ($this->qa->get_state() == question_state::$todo) {
             return array('seen' => 1);
         }
         return array();
@@ -75,12 +75,12 @@ class qim_informationitem extends question_interaction_model {
     }
 
     public function process_finish(question_attempt_step $pendingstep) {
-        $pendingstep->set_state(question_state::FINISHED);
+        $pendingstep->set_state(question_state::$finished);
         return question_attempt::KEEP;
     }
 
     public function process_seen(question_attempt_step $pendingstep) {
-        $pendingstep->set_state(question_state::COMPLETE);
+        $pendingstep->set_state(question_state::$complete);
         return question_attempt::KEEP;
     }
 }

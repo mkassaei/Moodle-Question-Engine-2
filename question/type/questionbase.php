@@ -383,7 +383,7 @@ abstract class question_graded_by_strategy extends question_graded_automatically
         if ($answer) {
             return array($answer->fraction, question_state::graded_state_for_fraction($answer->fraction));
         } else {
-            return array(0, question_state::GRADED_INCORRECT);
+            return array(0, question_state::$gradedwrong);
         }
     }
 }

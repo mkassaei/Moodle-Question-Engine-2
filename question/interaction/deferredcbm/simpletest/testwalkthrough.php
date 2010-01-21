@@ -37,7 +37,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->start_attempt_at_question($tf, 'deferredcbm', 2);
 
         // Verify.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_question_text_expectation($tf),
@@ -52,7 +52,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->process_submission(array('answer' => 1, '!certainty' => 3));
 
         // Verify.
-        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_state(question_state::$complete);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_tf_true_radio_expectation(true, true),
@@ -68,7 +68,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         // Process different data, check it creates a new step.
         $this->process_submission(array('answer' => 1, '!certainty' => 1));
         $this->check_step_count($numsteps + 1);
-        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_state(question_state::$complete);
 
         // Change back, check it creates a new step.
         $this->process_submission(array('answer' => 1, '!certainty' => 3));
@@ -78,7 +78,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->quba->finish_all_questions();
 
         // Verify.
-        $this->check_current_state(question_state::GRADED_CORRECT);
+        $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(2);
         $this->check_current_output(
                 $this->get_contains_tf_true_radio_expectation(false, true),
@@ -89,7 +89,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->manual_grade('Not good enough!', 1);
 
         // Verify.
-        $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->check_current_state(question_state::$mangrpartial);
         $this->check_current_mark(1);
         $this->check_current_output(new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
 
@@ -98,7 +98,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->quba->regrade_all_questions();
 
         // Verify.
-        $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->check_current_state(question_state::$mangrpartial);
         $this->check_current_mark(1);
         $autogradedstep = $this->get_step($this->get_step_count() - 2);
         $this->assertWithinMargin($autogradedstep->get_fraction(), -2, 0.0000001);
@@ -111,7 +111,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->start_attempt_at_question($tf, 'deferredcbm', 2);
 
         // Verify.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_does_not_contain_correctness_expectation(),
@@ -122,7 +122,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->process_submission(array('answer' => 1, '!certainty' => 1));
 
         // Verify.
-        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_state(question_state::$complete);
         $this->check_current_mark(null);
         $this->check_current_output($this->get_does_not_contain_correctness_expectation(),
                 $this->get_contains_cbm_radio_expectation(1, true, true),
@@ -132,7 +132,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->quba->finish_all_questions();
 
         // Verify.
-        $this->check_current_state(question_state::GRADED_CORRECT);
+        $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(0.6666667);
         $this->check_current_output($this->get_contains_correct_expectation(),
                 $this->get_contains_cbm_radio_expectation(1, false, true));

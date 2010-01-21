@@ -37,7 +37,7 @@ class qim_informationitem_walkthrough_test extends qim_walkthrough_test_base {
         $this->start_attempt_at_question($description, 'deferredfeedback');
 
         // Check the initial state.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output($this->get_contains_question_text_expectation($description),
                 new ContainsTagWithAttributes('input', array('type' => 'hidden',
@@ -47,7 +47,7 @@ class qim_informationitem_walkthrough_test extends qim_walkthrough_test_base {
         // Process a submission indicating this question has been seen.
         $this->process_submission(array('!seen' => 1));
 
-        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_state(question_state::$complete);
         $this->check_current_mark(null);
         $this->check_current_output($this->get_does_not_contain_correctness_expectation(),
                 new NoPatternExpectation('/type=\"hidden\"/'),
@@ -57,7 +57,7 @@ class qim_informationitem_walkthrough_test extends qim_walkthrough_test_base {
         $this->quba->finish_all_questions();
 
         // Verify.
-        $this->check_current_state(question_state::FINISHED);
+        $this->check_current_state(question_state::$finished);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_question_text_expectation($description),
@@ -66,7 +66,7 @@ class qim_informationitem_walkthrough_test extends qim_walkthrough_test_base {
         // Process a manual comment.
         $this->manual_grade('Not good enough!', null);
 
-        $this->check_current_state(question_state::FINISHED_COMMENTED);
+        $this->check_current_state(question_state::$manfinished);
         $this->check_current_mark(null);
         $this->check_current_output(
                 new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));

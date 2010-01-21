@@ -48,7 +48,7 @@ class qim_immediatecbm extends qim_immediatefeedback {
     }
 
     public function get_expected_data() {
-        if (question_state::is_active($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_active()) {
             return array(
                 'submit' => PARAM_BOOL,
                 'certainty' => PARAM_INT,
@@ -58,7 +58,7 @@ class qim_immediatecbm extends qim_immediatefeedback {
     }
 
     public function get_correct_response() {
-        if (question_state::is_active($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_active()) {
             return array('certainty' => question_cbm::HIGH);
         }
         return array();
@@ -74,12 +74,12 @@ class qim_immediatecbm extends qim_immediatefeedback {
     }
 
     public function process_submit(question_attempt_step $pendingstep) {
-        if (question_state::is_finished($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
 
         if (!parent::is_complete_response($pendingstep)) {
-            $pendingstep->set_state(question_state::INCOMPLETE);
+            $pendingstep->set_state(question_state::$todo);
             return question_attempt::KEEP;
         }
 
@@ -87,7 +87,7 @@ class qim_immediatecbm extends qim_immediatefeedback {
     }
 
     public function process_finish(question_attempt_step $pendingstep) {
-        if (question_state::is_finished($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
 
@@ -97,7 +97,7 @@ class qim_immediatecbm extends qim_immediatefeedback {
 
     protected function do_grading(question_attempt_step $responsesstep, question_attempt_step $pendingstep) {
         if (!$this->question->is_gradable_response($responsesstep->get_qt_data())) {
-            $pendingstep->set_state(question_state::GAVE_UP);
+            $pendingstep->set_state(question_state::$gaveup);
 
         } else {
             list($fraction, $state) = $this->question->grade_response($responsesstep->get_qt_data());

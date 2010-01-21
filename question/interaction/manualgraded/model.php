@@ -39,7 +39,7 @@ class qim_manualgraded extends question_interaction_model_with_save {
     const IS_ARCHETYPAL = true;
 
     public function adjust_display_options(question_display_options $options) {
-        if (question_state::is_finished($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_finished()) {
             $options->readonly = true;
             $options->feedback = question_display_options::HIDDEN;
             $options->correctresponse = question_display_options::HIDDEN;
@@ -60,15 +60,15 @@ class qim_manualgraded extends question_interaction_model_with_save {
     }
 
     public function process_finish(question_attempt_step $pendingstep) {
-        if (question_state::is_finished($this->qa->get_state())) {
+        if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
 
         $response = $this->qa->get_last_step()->get_qt_data();
         if (!$this->question->is_complete_response($response)) {
-            $pendingstep->set_state(question_state::GAVE_UP);
+            $pendingstep->set_state(question_state::$gaveup);
         } else {
-            $pendingstep->set_state(question_state::NEEDS_GRADING);
+            $pendingstep->set_state(question_state::$needsgrading);
         }
         return question_attempt::KEEP;
     }

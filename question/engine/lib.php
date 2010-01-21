@@ -238,103 +238,122 @@ abstract class question_engine {
  */
 abstract class question_state {
     /**#@+
-     * @var integer a state the question can be in.
+     * Specific question_state instances.
      */
-    const NOT_STARTED = -1;
-    const UNPROCESSED = 0;
-    const INCOMPLETE = 1;
-    const COMPLETE = 2;
-    const NEEDS_GRADING = 16;
-    const FINISHED = 17;
-    const GAVE_UP = 18;
-    const GRADED_INCORRECT = 24;
-    const GRADED_PARTCORRECT = 25;
-    const GRADED_CORRECT = 26;
-    const FINISHED_COMMENTED = 49;
-    const GAVE_UP_COMMENTED = 50;
-    const MANUALLY_GRADED_INCORRECT = 56;
-    const MANUALLY_GRADED_PARTCORRECT = 57;
-    const MANUALLY_GRADED_CORRECT = 58;
-    /**#@-*/
+    public static $notstarted;
+    public static $unprocessed;
+    public static $todo;
+    public static $invalid;
+    public static $complete;
+    public static $needsgrading;
+    public static $finished;
+    public static $gaveup;
+    public static $gradedwrong;
+    public static $gradedpartial;
+    public static $gradedright;
+    public static $manfinished;
+    public static $mangaveup;
+    public static $mangrwrong;
+    public static $mangrpartial;
+    public static $mangrright;
+    /**#@+-*/
+
+    private function __construct() {
+    }
+
+    public static function init() {
+        $us = new ReflectionClass('question_state');
+        foreach ($us->getStaticProperties() as $name => $notused) {
+            $class = 'question_state_' . $name;
+            $states[$name] = new $class();
+            self::$$name = $states[$name];
+        }
+    }
+
+    /**
+     * @return string convert this state to a string.
+     */
+    public function __tostring() {
+        return substr(get_class($this), 15);
+    }
+
+    /**
+     * @param string $name a state name.
+     * @return question_state the state with that name.
+     */
+    public static function get($name) {
+        return self::$$name;
+    }
 
     /**
      * Is this state one of the ones that mean the question attempt is in progress?
      * That is, started, but no finished.
-     * @param integer $state one of the state constants.
      * @return boolean
      */
-    public static function is_active($state) {
-        return $state == self::INCOMPLETE || $state == self::COMPLETE;
+    public function is_active() {
+        return false;
     }
 
     /**
      * Is this state one of the ones that mean the question attempt is finished?
      * That is, not furthre interaction possible, apart from manual grading.
-     * @param $state
      * @return boolean
      */
-    public static function is_finished($state) {
-        return $state >= self::NEEDS_GRADING;
+    public function is_finished() {
+        return true;
     }
 
     /**
      * Is this state one of the ones that mean the question attempt has been graded?
-     * @param integer $state one of the state constants.
      * @return boolean
      */
-    public static function is_graded($state) {
-        return ($state >= self::GRADED_INCORRECT && $state <= self::GRADED_CORRECT) ||
-                ($state >= self::MANUALLY_GRADED_INCORRECT && $state <= self::MANUALLY_GRADED_CORRECT);
+    public function is_graded() {
+        return false;
     }
 
     /**
      * Is this state one of the ones that mean the question attempt has been graded?
-     * @param integer $state one of the state constants.
      * @return boolean
      */
-    public static function is_correct($state) {
-        return $state == self::GRADED_CORRECT || $state == self::MANUALLY_GRADED_CORRECT;
+    public function is_correct() {
+        return false;
     }
 
     /**
      * Is this state one of the ones that mean the question attempt has been graded?
-     * @param integer $state one of the state constants.
      * @return boolean
      */
-    public static function is_partially_correct($state) {
-        return $state == self::GRADED_PARTCORRECT || $state == self::MANUALLY_GRADED_PARTCORRECT;
+    public function is_partially_correct() {
+        return false;
     }
 
     /**
      * Is this state one of the ones that mean the question attempt has been graded?
-     * @param integer $state one of the state constants.
      * @return boolean
      */
-    public static function is_incorrect($state) {
-        return $state == self::GRADED_INCORRECT || $state == self::MANUALLY_GRADED_INCORRECT;
+    public function is_incorrect() {
+        return false;
     }
 
     /**
      * Is this state one of the ones that mean the question attempt has been graded?
-     * @param integer $state one of the state constants.
      * @return boolean
      */
-    public static function is_gave_up($state) {
-        return $state == self::GAVE_UP || $state == self::GAVE_UP_COMMENTED;
+    public function is_gave_up() {
+        return false;
     }
 
     /**
      * Is this state one of the ones that mean the question attempt has had a manual comment added?
-     * @param integer $state one of the state constants.
      * @return boolean
      */
-    public static function is_commented($state) {
-        return $state >= self::FINISHED_COMMENTED;
+    public function is_commented() {
+        return false;
     }
 
     /**
      * Return the appropriate graded state based on a fraction. That is 0 or less
-     * is GRADED_INCORRECT, 1 is GRADED_CORRECT, otherwise it is GRADED_PARTCORRECT.
+     * is $graded_incorrect, 1 is $graded_correct, otherwise it is $graded_partcorrect.
      * Appropriate allowance is made for rounding float values.
      *
      * @param number $fraction the grade, on the fraction scale.
@@ -342,116 +361,244 @@ abstract class question_state {
      */
     public static function graded_state_for_fraction($fraction) {
         if ($fraction < 0.0000001) {
-            return self::GRADED_INCORRECT;
+            return self::$gradedwrong;
         } else if ($fraction > 0.9999999) {
-            return self::GRADED_CORRECT;
+            return self::$gradedright;
         } else {
-            return self::GRADED_PARTCORRECT;
+            return self::$gradedpartial;
+        }
+    }
+
+    /**
+     * Return the appropriate manually graded state based on a fraction. That is 0 or less
+     * is $manually_graded_incorrect, 1 is $manually_graded_correct, otherwise it is
+     * $manually_graded_partcorrect. Appropriate allowance is made for rounding float values.
+     *
+     * @param number $fraction the grade, on the fraction scale.
+     * @return integer one of the state constants.
+     */
+    public static function manually_graded_state_for_fraction($fraction) {
+        if ($fraction < 0.0000001) {
+            return self::$mangrwrong;
+        } else if ($fraction > 0.9999999) {
+            return self::$mangrright;
+        } else {
+            return self::$mangrpartial;
         }
     }
 
     /**
      * Compute an appropriate state to move to after a manual comment has been
-     * added to another state.
-     * @param integer $state the starting state.
+     * added to this state.
      * @param number $fraction the manual grade (if any) on the fraction scale.
      * @return integer the new state.
      */
-    public static function manually_graded_state_for_other_state($state, $fraction) {
-        $oldstate = $state & 0xFFFFFFDF;
-        switch ($oldstate) {
-            case self::FINISHED:
-                return self::FINISHED_COMMENTED;
-            case self::GAVE_UP:
-                if (is_null($fraction)) {
-                    return self::GAVE_UP_COMMENTED;
-                }
-                // Else fall through.
-            case self::NEEDS_GRADING:
-            case self::GRADED_INCORRECT:
-            case self::GRADED_PARTCORRECT:
-            case self::GRADED_CORRECT:
-                return self::graded_state_for_fraction($fraction) + 32;
-            default:
-                throw new Exception('Illegal state transition.');
-        }
+    public function corresponding_commented_state($fraction) {
+        throw new Exception('Unexpected question state.');
     }
 
     /**
      * Return an appropriate CSS class name ''/'correct'/'partiallycorrect'/'incorrect',
      * for a state.
-     * @param $state one of the state constants.
      * @return string
      */
-    public static function get_feedback_class($state) {
-        switch ($state) {
-            case self::GRADED_CORRECT:
-            case self::MANUALLY_GRADED_CORRECT:
-                return 'correct';
-            case self::GRADED_PARTCORRECT:
-            case self::MANUALLY_GRADED_PARTCORRECT:
-                return 'partiallycorrect';
-            case self::GRADED_INCORRECT:
-            case self::MANUALLY_GRADED_INCORRECT:
-            case self::GAVE_UP;
-            case self::GAVE_UP_COMMENTED;
-                return 'incorrect';
-            default:
-                return '';
-        }
+    public function get_feedback_class() {
+        return '';
     }
 
     /**
-     * Return an appropriate string from the language pack for a state. This is
-     * used, for example, by {@link qim_renderer::get_state_string()}. However,
-     * some interaction models sometimes change this default string for
-     * soemthing more specific.
+     * Return the name of an appropriate string to look up in the question
+     * language pack for a state. This is used, for example, by
+     * {@link qim_renderer::get_state_string()}. However, some interaction
+     * models sometimes change this default string for soemthing more specific.
      *
-     * @param integer $state one of the state constants.
-     * @return string a string from the lang pack that can be used in the UI.
+     * @return string the name of a string that can be looked up in the 'question'
+     *      lang pack, or used as a CSS class name, etc.
      */
-    public static function get_state_class($state) {
-        switch ($state) {
-            case self::INCOMPLETE;
-                return 'notyetanswered';
-            case self::COMPLETE;
-                return 'answersaved';
-            case self::NEEDS_GRADING;
-                return 'requiresgrading';
-            case self::FINISHED;
-            case self::FINISHED_COMMENTED;
-                return 'complete';
-            case self::GAVE_UP;
-            case self::GAVE_UP_COMMENTED;
-                return 'notanswered';
-            case self::GRADED_INCORRECT:
-            case self::MANUALLY_GRADED_INCORRECT:
-                return 'incorrect';
-            case self::GRADED_PARTCORRECT:
-            case self::MANUALLY_GRADED_PARTCORRECT:
-                return 'partiallycorrect';
-            case self::GRADED_CORRECT:
-            case self::MANUALLY_GRADED_CORRECT:
-                return 'correct';
-            default:
-                throw new Exception('Unknown question state.');
-        }
-    }
+    public abstract function get_state_class();
 
     /**
-     * Return an appropriate string from the language pack for a state. This is
-     * used, for example, by {@link qim_renderer::get_state_string()}. However,
-     * some interaction models sometimes change this default string for
-     * soemthing more specific.
+     * The result of doing get_string on the result of {@link get_state_class()}.
      *
-     * @param integer $state one of the state constants.
      * @return string a string from the lang pack that can be used in the UI.
      */
-    public static function default_string($state) {#
-        return get_string(self::get_state_class($state), 'question');
+    public function default_string() {
+        return get_string($this->get_state_class(), 'question');
     }
 }
 
+
+/**#@+
+ * Specific question_state subclasses.
+ *
+ * @copyright © 2009 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_state_notstarted extends question_state {
+    public function is_finished() {
+        return false;
+    }
+    public function get_state_class() {
+        throw new Exception('Unexpected question state.');
+    }
+}
+class question_state_unprocessed extends question_state {
+    public function is_finished() {
+        return false;
+    }
+    public function get_state_class() {
+        throw new Exception('Unexpected question state.');
+    }
+}
+class question_state_todo extends question_state {
+    public function is_active() {
+        return true;
+    }
+    public function is_finished() {
+        return false;
+    }
+    public function get_state_class() {
+        return 'notyetanswered';
+    }
+}
+class question_state_invalid extends question_state {
+    public function is_active() {
+        return true;
+    }
+    public function is_finished() {
+        return false;
+    }
+    public function get_state_class() {
+        return 'invalidanswer';
+    }
+}
+class question_state_complete extends question_state {
+    public function is_active() {
+        return true;
+    }
+    public function is_finished() {
+        return false;
+    }
+    public function get_state_class() {
+        return 'answersaved';
+    }
+}
+class question_state_needsgrading extends question_state {
+    public function get_state_class() {
+        return 'requiresgrading';
+    }
+    public function corresponding_commented_state($fraction) {
+        return self::manually_graded_state_for_fraction($fraction);
+    }
+}
+class question_state_finished extends question_state {
+    public function get_state_class() {
+        return 'complete';
+    }
+    public function corresponding_commented_state($fraction) {
+        return self::$manfinished;
+    }
+}
+class question_state_gaveup extends question_state {
+    public function is_gave_up() {
+        return true;
+    }
+    public function get_feedback_class() {
+        return 'incorrect';
+    }
+    public function get_state_class() {
+        return 'notanswered';
+    }
+    public function corresponding_commented_state($fraction) {
+        if (is_null($fraction)) {
+            return self::$mangaveup;
+        } else {
+            return self::manually_graded_state_for_fraction($fraction);
+        }
+    }
+}
+abstract class question_state_graded extends question_state {
+    public function is_graded() {
+        return true;
+    }
+    public function get_state_class() {
+        return $this->get_feedback_class();
+    }
+    public function corresponding_commented_state($fraction) {
+        return self::manually_graded_state_for_fraction($fraction);
+    }
+}
+class question_state_gradedwrong extends question_state_graded {
+    public function is_incorrect() {
+        return true;
+    }
+    public function get_feedback_class() {
+        return 'incorrect';
+    }
+}
+class question_state_gradedpartial extends question_state_graded {
+    public function is_graded() {
+        return true;
+    }
+    public function is_partially_correct() {
+        return true;
+    }
+    public function get_feedback_class() {
+        return 'partiallycorrect';
+    }
+}
+class question_state_gradedright extends question_state_graded {
+    public function is_graded() {
+        return true;
+    }
+    public function is_correct() {
+        return true;
+    }
+    public function get_feedback_class() {
+        return 'correct';
+    }
+}
+class question_state_manfinished extends question_state_finished {
+    public function is_commented() {
+        return true;
+    }
+}
+class question_state_mangaveup extends question_state_gaveup {
+    public function is_commented() {
+        return true;
+    }
+}
+abstract class question_state_manuallygraded extends question_state_graded {
+    public function is_commented() {
+        return true;
+    }
+}
+class question_state_mangrwrong extends question_state_manuallygraded {
+    public function is_incorrect() {
+        return false;
+    }
+    public function get_feedback_class() {
+        return 'incorrect';
+    }
+}
+class question_state_mangrpartial extends question_state_manuallygraded {
+    public function is_partially_correct() {
+        return true;
+    }
+    public function get_feedback_class() {
+        return 'partiallycorrect';
+    }
+}
+class question_state_mangrright extends question_state_manuallygraded {
+    public function is_correct() {
+        return true;
+    }
+    public function get_feedback_class() {
+        return 'correct';
+    }
+}
+/**#@-*/
+question_state::init();
 
 /**
  * This class contains all the options that controls how a question is displayed.
@@ -903,7 +1050,7 @@ class question_usage_by_activity {
     /**
      * Get the current state of the attempt at a question.
      * @param integer $qnumber the number used to identify this question within this usage.
-     * @return integer one of the {@link question_state} constants.
+     * @return question_state.
      */
     public function get_question_state($qnumber) {
         return $this->get_question_attempt($qnumber)->get_state();
@@ -1596,7 +1743,7 @@ class question_attempt {
     /**
      * Get the current state of this question attempt. That is, the state of the
      * latest step.
-     * @return integer one of the {@link question_state} constants.
+     * @return question_state
      */
     public function get_state() {
         return $this->get_last_step()->get_state();
@@ -1724,7 +1871,7 @@ class question_attempt {
         }
         $this->minfraction = $this->interactionmodel->get_min_fraction();
         $firststep = new question_attempt_step($submitteddata, $timestamp, $userid);
-        $firststep->set_state(question_state::INCOMPLETE);
+        $firststep->set_state(question_state::$todo);
         $this->interactionmodel->init_first_step($firststep);
         $this->add_step($firststep);
     }
@@ -2078,8 +2225,8 @@ class question_attempt_step {
     /** @var integer if this attempts is stored in the question_attempts table, the id of that row. */
     private $id = null;
 
-    /** @var integer one of the {@link question_state} constants. The state after this step. */
-    private $state = question_state::UNPROCESSED;
+    /** @var question_state one of the {@link question_state} constants. The state after this step. */
+    private $state;
 
     /** @var null|number the fraction (grade on a scale of minfraction .. 1.0) or null. */
     private $fraction = null;
@@ -2103,6 +2250,7 @@ class question_attempt_step {
      */
     public function __construct($data = array(), $timecreated = null, $userid = null) {
         global $USER;
+        $this->state = question_state::$unprocessed;
         $this->data = $data;
         if (is_null($timecreated)) {
             $this->timecreated = time();
@@ -2116,14 +2264,14 @@ class question_attempt_step {
         }
     }
 
-    /** @return integer one of the {@link question_state} constants. The state after this step. */
+    /** @return question_state The state after this step. */
     public function get_state() {
         return $this->state;
     }
 
     /**
      * Set the state. Normally only called by interaction models.
-     * @param $state one of the {@link question_state} constants.
+     * @param question_state $state one of the {@link question_state} constants.
      */
     public function set_state($state) {
         $this->state = $state;
@@ -2300,7 +2448,7 @@ class question_attempt_step {
         }
 
         $step = new question_attempt_step_read_only($data, $record->timecreated, $record->userid);
-        $step->state = $record->state;
+        $step->state = question_state::get($record->state);
         if (!is_null($record->fraction)) {
             $step->fraction = $record->fraction + 0;
         }
@@ -2341,7 +2489,7 @@ class question_attempt_step_read_only extends question_attempt_step {
  */
 class question_null_step {
     public function get_state() {
-        return question_state::NOT_STARTED;
+        return question_state::$notstarted;
     }
 
     public function set_state($state) {

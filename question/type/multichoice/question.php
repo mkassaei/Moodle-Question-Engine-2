@@ -105,7 +105,7 @@ class qtype_multichoice_single_question extends qtype_multichoice_base {
     public function get_correct_response() {
         foreach ($this->order as $key => $answerid) {
             if (question_state::graded_state_for_fraction(
-                    $this->answers[$answerid]->fraction) == question_state::GRADED_CORRECT) {
+                    $this->answers[$answerid]->fraction) == question_state::$gradedright) {
                 return array('answer' => $key);
             }
         }
@@ -167,7 +167,7 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
         $response = array();
         foreach ($this->order as $key => $ans) {
             if (question_state::graded_state_for_fraction($this->answers[$ans]->fraction) !=
-                    question_state::GRADED_INCORRECT) {
+                    question_state::$gradedwrong) {
                 $response[$this->field($key)] = 1;
             }
         }

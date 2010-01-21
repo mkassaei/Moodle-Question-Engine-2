@@ -148,11 +148,11 @@ abstract class qtype_multichoice_renderer_base extends qtype_renderer {
         $question = $qa->get_question();
 
         $feedback = '';
-        if (question_state::is_correct($qa->get_state())) {
+        if ($qa->get_state()->is_correct()) {
             $feedback = $question->correctfeedback;
-        } else if (question_state::is_partially_correct($qa->get_state())) {
+        } else if ($qa->get_state()->is_partially_correct()) {
             $feedback = $question->partiallycorrectfeedback;
-        } else if (question_state::is_incorrect($qa->get_state())) {
+        } else if ($qa->get_state()->is_incorrect()) {
             $feedback = $question->incorrectfeedback;
         }
 

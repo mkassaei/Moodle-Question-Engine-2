@@ -58,9 +58,9 @@ class qim_missing_test extends UnitTestCase {
                                                                             'questionsummary', 'rightanswer', 'responsesummary', 'timemodified',
                                                                                                    'attemptstepid', 'sequencenumber', 'state', 'fraction',
                                                                                                                           'timecreated', 'userid', 'name', 'value'),
-            array(1, 1, 1, 1, 'strangeunknown', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 1, 0,  1,      null, 1256233700, 1,   '_order', '1,2,3'),
-            array(2, 1, 1, 1, 'strangeunknown', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 2, 1,  2,      0.50, 1256233705, 1,  '!submit',  '1'),
-            array(3, 1, 1, 1, 'strangeunknown', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 2, 1,  2,      0.50, 1256233705, 1,  'choice0',  '1'),
+            array(1, 1, 1, 1, 'strangeunknown', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 1, 0, 'todo',     null, 1256233700, 1,   '_order', '1,2,3'),
+            array(2, 1, 1, 1, 'strangeunknown', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 2, 1, 'complete', 0.50, 1256233705, 1,  '!submit',  '1'),
+            array(3, 1, 1, 1, 'strangeunknown', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 2, 1, 'complete', 0.50, 1256233705, 1,  'choice0',  '1'),
         ));
 
         $qa = question_attempt::load_from_records($records, 1,
@@ -69,14 +69,14 @@ class qim_missing_test extends UnitTestCase {
         $this->assertEqual(2, $qa->get_num_steps());
 
         $step = $qa->get_step(0);
-        $this->assertEqual(1, $step->get_state());
+        $this->assertEqual(question_state::$todo, $step->get_state());
         $this->assertNull($step->get_fraction());
         $this->assertEqual(1256233700, $step->get_timecreated());
         $this->assertEqual(1, $step->get_user_id());
         $this->assertEqual(array('_order' => '1,2,3'), $step->get_all_data());
 
         $step = $qa->get_step(1);
-        $this->assertEqual(2, $step->get_state());
+        $this->assertEqual(question_state::$complete, $step->get_state());
         $this->assertEqual(0.5, $step->get_fraction());
         $this->assertEqual(1256233705, $step->get_timecreated());
         $this->assertEqual(1, $step->get_user_id());

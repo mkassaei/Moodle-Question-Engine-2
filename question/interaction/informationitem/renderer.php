@@ -32,7 +32,7 @@ class qim_informationitem_renderer extends qim_renderer {
     }
 
     public function controls(question_attempt $qa, question_display_options $options) {
-        if ($qa->get_state() != question_state::INCOMPLETE) {
+        if ($qa->get_state() != question_state::$todo) {
             return '';
         }
 

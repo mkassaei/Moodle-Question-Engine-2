@@ -30,110 +30,120 @@ require_once(dirname(__FILE__) . '/../lib.php');
 
 class question_state_test extends UnitTestCase {
     public function test_is_active() {
-        $this->assertFalse(question_state::is_active(question_state::NOT_STARTED));
-        $this->assertFalse(question_state::is_active(question_state::UNPROCESSED));
-        $this->assertTrue(question_state::is_active(question_state::INCOMPLETE));
-        $this->assertTrue(question_state::is_active(question_state::COMPLETE));
-        $this->assertFalse(question_state::is_active(question_state::NEEDS_GRADING));
-        $this->assertFalse(question_state::is_active(question_state::FINISHED));
-        $this->assertFalse(question_state::is_active(question_state::GAVE_UP));
-        $this->assertFalse(question_state::is_active(question_state::GRADED_INCORRECT));
-        $this->assertFalse(question_state::is_active(question_state::GRADED_PARTCORRECT));
-        $this->assertFalse(question_state::is_active(question_state::GRADED_CORRECT));
-        $this->assertFalse(question_state::is_active(question_state::FINISHED_COMMENTED));
-        $this->assertFalse(question_state::is_active(question_state::GAVE_UP_COMMENTED));
-        $this->assertFalse(question_state::is_active(question_state::MANUALLY_GRADED_INCORRECT));
-        $this->assertFalse(question_state::is_active(question_state::MANUALLY_GRADED_PARTCORRECT));
-        $this->assertFalse(question_state::is_active(question_state::MANUALLY_GRADED_CORRECT));
+        $this->assertFalse(question_state::$notstarted->is_active());
+        $this->assertFalse(question_state::$unprocessed->is_active());
+        $this->assertTrue(question_state::$todo->is_active());
+        $this->assertTrue(question_state::$invalid->is_active());
+        $this->assertTrue(question_state::$complete->is_active());
+        $this->assertFalse(question_state::$needsgrading->is_active());
+        $this->assertFalse(question_state::$finished->is_active());
+        $this->assertFalse(question_state::$gaveup->is_active());
+        $this->assertFalse(question_state::$gradedwrong->is_active());
+        $this->assertFalse(question_state::$gradedpartial->is_active());
+        $this->assertFalse(question_state::$gradedright->is_active());
+        $this->assertFalse(question_state::$manfinished->is_active());
+        $this->assertFalse(question_state::$mangaveup->is_active());
+        $this->assertFalse(question_state::$mangrwrong->is_active());
+        $this->assertFalse(question_state::$mangrpartial->is_active());
+        $this->assertFalse(question_state::$mangrright->is_active());
     }
 
     public function test_is_finished() {
-        $this->assertFalse(question_state::is_finished(question_state::NOT_STARTED));
-        $this->assertFalse(question_state::is_finished(question_state::UNPROCESSED));
-        $this->assertFalse(question_state::is_finished(question_state::INCOMPLETE));
-        $this->assertFalse(question_state::is_finished(question_state::COMPLETE));
-        $this->assertTrue(question_state::is_finished(question_state::NEEDS_GRADING));
-        $this->assertTrue(question_state::is_finished(question_state::FINISHED));
-        $this->assertTrue(question_state::is_finished(question_state::GAVE_UP));
-        $this->assertTrue(question_state::is_finished(question_state::GRADED_INCORRECT));
-        $this->assertTrue(question_state::is_finished(question_state::GRADED_PARTCORRECT));
-        $this->assertTrue(question_state::is_finished(question_state::GRADED_CORRECT));
-        $this->assertTrue(question_state::is_finished(question_state::FINISHED_COMMENTED));
-        $this->assertTrue(question_state::is_finished(question_state::GAVE_UP_COMMENTED));
-        $this->assertTrue(question_state::is_finished(question_state::MANUALLY_GRADED_INCORRECT));
-        $this->assertTrue(question_state::is_finished(question_state::MANUALLY_GRADED_PARTCORRECT));
-        $this->assertTrue(question_state::is_finished(question_state::MANUALLY_GRADED_CORRECT));
+        $this->assertFalse(question_state::$notstarted->is_finished());
+        $this->assertFalse(question_state::$unprocessed->is_finished());
+        $this->assertFalse(question_state::$todo->is_finished());
+        $this->assertFalse(question_state::$invalid->is_finished());
+        $this->assertFalse(question_state::$complete->is_finished());
+        $this->assertTrue(question_state::$needsgrading->is_finished());
+        $this->assertTrue(question_state::$finished->is_finished());
+        $this->assertTrue(question_state::$gaveup->is_finished());
+        $this->assertTrue(question_state::$gradedwrong->is_finished());
+        $this->assertTrue(question_state::$gradedpartial->is_finished());
+        $this->assertTrue(question_state::$gradedright->is_finished());
+        $this->assertTrue(question_state::$manfinished->is_finished());
+        $this->assertTrue(question_state::$mangaveup->is_finished());
+        $this->assertTrue(question_state::$mangrwrong->is_finished());
+        $this->assertTrue(question_state::$mangrpartial->is_finished());
+        $this->assertTrue(question_state::$mangrright->is_finished());
     }
 
     public function test_is_graded() {
-        $this->assertFalse(question_state::is_graded(question_state::NOT_STARTED));
-        $this->assertFalse(question_state::is_graded(question_state::UNPROCESSED));
-        $this->assertFalse(question_state::is_graded(question_state::INCOMPLETE));
-        $this->assertFalse(question_state::is_graded(question_state::COMPLETE));
-        $this->assertFalse(question_state::is_graded(question_state::NEEDS_GRADING));
-        $this->assertFalse(question_state::is_graded(question_state::FINISHED));
-        $this->assertFalse(question_state::is_graded(question_state::GAVE_UP));
-        $this->assertTrue(question_state::is_graded(question_state::GRADED_INCORRECT));
-        $this->assertTrue(question_state::is_graded(question_state::GRADED_PARTCORRECT));
-        $this->assertTrue(question_state::is_graded(question_state::GRADED_CORRECT));
-        $this->assertFalse(question_state::is_graded(question_state::FINISHED_COMMENTED));
-        $this->assertFalse(question_state::is_graded(question_state::GAVE_UP_COMMENTED));
-        $this->assertTrue(question_state::is_graded(question_state::MANUALLY_GRADED_INCORRECT));
-        $this->assertTrue(question_state::is_graded(question_state::MANUALLY_GRADED_PARTCORRECT));
-        $this->assertTrue(question_state::is_graded(question_state::MANUALLY_GRADED_CORRECT));
+        $this->assertFalse(question_state::$notstarted->is_graded());
+        $this->assertFalse(question_state::$unprocessed->is_graded());
+        $this->assertFalse(question_state::$todo->is_graded());
+        $this->assertFalse(question_state::$invalid->is_graded());
+        $this->assertFalse(question_state::$complete->is_graded());
+        $this->assertFalse(question_state::$needsgrading->is_graded());
+        $this->assertFalse(question_state::$finished->is_graded());
+        $this->assertFalse(question_state::$gaveup->is_graded());
+        $this->assertTrue(question_state::$gradedwrong->is_graded());
+        $this->assertTrue(question_state::$gradedpartial->is_graded());
+        $this->assertTrue(question_state::$gradedright->is_graded());
+        $this->assertFalse(question_state::$manfinished->is_graded());
+        $this->assertFalse(question_state::$mangaveup->is_graded());
+        $this->assertTrue(question_state::$mangrwrong->is_graded());
+        $this->assertTrue(question_state::$mangrpartial->is_graded());
+        $this->assertTrue(question_state::$mangrright->is_graded());
     }
 
     public function test_is_commented() {
-        $this->assertFalse(question_state::is_commented(question_state::NOT_STARTED));
-        $this->assertFalse(question_state::is_commented(question_state::UNPROCESSED));
-        $this->assertFalse(question_state::is_commented(question_state::INCOMPLETE));
-        $this->assertFalse(question_state::is_commented(question_state::COMPLETE));
-        $this->assertFalse(question_state::is_commented(question_state::NEEDS_GRADING));
-        $this->assertFalse(question_state::is_commented(question_state::FINISHED));
-        $this->assertFalse(question_state::is_commented(question_state::GAVE_UP));
-        $this->assertFalse(question_state::is_commented(question_state::GRADED_INCORRECT));
-        $this->assertFalse(question_state::is_commented(question_state::GRADED_PARTCORRECT));
-        $this->assertFalse(question_state::is_commented(question_state::GRADED_CORRECT));
-        $this->assertTrue(question_state::is_commented(question_state::FINISHED_COMMENTED));
-        $this->assertTrue(question_state::is_commented(question_state::GAVE_UP_COMMENTED));
-        $this->assertTrue(question_state::is_commented(question_state::MANUALLY_GRADED_INCORRECT));
-        $this->assertTrue(question_state::is_commented(question_state::MANUALLY_GRADED_PARTCORRECT));
-        $this->assertTrue(question_state::is_commented(question_state::MANUALLY_GRADED_CORRECT));
+        $this->assertFalse(question_state::$notstarted->is_commented());
+        $this->assertFalse(question_state::$unprocessed->is_commented());
+        $this->assertFalse(question_state::$todo->is_commented());
+        $this->assertFalse(question_state::$invalid->is_commented());
+        $this->assertFalse(question_state::$complete->is_commented());
+        $this->assertFalse(question_state::$needsgrading->is_commented());
+        $this->assertFalse(question_state::$finished->is_commented());
+        $this->assertFalse(question_state::$gaveup->is_commented());
+        $this->assertFalse(question_state::$gradedwrong->is_commented());
+        $this->assertFalse(question_state::$gradedpartial->is_commented());
+        $this->assertFalse(question_state::$gradedright->is_commented());
+        $this->assertTrue(question_state::$manfinished->is_commented());
+        $this->assertTrue(question_state::$mangaveup->is_commented());
+        $this->assertTrue(question_state::$mangrwrong->is_commented());
+        $this->assertTrue(question_state::$mangrpartial->is_commented());
+        $this->assertTrue(question_state::$mangrright->is_commented());
     }
 
     public function test_graded_state_for_fraction() {
-        $this->assertEqual(question_state::GRADED_INCORRECT, question_state::graded_state_for_fraction(-1));
-        $this->assertEqual(question_state::GRADED_INCORRECT, question_state::graded_state_for_fraction(0));
-        $this->assertEqual(question_state::GRADED_PARTCORRECT, question_state::graded_state_for_fraction(0.0000001));
-        $this->assertEqual(question_state::GRADED_PARTCORRECT, question_state::graded_state_for_fraction(0.9999999));
-        $this->assertEqual(question_state::GRADED_CORRECT, question_state::graded_state_for_fraction(1));
+        $this->assertEqual(question_state::$gradedwrong, question_state::graded_state_for_fraction(-1));
+        $this->assertEqual(question_state::$gradedwrong, question_state::graded_state_for_fraction(0));
+        $this->assertEqual(question_state::$gradedpartial, question_state::graded_state_for_fraction(0.0000001));
+        $this->assertEqual(question_state::$gradedpartial, question_state::graded_state_for_fraction(0.9999999));
+        $this->assertEqual(question_state::$gradedright, question_state::graded_state_for_fraction(1));
     }
 
     public function test_manually_graded_state_for_other_state() {
-        $this->assertEqual(question_state::FINISHED_COMMENTED,
-                question_state::manually_graded_state_for_other_state(question_state::FINISHED, null));
-        $this->assertEqual(question_state::GAVE_UP_COMMENTED,
-                question_state::manually_graded_state_for_other_state(question_state::GAVE_UP, null));
-        $this->assertEqual(question_state::FINISHED_COMMENTED,
-                question_state::manually_graded_state_for_other_state(question_state::FINISHED_COMMENTED, null));
-        $this->assertEqual(question_state::GAVE_UP_COMMENTED,
-                question_state::manually_graded_state_for_other_state(question_state::GAVE_UP_COMMENTED, null));
+        $this->assertEqual(question_state::$manfinished,
+                question_state::$finished->corresponding_commented_state(null));
+        $this->assertEqual(question_state::$mangaveup,
+                question_state::$gaveup->corresponding_commented_state(null));
+        $this->assertEqual(question_state::$manfinished,
+                question_state::$manfinished->corresponding_commented_state(null));
+        $this->assertEqual(question_state::$mangaveup,
+                question_state::$mangaveup->corresponding_commented_state(null));
 
-        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
-                question_state::manually_graded_state_for_other_state(question_state::GAVE_UP, 0));
-        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
-                question_state::manually_graded_state_for_other_state(question_state::NEEDS_GRADING, 0));
-        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
-                question_state::manually_graded_state_for_other_state(question_state::GRADED_INCORRECT, 0));
-        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
-                question_state::manually_graded_state_for_other_state(question_state::GRADED_PARTCORRECT, 0));
-        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
-                question_state::manually_graded_state_for_other_state(question_state::GRADED_CORRECT, 0));
-        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
-                question_state::manually_graded_state_for_other_state(question_state::MANUALLY_GRADED_INCORRECT, 0));
-        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
-                question_state::manually_graded_state_for_other_state(question_state::MANUALLY_GRADED_PARTCORRECT, 0));
-        $this->assertEqual(question_state::MANUALLY_GRADED_INCORRECT,
-                question_state::manually_graded_state_for_other_state(question_state::MANUALLY_GRADED_CORRECT, 0));
+        $this->assertEqual(question_state::$mangrwrong,
+                question_state::$gaveup->corresponding_commented_state(0));
+        $this->assertEqual(question_state::$mangrwrong,
+                question_state::$needsgrading->corresponding_commented_state(0));
+        $this->assertEqual(question_state::$mangrwrong,
+                question_state::$gradedwrong->corresponding_commented_state(0));
+        $this->assertEqual(question_state::$mangrwrong,
+                question_state::$gradedpartial->corresponding_commented_state(0));
+        $this->assertEqual(question_state::$mangrwrong,
+                question_state::$gradedright->corresponding_commented_state(0));
+        $this->assertEqual(question_state::$mangrwrong,
+                question_state::$mangrright->corresponding_commented_state(0));
+        $this->assertEqual(question_state::$mangrwrong,
+                question_state::$mangrpartial->corresponding_commented_state(0));
+        $this->assertEqual(question_state::$mangrwrong,
+                question_state::$mangrright->corresponding_commented_state(0));
+
+        $this->assertEqual(question_state::$mangrpartial,
+                question_state::$gradedpartial->corresponding_commented_state(0.5));
+
+        $this->assertEqual(question_state::$mangrright,
+                question_state::$gradedpartial->corresponding_commented_state(1));
     }
 }

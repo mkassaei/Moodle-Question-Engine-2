@@ -42,7 +42,7 @@ class qim_adaptive_renderer extends qim_renderer {
             $state = question_state::graded_state_for_fraction($laststep->get_im_var('_rawfraction'));
 
         }
-        return question_state::default_string($state);
+        return $state->default_string();
     }
 
     public function controls(question_attempt $qa, question_display_options $options) {
@@ -68,11 +68,11 @@ class qim_adaptive_renderer extends qim_renderer {
         $mark->raw = format_float($rawmark, $options->markdp);
 
         // let student know wether the answer was correct
-        if (question_state::is_commented($qa->get_state())) {
-            $class = question_state::get_feedback_class($qa->get_state());
+        if ($qa->get_state()->is_commented()) {
+            $class = $qa->get_state()->get_feedback_class();
         } else {
-            $class = question_state::get_feedback_class(
-                    question_state::graded_state_for_fraction($gradedstep->get_im_var('_rawfraction')));
+            $class = question_state::graded_state_for_fraction(
+                    $gradedstep->get_im_var('_rawfraction'))->get_feedback_class();
         }
 
         $gradingdetails = get_string('gradingdetails', 'qim_adaptive', $mark);
@@ -100,7 +100,7 @@ class qim_adaptive_renderer extends qim_renderer {
 
         // print info about new penalty
         // penalty is relevant only if the answer is not correct and further attempts are possible
-        if (!question_state::is_finished($qa->get_state())) {
+        if (!$qa->get_state()->is_finished()) {
             $output .= ' ' . get_string('gradingdetailspenalty', 'qim_adaptive', $qa->get_question()->penalty);
         }
 

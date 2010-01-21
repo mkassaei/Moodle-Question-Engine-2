@@ -59,7 +59,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         $wrongindex = ($rightindex + 1) % 3;
 
         // Check the initial state.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_question_text_expectation($mc),
@@ -74,7 +74,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         $this->process_submission(array('answer' => $wrongindex));
 
         // Verify.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($wrongindex, true, true),
@@ -89,7 +89,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         $this->process_submission(array('answer' => $wrongindex, '!submit' => 1));
 
         // Verify.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($wrongindex, false, true),
@@ -110,7 +110,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         $this->process_submission(array('!tryagain' => 1));
 
         // Verify.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($wrongindex, true, true),
@@ -125,7 +125,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         $this->process_submission(array('answer' => $rightindex, '!submit' => 1));
 
         // Verify.
-        $this->check_current_state(question_state::GRADED_CORRECT);
+        $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(0.6666667);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, false, true),
@@ -140,7 +140,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
 
         // Verify.
         $this->assertEqual($numsteps, $this->get_step_count());
-        $this->check_current_state(question_state::GRADED_CORRECT);
+        $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(0.6666667);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, false, true),
@@ -152,7 +152,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         $this->manual_grade('Not good enough!', 0.5);
 
         // Verify.
-        $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->check_current_state(question_state::$mangrpartial);
         $this->check_current_mark(0.5);
         $this->check_current_output(
                 $this->get_contains_partcorrect_expectation(),
@@ -162,7 +162,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         $this->quba->regrade_all_questions();
 
         // Verify.
-        $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->check_current_state(question_state::$mangrpartial);
         $this->check_current_mark(0.5);
         $this->check_current_output(
                 $this->get_contains_partcorrect_expectation());
@@ -182,7 +182,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         $wrongindex = ($rightindex + 1) % 3;
 
         // Check the initial state.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_question_text_expectation($mc),
@@ -197,7 +197,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         $this->process_submission(array('answer' => $wrongindex, '!submit' => 1));
 
         // Verify.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($wrongindex, false, true),
@@ -212,7 +212,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         $this->quba->finish_all_questions();
 
         // Verify.
-        $this->check_current_state(question_state::GRADED_INCORRECT);
+        $this->check_current_state(question_state::$gradedwrong);
         $this->check_current_mark(0);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($wrongindex, false, true),

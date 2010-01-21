@@ -37,7 +37,7 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         $this->start_attempt_at_question($tf, 'deferredfeedback', 2);
 
         // Check the initial state.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output($this->get_contains_question_text_expectation($tf),
                 $this->get_does_not_contain_feedback_expectation());
@@ -45,7 +45,7 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         // Process a true answer and check the expected result.
         $this->process_submission(array('answer' => 1));
 
-        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_state(question_state::$complete);
         $this->check_current_mark(null);
         $this->check_current_output($this->get_contains_tf_true_radio_expectation(true, true),
                 $this->get_does_not_contain_correctness_expectation(),
@@ -59,7 +59,7 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         // Process different data, check it creates a new step.
         $this->process_submission(array('answer' => 0));
         $this->check_step_count($numsteps + 1);
-        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_state(question_state::$complete);
 
         // Change back, check it creates a new step.
         $this->process_submission(array('answer' => 1));
@@ -69,7 +69,7 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         $this->quba->finish_all_questions();
 
         // Verify.
-        $this->check_current_state(question_state::GRADED_CORRECT);
+        $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(2);
         $this->check_current_output($this->get_contains_correct_expectation(),
                 $this->get_contains_tf_true_radio_expectation(false, true));
@@ -77,7 +77,7 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         // Process a manual comment.
         $this->manual_grade('Not good enough!', 1);
 
-        $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->check_current_state(question_state::$mangrpartial);
         $this->check_current_mark(1);
         $this->check_current_output(
                 new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
@@ -87,7 +87,7 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         $this->quba->regrade_all_questions();
 
         // Verify.
-        $this->check_current_state(question_state::MANUALLY_GRADED_PARTCORRECT);
+        $this->check_current_state(question_state::$mangrpartial);
         $this->check_current_mark(1);
 
         $autogradedstep = $this->get_step($this->get_step_count() - 2);
@@ -103,7 +103,7 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         // Start a deferred feedback attempt and add the question to it.
         $rightindex = $this->get_mc_right_answer_index($mc);
 
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_question_text_expectation($mc),
@@ -116,7 +116,7 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         $this->process_submission(array('answer' => $rightindex));
 
         // Verify.
-        $this->check_current_state(question_state::COMPLETE);
+        $this->check_current_state(question_state::$complete);
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, true, true),
@@ -129,7 +129,7 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         $this->quba->finish_all_questions();
 
         // Verify.
-        $this->check_current_state(question_state::GRADED_CORRECT);
+        $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(3);
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, false, true),
@@ -141,7 +141,7 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         $this->quba->regrade_all_questions();
 
         // Verify.
-        $this->check_current_state(question_state::GRADED_INCORRECT);
+        $this->check_current_state(question_state::$gradedwrong);
         $this->check_current_mark(-1);
         $this->check_current_output(
                 $this->get_contains_incorrect_expectation());

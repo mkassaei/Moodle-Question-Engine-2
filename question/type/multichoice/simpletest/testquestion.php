@@ -61,11 +61,11 @@ class qtype_multichoice_single_question_test extends UnitTestCase {
         $question->shuffleanswers = false;
         $question->init_first_step(new question_attempt_step());
 
-        $this->assertEqual(array(1, question_state::GRADED_CORRECT),
+        $this->assertEqual(array(1, question_state::$gradedright),
                 $question->grade_response(array('answer' => 0)));
-        $this->assertEqual(array(-0.3333333, question_state::GRADED_INCORRECT),
+        $this->assertEqual(array(-0.3333333, question_state::$gradedwrong),
                 $question->grade_response(array('answer' => 1)));
-        $this->assertEqual(array(-0.3333333, question_state::GRADED_INCORRECT),
+        $this->assertEqual(array(-0.3333333, question_state::$gradedwrong),
                 $question->grade_response(array('answer' => 2)));
     }
 
@@ -125,13 +125,13 @@ class qtype_multichoice_multi_question_test extends UnitTestCase {
         $question->shuffleanswers = false;
         $question->init_first_step(new question_attempt_step());
 
-        $this->assertEqual(array(1, question_state::GRADED_CORRECT),
+        $this->assertEqual(array(1, question_state::$gradedright),
                 $question->grade_response(array('choice0' => '1', 'choice2' => '1')));
-        $this->assertEqual(array(0.5, question_state::GRADED_PARTCORRECT),
+        $this->assertEqual(array(0.5, question_state::$gradedpartial),
                 $question->grade_response(array('choice0' => '1')));
-        $this->assertEqual(array(0, question_state::GRADED_INCORRECT),
+        $this->assertEqual(array(0, question_state::$gradedwrong),
                 $question->grade_response(array('choice0' => '1', 'choice1' => '1', 'choice2' => '1')));
-        $this->assertEqual(array(0, question_state::GRADED_INCORRECT),
+        $this->assertEqual(array(0, question_state::$gradedwrong),
                 $question->grade_response(array('choice1' => '1')));
     }
 

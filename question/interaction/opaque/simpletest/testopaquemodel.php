@@ -62,7 +62,7 @@ class qim_opaque_test extends qim_walkthrough_test_base {
         $qa = $this->quba->get_question_attempt($this->qnumber);
 
         // Check the initial state.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 new PatternExpectation('/Below is a plan of a proposed garden/'),
@@ -74,7 +74,7 @@ class qim_opaque_test extends qim_walkthrough_test_base {
                 'omact_gen_14' => 'Check'));
 
         // Verify.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 new PatternExpectation('/Below is a plan of a proposed garden/'),
@@ -86,7 +86,7 @@ class qim_opaque_test extends qim_walkthrough_test_base {
         $this->process_submission(array('omact_ok' => 'Try again'));
 
         // Verify.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 new PatternExpectation('/You have 2 attempts/'));
@@ -96,7 +96,7 @@ class qim_opaque_test extends qim_walkthrough_test_base {
                 'omact_gen_14' => 'Check'));
 
         // Verify.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 new PatternExpectation('/Below is a plan of a proposed garden/'),
@@ -107,7 +107,7 @@ class qim_opaque_test extends qim_walkthrough_test_base {
         $this->process_submission(array('omact_ok' => 'Try again'));
 
         // Verify.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 new PatternExpectation('/This is your last attempt/'));
@@ -117,7 +117,7 @@ class qim_opaque_test extends qim_walkthrough_test_base {
                 'omact_gen_14' => 'Check'));
 
         // Verify.
-        $this->check_current_state(question_state::GRADED_INCORRECT);
+        $this->check_current_state(question_state::$gradedwrong);
         $this->check_current_mark(0);
         $this->check_current_output(
                 new PatternExpectation('/Please see MU120 Preparatory Resource Book B section 5.1/'),
@@ -147,7 +147,7 @@ class qim_opaque_test extends qim_walkthrough_test_base {
         $size = $sizes[$feature];
 
         // Check the initial state.
-        $this->check_current_state(question_state::INCOMPLETE);
+        $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
                 new PatternExpectation('/Below is a plan of a proposed garden/'),
@@ -159,7 +159,7 @@ class qim_opaque_test extends qim_walkthrough_test_base {
                 'omval_response2' => $size[1] * $scale, 'omact_gen_14' => 'Check'));
 
         // Verify.
-        $this->check_current_state(question_state::GRADED_CORRECT);
+        $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(3);
         $this->check_current_output(
                 new PatternExpectation('/Below is a plan of a proposed garden/'),
@@ -172,7 +172,7 @@ class qim_opaque_test extends qim_walkthrough_test_base {
 
         $this->quba->finish_all_questions();
 
-        $this->check_current_state(question_state::GAVE_UP);
+        $this->check_current_state(question_state::$gaveup);
         $this->check_current_mark(null);
         $this->check_current_output(
                 new PatternExpectation('/' .
