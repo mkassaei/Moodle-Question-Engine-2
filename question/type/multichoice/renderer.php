@@ -94,10 +94,11 @@ abstract class qtype_multichoice_renderer_base extends qtype_renderer {
             } else {
                 $feedback[] = '';
             }
-            $classes[] = 'r' . ($value % 2);
+            $class = 'r' . ($value % 2);
             if ($options->correctresponse && $ans->fraction > 0) {
-                $classes[] = question_get_feedback_class($ans->fraction);
+                $class .= ' ' . question_get_feedback_class($ans->fraction);
             }
+            $classes[] = $class;
         }
 
         $result = '';
