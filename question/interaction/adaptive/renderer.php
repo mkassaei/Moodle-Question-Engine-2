@@ -41,8 +41,6 @@ class qim_adaptive_renderer extends qim_renderer {
         if ($laststep->has_im_var('_try')) {
             $state = question_state::graded_state_for_fraction($laststep->get_im_var('_rawfraction'));
 
-        } else if ($qa->get_num_steps() > 0 && !question_state::is_finished($state)) {
-            $state = question_state::COMPLETE;
         }
         return question_state::default_string($state);
     }

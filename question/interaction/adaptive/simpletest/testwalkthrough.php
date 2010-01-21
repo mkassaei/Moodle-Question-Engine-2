@@ -72,8 +72,7 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_output(
                 $this->get_contains_mc_radio_expectation($rightindex, true, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
-                $this->get_contains_mc_radio_expectation(($rightindex + 2) % 3, true, false),
-                new PatternExpectation('/' . preg_quote(get_string('answersaved', 'question')) . '/'));
+                $this->get_contains_mc_radio_expectation(($rightindex + 2) % 3, true, false));
 
         // Now submit the right answer.
         $this->process_submission(array('answer' => $rightindex, '!submit' => 1));
