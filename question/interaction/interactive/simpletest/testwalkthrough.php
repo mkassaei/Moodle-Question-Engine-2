@@ -48,6 +48,11 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         return new ContainsTagWithAttributes('input', $expectedattributes, $forbiddenattributes);
     }
 
+    protected function get_does_not_contain_try_again_button_expectation() {
+        return new NoPatternExpectation('/name="' .
+                $this->quba->get_field_prefix($this->qnumber) . '!tryagain"/');
+    }
+
     public function test_interactive_feedback_multichoice_right() {
 
         // Create a true-false question with correct answer true.
@@ -219,5 +224,80 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
                 $this->get_contains_incorrect_expectation());
+    }
+
+    public function test_interactive_shortanswer_try_to_submit_blank() {
+
+        // Create a short answer question with correct answer true.
+        $sa = test_question_maker::make_a_shortanswer_question();
+        $this->start_attempt_at_question($sa, 'interactive');
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_does_not_contain_validation_error_expectation(),
+                $this->get_does_not_contain_try_again_button_expectation());
+
+        // Submit with certainty missing.
+        $this->process_submission(array('!submit' => 1, 'answer' => ''));
+
+        // Verify.
+        $this->check_current_state(question_state::$invalid);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_contains_validation_error_expectation(),
+                $this->get_does_not_contain_try_again_button_expectation());
+
+        // Now get it wrong.
+        $this->process_submission(array('!submit' => 1, 'answer' => 'newt'));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_submit_button_expectation(false),
+                $this->get_contains_incorrect_expectation(),
+                $this->get_does_not_contain_validation_error_expectation(),
+                $this->get_contains_try_again_button_expectation(true));
+
+        // Try again.
+        $this->process_submission(array('!tryagain' => 1));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_does_not_contain_validation_error_expectation(),
+                $this->get_does_not_contain_try_again_button_expectation());
+
+        // Now submit blank again.
+        $this->process_submission(array('!submit' => 1, 'answer' => ''));
+
+        // Verify.
+        $this->check_current_state(question_state::$invalid);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_contains_validation_error_expectation(),
+                $this->get_does_not_contain_try_again_button_expectation());
+
+        // Now get it right.
+        $this->process_submission(array('!submit' => 1, 'answer' => 'frog'));
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedright);
+        $this->check_current_mark(0.6666667);
+        $this->check_current_output(
+                $this->get_contains_submit_button_expectation(false),
+                $this->get_contains_correct_expectation(),
+                $this->get_does_not_contain_validation_error_expectation());
     }
 }

@@ -53,7 +53,7 @@ Finish interaction models (2.5d)
 √   New Adaptive mode without penalties (adaptivenopenalty) model. (0.5d)
 √   Minor refactoring of the different interaction models' process_action methods. 0d
 √   Fix manual grading of automatically graded question types.
-    What happens when submit of a blank response is ignored - need verify failure state. 0.5d
+√   What happens when submit of a blank response is ignored - need verify failure state. 0.5d
 √   Issue with when the try-again button should be read-only. (Think teacher review of in-progress attempt.)
 
 Incorporate other OU-specific quiz customisations into this code (8d)

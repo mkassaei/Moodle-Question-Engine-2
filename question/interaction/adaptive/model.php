@@ -88,6 +88,10 @@ class qim_adaptive extends question_interaction_model_with_save {
 
         $response = $pendingstep->get_qt_data();
         if (!$this->question->is_gradable_response($response)) {
+            $pendingstep->set_state(question_state::$invalid);
+            if ($this->qa->get_state() != question_state::$invalid) {
+                $status = question_attempt::KEEP;
+            }
             return $status;
         }
 

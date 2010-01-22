@@ -167,4 +167,52 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_contains_correct_expectation());
     }
+
+    public function test_adaptive_shortanswer_try_to_submit_blank() {
+
+        // Create a short answer question with correct answer true.
+        $sa = test_question_maker::make_a_shortanswer_question();
+        $this->start_attempt_at_question($sa, 'adaptive');
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation());
+
+        // Submit with certainty missing.
+        $this->process_submission(array('!submit' => 1, 'answer' => ''));
+
+        // Verify.
+        $this->check_current_state(question_state::$invalid);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_contains_validation_error_expectation());
+
+        // Now get it wrong.
+        $this->process_submission(array('!submit' => 1, 'answer' => 'toad'));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(0.8);
+        $this->check_current_output(
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_contains_partcorrect_expectation(),
+                $this->get_does_not_contain_validation_error_expectation());
+
+
+        // Now submit blank again.
+        $this->process_submission(array('!submit' => 1, 'answer' => ''));
+
+        // Verify.
+        $this->check_current_state(question_state::$invalid);
+        $this->check_current_mark(0.8);
+        $this->check_current_output(
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_contains_partcorrect_expectation(),
+                $this->get_contains_validation_error_expectation());
+    }
 }

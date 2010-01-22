@@ -58,8 +58,9 @@ class qim_interactive extends question_interaction_model_with_save {
      * @return boolean are we are currently in the try_again state.
      */
     protected function is_try_again_state() {
+        $laststep = $this->qa->get_last_step();
         return $this->qa->get_state()->is_active() &&
-                $this->qa->get_last_step()->get_im_var('submit');
+                $laststep->has_im_var('submit') && $laststep->has_im_var('_triesleft');
     }
 
     public function adjust_display_options(question_display_options $options) {
@@ -123,7 +124,7 @@ class qim_interactive extends question_interaction_model_with_save {
         }
 
         if (!$this->is_complete_response($pendingstep)) {
-            $pendingstep->set_state(question_state::$todo);
+            $pendingstep->set_state(question_state::$invalid);
 
         } else {
             $triesleft = $this->qa->get_last_im_var('_triesleft');
