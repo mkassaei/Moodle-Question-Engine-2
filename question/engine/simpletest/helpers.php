@@ -42,6 +42,9 @@ class testable_question_attempt extends question_attempt {
     public function set_min_fraction($fraction) {
         $this->minfraction = $fraction;
     }
+    public function set_interaction_model(question_interaction_model $qim) {
+        $this->interactionmodel = $qim;
+    }
 }
 
 

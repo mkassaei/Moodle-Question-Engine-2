@@ -50,16 +50,22 @@ abstract class question_bank {
     /**
      * Get the question type class for a particular question type.
      * @param string $qtypename the question type name. For example 'multichoice' or 'shortanswer'.
+     * @param boolean $mustexist if false, the missing question type is returned when
+     *      the requested question type is not installed.
      * @return question_type the corresponding question type class.
      */
-    public static function get_qtype($qtypename) {
+    public static function get_qtype($qtypename, $mustexist = true) {
         global $CFG;
         if (isset(self::$questiontypes[$qtypename])) {
             return self::$questiontypes[$qtypename];
         }
         $file = $CFG->dirroot . '/question/type/' . $qtypename . '/questiontype.php';
         if (!is_readable($file)) {
-            throw new Exception('Unknown question type ' . $qtypename);
+            if ($mustexist || $qtypename == 'missingtype') {
+                throw new Exception('Unknown question type ' . $qtypename);
+            } else {
+                return self::get_qtype('missingtype');
+            }
         }
         include_once($file);
         $class = 'qtype_' . $qtypename;
@@ -120,7 +126,7 @@ abstract class question_bank {
      * @return question_definition loaded from the database.
      */
     public static function make_question($questiondata) {
-        return self::get_qtype($questiondata->qtype)->make_question($questiondata);
+        return self::get_qtype($questiondata->qtype, false)->make_question($questiondata, false);
     }
 
     /**

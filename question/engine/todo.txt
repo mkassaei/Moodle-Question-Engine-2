@@ -39,7 +39,7 @@ Finish converting simple question types (6.5d)
 √   Opaque question type 0.5d
     Numerical units 0.5d
     Refactor out commonalities between multiplechoice and truefalse rendering. 0.5d
-    Test missing qtype 1d
+√   Test missing qtype 1d
     New fields for editing hints (4d)
         Fields on editing form 1d
         Database columns, load/save code 1d

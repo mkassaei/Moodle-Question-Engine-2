@@ -32,7 +32,7 @@
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_missing_question extends question_definition implements question_automatically_gradable {
+class qtype_missingtype_question extends question_definition implements question_automatically_gradable {
     public function get_expected_data() {
         return array();
     }
@@ -45,8 +45,16 @@ class qtype_missing_question extends question_definition implements question_aut
         return false;
     }
 
+    public function is_gradable_response(array $response) {
+        return false;
+    }
+
     public function is_same_response(array $prevresponse, array $newresponse) {
         return true;
+    }
+
+    public function init_first_step(question_attempt_step $step) {
+        throw new Exception('This question is of a type that is not installed on your system. Cannot start an attempt at it.');
     }
 
     public function grade_response(array $response) {
