@@ -49,7 +49,7 @@ Finish converting simple question types (6.5d)
 Finish interaction models (2.5d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9204)
 √   Opaque model 0.5d
-    Each attempt builds on last (eachattemptonlast) model 1d
+√   Each attempt builds on last (eachattemptonlast) model 1d
 √   New Adaptive mode without penalties (adaptivenopenalty) model. (0.5d)
 √   Minor refactoring of the different interaction models' process_action methods. 0d
 √   Fix manual grading of automatically graded question types.

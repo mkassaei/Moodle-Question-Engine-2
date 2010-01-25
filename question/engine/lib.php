@@ -1154,6 +1154,20 @@ class question_usage_by_activity {
     }
 
     /**
+     * Start the attempt at a question, starting from the point where the previous
+     * question_attempt $oldqa had reached. This is used by the quiz 'Each attempt
+     * builds on last' mode.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param question_attempt $oldqa a previous attempt at this quetsion that
+     *      defines the starting point.
+     */
+    public function start_question_based_on($qnumber, question_attempt $oldqa) {
+        $qa = $this->get_question_attempt($qnumber);
+        $qa->start_based_on($oldqa);
+        $this->observer->notify_attempt_modified($qa);
+    }
+
+    /**
      * Process all the question actions in the current request.
      *
      * If there is a parameter qnumbers included in the post data, then only
@@ -1877,6 +1891,29 @@ class question_attempt {
     }
 
     /**
+     * Start this question attempt, starting from the point that the previous
+     * attempt $oldqa had reached.
+     *
+     * You should not call this method directly. Call
+     * {@link question_usage_by_activity::start_question_based_on()} instead.
+     *
+     * @param question_attempt $oldqa a previous attempt at this quetsion that
+     *      defines the starting point.
+     */
+    public function start_based_on(question_attempt $oldqa) {
+        $this->start($oldqa->interactionmodel, $oldqa->get_resume_data());
+    }
+
+    /**
+     * Used by {@link start_based_on()} to get the data needed to start a new
+     * attempt from the point this attempt has go to.
+     * @return array name => value pairs.
+     */
+    protected function get_resume_data() {
+        return $this->interactionmodel->get_resume_data();
+    }
+
+    /**
      * Get a particular parameter from the current request. A wrapper round
      * {@link optional_param()}.
      * @param string $name the paramter name.
@@ -2006,7 +2043,7 @@ class question_attempt {
         foreach ($oldqa->get_step_iterator() as $step) {
             if ($first) {
                 $first = false;
-                $this->start($oldqa->interactionmodel, $step->get_qt_data(),
+                $this->start($oldqa->interactionmodel, $step->get_all_data(),
                         $step->get_timecreated(), $step->get_user_id());
             } else {
                 $this->process_action($step->get_submitted_data(),

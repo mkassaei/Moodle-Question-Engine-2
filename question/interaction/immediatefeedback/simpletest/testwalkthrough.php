@@ -79,6 +79,19 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
 
         $numsteps = $this->get_step_count();
 
+        // Now try to save again - as if the user clicked next in the quiz.
+        $this->process_submission(array('answer' => $rightindex));
+
+        // Verify.
+        $this->assertEqual($numsteps, $this->get_step_count());
+        $this->check_current_state(question_state::$gradedright);
+        $this->check_current_mark(1);
+        $this->check_current_output(
+                $this->get_contains_mc_radio_expectation($rightindex, false, true),
+                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
+                $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
+                $this->get_contains_correct_expectation());
+
         // Finish the attempt - should not need to add a new state.
         $this->quba->finish_all_questions();
 

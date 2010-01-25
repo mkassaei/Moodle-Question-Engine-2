@@ -189,6 +189,27 @@ abstract class question_interaction_model {
     }
 
     /**
+     * Used by {@link start_based_on()} to get the data needed to start a new
+     * attempt from the point this attempt has go to.
+     * @return array name => value pairs.
+     */
+    public function get_resume_data() {
+        $olddata = $this->qa->get_step(0)->get_all_data();
+        $olddata = $this->qa->get_last_qt_data() + $olddata;
+        $olddata = $this->get_our_resume_data() + $olddata;
+        return $olddata;
+    }
+
+    /**
+     * Used by {@link start_based_on()} to get the data needed to start a new
+     * attempt from the point this attempt has go to.
+     * @return unknown_type
+     */
+    protected function get_our_resume_data() {
+        return array();
+    }
+
+    /**
      * Initialise the first step in a question attempt.
      *
      * This method must call $this->question->init_first_step($step), and may
@@ -313,9 +334,12 @@ abstract class question_interaction_model_with_save extends question_interaction
      * @return boolean either {@link question_attempt::KEEP} or {@link question_attempt::DISCARD}
      */
     public function process_save(question_attempt_step $pendingstep) {
-        if (!$this->qa->get_state()->is_active()) {
-            throw new Exception('Question is already closed, cannot process_actions.');
+        if ($this->qa->get_state()->is_finished()) {
+            return question_attempt::DISCARD;
+        } else if (!$this->qa->get_state()->is_active()) {
+            throw new Exception('Question is not active, cannot process_actions.');
         }
+
         if ($this->is_same_response($pendingstep)) {
             return question_attempt::DISCARD;
         }

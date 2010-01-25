@@ -86,11 +86,9 @@ if ($lastattempt && !$lastattempt->timefinish) {
 
 // Get number for the next or unfinished attempt
 if ($lastattempt && !$lastattempt->preview && !$quizobj->is_preview_user()) {
-    $lastattemptid = $lastattempt->id;
     $attemptnumber = $lastattempt->attempt + 1;
 } else {
     $lastattempt = false;
-    $lastattemptid = false;
     $attemptnumber = 1;
 }
 
@@ -112,30 +110,59 @@ $quba->set_preferred_interaction_model($quiz->preferredmodel);
 // Create the new attempt and initialize the question sessions
 $attempt = quiz_create_attempt($quiz, $attemptnumber, $lastattempt, time(), $quizobj->is_preview_user());
 
-// Fully load all the questions in this quiz.
-$quizobj->preload_questions();
-$quizobj->load_questions();
+if (!($quiz->attemptonlast && $lastattempt)) {
+    // Starting a normal, new, quiz attempt.
 
-// Add them all to the $quba.
-$idstonumbers = array();
-foreach ($quizobj->get_questions() as $i => $questiondata) {
-    $question = question_bank::make_question($questiondata);
-    $idstonumbers[$i] = $quba->add_question($question, $questiondata->maxgrade);
-}
+    // Fully load all the questions in this quiz.
+    $quizobj->preload_questions();
+    $quizobj->load_questions();
 
-// Update attempt layout.
-$newlayout = array();
-foreach (explode(',', $attempt->layout) as $qid) {
-    if ($qid != 0) {
-        $newlayout[] = $idstonumbers[$qid];
-    } else {
-        $newlayout[] = 0;
+    // Add them all to the $quba.
+    $idstonumbers = array();
+    foreach ($quizobj->get_questions() as $i => $questiondata) {
+        $question = question_bank::make_question($questiondata);
+        $idstonumbers[$i] = $quba->add_question($question, $questiondata->maxgrade);
     }
-}
-$attempt->layout = implode(',', $newlayout);
 
-// Start all the quetsions.
-$quba->start_all_questions();
+    // Start all the quetsions.
+    $quba->start_all_questions();
+
+    // Update attempt layout.
+    $newlayout = array();
+    foreach (explode(',', $attempt->layout) as $qid) {
+        if ($qid != 0) {
+            $newlayout[] = $idstonumbers[$qid];
+        } else {
+            $newlayout[] = 0;
+        }
+    }
+    $attempt->layout = implode(',', $newlayout);
+
+} else {
+    // Starting a subsequent attempt in each attempt builds on last mode.
+
+    $oldquba = question_engine::load_questions_usage_by_activity($lastattempt->uniqueid);
+
+    $oldnumberstonew = array();
+    foreach ($oldquba->get_attempt_iterator() as $oldqnumber => $oldqa) {
+        $newqnumber = $quba->add_question($oldqa->get_question(), $oldqa->get_max_mark());
+
+        $quba->start_question_based_on($newqnumber, $oldqa);
+
+        $oldnumberstonew[$oldqnumber] = $newqnumber;
+    }
+
+    // Update attempt layout.
+    $newlayout = array();
+    foreach (explode(',', $lastattempt->layout) as $oldqnumber) {
+        if ($oldqnumber != 0) {
+            $newlayout[] = $oldnumberstonew[$oldqnumber];
+        } else {
+            $newlayout[] = 0;
+        }
+    }
+    $attempt->layout = implode(',', $newlayout);
+}
 
 // Save the attempt in the database.
 question_engine::save_questions_usage_by_activity($quba);

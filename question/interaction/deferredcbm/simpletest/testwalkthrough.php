@@ -137,5 +137,56 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_output($this->get_contains_correct_expectation(),
                 $this->get_contains_cbm_radio_expectation(1, false, true));
     }
+
+    public function test_deferredcbm_resume_multichoice_single() {
+
+        // Create a multiple-choice question.
+        $mc = test_question_maker::make_a_multichoice_single_question();
+
+        // Attempt it getting it wrong.
+        $this->start_attempt_at_question($mc, 'deferredcbm', 3);
+        $rightindex = $this->get_mc_right_answer_index($mc);
+        $wrongindex = ($rightindex + 1) % 3;
+        $this->process_submission(array('answer' => $wrongindex, '!certainty' => 2));
+        $this->quba->finish_all_questions();
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedwrong);
+        $this->check_current_mark(-3.3333333);
+        $this->check_current_output(
+                $this->get_contains_mc_radio_expectation($wrongindex, false, true),
+                $this->get_contains_cbm_radio_expectation(2, false, true),
+                $this->get_contains_incorrect_expectation());
+
+        // Save the old attempt.
+        $oldqa = $this->quba->get_question_attempt($this->qnumber);
+
+        // Reinitialise.
+        $this->setUp();
+        $this->quba->set_preferred_interaction_model('deferredcbm');
+        $this->qnumber = $this->quba->add_question($mc, 3);
+        $this->quba->start_question_based_on($this->qnumber, $oldqa);
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_mc_radio_expectation($wrongindex, true, true),
+                $this->get_contains_cbm_radio_expectation(2, true, true),
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_does_not_contain_correctness_expectation());
+
+        // Now get it right.
+        $this->process_submission(array('answer' => $rightindex, '!certainty' => 3));
+        $this->quba->finish_all_questions();
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedright);
+        $this->check_current_mark(3);
+        $this->check_current_output(
+                $this->get_contains_mc_radio_expectation($rightindex, false, true),
+                $this->get_contains_cbm_radio_expectation(3, false, true),
+                $this->get_contains_correct_expectation());
+    }
 }
 
