@@ -24,6 +24,8 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+require_once($CFG->libdir . '/questionlib.php');
+require_once($CFG->dirroot . '/question/engine/lib.php');
 
 /**
  * The numerical question type class.
@@ -235,6 +237,7 @@ class qtype_numerical extends question_type {
     protected function initialise_question_instance(question_definition $question, $questiondata) {
         parent::initialise_question_instance($question, $questiondata);
         $this->initialise_numerical_answers($question, $questiondata);
+        $this->initialise_numerical_units($question, $questiondata);
     }
 
     protected function initialise_numerical_answers(question_definition $question, $questiondata) {
@@ -246,6 +249,18 @@ class qtype_numerical extends question_type {
             $question->answers[$a->id] = new qtype_numerical_answer($a->answer,
                     $a->fraction, $a->feedback, $a->tolerance);
         }
+    }
+
+    protected function initialise_numerical_units(question_definition $question, $questiondata) {
+        if (empty($questiondata->options->units)) {
+            $question->units = qtype_numerical_units(array());
+            return;
+        }
+        $units = array();
+        foreach ($questiondata->options->units as $unit) {
+            $units[$unit->unit] = $unit->multiplier;
+        }
+        $question->units = qtype_numerical_units($units);
     }
 
     /**

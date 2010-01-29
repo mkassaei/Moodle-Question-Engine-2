@@ -24,6 +24,8 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+require_once($CFG->dirroot . '/question/type/numerical/questiontype.php');
+
 
 /**
  * Represents a numerical question.
@@ -130,3 +132,97 @@ class qtype_numerical_answer extends question_answer {
     }
 }
 
+class qtype_numerical_answer_processor {
+    /** @var array unit name => multiplier. */
+    protected $units;
+    /** @var string character used as decimal point. */
+    protected $decsep;
+    /** @var string character used as thousands separator. */
+    protected $thousandssep;
+
+    protected $regex = null;
+
+    public function __construct($units, $decsep = null, $thousandssep = null) {
+        if (is_null($decsep)) {
+            $decsep = get_string('decsep', 'langconfig');
+        }
+        $this->decsep = $decsep;
+
+        if (is_null($thousandssep)) {
+            $thousandssep = get_string('thousandssep', 'langconfig');
+        }
+        $this->thousandssep = $thousandssep;
+
+        $this->units = $units;
+    }
+
+    protected function build_regex() {
+        if (!is_null($this->regex)) {
+            return $this->regex;
+        }
+
+        $beforepointre = '([+-]?[' . preg_quote($this->thousandssep, '/') . '\d]*)';
+        $decimalsre = preg_quote($this->decsep, '/') . '(\d*)';
+        $exponentre = '(?:e|E|(?:x|\*|×)10(?:\^|\*\*))([+-]?\d+)';
+
+        $escapedunits = array();
+        foreach ($this->units as $unit => $notused) {
+            $escapedunits[] = preg_quote($unit, '/');
+        }
+        $unitre = '(' . implode('|', $escapedunits) . ')';
+
+        $this->regex = "/^$beforepointre(?:$decimalsre)?(?:$exponentre)?\s*(?:$unitre)?$/U";
+        return $this->regex;
+    }
+
+    /**
+     * 
+     * @param string $value a value, optionally with a unit.
+     * @return array(numeric, sting) the value with the unit stripped, and converted to the default unit.
+     */
+    public function parse_response($response) {
+        if (!preg_match($this->build_regex(), $response, $matches)) {
+            return array(null, null, null, null);
+        }
+
+        $matches += array('', '', '', '', ''); // Fill in any missing matches.
+        list($notused, $beforepoint, $decimals, $exponent, $unit) = $matches;
+
+        // Strip out thousands separators.
+        $beforepoint = str_replace($this->thousandssep, '', $beforepoint);
+
+        // Must be either something before, or something after the decimal point.
+        // (The only way to do this in the regex would make it much more complicated.)
+        if ($beforepoint === '' && $decimals === '') {
+            return array(null, null, null, null);
+        }
+
+        return array($beforepoint, $decimals, $exponent, $unit);
+    }
+
+    /**
+     * 
+     * @param string $value a value, optionally with a unit.
+     * @return array(numeric, sting) the value with the unit stripped, and converted to the default unit.
+     */
+    public function apply_units($response) {
+        list($beforepoint, $decimals, $exponent, $unit) = $this->parse_response($response);
+
+        if (is_null($beforepoint)) {
+            return array(null, null);
+        }
+
+        $numberstring = $beforepoint . '.' . $decimals;
+        if ($exponent) {
+            $numberstring .= 'e' . $exponent;
+        }
+
+        if ($unit) {
+            $value = $numberstring * $this->units[$unit];
+        } else {
+            $value = $numberstring * 1;
+        }
+
+        return array($value, $unit);
+    }
+}
