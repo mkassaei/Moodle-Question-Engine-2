@@ -113,9 +113,9 @@ class qtype_numerical extends question_type {
         $result = $this->save_numerical_units($question);
         if (isset($result->error)) {
             return $result;
-        } else {
-            $units = &$result->units;
         }
+
+        $ap = new qtype_numerical_answer_processor($result->units);
 
         // Insert all the new answers
         foreach ($question->answer as $key => $dataanswer) {
@@ -130,8 +130,8 @@ class qtype_numerical extends question_type {
             if (trim($dataanswer) === '*') {
                 $answer->answer = '*';
             } else {
-                $answer->answer = self::apply_unit($dataanswer, $units);
-                if ($answer->answer === false) {
+                list($answer->answer) = $ap->apply_units($dataanswer);
+                if (is_null($answer->answer)) {
                     $result->notice = get_string('invalidnumericanswer', 'qtype_numerical');
                 }
             }
@@ -160,8 +160,8 @@ class qtype_numerical extends question_type {
             if (trim($question->tolerance[$key]) == '') {
                 $options->tolerance = '';
             } else {
-                $options->tolerance = self::apply_unit($question->tolerance[$key], $units);
-                if ($options->tolerance === false) {
+                list($options->tolerance) = $ap->apply_units($question->tolerance[$key]);
+                if (is_null($options->tolerance)) {
                     $result->notice = get_string('invalidnumerictolerance', 'qtype_numerical');
                 }
             }
@@ -217,15 +217,16 @@ class qtype_numerical extends question_type {
         $units = array();
         foreach ($question->multiplier as $i => $multiplier) {
             // Discard any unit which doesn't specify the unit or the multiplier
-            if (!empty($question->multiplier[$i]) && !empty($question->unit[$i])) {
-                $units[$i] = new stdClass;
-                $units[$i]->question = $question->id;
-                $units[$i]->multiplier = self::apply_unit($question->multiplier[$i], array());
-                $units[$i]->unit = $question->unit[$i];
-                if (! insert_record('question_numerical_units', $units[$i])) {
-                    $result->error = 'Unable to save unit ' . $units[$i]->unit . ' to the Databse';
+            if (!empty($multiplier) && !empty($question->unit[$i])) {
+                $unitrec = new stdClass;
+                $unitrec->question = $question->id;
+                $unitrec->multiplier = $question->multiplier[$i];
+                $unitrec->unit = $question->unit[$i];
+                if (!insert_record('question_numerical_units', $unitrec)) {
+                    $result->error = 'Unable to save unit ' . $unitrec->unit . ' to the Databse';
                     return $result;
                 }
+                $units[$question->unit[$i]] = $multiplier;
             }
         }
         unset($question->multiplier, $question->unit);
@@ -253,14 +254,14 @@ class qtype_numerical extends question_type {
 
     protected function initialise_numerical_units(question_definition $question, $questiondata) {
         if (empty($questiondata->options->units)) {
-            $question->units = qtype_numerical_units(array());
+            $question->ap = new qtype_numerical_answer_processor(array());
             return;
         }
         $units = array();
         foreach ($questiondata->options->units as $unit) {
             $units[$unit->unit] = $unit->multiplier;
         }
-        $question->units = qtype_numerical_units($units);
+        $question->ap = new qtype_numerical_answer_processor($units);
     }
 
     /**
@@ -309,56 +310,6 @@ class qtype_numerical extends question_type {
         $result->id = $question->id;
         $result->responses = $answers;
         return $result;
-    }
-
-    /**
-     * Checks if the $rawresponse has a unit and applys it if appropriate.
-     *
-     * @param string $rawresponse  The response string to be converted to a float.
-     * @param array $units         An array with the defined units, where the
-     *                             unit is the key and the multiplier the value.
-     * @return float               The rawresponse with the unit taken into
-     *                             account as a float.
-     */
-    public static function apply_unit($rawresponse, $units) {
-        // Make units more useful
-        $tmpunits = array();
-        foreach ($units as $unit) {
-            $tmpunits[$unit->unit] = $unit->multiplier;
-        }
-        // remove spaces and normalise decimal places.
-        $rawresponse = trim($rawresponse) ;
-        $search  = array(' ', ',');
-        // test if a . is present or there are multiple , (i.e. 2,456,789 ) so that we don't need spaces and ,
-        if ( strpos($rawresponse,'.' ) !== false || substr_count($rawresponse,',') > 1 ) {
-            $replace = array('', '');
-        }else { // remove spaces and normalise , to a . . 
-            $replace = array('', '.');
-        }
-        $rawresponse = str_replace($search, $replace, $rawresponse);
-
-
-        // Apply any unit that is present.
-        if (ereg('^([+-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)([eE][-+]?[0-9]+)?)([^0-9].*)?$',
-                $rawresponse, $responseparts)) {
-
-            if (!empty($responseparts[5])) {
-
-                if (isset($tmpunits[$responseparts[5]])) {
-                    // Valid number with unit.
-                    return (float)$responseparts[1] / $tmpunits[$responseparts[5]];
-                } else {
-                    // Valid number with invalid unit. Must be wrong.
-                    return false;
-                }
-
-            } else {
-                // Valid number without unit.
-                return (float)$responseparts[1];
-            }
-        }
-        // Invalid number. Must be wrong.
-        return false;
     }
 
     /// BACKUP FUNCTIONS ////////////////////////////
@@ -480,3 +431,138 @@ class qtype_numerical extends question_type {
 
 }
 question_register_questiontype(question_bank::get_qtype('numerical'));
+
+
+/**
+ * This class processes numbers with units.
+ *
+ * @copyright © 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class qtype_numerical_answer_processor {
+    /** @var array unit name => multiplier. */
+    protected $units;
+    /** @var string character used as decimal point. */
+    protected $decsep;
+    /** @var string character used as thousands separator. */
+    protected $thousandssep;
+
+    protected $regex = null;
+
+    public function __construct($units, $decsep = null, $thousandssep = null) {
+        if (is_null($decsep)) {
+            $decsep = get_string('decsep', 'langconfig');
+        }
+        $this->decsep = $decsep;
+
+        if (is_null($thousandssep)) {
+            $thousandssep = get_string('thousandssep', 'langconfig');
+        }
+        $this->thousandssep = $thousandssep;
+
+        $this->units = $units;
+    }
+
+    /**
+     * Set the decimal point and thousands separator character that should be used.
+     * @param string $decsep
+     * @param string $thousandssep
+     */
+    public function set_characters($decsep, $thousandssep) {
+        $this->decsep = $decsep;
+        $this->thousandssep = $thousandssep;
+        $this->regex = null;
+    }
+
+    /** @return string the decimal point character used. */
+    public function get_point() {
+        return $this->decsep;
+    }
+
+    /** @return string the thousands separator character used. */
+    public function get_separator() {
+        return $this->thousandssep;
+    }
+
+    /**
+     * Create the regular expression that {@link parse_response()} requires.
+     * @return string
+     */
+    protected function build_regex() {
+        if (!is_null($this->regex)) {
+            return $this->regex;
+        }
+
+        $beforepointre = '([+-]?[' . preg_quote($this->thousandssep, '/') . '\d]*)';
+        $decimalsre = preg_quote($this->decsep, '/') . '(\d*)';
+        $exponentre = '(?:e|E|(?:x|\*|×)10(?:\^|\*\*))([+-]?\d+)';
+
+        $escapedunits = array();
+        foreach ($this->units as $unit => $notused) {
+            $escapedunits[] = preg_quote($unit, '/');
+        }
+        $unitre = '(' . implode('|', $escapedunits) . ')';
+
+        $this->regex = "/^$beforepointre(?:$decimalsre)?(?:$exponentre)?\s*(?:$unitre)?$/U";
+        return $this->regex;
+    }
+
+    /**
+     * Take a string which is a number with or without a decimal point and exponent,
+     * and possibly followed by one of the units, and split it into bits.
+     * @param string $response a value, optionally with a unit.
+     * @return array four strings (some of which may be blank) the digits before
+     * and after the decimal point, the exponent, and the unit. All four will be
+     * null if the response cannot be parsed.
+     */
+    protected function parse_response($response) {
+        if (!preg_match($this->build_regex(), $response, $matches)) {
+            return array(null, null, null, null);
+        }
+
+        $matches += array('', '', '', '', ''); // Fill in any missing matches.
+        list($notused, $beforepoint, $decimals, $exponent, $unit) = $matches;
+
+        // Strip out thousands separators.
+        $beforepoint = str_replace($this->thousandssep, '', $beforepoint);
+
+        // Must be either something before, or something after the decimal point.
+        // (The only way to do this in the regex would make it much more complicated.)
+        if ($beforepoint === '' && $decimals === '') {
+            return array(null, null, null, null);
+        }
+
+        return array($beforepoint, $decimals, $exponent, $unit);
+    }
+
+    /**
+     * Takes a number in localised form, that is, using the decsep and thousandssep
+     * defined in the lanuage pack, and possibly with a unit after it. It separates
+     * off the unit, if present, and converts to the default unit, by using the
+     * given unit multiplier.
+     *
+     * @param string $response a value, optionally with a unit.
+     * @return array(numeric, sting) the value with the unit stripped, and normalised
+     *      by the unit multiplier, if any, and the unit string, for reference.
+     */
+    public function apply_units($response) {
+        list($beforepoint, $decimals, $exponent, $unit) = $this->parse_response($response);
+
+        if (is_null($beforepoint)) {
+            return array(null, null);
+        }
+
+        $numberstring = $beforepoint . '.' . $decimals;
+        if ($exponent) {
+            $numberstring .= 'e' . $exponent;
+        }
+
+        if ($unit) {
+            $value = $numberstring * $this->units[$unit];
+        } else {
+            $value = $numberstring * 1;
+        }
+
+        return array($value, $unit);
+    }
+}

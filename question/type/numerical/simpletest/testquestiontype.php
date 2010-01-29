@@ -47,23 +47,4 @@ class qtype_numerical_test extends UnitTestCase {
     public function test_name() {
         $this->assertEqual($this->qtype->name(), 'numerical');
     }
-
-    public function test_apply_unit() {
-        $units = array(
-            (object) array('unit' => 'm', 'multiplier' => 1),
-            (object) array('unit' => 'cm', 'multiplier' => 100),
-            (object) array('unit' => 'mm', 'multiplier' => 1000),
-            (object) array('unit' => 'inch', 'multiplier' => 1.0/0.0254)
-        );
-
-        $this->assertWithinMargin($this->qtype->apply_unit('1', $units), 1, $this->tolerance);
-        $this->assertWithinMargin($this->qtype->apply_unit('1.0', $units), 1, $this->tolerance);
-        $this->assertWithinMargin($this->qtype->apply_unit('-1e0', $units), -1, $this->tolerance);
-        $this->assertWithinMargin($this->qtype->apply_unit('100m', $units), 100, $this->tolerance);
-        $this->assertWithinMargin($this->qtype->apply_unit('1cm', $units), 0.01, $this->tolerance);
-        $this->assertWithinMargin($this->qtype->apply_unit('12inch', $units), .3048, $this->tolerance);
-        $this->assertIdentical($this->qtype->apply_unit('1km', $units), false);
-        $this->assertWithinMargin($this->qtype->apply_unit('-100', array()), -100, $this->tolerance);
-        $this->assertIdentical($this->qtype->apply_unit('1000 miles', array()), false);
-    }
 }

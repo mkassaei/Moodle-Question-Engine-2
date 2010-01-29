@@ -25,11 +25,17 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once($CFG->dirroot . '/question/type/numerical/question.php');
+require_once($CFG->dirroot . '/question/type/numerical/questiontype.php');
+
+class testable_qtype_numerical_answer_processor extends qtype_numerical_answer_processor {
+    public function parse_response($response) {
+        return parent::parse_response($response);
+    }
+}
 
 class qtype_numerical_answer_processor_test extends UnitTestCase {
     public function test_parse_response() {
-        $ap = new qtype_numerical_answer_processor(
+        $ap = new testable_qtype_numerical_answer_processor(
                 array('m' => 1, 'cm' => 0.01), '.', ',');
 
         $this->assertEqual(array('3', '142', '', ''), $ap->parse_response('3.142'));
@@ -67,6 +73,12 @@ class qtype_numerical_answer_processor_test extends UnitTestCase {
 
         $this->assertEqual(array('1000000', '', '', ''), $ap->parse_response('1,000,000'));
         $this->assertEqual(array('1000', '00', '', 'm'), $ap->parse_response('1,000.00 m'));
+
+        $this->assertEqual(array(null, null, null, null), $ap->parse_response('frog'));
+        $this->assertEqual(array(null, null, null, null), $ap->parse_response('3 frogs'));
+        $this->assertEqual(array(null, null, null, null), $ap->parse_response('. m'));
+        $this->assertEqual(array(null, null, null, null), $ap->parse_response('.e8 m'));
+        $this->assertEqual(array(null, null, null, null), $ap->parse_response(','));
     }
 
     public function test_apply_units() {
@@ -77,13 +89,24 @@ class qtype_numerical_answer_processor_test extends UnitTestCase {
         $this->assertEqual(array(3e8, ''), $ap->apply_units('3x10^8'));
         $this->assertEqual(array(299792458, 'c'), $ap->apply_units('1c'));
         $this->assertEqual(array(0.44704, 'mph'), $ap->apply_units('0001.000 mph'));
+
+        $this->assertEqual(array(null, null), $ap->apply_units('1 frogs'));
+        $this->assertEqual(array(null, null), $ap->apply_units('. m/s'));
     }
 
     public function test_euro_style() {
-        $ap = new qtype_numerical_answer_processor(
-                array(), ',', ' ');
+        $ap = new qtype_numerical_answer_processor(array(), ',', ' ');
 
         $this->assertEqual(array(-1000, ''), $ap->apply_units('-1 000'));
         $this->assertEqual(array(3.14159, ''), $ap->apply_units('3,14159'));
     }
+
+    public function test_percent() {
+        $ap = new qtype_numerical_answer_processor(array('%' => 0.01), '.', ',');
+
+        $this->assertEqual(array('0.03', '%'), $ap->apply_units('3%'));
+        $this->assertEqual(array('1e-8', '%'), $ap->apply_units('1e-6 %'));
+        $this->assertEqual(array('100', ''), $ap->apply_units('100'));
+    }
+
 }

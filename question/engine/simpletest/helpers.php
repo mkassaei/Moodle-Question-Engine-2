@@ -221,7 +221,8 @@ class test_question_maker {
             new qtype_numerical_answer('3', 0.0, 'Not accurate enough.', 0.5),
             new qtype_numerical_answer('*', 0.0, 'Completely wrong.', 0),
         );
-        $num->qtype = question_bank::get_qtype('shortanswer');
+        $num->qtype = question_bank::get_qtype('numerical');
+        $num->ap = new qtype_numerical_answer_processor(array());
 
         return $num;
     }

@@ -60,6 +60,23 @@ class qtype_numerical_question_test extends UnitTestCase {
                 $question->grade_response(array('answer' => '3.14')));
     }
 
+    public function test_grading_with_units() {
+        $question = test_question_maker::make_a_numerical_question();
+        $question->ap = new qtype_numerical_answer_processor(
+                array('m' => 1, 'cm' => 0.01), '.', ',');
+
+        $this->assertEqual(array(0, question_state::$gradedwrong),
+                $question->grade_response(array('answer' => '3.14 frogs')));
+        $this->assertEqual(array(1, question_state::$gradedright),
+                $question->grade_response(array('answer' => '3.14')));
+        $this->assertEqual(array(1, question_state::$gradedright),
+                $question->grade_response(array('answer' => '3.14 m')));
+        $this->assertEqual(array(1, question_state::$gradedright),
+                $question->grade_response(array('answer' => '314cm')));
+        $this->assertEqual(array(1, question_state::$gradedright),
+                $question->grade_response(array('answer' => '314000000x10^-8m')));
+    }
+
     public function test_get_correct_response() {
         $question = test_question_maker::make_a_numerical_question();
 

@@ -37,7 +37,8 @@ class qtype_numerical_question extends question_graded_by_strategy
         implements question_response_answer_comparer {
     /** @var array of question_answer. */
     public $answers = array();
-    public $units = array();
+    /** @var qtype_numerical_answer_processor */
+    public $ap;
 
     public function __construct() {
         parent::__construct(new question_first_matching_answer_grading_strategy($this));
@@ -45,6 +46,16 @@ class qtype_numerical_question extends question_graded_by_strategy
 
     public function get_expected_data() {
         return array('answer' => PARAM_TRIM);
+    }
+
+    public function init_first_step(question_attempt_step $step) {
+        if ($step->has_qt_var('_separators')) {
+            list($point, $separator) = explode('$', $step->get_qt_var('_separators'));
+            $this->ap->set_characters($point, $separator);
+        } else {
+            $step->set_qt_var('_separators',
+                    $this->ap->get_point() . '$' . $this->ap->get_separator());
+        }
     }
 
     public function is_complete_response(array $response) {
@@ -70,7 +81,7 @@ class qtype_numerical_question extends question_graded_by_strategy
     }
 
     public function compare_response_with_answer(array $response, question_answer $answer) {
-        $value = qtype_numerical::apply_unit($response['answer'], $this->units);
+        list($value, $unit) = $this->ap->apply_units($response['answer']);
         return $answer->within_tolerance($value);
     }
 }
@@ -129,100 +140,5 @@ class qtype_numerical_answer extends question_answer {
         }
         list($min, $max) = $this->get_tolerance_interval();
         return $min < $value && $value < $max;
-    }
-}
-
-class qtype_numerical_answer_processor {
-    /** @var array unit name => multiplier. */
-    protected $units;
-    /** @var string character used as decimal point. */
-    protected $decsep;
-    /** @var string character used as thousands separator. */
-    protected $thousandssep;
-
-    protected $regex = null;
-
-    public function __construct($units, $decsep = null, $thousandssep = null) {
-        if (is_null($decsep)) {
-            $decsep = get_string('decsep', 'langconfig');
-        }
-        $this->decsep = $decsep;
-
-        if (is_null($thousandssep)) {
-            $thousandssep = get_string('thousandssep', 'langconfig');
-        }
-        $this->thousandssep = $thousandssep;
-
-        $this->units = $units;
-    }
-
-    protected function build_regex() {
-        if (!is_null($this->regex)) {
-            return $this->regex;
-        }
-
-        $beforepointre = '([+-]?[' . preg_quote($this->thousandssep, '/') . '\d]*)';
-        $decimalsre = preg_quote($this->decsep, '/') . '(\d*)';
-        $exponentre = '(?:e|E|(?:x|\*|×)10(?:\^|\*\*))([+-]?\d+)';
-
-        $escapedunits = array();
-        foreach ($this->units as $unit => $notused) {
-            $escapedunits[] = preg_quote($unit, '/');
-        }
-        $unitre = '(' . implode('|', $escapedunits) . ')';
-
-        $this->regex = "/^$beforepointre(?:$decimalsre)?(?:$exponentre)?\s*(?:$unitre)?$/U";
-        return $this->regex;
-    }
-
-    /**
-     * 
-     * @param string $value a value, optionally with a unit.
-     * @return array(numeric, sting) the value with the unit stripped, and converted to the default unit.
-     */
-    public function parse_response($response) {
-        if (!preg_match($this->build_regex(), $response, $matches)) {
-            return array(null, null, null, null);
-        }
-
-        $matches += array('', '', '', '', ''); // Fill in any missing matches.
-        list($notused, $beforepoint, $decimals, $exponent, $unit) = $matches;
-
-        // Strip out thousands separators.
-        $beforepoint = str_replace($this->thousandssep, '', $beforepoint);
-
-        // Must be either something before, or something after the decimal point.
-        // (The only way to do this in the regex would make it much more complicated.)
-        if ($beforepoint === '' && $decimals === '') {
-            return array(null, null, null, null);
-        }
-
-        return array($beforepoint, $decimals, $exponent, $unit);
-    }
-
-    /**
-     * 
-     * @param string $value a value, optionally with a unit.
-     * @return array(numeric, sting) the value with the unit stripped, and converted to the default unit.
-     */
-    public function apply_units($response) {
-        list($beforepoint, $decimals, $exponent, $unit) = $this->parse_response($response);
-
-        if (is_null($beforepoint)) {
-            return array(null, null);
-        }
-
-        $numberstring = $beforepoint . '.' . $decimals;
-        if ($exponent) {
-            $numberstring .= 'e' . $exponent;
-        }
-
-        if ($unit) {
-            $value = $numberstring * $this->units[$unit];
-        } else {
-            $value = $numberstring * 1;
-        }
-
-        return array($value, $unit);
     }
 }
