@@ -86,3 +86,32 @@ class question_first_matching_answer_grading_strategy_test extends UnitTestCase 
         $this->assertNull($strategy->grade(array('answer' => 'toad')));
     }
 }
+
+
+/**
+ * Test for question_hint and subclasses.
+ *
+ * @copyright © 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_hint_test extends UnitTestCase {
+    public function test_basic() {
+        $row = new stdClass;
+        $row->hint = 'A hint';
+        $hint = question_hint::load_from_record($row);
+        $this->assertEqual($row->hint, $hint->hint);
+    }
+
+    public function test_with_parts() {
+        $row = new stdClass;
+        $row->hint = 'A hint';
+        $row->shownumcorrect = 1;
+        $row->clearwrong = 1;
+
+        $hint = question_hint_with_parts::load_from_record($row);
+        $this->assertEqual($row->hint, $hint->hint);
+        $this->assertTrue($hint->shownumcorrect);
+        $this->assertTrue($hint->clearwrong);
+    }
+    
+}

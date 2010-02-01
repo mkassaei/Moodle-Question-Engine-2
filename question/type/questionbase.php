@@ -93,6 +93,9 @@ abstract class question_definition {
     /** @var integer userid of the use who modified this question. */
     public $modifiedby;
 
+    /** @var array of question_hints. */
+    public $hints = array();
+
     /**
      * Constructor. Normally to get a question, you call
      * {@link question_bank::load_question()}, but questions can be created
@@ -423,6 +426,74 @@ class question_answer {
         $this->answer = $answer;
         $this->fraction = $fraction;
         $this->feedback = $feedback;
+    }
+}
+
+
+/**
+ * Class to represent a hint associated with a question.
+ * Used by iteractive mode, etc. A question has an array of these.
+ *
+ * @copyright © 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_hint {
+    /** @var The feedback hint to be shown. */
+    public $hint;
+
+    /**
+     * Constructor.
+     * @param string $hint The hint text
+     */
+    public function __construct($hint) {
+        $this->hint = $hint;
+    }
+
+    /**
+     * Create a basic hint from a row loaded from the question_hints table in the database.
+     * @param object $row with $row->hint set.
+     * @return question_hint
+     */
+    public static function load_from_record($row) {
+        return new question_hint($row->hint);
+    }
+}
+
+
+/**
+ * An extension of {@link question_hint} for questions like match and multiple
+ * choice with multile answers, where there are options for whether to show the
+ * number of parts right at each stage, and to reset the wrong parts.
+ *
+ * @copyright © 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_hint_with_parts extends question_hint {
+    /** @var boolean option to show the number of sub-parts of the question that were right. */
+    public $shownumcorrect;
+
+    /** @var boolean option to clear the parts of the question that were wrong on retry. */
+    public $clearwrong;
+
+    /**
+     * Constructor.
+     * @param string $hint The hint text
+     * @param boolean $shownumcorrect whether the number of right parts should be shown
+     * @param boolean $clearwrong whether the wrong parts should be reset.
+     */
+    public function __construct($hint, $shownumcorrect, $clearwrong) {
+        parent::__construct($hint);
+        $this->shownumcorrect = $shownumcorrect;
+        $this->clearwrong = $clearwrong;
+    }
+
+    /**
+     * Create a basic hint from a row loaded from the question_hints table in the database.
+     * @param object $row with $row->hint, ->shownumcorrect and ->clearwrong set.
+     * @return question_hint_with_parts
+     */
+    public static function load_from_record($row) {
+        return new question_hint_with_parts($row->hint, $row->shownumcorrect, $row->clearwrong);
     }
 }
 

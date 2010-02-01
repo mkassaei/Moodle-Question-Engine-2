@@ -445,21 +445,41 @@ class question_type {
             $question->options->answers = get_records('question_answers', 'question', $question->id, 'id ASC');
         }
 
+        $question->hints = get_records('question_hints', 'questionid', $question->id, 'id ASC');
+
         return true;
     }
 
+    /**
+     * Create an appropriate question_definition for the question of this type
+     * using data loaded from the database.
+     * @param object $questiondata the question data loaded from the database.
+     * @return question_definition the corresponding question_definition.
+     */
     public function make_question($questiondata) {
         $question = $this->make_question_instance($questiondata);
         $this->initialise_question_instance($question, $questiondata);
         return $question;
     }
 
+    /**
+     * Create an appropriate question_definition for the question of this type
+     * using data loaded from the database.
+     * @param object $questiondata the question data loaded from the database.
+     * @return question_definition an instance of the appropriate question_definition subclass.
+     *      Still needs to be initialised.
+     */
     protected function make_question_instance($questiondata) {
         question_bank::load_question_definition_classes($this->name());
         $class = 'qtype_' . $this->name() . '_question';
         return new $class();
     }
 
+    /**
+     * Initialise the common question_definition fields.
+     * @param question_definition $question the question_definition we are creating.
+     * @param object $questiondata the question data loaded from the database.
+     */
     protected function initialise_question_instance(question_definition $question, $questiondata) {
         $question->id = $questiondata->id;
         $question->category = $questiondata->category;
@@ -479,8 +499,39 @@ class question_type {
         $question->timemodified = $questiondata->timemodified;
         $question->createdby = $questiondata->createdby;
         $question->modifiedby = $questiondata->modifiedby;
+
+        $this->initialise_question_hints($question, $questiondata);
     }
 
+    /**
+     * Initialise question_definition::hints field.
+     * @param question_definition $question the question_definition we are creating.
+     * @param object $questiondata the question data loaded from the database.
+     */
+    protected function initialise_question_hints(question_definition $question, $questiondata) {
+        if (empty($questiondata->hints)) {
+            return;
+        }
+        foreach ($question->hints as $hint) {
+            $question->hints[] = $this->make_hint($hint);
+        }
+    }
+
+    /**
+     * Create a question_hint, or an appropriate subclass for this question,
+     * from a row loaded from the database.
+     * @param object $hint the DB row from the question hints table.
+     * @return question_hint
+     */
+    protected function make_hint($hint) {
+        return question_hint::load_from_record($hint);
+    }
+
+    /**
+     * Initialise question_definition::answers field.
+     * @param question_definition $question the question_definition we are creating.
+     * @param object $questiondata the question data loaded from the database.
+     */
     protected function initialise_question_answers(question_definition $question, $questiondata) {
         $question->answers = array();
         if (empty($questiondata->options->answers)) {
