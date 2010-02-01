@@ -349,7 +349,8 @@ ORDER BY
      * Delete a question_usage_by_activity and all its associated
      * {@link question_attempts} and {@link question_attempt_steps} from the
      * database.
-     * @param string $where a where clause, probabl written in terms of quba.id.
+     * @param string $where a where clause. Becuase of MySQL limitations, you
+     *      must refer to {$CFG->prefix}question_usages.id in full like that.
      */
     public function delete_questions_usage_by_activities($where) {
         global $CFG;
@@ -357,18 +358,18 @@ ORDER BY
                 SELECT qas.id
                 FROM {$CFG->prefix}question_attempts_new qa
                 JOIN {$CFG->prefix}question_attempt_steps qas ON qas.questionattemptid = qa.id
-                JOIN {$CFG->prefix}question_usages quba ON qa.questionusageid = quba.id
+                JOIN {$CFG->prefix}question_usages ON qa.questionusageid = {$CFG->prefix}question_usages.id
                 WHERE $where)");
         delete_records_select('question_attempt_steps', "questionattemptid IN (
                 SELECT qa.id
                 FROM {$CFG->prefix}question_attempts_new qa
-                JOIN {$CFG->prefix}question_usages quba ON qa.questionusageid = quba.id
+                JOIN {$CFG->prefix}question_usages ON qa.questionusageid = {$CFG->prefix}question_usages.id
                 WHERE $where)");
         delete_records_select('question_attempts_new', "questionusageid IN (
-                SELECT quba.id
-                FROM {$CFG->prefix}question_usages quba
+                SELECT id
+                FROM {$CFG->prefix}question_usages
                 WHERE $where)");
-        delete_records_select('question_usages quba', $where);
+        delete_records_select('question_usages', $where);
     }
 
     /**

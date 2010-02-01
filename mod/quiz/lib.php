@@ -196,7 +196,7 @@ function quiz_delete_instance($id) {
 function quiz_delete_all_attempts($quizid) {
     global $CFG;
     require_once($CFG->libdir . '/questionlib.php');
-    question_engine::delete_questions_usage_by_activities("quba.id IN (
+    question_engine::delete_questions_usage_by_activities("{$CFG->prefix}question_usages.id IN (
             SELECT uniqueid FROM {$CFG->prefix}quiz_attempts WHERE quiz = $quizid)");
     delete_records('quiz_attempts', 'quiz', $quizid);
 }
@@ -1078,7 +1078,7 @@ function quiz_reset_userdata($data) {
     if (!empty($data->reset_quiz_attempts)) {
 
         require_once($CFG->libdir.'/questionlib.php');
-        question_engine::delete_questions_usage_by_activities("quba.id IN (
+        question_engine::delete_questions_usage_by_activities("{$CFG->prefix}question_usages.id IN (
                 SELECT uniqueid
                 FROM {$CFG->prefix}quiz_attempts quiza
                 JOIN {$CFG->prefix}quiz quiz ON quiza.quiz = quiz.id

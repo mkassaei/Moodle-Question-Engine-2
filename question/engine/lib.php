@@ -108,7 +108,8 @@ abstract class question_engine {
      * @param integer $qubaid the id of the usage to delete.
      */
     public static function delete_questions_usage_by_activity($qubaid) {
-        self::delete_questions_usage_by_activities('quba.id = ' . $qubaid);
+        global $CFG;
+        self::delete_questions_usage_by_activities($CFG->prefix . 'question_usages.id = ' . $qubaid);
     }
 
     /**
