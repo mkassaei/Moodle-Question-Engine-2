@@ -210,6 +210,7 @@ DROP TABLE git_question_usages;
 DROP TABLE git_question_attempts_new;
 DROP TABLE git_question_attempt_steps;
 DROP TABLE git_question_attempt_step_data;
+DROP TABLE git_question_hints;
 
 
 -- Code to create the database tables in Postgres:
@@ -272,6 +273,21 @@ CONSTRAINT git_quesattestepdata_att_fk FOREIGN KEY (attemptstepid) REFERENCES gi
 );
 
 COMMENT ON TABLE git_question_attempt_step_data IS 'Each question_attempt_step has an associative array of the data that was submitted by the user in the POST request. It can also contain extra data from the question type or interaction model to avoid re-computation. The convention is that names belon';
+
+CREATE TABLE git_question_hints (
+    id BIGSERIAL,
+    questionid BIGINT NOT NULL,
+    hint TEXT NOT NULL,
+    shownumcorrect SMALLINT,
+    clearwrong SMALLINT,
+    options VARCHAR(255),
+CONSTRAINT git_queshint_id_pk PRIMARY KEY (id),
+CONSTRAINT git_queshint_que_fk FOREIGN KEY (questionid) REFERENCES git_question (id)
+);
+
+COMMENT ON TABLE git_question_hints IS 'Stores the the part of the question definition that gives different feedback after each try in interactive and similar interaction models.';
+
+CREATE INDEX git_queshint_que_ix ON git_question_hints (questionid);
 
 
 -- Code to create the database tables in MySQL:
@@ -344,3 +360,17 @@ ALTER TABLE question_attempt_step_data COMMENT='Each question_attempt_step has a
 CREATE UNIQUE INDEX quesattestepdata_attnam_uix ON question_attempt_step_data (attemptstepid, name);
 
 CREATE INDEX quesattestepdata_att_ix ON question_attempt_step_data (attemptstepid);
+
+CREATE TABLE git_question_hints (
+    id BIGINT(10) unsigned NOT NULL auto_increment,
+    questionid BIGINT(10) unsigned NOT NULL,
+    hint TEXT NOT NULL,
+    shownumcorrect TINYINT(1) unsigned DEFAULT NULL,
+    clearwrong TINYINT(1) unsigned DEFAULT NULL,
+    options VARCHAR(255) DEFAULT NULL,
+CONSTRAINT  PRIMARY KEY (id)
+);
+
+ALTER TABLE git_question_hints COMMENT='Stores the the part of the question definition that gives di';
+
+CREATE INDEX git_queshint_que_ix ON git_question_hints (questionid);
