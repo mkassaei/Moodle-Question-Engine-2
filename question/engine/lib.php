@@ -259,7 +259,7 @@ abstract class question_state {
     public static $mangrright;
     /**#@+-*/
 
-    private function __construct() {
+    protected function __construct() {
     }
 
     public static function init() {
