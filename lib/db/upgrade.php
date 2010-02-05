@@ -3319,6 +3319,24 @@ function xmldb_main_upgrade($oldversion=0) {
         upgrade_main_savepoint($result, 2007101571.02);
     }
 
+    /// MDL-17863. Increase the portno column length on mnet_host to handle any port number
+    if ($result && $oldversion < 2007101571.03) {
+        $table = new XMLDBTable('mnet_host');
+        $field = new XMLDBField('portno');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '5', true, true, null, false, false, 0);
+        $result = change_field_precision($table, $field);
+        upgrade_main_savepoint($result, 2007101571.03);
+    }
+
+    // MDL-21407. Trim leading spaces from default tex latexpreamble causing problems under some confs
+    if ($result && $oldversion < 2007101571.04) {
+        if ($preamble = $CFG->filter_tex_latexpreamble) {
+            $preamble = preg_replace('/^ +/m', '', $preamble);
+            set_config('filter_tex_latexpreamble', $preamble);
+        }
+        upgrade_main_savepoint($result, 2007101571.04);
+    }
+
     return $result;
 }
 
