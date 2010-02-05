@@ -55,9 +55,13 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
 
     public function test_interactive_feedback_multichoice_right() {
 
-        // Create a true-false question with correct answer true.
+        // Create a multichoice single question.
         $mc = test_question_maker::make_a_multichoice_single_question();
         $mc->maxmark = 1;
+        $mc->hints = array(
+            new question_hint_with_parts('This is the first hint.', false, false),
+            new question_hint_with_parts('This is the second hint.', true, true),
+        );
         $this->start_attempt_at_question($mc, 'interactive');
 
         $rightindex = $this->get_mc_right_answer_index($mc);
@@ -73,7 +77,8 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(2, true, false),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
-                $this->get_tries_remaining_expectation(3));
+                $this->get_tries_remaining_expectation(3),
+                $this->get_no_hint_visible_expectation());
 
         // Save the wrong answer.
         $this->process_submission(array('answer' => $wrongindex));
@@ -88,7 +93,8 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_correctness_expectation(),
                 $this->get_does_not_contain_feedback_expectation(),
-                $this->get_tries_remaining_expectation(3));
+                $this->get_tries_remaining_expectation(3),
+                $this->get_no_hint_visible_expectation());
 
         // Submit the wrong answer.
         $this->process_submission(array('answer' => $wrongindex, '!submit' => 1));
@@ -103,7 +109,8 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_contains_try_again_button_expectation(true),
                 $this->get_does_not_contain_correctness_expectation(),
-                $this->get_tries_remaining_expectation(2));
+                $this->get_tries_remaining_expectation(2),
+                $this->get_contains_hint_expectation('This is the first hint'));
 
         // Check that, if we review in this state, the try again button is disabled.
         $displayoptions = new question_display_options();
@@ -124,9 +131,10 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_correctness_expectation(),
                 $this->get_does_not_contain_feedback_expectation(),
-                $this->get_tries_remaining_expectation(2));
+                $this->get_tries_remaining_expectation(2),
+                $this->get_no_hint_visible_expectation());
 
-        // Submit the wrong answer.
+        // Submit the right answer.
         $this->process_submission(array('answer' => $rightindex, '!submit' => 1));
 
         // Verify.
@@ -137,7 +145,8 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
                 $this->get_contains_submit_button_expectation(false),
-                $this->get_contains_correct_expectation());
+                $this->get_contains_correct_expectation(),
+                $this->get_no_hint_visible_expectation());
 
         // Finish the attempt - should not need to add a new state.
         $numsteps = $this->get_step_count();
@@ -151,7 +160,8 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation($rightindex, false, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
-                $this->get_contains_correct_expectation());
+                $this->get_contains_correct_expectation(),
+                $this->get_no_hint_visible_expectation());
 
         // Process a manual comment.
         $this->manual_grade('Not good enough!', 0.5);
@@ -178,9 +188,12 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
 
     public function test_interactive_finish_when_try_again_showing() {
 
-        // Create a true-false question with correct answer true.
+        // Create a multichoice single question.
         $mc = test_question_maker::make_a_multichoice_single_question();
         $mc->maxmark = 1;
+        $mc->hints = array(
+            new question_hint_with_parts('This is the first hint.', false, false),
+        );
         $this->start_attempt_at_question($mc, 'interactive');
 
         $rightindex = $this->get_mc_right_answer_index($mc);
@@ -196,7 +209,8 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(2, true, false),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
-                $this->get_tries_remaining_expectation(3));
+                $this->get_tries_remaining_expectation(2),
+                $this->get_no_hint_visible_expectation());
 
         // Submit the wrong answer.
         $this->process_submission(array('answer' => $wrongindex, '!submit' => 1));
@@ -211,7 +225,8 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_contains_try_again_button_expectation(true),
                 $this->get_does_not_contain_correctness_expectation(),
-                $this->get_tries_remaining_expectation(2));
+                $this->get_tries_remaining_expectation(1),
+                $this->get_contains_hint_expectation('This is the first hint'));
 
         // Finish the attempt.
         $this->quba->finish_all_questions();
@@ -223,13 +238,18 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation($wrongindex, false, true),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
-                $this->get_contains_incorrect_expectation());
+                $this->get_contains_incorrect_expectation(),
+                $this->get_no_hint_visible_expectation());
     }
 
     public function test_interactive_shortanswer_try_to_submit_blank() {
 
-        // Create a short answer question with correct answer true.
+        // Create a short answer question.
         $sa = test_question_maker::make_a_shortanswer_question();
+        $sa->hints = array(
+            new question_hint('This is the first hint.'),
+            new question_hint('This is the second hint.'),
+        );
         $this->start_attempt_at_question($sa, 'interactive');
 
         // Check the initial state.
@@ -239,9 +259,10 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_does_not_contain_validation_error_expectation(),
-                $this->get_does_not_contain_try_again_button_expectation());
+                $this->get_does_not_contain_try_again_button_expectation(),
+                $this->get_no_hint_visible_expectation());
 
-        // Submit with certainty missing.
+        // Submit blank.
         $this->process_submission(array('!submit' => 1, 'answer' => ''));
 
         // Verify.
@@ -251,7 +272,8 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_contains_validation_error_expectation(),
-                $this->get_does_not_contain_try_again_button_expectation());
+                $this->get_does_not_contain_try_again_button_expectation(),
+                $this->get_no_hint_visible_expectation());
 
         // Now get it wrong.
         $this->process_submission(array('!submit' => 1, 'answer' => 'newt'));
@@ -263,7 +285,8 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_contains_incorrect_expectation(),
                 $this->get_does_not_contain_validation_error_expectation(),
-                $this->get_contains_try_again_button_expectation(true));
+                $this->get_contains_try_again_button_expectation(true),
+                $this->get_contains_hint_expectation('This is the first hint'));
 
         // Try again.
         $this->process_submission(array('!tryagain' => 1));
@@ -275,7 +298,8 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_does_not_contain_validation_error_expectation(),
-                $this->get_does_not_contain_try_again_button_expectation());
+                $this->get_does_not_contain_try_again_button_expectation(),
+                $this->get_no_hint_visible_expectation());
 
         // Now submit blank again.
         $this->process_submission(array('!submit' => 1, 'answer' => ''));
@@ -287,7 +311,8 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_contains_validation_error_expectation(),
-                $this->get_does_not_contain_try_again_button_expectation());
+                $this->get_does_not_contain_try_again_button_expectation(),
+                $this->get_no_hint_visible_expectation());
 
         // Now get it right.
         $this->process_submission(array('!submit' => 1, 'answer' => 'frog'));
@@ -298,6 +323,75 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_output(
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_contains_correct_expectation(),
-                $this->get_does_not_contain_validation_error_expectation());
+                $this->get_does_not_contain_validation_error_expectation(),
+                $this->get_no_hint_visible_expectation());
+    }
+
+    public function test_interactive_feedback_multichoice_multiple_reset() {
+
+        // Create a multichoice multiple question.
+        $mc = test_question_maker::make_a_multichoice_multi_question();
+        $mc->maxmark = 2;
+        $mc->hints = array(
+            new question_hint_with_parts('This is the first hint.', true, true),
+            new question_hint_with_parts('This is the second hint.', true, true),
+        );
+        $this->start_attempt_at_question($mc, 'interactive');
+
+        $right = array_keys($mc->get_correct_response());
+        $wrong = array_diff(array('choice0', 'choice1', 'choice2', 'choice3'), $right);
+        $wrong = array_values(array_diff(array('choice0', 'choice1', 'choice2', 'choice3'), $right));
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_question_text_expectation($mc),
+                $this->get_contains_mc_checkbox_expectation('choice0', true, false),
+                $this->get_contains_mc_checkbox_expectation('choice1', true, false),
+                $this->get_contains_mc_checkbox_expectation('choice2', true, false),
+                $this->get_contains_mc_checkbox_expectation('choice3', true, false),
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_tries_remaining_expectation(3),
+                $this->get_no_hint_visible_expectation());
+
+        // Submit an answer with one right, and one wrong.
+        $this->process_submission(array($right[0] => 1, $wrong[0] => 1, '!submit' => 1));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_mc_checkbox_expectation($right[0], false, true),
+                $this->get_contains_mc_checkbox_expectation($right[1], false, false),
+                $this->get_contains_mc_checkbox_expectation($wrong[0], false, true),
+                $this->get_contains_mc_checkbox_expectation($wrong[1], false, false),
+                $this->get_contains_submit_button_expectation(false),
+                $this->get_contains_try_again_button_expectation(true),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_tries_remaining_expectation(2),
+                $this->get_contains_hint_expectation('This is the first hint'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . $right[0], '1'),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . $right[1]),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . $wrong[0]),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . $wrong[1]));
+
+        // Do try again.
+        $this->process_submission(array($right[0] => 1, '!tryagain' => 1));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_mc_checkbox_expectation($right[0], true, true),
+                $this->get_contains_mc_checkbox_expectation($right[1], true, false),
+                $this->get_contains_mc_checkbox_expectation($wrong[0], true, false),
+                $this->get_contains_mc_checkbox_expectation($wrong[1], true, false),
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_tries_remaining_expectation(2),
+                $this->get_no_hint_visible_expectation());
     }
 }

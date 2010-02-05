@@ -155,6 +155,21 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
     }
 
     /**
+     * Given a response, rest the parts that are wrong.
+     * @param array $response a response
+     * @return array a cleaned up response with the wrong bits reset.
+     */
+    public function clean_response(array $response) {
+        foreach ($this->order as $key => $ans) {
+            if (question_state::graded_state_for_fraction($this->answers[$ans]->fraction) ==
+                    question_state::$gradedwrong) {
+                unset($response[$this->field($key)]);
+            }
+        }
+        return $response;
+    }
+
+    /**
      * @param integer $key choice number
      * @return string the question-type variable name.
      */

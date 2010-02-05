@@ -142,6 +142,7 @@ class test_question_maker {
         $mc->qtype = question_bank::get_qtype('multichoice');
 
         $mc->shuffleanswers = 1;
+        $mc->answernumbering = 'abc';
 
         $mc->answers = array(
             13 => new question_answer('A', 0.5, 'A is part of the right answer'),
@@ -400,6 +401,30 @@ class qim_walkthrough_test_base extends UnitTestCase {
         return new NoPatternExpectation('/class="validationerror"/');
     }
 
+    protected function get_contains_checkbox_expectation($baseattr, $enabled, $checked) {
+        $expectedattributes = $baseattr;
+        $forbiddenattributes = array();
+        $expectedattributes['type'] = 'checkbox';
+        if ($enabled === true) {
+            $forbiddenattributes['disabled'] = 'disabled';
+        } else if ($enabled === false) {
+            $expectedattributes['disabled'] = 'disabled';
+        }
+        if ($checked === true) {
+            $expectedattributes['checked'] = 'checked';
+        } else if ($checked === false) {
+            $forbiddenattributes['checked'] = 'checked';
+        }
+        return new ContainsTagWithAttributes('input', $expectedattributes, $forbiddenattributes);
+    }
+
+    protected function get_contains_mc_checkbox_expectation($index, $enabled = null, $checked = null) {
+        return $this->get_contains_checkbox_expectation(array(
+                'name' => $this->quba->get_field_prefix($this->qnumber) . $index,
+                'value' => 1,
+                ), $enabled, $checked);
+    }
+
     protected function get_contains_radio_expectation($baseattr, $enabled, $checked) {
         $expectedattributes = $baseattr;
         $forbiddenattributes = array();
@@ -422,6 +447,22 @@ class qim_walkthrough_test_base extends UnitTestCase {
                 'name' => $this->quba->get_field_prefix($this->qnumber) . 'answer',
                 'value' => $index,
                 ), $enabled, $checked);
+    }
+
+    protected function get_contains_hidden_expectation($name, $value = null) {
+        $expectedattributes = array('type' => 'hidden', 'name' => s($name));
+        if (!is_null($value)) {
+            $expectedattributes['value'] = s($value);
+        }
+        return new ContainsTagWithAttributes('input', $expectedattributes);
+    }
+
+    protected function get_does_not_contain_hidden_expectation($name, $value = null) {
+        $expectedattributes = array('type' => 'hidden', 'name' => s($name));
+        if (!is_null($value)) {
+            $expectedattributes['value'] = s($value);
+        }
+        return new DoesNotContainTagWithAttributes('input', $expectedattributes);
     }
 
     protected function get_contains_tf_true_radio_expectation($enabled = null, $checked = null) {
@@ -477,4 +518,12 @@ class qim_walkthrough_test_base extends UnitTestCase {
         $this->fail('This multiple choice question does not seem to have a right answer!');
     }
 
+    protected function get_no_hint_visible_expectation() {
+        return new NoPatternExpectation('/class="hint"/');
+    }
+
+    protected function get_contains_hint_expectation($hinttext) {
+        // Does not currently verify hint text.
+        return new ContainsTagWithAttribute('div', 'class', 'hint');
+    }
 }

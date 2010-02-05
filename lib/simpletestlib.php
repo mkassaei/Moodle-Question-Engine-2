@@ -316,6 +316,35 @@ class ContainsTagWithAttributes extends XMLStructureExpectation {
 }
 
 /**
+ * The opposite of {@link ContainsTagWithAttributes}. The test passes only if
+ * the HTML does not contain a tag with the given attributes.
+ *
+ * @copyright © 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class DoesNotContainTagWithAttributes extends ContainsTagWithAttributes {
+    function __construct($tag, $expectedvalues, $message = '%s') {
+        parent::__construct($tag, $expectedvalues, array(), $message);
+    }
+    function test($html) {
+        return !parent::test($html);
+    }
+    function customMessage($html) {
+        $output = 'Content [' . $html . '] ';
+
+        $output .= 'contains the tag [' . $this->tag . '] with attributes [';
+        foreach ($this->expectedvalues as $var => $val) {
+            $output .= "$var=\"$val\" ";
+        }
+        $output = rtrim($output);
+        $output .= '].';
+
+        return $output;
+    }
+}
+
+
+/**
  * Given a table name, a two-dimensional array of data, and a database connection,
  * creates a table in the database. The array of data should look something like this.
  *

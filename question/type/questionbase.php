@@ -163,6 +163,15 @@ abstract class question_definition {
     }
 
     /**
+     * Given a response, rest the parts that are wrong.
+     * @param array $response a response
+     * @return array a cleaned up response with the wrong bits reset.
+     */
+    public function clean_response(array $response) {
+        return array();
+    }
+
+    /**
      * @return qtype_renderer the renderer to use for outputting this question.
      */
     public function get_renderer() {

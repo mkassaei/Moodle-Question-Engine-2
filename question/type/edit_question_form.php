@@ -1,13 +1,30 @@
-<?php  // $Id$
+<?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+
 /**
  * A base class for question editing forms.
  *
- * @copyright &copy; 2006 The Open University
- * @author T.J.Hunt@open.ac.uk
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package questionbank
+ * @package moodlecore
  * @subpackage questiontypes
- *//** */
+ * @copyright &copy; 2006 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
+ */
+
 
 /**
  * Form definition base class. This defines the common fields that
@@ -15,15 +32,14 @@
  * class that inherits from this one, and implements the definition_inner()
  * method.
  *
- * @package questionbank
- * @subpackage questiontypes
+ * @copyright &copy; 2006 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
  */
 class question_edit_form extends moodleform {
     /**
      * Question object with options and answers already loaded by get_question_options
      * Be careful how you use this it is needed sometimes to set up the structure of the
      * form in definition_inner but data is always loaded into the form with set_data.
-     *
      * @var object
      */
     protected $question;

@@ -49,6 +49,31 @@ abstract class qtype_renderer extends moodle_renderer_base {
     }
 
     /**
+     * Output hidden form fields to clear any wrong parts of the student's response.
+     *
+     * This method will only be called if the question is in read-only mode.
+     * @param question_attempt $qa the question attempt to display.
+     * @return string HTML fragment.
+     */
+    public function reset_wrong(question_attempt $qa) {
+        $response = $qa->get_last_qt_data();
+        if (!$response) {
+            return '';
+        }
+        $cleanresponse = $qa->get_question()->clean_response($response);
+        $output = '';
+        foreach ($cleanresponse as $name => $value) {
+            $attr = array(
+                'type' => 'hidden',
+                'name' => $qa->get_qt_field_name($name),
+                'value' => s($value),
+            );
+            $output .= $this->output_empty_tag('input', $attr);
+        }
+        return $output;
+    }
+
+    /**
      * Generate the display of the outcome part of the question. This is the
      * area that contains the various forms of feedback. This function generates
      * the content of this area belonging to the question type.
@@ -66,6 +91,10 @@ abstract class qtype_renderer extends moodle_renderer_base {
         if ($options->feedback) {
             $output .= $this->output_nonempty_tag('div', array('class' => 'specificfeedback'),
                     $this->specific_feedback($qa));
+            $hint = $qa->get_applicable_hint();
+            if ($hint) {
+                $output .= $this->hint($qa->get_question(), $hint);
+            }
         }
         if ($options->generalfeedback) {
             $output .= $this->output_nonempty_tag('div', array('class' => 'generalfeedback'),
@@ -86,6 +115,17 @@ abstract class qtype_renderer extends moodle_renderer_base {
      */
     protected function specific_feedback(question_attempt $qa) {
         return '';
+    }
+
+    /**
+     * Gereate the specific feedback. This is feedback that varies accordin to
+     * the reponse the student gave.
+     * @param question_attempt $qa the question attempt to display.
+     * @return string HTML fragment.
+     */
+    protected function hint(question_definition $question, question_hint $hint) {
+        return $this->output_nonempty_tag('div', array('class' => 'hint'),
+                $question->format_text($hint->hint));
     }
 
     /**

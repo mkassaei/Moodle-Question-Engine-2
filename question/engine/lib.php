@@ -640,6 +640,12 @@ class question_display_options {
     public $readonly = false;
 
     /**
+     * @var boolean whether the question type should output hidden form fields
+     * to reset any incorrect parts of the resonse to blank.
+     */
+    public $resetwrong = false;
+
+    /**
      * Not really used withing the question engine (at least at the moment.)
      * The only way to not show the response the student entered is to not display
      * the question in its current state at all. (This is how this field is
@@ -663,6 +669,15 @@ class question_display_options {
      * {@link question_display_options::VISIBLE}
      */
     public $feedback = self::VISIBLE;
+
+    /**
+     * For questions with a number of sub-parts (like matching, or
+     * multiple-choice, multiple-reponse) display the number of sub-parts that
+     * were correct.
+     * @var integer {@link question_display_options::HIDDEN} or
+     * {@link question_display_options::VISIBLE}
+     */
+    public $numpartscorrect = self::VISIBLE;
 
     /**
      * Should the general feedback be visible?
@@ -1828,6 +1843,14 @@ class question_attempt {
      */
     public function format_max_mark($dp) {
         return format_float($this->maxmark, $dp);
+    }
+
+    /**
+     * Return the hint that applies to the question in its current state, or null.
+     * @return question_hint|null
+     */
+    public function get_applicable_hint() {
+        return $this->interactionmodel->get_applicable_hint();
     }
 
     /**

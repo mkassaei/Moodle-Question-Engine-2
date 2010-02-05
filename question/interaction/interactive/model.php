@@ -70,8 +70,20 @@ class qim_interactive extends question_interaction_model_with_save {
             if (!$options->readonly) {
                 $options->readonly = self::READONLY_EXCEPT_TRY_AGAIN;
             }
+            $hint = $this->get_applicable_hint();
+            if ($hint && !empty($hint->clearwrong)) {
+                $options->resetwrong = true;
+            }
             $options->feedback = $specificfeedback;
         }
+    }
+
+    public function get_applicable_hint() {
+        if (!$this->is_try_again_state()) {
+            return null;
+        }
+        return $this->question->hints[count($this->question->hints) -
+                $this->qa->get_last_im_var('_triesleft')];
     }
 
     public function get_expected_data() {
@@ -89,7 +101,7 @@ class qim_interactive extends question_interaction_model_with_save {
 
     public function init_first_step(question_attempt_step $step) {
         parent::init_first_step($step);
-        $step->set_im_var('_triesleft', 3); // TODO proper implementation.
+        $step->set_im_var('_triesleft', count($this->question->hints) + 1);
     }
 
     public function process_action(question_attempt_step $pendingstep) {

@@ -136,6 +136,14 @@ abstract class question_interaction_model {
     }
 
     /**
+     * Get the most applicable hint for the question in its current state.
+     * @return question_hint|null the most applicable hint, or null, if none.
+     */
+    public function get_applicable_hint() {
+        return null;
+    }
+
+    /**
      * What is the minimum fraction that can be scored for this question.
      * Normally this will be based on $this->question->init_first_step($step),
      * but may be modified in some way by the model.
