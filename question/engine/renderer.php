@@ -243,8 +243,8 @@ class core_question_renderer extends moodle_renderer_base {
             qtype_renderer $qtoutput, question_display_options $options) {
         $output = '';
         $output .= $qtoutput->formulation_and_controls($qa, $options);
-        if ($options->resetwrong) {
-            $output .= $qtoutput->reset_wrong($qa);
+        if ($options->clearwrong) {
+            $output .= $qtoutput->clear_wrong($qa);
         }
         $output .= $this->output_nonempty_tag('div', array('class' => 'im-controls'),
                 $qimoutput->controls($qa, $options));

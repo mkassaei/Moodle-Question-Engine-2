@@ -55,7 +55,7 @@ abstract class qtype_renderer extends moodle_renderer_base {
      * @param question_attempt $qa the question attempt to display.
      * @return string HTML fragment.
      */
-    public function reset_wrong(question_attempt $qa) {
+    public function clear_wrong(question_attempt $qa) {
         $response = $qa->get_last_qt_data();
         if (!$response) {
             return '';

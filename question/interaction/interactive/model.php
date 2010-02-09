@@ -72,7 +72,7 @@ class qim_interactive extends question_interaction_model_with_save {
             }
             $hint = $this->get_applicable_hint();
             if ($hint && !empty($hint->clearwrong)) {
-                $options->resetwrong = true;
+                $options->clearwrong = true;
             }
             $options->feedback = $specificfeedback;
         }

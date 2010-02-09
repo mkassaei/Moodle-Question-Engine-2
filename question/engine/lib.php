@@ -643,7 +643,7 @@ class question_display_options {
      * @var boolean whether the question type should output hidden form fields
      * to reset any incorrect parts of the resonse to blank.
      */
-    public $resetwrong = false;
+    public $clearwrong = false;
 
     /**
      * Not really used withing the question engine (at least at the moment.)
