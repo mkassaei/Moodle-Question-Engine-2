@@ -96,12 +96,6 @@ class qtype_match_renderer extends qtype_renderer {
     }
 
     public function specific_feedback(question_attempt $qa) {
-        $question = $qa->get_question();
-        $response = $qa->get_last_qt_data();
-
-        if ($response) {
-            return get_string('yougotnright', 'qtype_match', $question->get_num_right($response));
-        }
         return '';
     }
 

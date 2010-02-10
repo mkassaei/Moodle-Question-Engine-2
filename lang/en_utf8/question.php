@@ -148,3 +148,4 @@ $string['saveflags'] = 'Save the state of the flags';
 $string['specificfeedbackvisible'] = 'Specific feedback visible';
 $string['submit'] = 'Submit';
 $string['submitandfinish'] = 'Submit and finish';
+$string['yougotnright'] = 'You got $a->num correct.';

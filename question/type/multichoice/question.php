@@ -154,12 +154,7 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
         return 0;
     }
 
-    /**
-     * Given a response, rest the parts that are wrong.
-     * @param array $response a response
-     * @return array a cleaned up response with the wrong bits reset.
-     */
-    public function clean_response(array $response) {
+    public function clear_wrong_from_response(array $response) {
         foreach ($this->order as $key => $ans) {
             if (question_state::graded_state_for_fraction($this->answers[$ans]->fraction) ==
                     question_state::$gradedwrong) {
@@ -167,6 +162,22 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
             }
         }
         return $response;
+    }
+
+    public function get_num_parts_right(array $response) {
+        $numright = 0;
+        foreach ($this->order as $key => $ans) {
+            $fieldname = $this->field($key);
+            if (!array_key_exists($fieldname, $response) || !$response[$fieldname]) {
+                continue;
+            }
+
+            if (question_state::graded_state_for_fraction($this->answers[$ans]->fraction) !=
+                    question_state::$gradedwrong) {
+                $numright += 1;
+            }
+        }
+        return array($numright, count($this->order));
     }
 
     /**

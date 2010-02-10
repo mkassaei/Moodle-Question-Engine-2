@@ -167,8 +167,18 @@ abstract class question_definition {
      * @param array $response a response
      * @return array a cleaned up response with the wrong bits reset.
      */
-    public function clean_response(array $response) {
+    public function clear_wrong_from_response(array $response) {
         return array();
+    }
+
+    /**
+     * Return the number of subparts of this response that are right.
+     * @param array $response a response
+     * @return array with two elements, the number of correct subparts, and
+     * the total number of subparts.
+     */
+    public function get_num_parts_right(array $response) {
+        return array(null, null);
     }
 
     /**

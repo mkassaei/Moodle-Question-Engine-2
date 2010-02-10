@@ -173,9 +173,12 @@ class test_question_maker {
 
         $match->shufflestems = 1;
 
-        $match->stems = array('Dog', 'Frog', 'Toad', 'Cat');
-        $match->choices = array('Mammal', 'Amphibian', 'Insect');
-        $match->right = array(0, 1, 1, 0);
+        $match->stems = array('', 'Dog', 'Frog', 'Toad', 'Cat');
+        $match->choices = array('', 'Mammal', 'Amphibian', 'Insect');
+        $match->right = array('', 1, 2, 2, 1);
+        unset($match->stems[0]);
+        unset($match->choices[0]);
+        unset($match->right[0]);
 
         return $match;
     }
@@ -389,6 +392,17 @@ class qim_walkthrough_test_base extends UnitTestCase {
         return new NoPatternExpectation('/class="feedback"/');
     }
 
+    protected function get_does_not_contain_num_parts_correct() {
+        return new NoPatternExpectation('/class="numpartscorrect"/');
+    }
+
+    protected function get_contains_num_parts_correct($num) {
+        $a = new stdClass;
+        $a->num = $num;
+        return new PatternExpectation('/<div class="numpartscorrect">' .
+                preg_quote(get_string('yougotnright', 'question', $a)) . '/');
+    }
+
     protected function get_does_not_contain_specific_feedback_expectation() {
         return new NoPatternExpectation('/class="specificfeedback"/');
     }
@@ -506,6 +520,12 @@ class qim_walkthrough_test_base extends UnitTestCase {
     protected function get_contains_submit_button_expectation($enabled = null) {
         return $this->get_contains_button_expectation(
                 $this->quba->get_field_prefix($this->qnumber) . '!submit', null, $enabled);
+    }
+
+    protected function get_contains_select_expectation($name, $choices,
+            $selected = null, $enabled = null) {
+        $fullname = $this->quba->get_field_prefix($this->qnumber) . $name;
+        return new ContainsSelectExpectation($fullname, $choices, $selected, $enabled);
     }
 
     protected function get_mc_right_answer_index($mc) {

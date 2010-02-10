@@ -753,6 +753,7 @@ class question_display_options {
      */
     public function hide_all_feedback() {
         $this->feedback = self::HIDDEN;
+        $this->numpartscorrect = self::HIDDEN;
         $this->generalfeedback = self::HIDDEN;
         $this->correctresponse = self::HIDDEN;
         $this->manualcomment = self::HIDDEN;

@@ -75,6 +75,7 @@ class qim_interactive extends question_interaction_model_with_save {
                 $options->clearwrong = true;
             }
             $options->feedback = $specificfeedback;
+            $options->numpartscorrect = !empty($hint->shownumcorrect);
         }
     }
 

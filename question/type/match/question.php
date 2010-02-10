@@ -66,6 +66,31 @@ class qtype_match_question extends question_graded_automatically {
         }
     }
 
+    public function clear_wrong_from_response(array $response) {
+        foreach ($this->stemorder as $key => $stemid) {
+            if ($response[$this->field($key)] != $this->get_right_choice_for($stemid)) {
+                unset($response[$this->field($key)]);
+            }
+        }
+        return $response;
+    }
+
+    public function get_num_parts_right(array $response) {
+        $numright = 0;
+        foreach ($this->stemorder as $key => $stemid) {
+            $fieldname = $this->field($key);
+            if (!array_key_exists($fieldname, $response)) {
+                continue;
+            }
+
+            $choice = $response[$fieldname];
+            if ($choice && $this->choiceorder[$choice] == $this->right[$stemid]) {
+                $numright += 1;
+            }
+        }
+        return array($numright, count($this->stemorder));
+    }
+
     /**
      * @param integer $key stem number
      * @return string the question-type variable name.
@@ -134,24 +159,9 @@ class qtype_match_question extends question_graded_automatically {
     }
 
     public function grade_response(array $response) {
-        $fraction = $this->get_num_right($response) / count($this->stemorder);
+        list($right, $total) = $this->get_num_parts_right($response);
+        $fraction = $right / $total;
         return array($fraction, question_state::graded_state_for_fraction($fraction));
-    }
-
-    public function get_num_right(array $response) {
-        $numright = 0;
-        foreach ($this->stemorder as $key => $stemid) {
-            $fieldname = $this->field($key);
-            if (!array_key_exists($fieldname, $response)) {
-                continue;
-            }
-
-            $choice = $response[$fieldname];
-            if ($this->choiceorder[$choice] == $this->right[$stemid]) {
-                $numright += 1;
-            }
-        }
-        return $numright;
     }
 
     public function get_stem_order() {

@@ -60,7 +60,7 @@ abstract class qtype_renderer extends moodle_renderer_base {
         if (!$response) {
             return '';
         }
-        $cleanresponse = $qa->get_question()->clean_response($response);
+        $cleanresponse = $qa->get_question()->clear_wrong_from_response($response);
         $output = '';
         foreach ($cleanresponse as $name => $value) {
             $attr = array(
@@ -96,6 +96,10 @@ abstract class qtype_renderer extends moodle_renderer_base {
                 $output .= $this->hint($qa->get_question(), $hint);
             }
         }
+        if ($options->numpartscorrect) {
+            $output .= $this->output_nonempty_tag('div', array('class' => 'numpartscorrect'),
+                    $this->num_parts_correct($qa));
+        }
         if ($options->generalfeedback) {
             $output .= $this->output_nonempty_tag('div', array('class' => 'generalfeedback'),
                     $this->general_feedback($qa));
@@ -115,6 +119,23 @@ abstract class qtype_renderer extends moodle_renderer_base {
      */
     protected function specific_feedback(question_attempt $qa) {
         return '';
+    }
+
+    /**
+     * Gereate a brief statement of how many sub-parts of this question the
+     * student got right.
+     * @param question_attempt $qa the question attempt to display.
+     * @return string HTML fragment.
+     */
+    protected function num_parts_correct(question_attempt $qa) {
+        $a = new stdClass;
+        list($a->num, $a->outof) = $qa->get_question()->get_num_parts_right(
+                $qa->get_last_qt_data());
+        if (is_null($a->outof)) {
+            return '';
+        } else {
+            return get_string('yougotnright', 'question', $a);
+        }
     }
 
     /**
