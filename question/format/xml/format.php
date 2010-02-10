@@ -1,16 +1,40 @@
-<?php // $Id$
-//
-///////////////////////////////////////////////////////////////
-// XML import/export
-//
-//////////////////////////////////////////////////////////////////////////
-// Based on default.php, included by ../import.php
-/**
- * @package questionbank
- * @subpackage importexport
- */
-require_once( "$CFG->libdir/xmlize.php" );
+<?php
 
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+
+/**
+ * Code for exporting questions as Moodle XML.
+ *
+ * @package qformat_xml
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+
+require_once($CFG->dirroot . '/question/format.php');
+require_once($CFG->libdir . '/xmlize.php');
+
+
+/**
+ * The Moodle XML import/export format.
+ *
+ * @copyright © 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class qformat_xml extends qformat_default {
 
     function provide_import() {
@@ -162,6 +186,46 @@ class qformat_xml extends qformat_default {
     }
 
     /**
+     * Import a question hint
+     * @param array $hintxml hint xml fragment.
+     * @return object hint for storing in the database.
+     */
+    public function import_hint($hintxml) {
+        $hint = new stdClass;
+        $hint->hint = $this->getpath($hintxml, array('#','text', 0 , '#'), '', true);
+        $hint->shownumcorrect = array_key_exists('shownumcorrect', $hintxml['#']);
+        $hint->clearwrong = array_key_exists('clearwrong', $hintxml['#']);
+        $hint->options = $this->getpath($hintxml, array('#','options', 0 , '#'), '', true);
+        return $hint;
+    }
+
+    /**
+     * Import all the question hints
+     *
+     * @param object $qo the question data that is being constructed.
+     * @param array $hintsxml hints xml fragment.
+     */
+    public function import_hints($qo, $questionxml, $withparts = false, $withoptions = false) {
+        if (!isset($questionxml['#']['hints'][0]['#']['hint'])) {
+            return;
+        }
+
+        foreach ($questionxml['#']['hints'][0]['#']['hint'] as $hintxml) {
+            $hint = $this->import_hint($hintxml);
+            $qo->hint[] = $hint->hint;
+
+            if ($withparts) {
+                $qo->hintshownumcorrect[] = $hint->shownumcorrect;
+                $qo->hintclearwrong[] = $hint->clearwrong;
+            }
+
+            if ($withoptions) {
+                $qo->hintoptions[] = $hint->options;
+            }
+        }
+    }
+
+    /**
      * import multiple choice question
      * @param array question question array from xml tree
      * @return object question object
@@ -196,6 +260,9 @@ class qformat_xml extends qformat_default {
             $qo->feedback[$a_count] = $ans->feedback;
             ++$a_count;
         }
+
+        $this->import_hints($qo, $question, true);
+
         return $qo;
     }
 
@@ -216,6 +283,8 @@ class qformat_xml extends qformat_default {
         if (!empty($questions)) {
             $qo->name = $this->import_text( $questions['#']['name'][0]['#']['text'] );
         }
+
+        $this->import_hints($qo, $question, true);
 
         return $qo;
     }
@@ -265,6 +334,7 @@ class qformat_xml extends qformat_default {
             $a->answer = get_string($qo->answer ? 'true' : 'false', 'quiz');
             notify(get_string('truefalseimporterror', 'quiz', $a));
         }
+
         return $qo;
     }
 
@@ -293,6 +363,8 @@ class qformat_xml extends qformat_default {
             $qo->feedback[$a_count] = $ans->feedback;
             ++$a_count;
         }
+
+        $this->import_hints($qo, $question);
 
         return $qo;
     }
@@ -355,6 +427,9 @@ class qformat_xml extends qformat_default {
                 $qo->unit[] = $this->getpath( $unit, array('#','unit_name',0,'#'), '', true );
             }
         }
+
+        $this->import_hints($qo, $question);
+
         return $qo;
     }
 
@@ -381,6 +456,9 @@ class qformat_xml extends qformat_default {
             $qo->subquestions[] = $this->getpath( $subquestion, array('#','text',0,'#'), '', true );
             $qo->subanswers[] = $this->getpath( $subquestion, array('#','answer',0,'#','text',0,'#'), '', true);
         }
+
+        $this->import_hints($qo, $question, true);
+
         return $qo;
     }
 
@@ -489,7 +567,9 @@ class qformat_xml extends qformat_default {
           }
         }
 
-                // echo "<pre>loaded qo";print_r($qo);echo "</pre>";
+        $this->import_hints($qo, $question);
+
+        // echo "<pre>loaded qo";print_r($qo);echo "</pre>";
 
         return $qo;
     }
@@ -788,8 +868,8 @@ class qformat_xml extends qformat_default {
             $expout .= "    </category>\n";
             $expout .= "  </question>\n";
             return $expout;
-        }
-        elseif ($question->qtype != MULTIANSWER) {
+
+        } else if ($question->qtype != MULTIANSWER) {
             // for all question types except Close
             $name_text = $this->writetext( $question->name );
             $qtformat = $this->get_format($question->questiontextformat);
@@ -800,16 +880,14 @@ class qformat_xml extends qformat_default {
             $expout .= "    <questiontext format=\"$qtformat\">\n";
             $expout .= $question_text;
             $expout .= "    </questiontext>\n";
-            $expout .= "    <image>{$question->image}</image>\n";
-            $expout .= $this->writeimage($question->image);
             $expout .= "    <generalfeedback>\n";
             $expout .= $generalfeedback;
             $expout .= "    </generalfeedback>\n";
             $expout .= "    <defaultgrade>{$question->defaultgrade}</defaultgrade>\n";
             $expout .= "    <penalty>{$question->penalty}</penalty>\n";
             $expout .= "    <hidden>{$question->hidden}</hidden>\n";
-        }
-        else {
+
+        } else {
             // for Cloze type only
             $name_text = $this->writetext( $question->name );
             $question_text = $this->writetext( $question->questiontext );
@@ -826,8 +904,7 @@ class qformat_xml extends qformat_default {
 
         if (!empty($question->options->shuffleanswers)) {
             $expout .= "    <shuffleanswers>{$question->options->shuffleanswers}</shuffleanswers>\n";
-        }
-        else {
+        } else {
             $expout .= "    <shuffleanswers>0</shuffleanswers>\n";
         }
 
@@ -1002,10 +1079,19 @@ class qformat_xml extends qformat_default {
             break;
         default:
             // try support by optional plugin
-            if (!$data = $this->try_exporting_using_qtypes( $question->qtype, $question )) {
-                notify( get_string( 'unsupportedexport','qformat_xml',$QTYPES[$question->qtype]->menu_name() ) );
+            if (!$data = $this->try_exporting_using_qtypes($question->qtype, $question)) {
+                notify(get_string('unsupportedexport', 'qformat_xml', $question->qtype));
             }
             $expout .= $data;
+        }
+
+        // Output any hints.
+        if (!empty($question->hints)) {
+            $expout .= '<hints>' . "\n";
+            foreach ($question->hints as $hint) {
+                $expout .= $this->write_hint($hint);
+            }
+            $expout .= '</hints>' . "\n";
         }
 
         // close the question tag
@@ -1013,6 +1099,22 @@ class qformat_xml extends qformat_default {
 
         return $expout;
     }
+
+    public function write_hint($hint) {
+        $output = '';
+        $output .= '    <hint>' . "\n";
+        $output .= '        ' . $this->writetext($hint->hint);
+        if (!empty($hint->shownumcorrect)) {
+            $output .= '        <shownumcorrect/>' . "\n";
+        }
+        if (!empty($hint->clearwrong)) {
+            $output .= '        <clearwrong/>' . "\n";
+        }
+        if (!empty($hint->options)) {
+            $output .= '        <options>' . htmlspecialchars($hint->options) . '</options>' . "\n";
+        }
+        $output .= '    </hint>' . "\n";
+        return $output;
+    }
 }
 
-?>

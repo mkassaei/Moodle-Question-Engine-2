@@ -43,7 +43,7 @@ Finish converting simple question types (6.5d)
     New fields for editing hints (4d)
         Fields on editing form 1d
 √       Database columns, load/save code 1d
-        Import export 1d
+√       Import export 1d
 √       Use by interactive mode 1d
 
 Finish interaction models (2.5d)
