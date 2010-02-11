@@ -50,6 +50,8 @@ class question_edit_shortanswer_form extends question_edit_form {
         $creategrades = get_grade_options();
         $this->add_per_answer_fields($mform, get_string('answerno', 'qtype_shortanswer', '{no}'),
                 $creategrades->gradeoptions);
+
+        $this->add_interactive_settings();
     }
 
     public function set_data($question) {

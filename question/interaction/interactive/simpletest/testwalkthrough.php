@@ -453,6 +453,11 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'sub1'),
                 $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'sub2'));
 
+        // Check that extract responses will return the reset data.
+        $prefix = $this->quba->get_field_prefix($this->qnumber);
+        $this->assertEqual(array('sub0' => 1),
+                $this->quba->extract_responses($this->qnumber, array($prefix . 'sub0' => 1)));
+
         // Do try again.
         $this->process_submission(array('sub0' => $orderforchoice[1], 'sub3' => $orderforchoice[1], '!tryagain' => 1));
 

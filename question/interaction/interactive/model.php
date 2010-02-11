@@ -100,6 +100,14 @@ class qim_interactive extends question_interaction_model_with_save {
         return array();
     }
 
+    public function get_expected_qt_data() {
+        $hint = $this->get_applicable_hint();
+        if (!empty($hint->clearwrong)) {
+            return $this->question->get_expected_data();
+        }
+        return parent::get_expected_qt_data();
+    }
+
     public function init_first_step(question_attempt_step $step) {
         parent::init_first_step($step);
         $step->set_im_var('_triesleft', count($this->question->hints) + 1);
@@ -158,7 +166,7 @@ class qim_interactive extends question_interaction_model_with_save {
         $totaltries = $this->qa->get_step(0)->get_im_var('_triesleft');
         $triesleft = $this->qa->get_last_im_var('_triesleft');
 
-        $fraction -= ($totaltries - $triesleft) / $totaltries;
+        $fraction -= ($totaltries - $triesleft) * $this->question->penalty;
         $fraction = max($fraction, 0);
         return $fraction;
     }

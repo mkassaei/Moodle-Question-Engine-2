@@ -85,6 +85,8 @@ class question_edit_numerical_form extends question_edit_form {
             $firstunit->setValue('1.0');
             $firstunit->setPersistantFreeze(true);
         }
+
+        $this->add_interactive_settings();
     }
 
     public function set_data($question) {

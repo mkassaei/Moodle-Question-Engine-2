@@ -38,16 +38,13 @@ class qtype_multichoice extends question_type {
     public function get_question_options($question) {
         // Get additional information from database
         // and attach it to the question object
-        if (!$question->options = get_record('question_multichoice', 'question',
-         $question->id)) {
+        if (!$question->options = get_record('question_multichoice',
+                'question', $question->id)) {
             notify('Error: Missing question options for multichoice question'.$question->id.'!');
             return false;
         }
 
-        if (!$question->options->answers = get_records_select('question_answers', 'id IN ('.$question->options->answers.')', 'id')) {
-           notify('Error: Missing question answers for multichoice question'.$question->id.'!');
-           return false;
-        }
+        parent::get_question_options($question);
 
         return true;
     }
@@ -148,6 +145,8 @@ class qtype_multichoice extends question_type {
             }
         }
 
+        $this->save_hints($question, true);
+
         /// Perform sanity checks on fractional grades
         if ($options->single) {
             if ($maxfraction != 1) {
@@ -163,6 +162,7 @@ class qtype_multichoice extends question_type {
                 return $result;
             }
         }
+
         return true;
     }
 
@@ -174,6 +174,10 @@ class qtype_multichoice extends question_type {
             $class = 'qtype_multichoice_multi_question';
         }
         return new $class();
+    }
+
+    protected function make_hint($hint) {
+        return question_hint_with_parts::load_from_record($hint);
     }
 
     protected function initialise_question_instance(question_definition $question, $questiondata) {
@@ -198,7 +202,8 @@ class qtype_multichoice extends question_type {
      * @param object $question  The question being deleted
      */
     public function delete_question($questionid) {
-        delete_records("question_multichoice", "question", $questionid);
+        parent::delete_question($questionid);
+        delete_records('question_multichoice', 'question', $questionid);
         return true;
     }
 

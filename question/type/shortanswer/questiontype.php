@@ -97,6 +97,8 @@ class qtype_shortanswer extends question_type {
             }
         }
 
+        $this->save_hints($question);
+
         /// Perform sanity checks on fractional grades
         if ($maxfraction != 1) {
             $maxfraction = $maxfraction * 100;

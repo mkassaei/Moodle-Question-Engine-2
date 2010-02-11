@@ -67,7 +67,7 @@ class test_question_maker {
         $q->parent = 0;
         $q->questiontextformat = FORMAT_HTML;
         $q->defaultgrade = 1;
-        $q->penalty = 0.1;
+        $q->penalty = 0.3333333;
         $q->length = 1;
         $q->stamp = make_unique_id_code();
         $q->version = make_unique_id_code();
@@ -111,7 +111,6 @@ class test_question_maker {
         $mc->name = 'Multi-choice question, single response';
         $mc->questiontext = 'The answer is A.';
         $mc->generalfeedback = 'You should have selected A.';
-        $mc->penalty = 0.3333333;
         $mc->qtype = question_bank::get_qtype('multichoice');
 
         $mc->shuffleanswers = 1;
@@ -138,7 +137,6 @@ class test_question_maker {
         $mc->name = 'Multi-choice question, multiple response';
         $mc->questiontext = 'The answer is A and C.';
         $mc->generalfeedback = 'You should have selected A and C.';
-        $mc->penalty = 0.3333333;
         $mc->qtype = question_bank::get_qtype('multichoice');
 
         $mc->shuffleanswers = 1;
@@ -168,7 +166,6 @@ class test_question_maker {
         $match->questiontext = 'Classify the animals.';
         $match->generalfeedback = 'Frogs and toads are amphibians, the others are mammals.';
         $match->defaultgrade = 1;
-        $match->penalty = 0.3333333;
         $match->qtype = question_bank::get_qtype('match');
 
         $match->shufflestems = 1;

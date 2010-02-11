@@ -40,32 +40,6 @@ class qtype_essay extends question_type {
         return true;
     }
 
-    public function save_question_options($question) {
-        $result = true;
-        $update = true;
-        $answer = get_record("question_answers", "question", $question->id);
-        if (!$answer) {
-            $answer = new stdClass;
-            $answer->question = $question->id;
-            $update = false;
-        }
-        $answer->answer   = $question->feedback;
-        $answer->feedback = $question->feedback;
-        $answer->fraction = $question->fraction;
-        if ($update) {
-            if (!update_record("question_answers", $answer)) {
-                $result = new stdClass;
-                $result->error = "Could not update quiz answer!";
-            }
-        } else {
-            if (!$answer->id = insert_record("question_answers", $answer)) {
-                $result = new stdClass;
-                $result->error = "Could not insert quiz answer!";
-            }
-        }
-        return $result;
-    }
-
     public function response_summary($question, $state, $length = 80) {
         $responses = $this->get_actual_response($question, $state);
         $response = reset($responses);

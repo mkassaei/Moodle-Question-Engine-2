@@ -39,6 +39,8 @@ class question_edit_match_form extends question_edit_form {
         $mform->closeHeaderBefore('answersinstruct');
 
         $this->add_per_answer_fields($mform, get_string('questionno', 'quiz', '{no}'), 0);
+
+        $this->add_interactive_settings(true, true);
     }
 
     public function set_data($question) {

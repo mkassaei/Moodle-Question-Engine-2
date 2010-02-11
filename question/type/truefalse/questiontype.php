@@ -109,24 +109,24 @@ class qtype_truefalse extends question_type {
                 return $result;
             }
         }
+
+        $this->save_hints($question);
+
         return true;
     }
 
     /**
     * Loads the question type specific options for the question.
     */
-    public function get_question_options(&$question) {
+    public function get_question_options($question) {
         // Get additional information from database
         // and attach it to the question object
         if (!$question->options = get_record('question_truefalse', 'question', $question->id)) {
             notify('Error: Missing question options!');
             return false;
         }
-        // Load the answers
-        if (!$question->options->answers = get_records('question_answers', 'question', $question->id, 'id ASC')) {
-           notify('Error: Missing question answers for truefalse question ' . $question->id . '!');
-           return false;
-        }
+
+        parent::get_question_options($question);
 
         return true;
     }

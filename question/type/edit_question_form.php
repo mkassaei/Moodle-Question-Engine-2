@@ -36,6 +36,8 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
  */
 class question_edit_form extends moodleform {
+    const DEFAULT_NUM_HINTS = 2;
+
     /**
      * Question object with options and answers already loaded by get_question_options
      * Be careful how you use this it is needed sometimes to set up the structure of the
@@ -49,7 +51,7 @@ class question_edit_form extends moodleform {
     protected $categorycontext;
     protected $coursefilesid;
 
-    public function __construct($submiturl, $question, $category, $contexts, $formeditable = true){
+    public function __construct($submiturl, $question, $category, $contexts, $formeditable = true) {
         $this->question = $question;
         $this->contexts = $contexts;
         $this->category = $category;
@@ -75,20 +77,20 @@ class question_edit_form extends moodleform {
         $qtype = $this->qtype();
         $langfile = "qtype_$qtype";
 
-        $mform =& $this->_form;
+        $mform = $this->_form;
 
         // Standard fields at the start of the form.
         $mform->addElement('header', 'generalheader', get_string("general", 'form'));
 
-        if (!isset($this->question->id)){
+        if (!isset($this->question->id)) {
             //adding question
             $mform->addElement('questioncategory', 'category', get_string('category', 'quiz'),
                     array('contexts' => $this->contexts->having_cap('moodle/question:add')));
-        } elseif (!($this->question->formoptions->canmove || $this->question->formoptions->cansaveasnew)){
+        } elseif (!($this->question->formoptions->canmove || $this->question->formoptions->cansaveasnew)) {
             //editing question with no permission to move from category.
             $mform->addElement('questioncategory', 'category', get_string('category', 'quiz'),
                     array('contexts' => array($this->categorycontext)));
-        } elseif ($this->question->formoptions->movecontext){
+        } elseif ($this->question->formoptions->movecontext) {
             //moving question to another context.
             $mform->addElement('questioncategory', 'categorymoveto', get_string('category', 'quiz'),
                     array('contexts' => $this->contexts->having_cap('moodle/question:add')));
@@ -98,7 +100,7 @@ class question_edit_form extends moodleform {
             $currentgrp = array();
             $currentgrp[0] =& $mform->createElement('questioncategory', 'category', get_string('categorycurrent', 'question'),
                     array('contexts' => array($this->categorycontext)));
-            if ($this->question->formoptions->canedit || $this->question->formoptions->cansaveasnew){
+            if ($this->question->formoptions->canedit || $this->question->formoptions->cansaveasnew) {
                 //not move only form
                 $currentgrp[1] =& $mform->createElement('checkbox', 'usecurrentcat', '', get_string('categorycurrentuse', 'question'));
                 $mform->setDefault('usecurrentcat', 1);
@@ -109,7 +111,7 @@ class question_edit_form extends moodleform {
 
             $mform->addElement('questioncategory', 'categorymoveto', get_string('categorymoveto', 'question'),
                     array('contexts' => array($this->categorycontext)));
-            if ($this->question->formoptions->canedit || $this->question->formoptions->cansaveasnew){
+            if ($this->question->formoptions->canedit || $this->question->formoptions->cansaveasnew) {
                 //not move only form
                 $mform->disabledIf('categorymoveto', 'usecurrentcat', 'checked');
             }
@@ -125,31 +127,11 @@ class question_edit_form extends moodleform {
         $mform->setHelpButton('questiontext', array(array('questiontext', get_string('questiontext', 'quiz'), 'quiz'), 'richtext'), false, 'editorhelpbutton');
         $mform->addElement('format', 'questiontextformat', get_string('format'));
 
-        make_upload_directory($this->coursefilesid);    // Just in case
-        $coursefiles = get_directory_list("$CFG->dataroot/$this->coursefilesid", $CFG->moddata);
-        foreach ($coursefiles as $filename) {
-            if (mimeinfo("icon", $filename) == "image.gif") {
-                $images["$filename"] = $filename;
-            }
-        }
-        if (empty($images)) {
-            $mform->addElement('static', 'image', get_string('imagedisplay', 'quiz'), get_string('noimagesyet'));
-        } else {
-            $mform->addElement('select', 'image', get_string('imagedisplay', 'quiz'), array_merge(array(''=>get_string('none')), $images));
-        }
-
         $mform->addElement('text', 'defaultgrade', get_string('defaultgrade', 'quiz'),
                 array('size' => 3));
         $mform->setType('defaultgrade', PARAM_INT);
         $mform->setDefault('defaultgrade', 1);
         $mform->addRule('defaultgrade', null, 'required', null, 'client');
-
-        $mform->addElement('text', 'penalty', get_string('penaltyfactor', 'quiz'),
-                array('size' => 3));
-        $mform->setType('penalty', PARAM_NUMBER);
-        $mform->addRule('penalty', null, 'required', null, 'client');
-        $mform->setHelpButton('penalty', array('penalty', get_string('penalty', 'quiz'), 'quiz'));
-        $mform->setDefault('penalty', 0.1);
 
         $mform->addElement('htmleditor', 'generalfeedback', get_string('generalfeedback', 'quiz'),
                 array('rows' => 10, 'course' => $this->coursefilesid));
@@ -159,10 +141,10 @@ class question_edit_form extends moodleform {
         // Any questiontype specific fields.
         $this->definition_inner($mform);
 
-        if (!empty($this->question->id)){
+        if (!empty($this->question->id)) {
             $mform->addElement('header', 'createdmodifiedheader', get_string('createdmodifiedheader', 'question'));
             $a = new object();
-            if (!empty($this->question->createdby)){
+            if (!empty($this->question->createdby)) {
                 $a->time = userdate($this->question->timecreated);
                 $a->user = fullname(get_record('user', 'id', $this->question->createdby));
             } else {
@@ -170,7 +152,7 @@ class question_edit_form extends moodleform {
                 $a->user = get_string('unknown', 'question');
             }
             $mform->addElement('static', 'created', get_string('created', 'question'), get_string('byandon', 'question', $a));
-            if (!empty($this->question->modifiedby)){
+            if (!empty($this->question->modifiedby)) {
                 $a = new object();
                 $a->time = userdate($this->question->timemodified);
                 $a->user = fullname(get_record('user', 'id', $this->question->modifiedby));
@@ -207,14 +189,14 @@ class question_edit_form extends moodleform {
         $mform->setDefault('returnurl', 0);
 
         $buttonarray = array();
-        if (!empty($this->question->id)){
+        if (!empty($this->question->id)) {
             //editing / moving question
-            if ($this->question->formoptions->movecontext){
+            if ($this->question->formoptions->movecontext) {
                 $buttonarray[] = &$mform->createElement('submit', 'submitbutton', get_string('moveq', 'question'));
-            } elseif ($this->question->formoptions->canedit || $this->question->formoptions->canmove ||$this->question->formoptions->movecontext){
+            } elseif ($this->question->formoptions->canedit || $this->question->formoptions->canmove ||$this->question->formoptions->movecontext) {
                 $buttonarray[] = &$mform->createElement('submit', 'submitbutton', get_string('savechanges'));
             }
-            if ($this->question->formoptions->cansaveasnew){
+            if ($this->question->formoptions->cansaveasnew) {
                 $buttonarray[] = &$mform->createElement('submit', 'makecopy', get_string('makecopy', 'quiz'));
             }
             $buttonarray[] = &$mform->createElement('cancel');
@@ -226,23 +208,12 @@ class question_edit_form extends moodleform {
         $mform->addGroup($buttonarray, 'buttonar', '', array(' '), false);
         $mform->closeHeaderBefore('buttonar');
 
-        if ($this->question->formoptions->movecontext){
+        if ($this->question->formoptions->movecontext) {
             $mform->hardFreezeAllVisibleExcept(array('categorymoveto', 'buttonar'));
-        } elseif ((!empty($this->question->id)) && (!($this->question->formoptions->canedit || $this->question->formoptions->cansaveasnew))){
+        } elseif ((!empty($this->question->id)) && (!($this->question->formoptions->canedit || $this->question->formoptions->cansaveasnew))) {
             $mform->hardFreezeAllVisibleExcept(array('categorymoveto', 'buttonar', 'currentgrp'));
         }
     }
-    
-    public function validation($fromform, $files) {
-        $errors= parent::validation($fromform, $files);
-        if (empty($fromform->makecopy) && isset($this->question->id) 
-                && ($this->question->formoptions->canedit || $this->question->formoptions->cansaveasnew) 
-                && empty($fromform->usecurrentcat) && !$this->question->formoptions->canmove){
-            $errors['currentgrp'] = get_string('nopermissionmove', 'question');
-        }
-        return $errors;
-    }
-    
 
     /**
      * Add any question-type specific form fields.
@@ -289,12 +260,12 @@ class question_edit_form extends moodleform {
         $repeatedoptions = array();
         $repeated = $this->get_per_answer_fields($mform, $label, $gradeoptions, $repeatedoptions, $answersoption);
 
-        if (isset($this->question->options)){
+        if (isset($this->question->options)) {
             $countanswers = count($this->question->options->$answersoption);
         } else {
             $countanswers = 0;
         }
-        if ($this->question->formoptions->repeatelements){
+        if ($this->question->formoptions->repeatelements) {
             $repeatsatstart = max($minoptions, $countanswers + $addoptions);
         } else {
             $repeatsatstart = $countanswers;
@@ -303,10 +274,58 @@ class question_edit_form extends moodleform {
         $this->repeat_elements($repeated, $repeatsatstart, $repeatedoptions, 'noanswers', 'addanswers', $addoptions, get_string('addmorechoiceblanks', 'qtype_multichoice'));
     }
 
+    protected function get_hint_fields($withclearwrong = false, $withshownumpartscorrect = false) {
+        $mform = $this->_form;
+
+        $repeated = array();
+        $repeated[] = $mform->createElement('header', 'answerhdr', get_string('hintn', 'question'));
+        $repeated[] = $mform->createElement('htmleditor', 'hint', get_string('hinttext', 'question'), array('size' => 50));
+        $repeatedoptions['hint']['type'] = PARAM_RAW;
+
+        if ($withclearwrong) {
+            $repeated[] = $mform->createElement('checkbox', 'hintclearwrong', get_string('options', 'question'), get_string('clearwrongparts', 'question'));
+        }
+        if ($withshownumpartscorrect) {
+            $repeated[] = $mform->createElement('checkbox', 'hintshownumcorrect', '', get_string('shownumpartscorrect', 'question'));
+        }
+
+        return array($repeated, $repeatedoptions);
+    }
+
+    protected function add_interactive_settings($withclearwrong = false, $withshownumpartscorrect = false) {
+        $mform = $this->_form;
+
+        $mform->addElement('header', 'multitriesheader', get_string('settingsformultipletries', 'question'));
+
+        $mform->addElement('text', 'penalty', get_string('penaltyforeachincorrecttry', 'question'),
+                array('size' => 3));
+        $mform->setType('penalty', PARAM_NUMBER);
+        $mform->addRule('penalty', null, 'required', null, 'client');
+        $mform->setHelpButton('penalty', array('penalty', get_string('penalty', 'question'), 'question'));
+        $mform->setDefault('penalty', 0.1);
+
+        if (isset($this->question->hints)) {
+            $counthints = count($this->question->hints);
+        } else {
+            $counthints = 0;
+        }
+
+        if ($this->question->formoptions->repeatelements) {
+            $repeatsatstart = max(self::DEFAULT_NUM_HINTS, $counthints);
+        } else {
+            $repeatsatstart = $counthints;
+        }
+
+        list($repeated, $repeatedoptions) = $this->get_hint_fields(
+                $withclearwrong, $withshownumpartscorrect);
+        $this->repeat_elements($repeated, $repeatsatstart, $repeatedoptions,
+                'numhints', 'addhint', 1, get_string('addanotherhint', 'question'));
+    }
+
     public function set_data($question) {
         global $QTYPES;
         $QTYPES[$question->qtype]->set_default_options($question);
-        if (empty($question->image)){
+        if (empty($question->image)) {
             unset($question->image);
         }
 
@@ -321,8 +340,29 @@ class question_edit_form extends moodleform {
             }
         }
 
+        if (!empty($question->hints)) {
+            $i = 0;
+            foreach ($question->hints as $hint) {
+                $question->hint[$i] = $hint->hint;
+                $question->hintclearwrong[$i] = !empty($hint->clearwrong);
+                $question->hintshownumcorrect[$i] = !empty($hint->shownumcorrect);
+                $i += 1;
+            }
+        }
+
         parent::set_data($question);
     }
+
+    public function validation($fromform, $files) {
+        $errors = parent::validation($fromform, $files);
+        if (empty($fromform->makecopy) && isset($this->question->id) 
+                && ($this->question->formoptions->canedit || $this->question->formoptions->cansaveasnew) 
+                && empty($fromform->usecurrentcat) && !$this->question->formoptions->canmove) {
+            $errors['currentgrp'] = get_string('nopermissionmove', 'question');
+        }
+        return $errors;
+    }
+    
 
     /**
      * Override this in the subclass to question type name.

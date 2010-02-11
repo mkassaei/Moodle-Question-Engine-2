@@ -35,7 +35,8 @@ require_once($CFG->dirroot . '/question/engine/lib.php');
  */
 class qtype_match extends question_type {
 
-    public function get_question_options(&$question) {
+    public function get_question_options($question) {
+        parent::get_question_options($question);
         $question->options = get_record('question_match', 'question', $question->id);
         $question->options->subquestions = get_records('question_match_sub', 'question', $question->id, 'id ASC');
         return true;
@@ -110,6 +111,8 @@ class qtype_match extends question_type {
             }
         }
 
+        $this->save_hints($question, true);
+
         if (!empty($result->notice)) {
             return $result;
         }
@@ -146,6 +149,10 @@ class qtype_match extends question_type {
         }
     }
 
+    protected function make_hint($hint) {
+        return question_hint_with_parts::load_from_record($hint);
+    }
+
     /**
      * Deletes question from the question-type specific tables
      *
@@ -153,6 +160,7 @@ class qtype_match extends question_type {
      * @param integer $question->id
      */
     public function delete_question($questionid) {
+        parent::delete_question($questionid);
         delete_records("question_match", "question", $questionid);
         delete_records("question_match_sub", "question", $questionid);
         return true;

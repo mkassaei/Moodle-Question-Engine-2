@@ -19,10 +19,8 @@ class question_edit_description_form extends question_edit_form {
      * @param MoodleQuickForm $mform the form being built.
      */
     protected function definition_inner($mform) {
-        //don't need these default elements :
+        // We don't need this default element.
         $mform->removeElement('defaultgrade');
-        $mform->removeElement('penalty');
-
         $mform->addElement('hidden', 'defaultgrade', 0);
         $mform->setType('defaultgrade', PARAM_RAW);
     }

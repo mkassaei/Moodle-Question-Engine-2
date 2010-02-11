@@ -374,6 +374,38 @@ class question_type {
         return null;
     }
 
+    public function save_hints($formdata, $withparts = false) {
+        delete_records('question_hints', 'questionid', $formdata->id);
+
+        $numhints = max(array_keys($formdata->hint)) + 1;
+        if ($withparts) {
+            $numclears = max(array_keys($formdata->hintclearwrong)) + 1;
+            $numshows = max(array_keys($formdata->hintshownumcorrect)) + 1;
+            $numhints = max($numhints, $numclears, $numshows);
+        }
+
+        for ($i = 0; $i < $numhints; $i += 1) {
+            $hint = new stdClass;
+            $hint->hint = $formdata->hint[$i];
+            $hint->questionid = $formdata->id;
+
+            if (html_is_blank($hint->hint)) {
+                $hint->hint = '';
+            }
+
+            if ($withparts) {
+                $hint->clearwrong = !empty($formdata->hintclearwrong[$i]);
+                $hint->shownumcorrect = !empty($formdata->hintshownumcorrect[$i]);
+            }
+
+            if (empty($hint->hint) && empty($hint->clearwrong) && empty($hint->shownumcorrect)) {
+                continue;
+            }
+
+            insert_record('question_hints', $hint);
+        }
+    }
+
     /**
     * Changes all states for the given attempts over to a new question
     *
@@ -406,12 +438,8 @@ class question_type {
     *                         should be updated to include the question type
     *                         specific information (it is passed by reference).
     */
-    public function get_question_options(&$question) {
+    public function get_question_options($question) {
         global $CFG;
-
-        if (!isset($question->options)) {
-            $question->options = new object;
-        }
 
         $extra_question_fields = $this->extra_question_fields();
         if (is_array($extra_question_fields)) {
@@ -512,7 +540,7 @@ class question_type {
         if (empty($questiondata->hints)) {
             return;
         }
-        foreach ($question->hints as $hint) {
+        foreach ($questiondata->hints as $hint) {
             $question->hints[] = $this->make_hint($hint);
         }
     }
@@ -567,6 +595,8 @@ class question_type {
         }
 
         $success = $success && delete_records('question_answers', 'question', $questionid);
+
+        $success = $success && delete_records('question_hints', 'questionid', $questionid);
 
         return $success;
     }

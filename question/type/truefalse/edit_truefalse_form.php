@@ -48,6 +48,8 @@ class question_edit_truefalse_form extends question_edit_form {
                                 array('course' => $this->coursefilesid));
         $mform->setType('feedbackfalse', PARAM_RAW);
 
+        $this->add_interactive_settings();
+
         // Fix penalty factor at 1.
         $mform->setDefault('penalty', 1);
         $mform->freeze('penalty');

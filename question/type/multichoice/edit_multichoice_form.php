@@ -70,6 +70,7 @@ class question_edit_multichoice_form extends question_edit_form {
             $mform->setType($feedbackname, PARAM_RAW);
         }
 
+        $this->add_interactive_settings(true, true);
     }
 
     public function set_data($question) {

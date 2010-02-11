@@ -37,7 +37,7 @@ require_once($CFG->dirroot . '/question/engine/lib.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_numerical extends question_type {
-    public function get_question_options(&$question) {
+    public function get_question_options($question) {
         global $CFG;
 
         // Get the question answers and their respective tolerances
@@ -54,6 +54,9 @@ class qtype_numerical extends question_type {
             notify('Error: Missing question answer for numerical question ' . $question->id . '!');
             return false;
         }
+
+        $question->hints = get_records('question_hints', 'questionid', $question->id, 'id ASC');
+
         $this->get_numerical_units($question);
 
         // If units are defined we strip off the default unit from the answer, if
@@ -193,6 +196,8 @@ class qtype_numerical extends question_type {
             }
         }
 
+        $this->save_hints($question);
+
         // Report any problems.
         if (!empty($result->notice)) {
             return $result;
@@ -271,6 +276,7 @@ class qtype_numerical extends question_type {
      * @param object $question  The question being deleted
      */
     public function delete_question($questionid) {
+        parent::delete_question($questionid);
         delete_records("question_numerical", "question", $questionid);
         delete_records("question_numerical_units", "question", $questionid);
         return true;

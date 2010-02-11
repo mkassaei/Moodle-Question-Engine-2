@@ -30,7 +30,6 @@ Integrate new code into the quiz (3d)
 √   adaptive mode submit goes to next page
 √   quiz settings form and database
 √   quiz default settings form
-    unit tests for mod/quiz/attemptlib.php (1d)
 
 <-- Christmas target milestone (7d)
 
@@ -38,10 +37,9 @@ Finish converting simple question types (6.5d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9203)
 √   Opaque question type 0.5d
 √   Numerical units 0.5d
-    Refactor out commonalities between multiplechoice and truefalse rendering. 0.5d
 √   Test missing qtype 1d
-    New fields for editing hints (4d)
-        Fields on editing form 1d
+√   New fields for editing hints (4d)
+√       Fields on editing form 1d
 √       Database columns, load/save code 1d
 √       Import export 1d
 √       Use by interactive mode 1d
@@ -81,7 +79,7 @@ Incorporate other OU-specific quiz customisations into this code (8d)
 √       attempt_close_js.php
 √       jstimer.php
 
-<-- Working quiz studnet interface milestone
+<-- Working quiz student interface milestone
 
 Finish question engine core (0d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8557)
@@ -103,6 +101,8 @@ Finish database load/save code (4d)
     Make more efficient code using lazy-loading, etc. 2d
     Unit tests for Unit of Work 1d
     Database update on regrading 0.5d
+    Kill question.image column, with upgrade.
+    Upgrade essay question type. Kill its use of an answer, and merge all feedback into generalfeedback.
 
 <-- Working quiz reports milestone
 
@@ -119,6 +119,10 @@ Backup and restore code (7d)
     Decide what to do about pre-Moodle 1.5 backups ? 0d?
 
 <-- Working upgrade and backup/restore milestone
+
+Miscellaneous code clean-up (1.5d)
+    Refactor out commonalities between multiplechoice and truefalse rendering. 0.5d
+    Unit tests for mod/quiz/attemptlib.php (1d)
 
 Port the code to Moodle 2.x (4d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8559)
