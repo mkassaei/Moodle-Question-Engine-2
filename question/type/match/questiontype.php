@@ -187,17 +187,17 @@ class qtype_match extends question_type {
 
     // ULPGC ecastro
     public function get_actual_response($question, $state) {
-       $subquestions = &$state->options->subquestions;
-       $responses    = &$state->responses;
-       $results=array();
-       foreach ($subquestions as $key => $sub) {
-           foreach ($responses as $ind => $code) {
-               if (isset($sub->options->answers[$code])) {
-                   $results[$ind] =  $subquestions[$ind]->questiontext . ": " . $sub->options->answers[$code]->answer;
-               }
-           }
-       }
-       return $results;
+        $subquestions = &$state->options->subquestions;
+        $responses    = &$state->responses;
+        $results = array();
+        foreach ($responses as $ind => $code) {
+            foreach ($subquestions as $key => $sub) {
+                if (isset($sub->options->answers[$code])) {
+                    $results[$ind] =  $subquestions[$ind]->questiontext . ": " . $sub->options->answers[$code]->answer;
+                }
+            }
+        }
+        return $results;
    }
 
     public function response_summary($question, $state, $length=80) {

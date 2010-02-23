@@ -793,14 +793,14 @@ class question_type {
     * @param object $state   The state whose responses are to be summarized
     * @param int $length     The maximum length of the returned string
     */
-    public function response_summary($question, $state, $length=80) {
+    public function response_summary($question, $state, $length = 80) {
         // This should almost certainly be overridden
         $responses = $this->get_actual_response($question, $state);
         if (empty($responses) || !is_array($responses)) {
             $responses = array();
         }
         if (is_array($responses)) {
-            $responses = implode(',', array_map('s', $responses));
+            $responses = implode(', ', array_map('s', $responses));
         }
         return shorten_text($responses, $length);
     }
