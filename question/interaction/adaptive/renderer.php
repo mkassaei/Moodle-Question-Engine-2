@@ -94,7 +94,7 @@ class qim_adaptive_renderer extends qim_renderer {
         $output = '';
 
         // print details of grade adjustment due to penalties
-        if ($mark->raw != $mark->cur){
+        if ($mark->raw != $mark->cur) {
             $output .= ' ' . get_string('gradingdetailsadjustment', 'qim_adaptive', $mark);
         }
 

@@ -89,11 +89,12 @@ Finish question engine core (0d)
 
 Integrate new code into the quiz reports (7d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9205)
-    Start with Moodle 2.0 reports.
-    overview 2d
+√   Start with Moodle 2.0 reports.
+√   overview 2d
     responses 1d
     manual grading 1d
     statistics 4d
+    re-implemente regrading functionality.
 
 Finish database load/save code (4d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9206)

@@ -32,7 +32,7 @@ class qim_opaque_renderer extends qim_renderer {
         $omstate = $qa->get_last_im_var('_statestring');
         if ($state->is_finished()) {
             return $state->default_string();
-        } else if ($omstate){
+        } else if ($omstate) {
             return $omstate;
         } else {
             return get_string('submissionnotcorrect', 'qim_opaque');
