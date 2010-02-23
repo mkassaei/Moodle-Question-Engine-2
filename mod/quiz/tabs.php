@@ -24,7 +24,7 @@ if (!isset($cm)) {
 
 $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
-if (!isset($contexts)){
+if (!isset($contexts)) {
     $contexts = new question_edit_contexts($context);
 }
 $tabs = array();
@@ -54,30 +54,16 @@ if ($currenttab == 'info' && count($row) == 1) {
 if ($currenttab == 'reports' and isset($mode)) {
     $activated[] = 'reports';
 
-    // Standard reports we want to show first.
-    $reportlist = array ('overview', 'regrade', 'grading', 'analysis');
-    // Reports that are restricted by capability.
-    $reportrestrictions = array(
-        'regrade' => 'mod/quiz:grade',
-        'grading' => 'mod/quiz:grade'
-    );
-
-    $allreports = get_list_of_plugins("mod/quiz/report");
-    foreach ($allreports as $report) {
-        if (!in_array($report, $reportlist)) {
-            $reportlist[] = $report;
-        }
-    }
-
     $row  = array();
     $currenttab = '';
+
+    $reportlist = quiz_report_list($context);
+
     foreach ($reportlist as $report) {
-        if (!isset($reportrestrictions[$report]) || has_capability($reportrestrictions[$report], $context)) {
-            $row[] = new tabobject($report, "$CFG->wwwroot/mod/quiz/report.php?q=$quiz->id&amp;mode=$report",
-                                    get_string($report, 'quiz_'.$report));
-            if ($report == $mode) {
-                $currenttab = $report;
-            }
+        $row[] = new tabobject($report, "$CFG->wwwroot/mod/quiz/report.php?q=$quiz->id&amp;mode=$report",
+                                get_string($report, 'quiz_'.$report));
+        if ($report == $mode) {
+            $currenttab = $report;
         }
     }
     $tabs[] = $row;

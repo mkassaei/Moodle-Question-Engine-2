@@ -457,3 +457,27 @@ function print_js_config($settings = array(), $prefix='', $return = false) {
         echo $html;
     }
 }
+
+define('SQL_PARAMS_NAMED', 1);
+define('SQL_PARAMS_QM', 2);
+/**
+ * Constructs IN () or = sql fragment. Backport of the similar method from Moodle 2.0.
+ * @param mixed $items single or array of values
+ * @param int $type not used
+ * @param string named not used
+ * @param bool true means equal, false not equal/NOT IN
+ * @return array - $sql and an empty array.
+ */
+function get_in_or_equal($items, $type=SQL_PARAMS_QM, $start='param0000', $equal=true) {
+    $extra = '';
+    $op = '= ';
+    if (!$equal) {
+        $extra = 'NOT ';
+        $op = '<> ';
+    }
+    if (count($items) == 1) {
+        return array($op . "'" . reset($items) . "'", array());
+    } else {
+        return array($extra . "IN ('" . implode("','", $items) . "')", array());
+    }
+}

@@ -3180,6 +3180,10 @@ function load_capability_def($component) {
             $defpath = $CFG->dirroot.'/course/report/'.$compparts[1].'/db/access.php';
             $varprefix = $compparts[0].'_'.$compparts[1];
 
+        } else if ($compparts[0] == 'quizreport') {
+            $defpath = $CFG->dirroot.'/mod/quiz/report/'.$compparts[1].'/db/access.php';
+            $varprefix = $compparts[0].'_'.$compparts[1];
+
         } else {
             $defpath = $CFG->dirroot.'/'.$component.'/db/access.php';
             $varprefix = str_replace('/', '_', $component);
@@ -3295,6 +3299,7 @@ function update_capabilities($component='moodle') {
 
     $filecaps = load_capability_def($component);
     $cachedcaps = get_cached_capabilities($component);
+
     if ($cachedcaps) {
         foreach ($cachedcaps as $cachedcap) {
             array_push($storedcaps, $cachedcap->name);

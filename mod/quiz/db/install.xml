@@ -282,7 +282,7 @@
         <KEY NAME="originalquestion" TYPE="foreign" FIELDS="originalquestion" REFTABLE="question" REFFIELDS="id" PREVIOUS="newquestion"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="quiz_feedback" COMMENT="Feedback given to students based on their overall score on the test" PREVIOUS="quiz_question_versions">
+    <TABLE NAME="quiz_feedback" COMMENT="Feedback given to students based on their overall score on the test" NEXT="quiz_reports" PREVIOUS="quiz_question_versions">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="quizid"/>
         <FIELD NAME="quizid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="feedbacktext"/>
@@ -295,9 +295,22 @@
         <KEY NAME="quizid" TYPE="foreign" FIELDS="quizid" REFTABLE="quiz" REFFIELDS="id" PREVIOUS="primary"/>
       </KEYS>
     </TABLE>
+    <TABLE NAME="quiz_reports" COMMENT="Lists all the installed quiz reports and their display order and so on. No need to worry about deleting old records. Only records with an equivalent directory are displayed." PREVIOUS="quiz_feedback">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="name"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="name of the report, same as the directory name" PREVIOUS="id" NEXT="displayorder"/>
+        <FIELD NAME="displayorder" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="display order for report tabs" PREVIOUS="name" NEXT="lastcron"/>
+        <FIELD NAME="lastcron" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="timestamp when cron was last run for this report." PREVIOUS="displayorder" NEXT="cron"/>
+        <FIELD NAME="cron" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="0 if there is no cron for this report (default) or the time between crons otherwise." PREVIOUS="lastcron" NEXT="capability"/>
+        <FIELD NAME="capability" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Capability required to see this report. May be blank which means use the default of mod/quiz:viewreport. This is used when deciding which tabs to render." PREVIOUS="cron"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
   </TABLES>
   <STATEMENTS>
-    <STATEMENT NAME="insert log_display" TYPE="insert" TABLE="log_display" COMMENT="Initial insert of records on table log_display">
+    <STATEMENT NAME="insert log_display" TYPE="insert" TABLE="log_display" COMMENT="Initial insert of records on table log_display" NEXT="insert quiz_reports">
       <SENTENCES>
         <SENTENCE TEXT="(module, action, mtable, field) VALUES ('quiz', 'add', 'quiz', 'name')" />
         <SENTENCE TEXT="(module, action, mtable, field) VALUES ('quiz', 'update', 'quiz', 'name')" />
@@ -311,6 +324,13 @@
         <SENTENCE TEXT="(module, action, mtable, field) VALUES ('quiz', 'start attempt', 'quiz', 'name')" />
         <SENTENCE TEXT="(module, action, mtable, field) VALUES ('quiz', 'close attempt', 'quiz', 'name')" />
         <SENTENCE TEXT="(module, action, mtable, field) VALUES ('quiz', 'continue attempt', 'quiz', 'name')" />
+      </SENTENCES>
+    </STATEMENT>
+    <STATEMENT NAME="insert quiz_reports" TYPE="insert" TABLE="quiz_reports" COMMENT="Initial insert of records on table quiz_reports" PREVIOUS="insert log_display">
+      <SENTENCES>
+        <SENTENCE TEXT="(name, displayorder) VALUES ('overview', '10000')" />
+        <SENTENCE TEXT="(name, displayorder) VALUES ('responses', '9000')" />
+        <SENTENCE TEXT="(name, displayorder) VALUES ('grading', '6000')" />
       </SENTENCES>
     </STATEMENT>
   </STATEMENTS>

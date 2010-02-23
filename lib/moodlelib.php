@@ -5296,6 +5296,7 @@ function places_to_search_for_lang_strings() {
         'format_' => array('course/format'),
         'qim_' => array('question/interaction'),
         'qtype_' => array('question/type'),
+        'quiz_' => array('mod/quiz/report'),
         'report_' => array($CFG->admin.'/report', 'course/report', 'mod/quiz/report'),
         'resource_' => array('mod/resource/type'),
         'gradereport_' => array('grade/report'),

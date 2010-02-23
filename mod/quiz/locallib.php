@@ -414,7 +414,7 @@ function quiz_rescale_grade($rawgrade, $quiz, $round = true) {
     if ($quiz->sumgrades) {
         $grade = $rawgrade * $quiz->grade / $quiz->sumgrades;
         if ($round) {
-            $grade = round($grade, $quiz->decimalpoints);
+            $grade = quiz_format_grade($quiz, $grade);
         }
     } else {
         $grade = 0;
@@ -723,7 +723,7 @@ function quiz_upgrade_states($attempt) {
  */
 function quiz_question_preview_button($quiz, $question) {
     global $CFG, $COURSE;
-    if (!question_has_capability_on($question, 'use', $question->category)){
+    if (!question_has_capability_on($question, 'use', $question->category)) {
         return '';
     }
     $strpreview = get_string('previewquestion', 'quiz');
@@ -892,7 +892,7 @@ function quiz_get_combined_reviewoptions($quiz, $attempts, $context=null) {
  * @param boolean $removeemptypages If true, remove empty pages from the quiz. False by default.
  * @return $string the cleaned-up layout
  */
-function quiz_clean_layout($layout, $removeemptypages = false){
+function quiz_clean_layout($layout, $removeemptypages = false) {
     // Remove duplicate "," (or triple, or...)
     $layout = preg_replace('/,{2,}/', ',', trim($layout, ','));
 

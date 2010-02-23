@@ -308,6 +308,120 @@ ORDER BY
     }
 
     /**
+     * Load a {@link question_usage_by_activity} from the database, including
+     * all its {@link question_attempt}s and all their steps.
+     * @param integer $qubaid the id of the usage to load.
+     * @param question_usage_by_activity the usage that was loaded.
+     */
+    public function load_questions_usages_latest_steps($qubaids, $qnumbers) {
+        global $CFG;
+
+        if (is_array($qubaids)) {
+            list($where, $params) = get_in_or_equal($qubaids, SQL_PARAMS_NAMED, 'qubaid0000');
+            $qubaidswhere = "qa.questionusageid $where";
+            $qajoin = "FROM {$CFG->prefix}question_attempts_new qa";
+        } else {
+            $qubaidswhere = $qubaids->where;
+            $qajoin = $qubaids->from .
+                    "\nJOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = " .
+                    $qubaids->usageidcolumn;
+        }
+
+        list($qnumbertest, $params) = get_in_or_equal($qnumbers, SQL_PARAMS_NAMED, 'qnumber0000');
+
+        $records = get_records_sql("
+SELECT
+    qas.id,
+    qa.id AS questionattemptid,
+    qa.questionusageid,
+    qa.numberinusage,
+    qa.interactionmodel,
+    qa.questionid,
+    qa.maxmark,
+    qa.minfraction,
+    qa.flagged,
+    qa.questionsummary,
+    qa.rightanswer,
+    qa.responsesummary,
+    qa.timemodified,
+    qas.id AS attemptstepid,
+    qas.sequencenumber,
+    qas.state,
+    qas.fraction,
+    qas.timecreated,
+    qas.userid
+
+$qajoin
+JOIN (
+    SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
+) lateststepid ON lateststepid.questionattemptid = qa.id
+JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
+
+WHERE
+    $qubaidswhere AND
+    qa.numberinusage $qnumbertest
+        ");
+
+        return $records;
+    }
+
+    /**
+     * Load a {@link question_usage_by_activity} from the database, including
+     * all its {@link question_attempt}s and all their steps.
+     * @param integer $qubaid the id of the usage to load.
+     * @param question_usage_by_activity the usage that was loaded.
+     */
+    public function load_average_marks($qubaids, $qnumbers = null) {
+        global $CFG;
+
+        if (is_array($qubaids)) {
+            list($where, $params) = get_in_or_equal($qubaids, SQL_PARAMS_NAMED, 'qubaid0000');
+            $qubaidswhere = "qa.questionusageid $where";
+            $qajoin = "FROM {$CFG->prefix}question_attempts_new qa";
+
+        } else if (is_string($qubaids)) {
+            $qubaidswhere = "qa.questionusageid IN ($qubaids)";
+            $qajoin = "FROM {$CFG->prefix}question_attempts_new qa";
+
+        } else {
+            $qubaidswhere = $qubaids->where;
+            $qajoin = $qubaids->from .
+                    "\nJOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = " .
+                    $qubaids->usageidcolumn;
+        }
+
+        if (!empty($qnumbers)) {
+            list($qnumbertest, $params) = get_in_or_equal($qnumbers, SQL_PARAMS_NAMED, 'qnumber0000');
+            $qnumberwhere = " AND qa.numberinusage $qnumbertest";
+        } else {
+            $qnumberwhere = '';
+        }
+
+        $records = get_records_sql("
+SELECT
+    qa.numberinusage,
+    AVG(qas.fraction) AS averagefraction,
+    COUNT(1) AS numaveraged
+
+$qajoin
+JOIN (
+    SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
+) lateststepid ON lateststepid.questionattemptid = qa.id
+JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
+
+WHERE
+    $qubaidswhere
+    $qnumberwhere
+
+GROUP BY qa.numberinusage
+
+ORDER BY qa.numberinusage
+        ");
+
+        return $records;
+    }
+
+    /**
      * Update a question_usages row to refect any changes in a usage (but not
      * any of its question_attempts.
      * @param question_usage_by_activity $quba the usage that has changed.

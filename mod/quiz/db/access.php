@@ -1,4 +1,4 @@
-<?php  // $Id$
+<?php
 /**
  * Capability definitions for the quiz module.
  *
@@ -63,7 +63,7 @@ $mod_quiz_capabilities = array(
         )
     ),
 
-    // Manually grade and comment on student attempts at a question, and regrade quizzes.
+    // Manually grade and comment on student attempts at a question.
     'mod/quiz:grade' => array(
         'riskbitmask' => RISK_SPAM,
         'captype' => 'write',
@@ -73,6 +73,19 @@ $mod_quiz_capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'admin' => CAP_ALLOW
         )
+    ),
+
+    // Regrade quizzes.
+    'mod/quiz:regrade' => array(
+        'riskbitmask' => RISK_SPAM,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'legacy' => array(
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'admin' => CAP_ALLOW
+        ),
+        'clonepermissionsfrom' =>  'mod/quiz:grade'
     ),
 
     // View the quiz reports.
@@ -119,4 +132,4 @@ $mod_quiz_capabilities = array(
         'legacy' => array()
     )
 );
-?>
+

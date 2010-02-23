@@ -484,6 +484,8 @@
 /// Check all admin report plugins and upgrade if necessary
     upgrade_plugins('report', $CFG->admin.'/report', "$CFG->wwwroot/$CFG->admin/index.php");
 
+/// Check all quiz report plugins and upgrade if necessary
+    upgrade_plugins('quizreport', 'mod/quiz/report', "$CFG->wwwroot/$CFG->admin/index.php");
 
 /// just make sure upgrade logging is properly terminated
     upgrade_log_finish();

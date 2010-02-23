@@ -327,6 +327,45 @@ function xmldb_quiz_upgrade($oldversion=0) {
         upgrade_mod_savepoint($result, 2008000107, 'quiz');
     }
 
+    if ($result && $oldversion < 2008000108) {
+
+    /// Define table quiz_reports to be created
+        $table = new XMLDBTable('quiz_reports');
+
+    /// Adding fields to table quiz_reports
+        $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+        $table->addFieldInfo('name', XMLDB_TYPE_CHAR, '255', null, null, null, null, null, null);
+        $table->addFieldInfo('displayorder', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+        $table->addFieldInfo('lastcron', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0');
+        $table->addFieldInfo('cron', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0');
+        $table->addFieldInfo('capability', XMLDB_TYPE_CHAR, '255', null, null, null, null, null, null);
+
+    /// Adding keys to table quiz_reports
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+    /// Launch create table for quiz_reports
+        $result = $result && create_table($table);
+    }
+
+    if ($result && $oldversion < 2008000110) {
+        // Insert information about the default reports into the table.
+
+        $reporttoinsert = new stdClass;
+        $reporttoinsert->name = 'overview';
+        $reporttoinsert->displayorder = 10000;
+        $result = $result && insert_record('quiz_reports', $reporttoinsert);
+
+        $reporttoinsert = new stdClass;
+        $reporttoinsert->name = 'responses';
+        $reporttoinsert->displayorder = 9000;
+        $result = $result && insert_record('quiz_reports', $reporttoinsert);
+
+        $reporttoinsert = new stdClass;
+        $reporttoinsert->name = 'grading';
+        $reporttoinsert->displayorder = 6000;
+        $result = $result && insert_record('quiz_reports', $reporttoinsert);
+    }
+
     commit_sql();
 
     return $result;
