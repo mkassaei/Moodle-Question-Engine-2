@@ -296,21 +296,21 @@ abstract class question_interaction_model {
      * {@link process_comment()}. Look at some of the standard interaction
      * models for examples.
      *
-     * @param question_attempt_step $pendingstep a partially initialised step
+     * @param question_attempt_pending_step $pendingstep a partially initialised step
      *      containing all the information about the action that is being peformed.
      *      This information can be accessed using {@link question_attempt_step::get_im_var()}.
      * @return boolean either {@link question_attempt::KEEP} or {@link question_attempt::DISCARD}
      */
-    public abstract function process_action(question_attempt_step $pendingstep);
+    public abstract function process_action(question_attempt_pending_step $pendingstep);
 
     /**
      * Implementation of processing a manual comment/grade action that should
      * be suitable for most subclasses.
-     * @param question_attempt_step $pendingstep a partially initialised step
+     * @param question_attempt_pending_step $pendingstep a partially initialised step
      *      containing all the information about the action that is being peformed.
      * @return boolean either {@link question_attempt::KEEP}
      */
-    public function process_comment(question_attempt_step $pendingstep) {
+    public function process_comment(question_attempt_pending_step $pendingstep) {
         $laststep = $this->qa->get_last_step();
 
         if ($pendingstep->has_im_var('mark')) {
@@ -365,11 +365,11 @@ abstract class question_interaction_model_with_save extends question_interaction
     /**
      * Implementation of processing a save action that should be suitable for
      * most subclasses.
-     * @param question_attempt_step $pendingstep a partially initialised step
+     * @param question_attempt_pending_step $pendingstep a partially initialised step
      *      containing all the information about the action that is being peformed.
      * @return boolean either {@link question_attempt::KEEP} or {@link question_attempt::DISCARD}
      */
-    public function process_save(question_attempt_step $pendingstep) {
+    public function process_save(question_attempt_pending_step $pendingstep) {
         if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         } else if (!$this->qa->get_state()->is_active()) {
@@ -444,5 +444,12 @@ abstract class question_cbm {
      */
     public static function get_string($certainty) {
         return get_string('certainty' . $certainty, 'qim_deferredcbm');
+    }
+
+    public static function summary_with_certainty($summary, $certainty) {
+        if (is_null($certainty)) {
+            return $summary;
+        }
+        return $summary . ' [' . self::get_string($certainty) . ']';
     }
 }

@@ -83,9 +83,8 @@ Incorporate other OU-specific quiz customisations into this code (8d)
 
 Finish question engine core (0d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8557)
-    questionsummary and rightanswer - need to do unit tests.
-    responsesummary
-    Need a way to mock question_bank::load_question when testing then question engine.
+√   Implement questionsummary and rightanswer.
+√   Implement responsesummary.
     Put starting seq_no in a hidden input, and verify before processing, to prevent duplicate submit problems.
 
 Integrate new code into the quiz reports (7d)
@@ -162,6 +161,9 @@ Quiz module renderers (4d)
 
 Enhance the question preview window (3d)
     Think about implementing manual grading UI 3d
+
+Other odds and ends
+    Need a way to mock question_bank::load_question when testing then question engine.
 
 
 --------------------------------------------------------------------------------

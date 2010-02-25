@@ -70,9 +70,9 @@ class question_engine_data_mapper {
         $record->maxmark = $qa->get_max_mark();
         $record->minfraction = $qa->get_min_fraction();
         $record->flagged = $qa->is_flagged();
-        $record->questionsummary = null;
-        $record->rightanswer = null;
-        $record->responsesummary = null;
+        $record->questionsummary = $qa->get_question_summary();
+        $record->rightanswer = $qa->get_right_answer_summary();
+        $record->responsesummary = $qa->get_response_summary();
         $record->timemodified = time();
         $record->id = insert_record('question_attempts_new', $record);
         if (!$record->id) {

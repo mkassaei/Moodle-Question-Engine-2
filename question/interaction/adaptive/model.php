@@ -61,7 +61,7 @@ class qim_adaptive extends question_interaction_model_with_save {
         }
     }
 
-    public function process_action(question_attempt_step $pendingstep) {
+    public function process_action(question_attempt_pending_step $pendingstep) {
         if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);
         } else if ($pendingstep->has_im_var('finish')) {
@@ -73,7 +73,7 @@ class qim_adaptive extends question_interaction_model_with_save {
         }
     }
 
-    public function process_save(question_attempt_step $pendingstep) {
+    public function process_save(question_attempt_pending_step $pendingstep) {
         $status = parent::process_save($pendingstep);
         $prevgrade = $this->qa->get_fraction();
         if (!is_null($prevgrade)) {
@@ -87,7 +87,7 @@ class qim_adaptive extends question_interaction_model_with_save {
         return $fraction - $this->question->penalty * $prevtries;
     }
 
-    public function process_submit(question_attempt_step $pendingstep) {
+    public function process_submit(question_attempt_pending_step $pendingstep) {
         $status = $this->process_save($pendingstep);
 
         $response = $pendingstep->get_qt_data();
@@ -115,11 +115,12 @@ class qim_adaptive extends question_interaction_model_with_save {
         }
         $pendingstep->set_im_var('_try', $prevtries + 1);
         $pendingstep->set_im_var('_rawfraction', $fraction);
+        $pendingstep->set_new_response_summary($this->question->summarise_response($response));
 
         return question_attempt::KEEP;
     }
 
-    public function process_finish(question_attempt_step $pendingstep) {
+    public function process_finish(question_attempt_pending_step $pendingstep) {
         if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
@@ -149,6 +150,7 @@ class qim_adaptive extends question_interaction_model_with_save {
         $pendingstep->set_state($state);
         $pendingstep->set_im_var('_try', $prevtries + 1);
         $pendingstep->set_im_var('_rawfraction', $fraction);
+        $pendingstep->set_new_response_summary($this->question->summarise_response($response));
         return question_attempt::KEEP;
     }
 }

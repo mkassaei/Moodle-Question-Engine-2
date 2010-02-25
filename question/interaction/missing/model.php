@@ -51,7 +51,7 @@ class qim_missing extends question_interaction_model {
         throw new Exception('The interaction model used for this question is not available. No processing is possible.');
     }
 
-    public function process_action(question_attempt_step $pendingstep) {
+    public function process_action(question_attempt_pending_step $pendingstep) {
         throw new Exception('The interaction model used for this question is not available. No processing is possible.');
     }
 

@@ -51,10 +51,10 @@ class qim_immediatecbm_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation());
         $this->assertEqual('A [' . question_cbm::get_string(question_cbm::HIGH) . ']',
-                $this->quba->get_question_attempt($this->qnumber)->get_right_answer_summary());
+                $this->quba->get_right_answer_summary($this->qnumber));
         $this->assertPattern('/' . preg_quote($mc->questiontext) . '/',
-                $this->quba->get_question_attempt($this->qnumber)->get_question_summary());
-        $this->assertNull($this->quba->get_question_attempt($this->qnumber)->get_response_summary());
+                $this->quba->get_question_summary($this->qnumber));
+        $this->assertNull($this->quba->get_response_summary($this->qnumber));
 
         // Save the wrong answer.
         $this->process_submission(array('answer' => $wrongindex, '!certainty' => 1));
@@ -81,6 +81,8 @@ class qim_immediatecbm_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
                 $this->get_contains_correct_expectation());
+        $this->assertEqual('A [' . question_cbm::get_string(2) . ']',
+                $this->quba->get_response_summary($this->qnumber));
 
         $numsteps = $this->get_step_count();
 

@@ -117,7 +117,7 @@ class qim_interactive extends question_interaction_model_with_save {
         $step->set_im_var('_triesleft', count($this->question->hints) + 1);
     }
 
-    public function process_action(question_attempt_step $pendingstep) {
+    public function process_action(question_attempt_pending_step $pendingstep) {
         if ($pendingstep->has_im_var('finish')) {
             return $this->process_finish($pendingstep);
         }
@@ -138,12 +138,12 @@ class qim_interactive extends question_interaction_model_with_save {
         }
     }
 
-    public function process_try_again(question_attempt_step $pendingstep) {
+    public function process_try_again(question_attempt_pending_step $pendingstep) {
         $pendingstep->set_state(question_state::$todo);
         return question_attempt::KEEP;
     }
 
-    public function process_submit(question_attempt_step $pendingstep) {
+    public function process_submit(question_attempt_pending_step $pendingstep) {
         if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
@@ -153,7 +153,8 @@ class qim_interactive extends question_interaction_model_with_save {
 
         } else {
             $triesleft = $this->qa->get_last_im_var('_triesleft');
-            list($fraction, $state) = $this->question->grade_response($pendingstep->get_qt_data());
+            $response = $pendingstep->get_qt_data();
+            list($fraction, $state) = $this->question->grade_response($response);
             if ($state == question_state::$gradedright || $triesleft == 1) {
                 $pendingstep->set_state($state);
                 $pendingstep->set_fraction($this->adjust_fraction($fraction));
@@ -162,6 +163,7 @@ class qim_interactive extends question_interaction_model_with_save {
                 $pendingstep->set_im_var('_triesleft', $triesleft - 1);
                 $pendingstep->set_state(question_state::$todo);
             }
+            $pendingstep->set_new_response_summary($this->question->summarise_response($response));
         }
         return question_attempt::KEEP;
     }
@@ -175,7 +177,7 @@ class qim_interactive extends question_interaction_model_with_save {
         return $fraction;
     }
 
-    public function process_finish(question_attempt_step $pendingstep) {
+    public function process_finish(question_attempt_pending_step $pendingstep) {
         if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
@@ -189,10 +191,11 @@ class qim_interactive extends question_interaction_model_with_save {
             $pendingstep->set_fraction($this->adjust_fraction($fraction));
             $pendingstep->set_state($state);
         }
+        $pendingstep->set_new_response_summary($this->question->summarise_response($response));
         return question_attempt::KEEP;
     }
 
-    public function process_save(question_attempt_step $pendingstep) {
+    public function process_save(question_attempt_pending_step $pendingstep) {
         $status = parent::process_save($pendingstep);
         if ($status == question_attempt::KEEP && $pendingstep->get_state() == question_state::$complete) {
             $pendingstep->set_state(question_state::$todo);

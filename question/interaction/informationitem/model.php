@@ -55,7 +55,7 @@ class qim_informationitem extends question_interaction_model {
         return array();
     }
 
-    public function process_action(question_attempt_step $pendingstep) {
+    public function process_action(question_attempt_pending_step $pendingstep) {
         if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);
         } else if ($pendingstep->has_im_var('finish')) {
@@ -67,19 +67,19 @@ class qim_informationitem extends question_interaction_model {
         }
     }
 
-    public function process_comment(question_attempt_step $pendingstep) {
+    public function process_comment(question_attempt_pending_step $pendingstep) {
         if ($pendingstep->has_im_var('mark')) {
             throw new Exception('Information items cannot be graded.');
         }
         return parent::process_comment($pendingstep);
     }
 
-    public function process_finish(question_attempt_step $pendingstep) {
+    public function process_finish(question_attempt_pending_step $pendingstep) {
         $pendingstep->set_state(question_state::$finished);
         return question_attempt::KEEP;
     }
 
-    public function process_seen(question_attempt_step $pendingstep) {
+    public function process_seen(question_attempt_pending_step $pendingstep) {
         $pendingstep->set_state(question_state::$complete);
         return question_attempt::KEEP;
     }

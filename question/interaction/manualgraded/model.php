@@ -49,7 +49,7 @@ class qim_manualgraded extends question_interaction_model_with_save {
         }
     }
 
-    public function process_action(question_attempt_step $pendingstep) {
+    public function process_action(question_attempt_pending_step $pendingstep) {
         if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);
         } else if ($pendingstep->has_im_var('finish')) {
@@ -59,7 +59,7 @@ class qim_manualgraded extends question_interaction_model_with_save {
         }
     }
 
-    public function process_finish(question_attempt_step $pendingstep) {
+    public function process_finish(question_attempt_pending_step $pendingstep) {
         if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
@@ -70,6 +70,7 @@ class qim_manualgraded extends question_interaction_model_with_save {
         } else {
             $pendingstep->set_state(question_state::$needsgrading);
         }
+        $pendingstep->set_new_response_summary($this->question->summarise_response($response));
         return question_attempt::KEEP;
     }
 }

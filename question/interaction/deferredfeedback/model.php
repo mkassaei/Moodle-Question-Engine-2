@@ -50,7 +50,7 @@ class qim_deferredfeedback extends question_interaction_model_with_save {
         return $this->question->get_right_answer_summary();
     }
 
-    public function process_action(question_attempt_step $pendingstep) {
+    public function process_action(question_attempt_pending_step $pendingstep) {
         if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);
         } else if ($pendingstep->has_im_var('finish')) {
@@ -60,7 +60,7 @@ class qim_deferredfeedback extends question_interaction_model_with_save {
         }
     }
 
-    public function process_finish(question_attempt_step $pendingstep) {
+    public function process_finish(question_attempt_pending_step $pendingstep) {
         if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
@@ -73,6 +73,7 @@ class qim_deferredfeedback extends question_interaction_model_with_save {
             $pendingstep->set_fraction($fraction);
             $pendingstep->set_state($state);
         }
+        $pendingstep->set_new_response_summary($this->question->summarise_response($response));
         return question_attempt::KEEP;
     }
 }

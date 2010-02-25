@@ -76,6 +76,8 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
                 $this->get_contains_correct_expectation());
+        $this->assertEqual('A',
+                $this->quba->get_response_summary($this->qnumber));
 
         $numsteps = $this->get_step_count();
 
@@ -162,7 +164,8 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_correctness_expectation(),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_contains_validation_error_expectation());
-
+        $this->assertNull($this->quba->get_response_summary($this->qnumber));
+    
         // Finish the attempt.
         $this->quba->finish_all_questions();
 
@@ -231,5 +234,7 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
                 $this->get_contains_incorrect_expectation());
+        $this->assertPattern('/B|C/',
+                $this->quba->get_response_summary($this->qnumber));
     }
 }

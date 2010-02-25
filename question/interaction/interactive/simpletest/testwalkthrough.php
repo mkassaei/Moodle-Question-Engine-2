@@ -287,6 +287,8 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_validation_error_expectation(),
                 $this->get_contains_try_again_button_expectation(true),
                 $this->get_contains_hint_expectation('This is the first hint'));
+        $this->assertEqual('newt',
+                $this->quba->get_response_summary($this->qnumber));
 
         // Try again.
         $this->process_submission(array('!tryagain' => 1));
@@ -325,6 +327,8 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_correct_expectation(),
                 $this->get_does_not_contain_validation_error_expectation(),
                 $this->get_no_hint_visible_expectation());
+        $this->assertEqual('frog',
+                $this->quba->get_response_summary($this->qnumber));
     }
 
     public function test_interactive_feedback_multichoice_multiple_reset() {

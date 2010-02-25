@@ -42,10 +42,10 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_output($this->get_contains_question_text_expectation($tf),
                 $this->get_does_not_contain_feedback_expectation());
         $this->assertEqual(get_string('true', 'qtype_truefalse'),
-                $this->quba->get_question_attempt($this->qnumber)->get_right_answer_summary());
+                $this->quba->get_right_answer_summary($this->qnumber));
         $this->assertPattern('/' . preg_quote($tf->questiontext) . '/',
-                $this->quba->get_question_attempt($this->qnumber)->get_question_summary());
-        $this->assertNull($this->quba->get_question_attempt($this->qnumber)->get_response_summary());
+                $this->quba->get_question_summary($this->qnumber));
+        $this->assertNull($this->quba->get_response_summary($this->qnumber));
 
         // Process a true answer and check the expected result.
         $this->process_submission(array('answer' => 1));
@@ -78,6 +78,8 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_mark(2);
         $this->check_current_output($this->get_contains_correct_expectation(),
                 $this->get_contains_tf_true_radio_expectation(false, true));
+        $this->assertEqual(get_string('true', 'qtype_truefalse'),
+                $this->quba->get_response_summary($this->qnumber));
 
         // Process a manual comment.
         $this->manual_grade('Not good enough!', 1);

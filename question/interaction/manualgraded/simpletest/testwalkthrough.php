@@ -77,6 +77,8 @@ class qim_manualgraded_walkthrough_test extends qim_walkthrough_test_base {
         // Verify.
         $this->check_current_state(question_state::$needsgrading);
         $this->check_current_mark(null);
+        $this->assertEqual('This is my wonderful essay!',
+                $this->quba->get_response_summary($this->qnumber));
 
         // Process a manual comment.
         $this->manual_grade('Not good enough!', 10);

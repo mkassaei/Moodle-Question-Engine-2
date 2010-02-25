@@ -125,8 +125,11 @@ class qim_opaque_test extends qim_walkthrough_test_base {
         $this->check_current_output(
                 new PatternExpectation('/Please see MU120 Preparatory Resource Book B section 5.1/'),
                 new PatternExpectation('/still incorrect/'));
-
-                // TODO
+        $this->assertTrue(preg_match('/What is \(X\*W\) (\d+\.\d+)\*(\d+), \(X\*L\)(\d+\.\d+)\*(\d+)\?/',
+                $qa->get_question_summary(), $matches));
+        $this->assertNull($qa->get_right_answer_summary());
+        $this->assertPattern('/' . $matches[1]*$matches[2] . '.*, ' . $matches[3]*$matches[4] . '/',
+                $qa->get_response_summary());
     }
 
     public function test_right_first_time() {

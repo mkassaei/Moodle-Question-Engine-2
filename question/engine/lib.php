@@ -1116,6 +1116,27 @@ class question_usage_by_activity {
     }
 
     /**
+     * @return string a simple textual summary of the question that was asked.
+     */
+    public function get_question_summary($qnumber) {
+        return $this->get_question_attempt($qnumber)->get_question_summary();
+    }
+
+    /**
+     * @return string a simple textual summary of response given.
+     */
+    public function get_response_summary($qnumber) {
+        return $this->get_question_attempt($qnumber)->get_response_summary();
+    }
+
+    /**
+     * @return string a simple textual summary of the correct resonse.
+     */
+    public function get_right_answer_summary($qnumber) {
+        return $this->get_question_attempt($qnumber)->get_right_answer_summary();
+    }
+
+    /**
      * Get the {@link core_question_renderer}, in collaboration with appropriate
      * {@link qim_renderer} and {@link qtype_renderer} subclasses, to generate the
      * HTML to display this question.
@@ -2052,6 +2073,16 @@ class question_attempt {
     }
 
     /**
+     * Change the quetsion summary. Note, that this is almost never necessary.
+     * This method was only added to work around a limitation of the Opaque
+     * protocol, which only sends questionLine at the end of an attempt.
+     * @param $questionsummary the new summary to set.
+     */
+    public function set_question_summary($questionsummary) {
+        $this->questionsummary = $questionsummary;
+    }
+
+    /**
      * @return string a simple textual summary of the question that was asked.
      */
     public function get_question_summary() {
@@ -2079,9 +2110,12 @@ class question_attempt {
      * @param integer $userid the user to attribute the aciton to. (If not given, use the current user.)
      */
     public function process_action($submitteddata, $timestamp = null, $userid = null) {
-        $pendingstep = new question_attempt_step($submitteddata, $timestamp, $userid);
+        $pendingstep = new question_attempt_pending_step($submitteddata, $timestamp, $userid);
         if ($this->interactionmodel->process_action($pendingstep) == self::KEEP) {
             $this->add_step($pendingstep);
+            if ($pendingstep->response_summary_changed()) {
+                $this->responsesummary = $pendingstep->get_new_response_summary();
+            }
         }
     }
 
@@ -2555,6 +2589,38 @@ class question_attempt_step {
             $step->fraction = $record->fraction + 0;
         }
         return $step;
+    }
+}
+
+
+/**
+ * A subclass with a bit of additional funcitonality, for pending steps.
+ *
+ * @copyright © 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_attempt_pending_step extends question_attempt_step {
+    /** @var string . */
+    protected $newresponsesummary = null;
+
+    /**
+     * If as a result of processing this step, the response summary for the
+     * question attempt should changed, you should call this method to set the
+     * new summary.
+     * @param string $responsesummary the new response summary.
+     */
+    public function set_new_response_summary($responsesummary) {
+        $this->newresponsesummary = $responsesummary;
+    }
+
+    /** @return string the new response summary, if any. */
+    public function get_new_response_summary() {
+        return $this->newresponsesummary;
+    }
+
+    /** @return string whether this step changes the response summary. */
+    public function response_summary_changed() {
+        return !is_null($this->newresponsesummary);
     }
 }
 

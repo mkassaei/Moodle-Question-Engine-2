@@ -91,7 +91,7 @@ class qim_opaque extends question_interaction_model {
         return count($olddata) == count($newdata);
     }
 
-    public function process_action(question_attempt_step $pendingstep) {
+    public function process_action(question_attempt_pending_step $pendingstep) {
         if ($pendingstep->has_im_var('finish')) {
             return $this->process_finish($pendingstep);
         }
@@ -105,7 +105,7 @@ class qim_opaque extends question_interaction_model {
         }
     }
 
-    public function process_finish(question_attempt_step $pendingstep) {
+    public function process_finish(question_attempt_pending_step $pendingstep) {
         if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
@@ -116,7 +116,7 @@ class qim_opaque extends question_interaction_model {
         return question_attempt::KEEP;
     }
 
-    public function process_remote_action(question_attempt_step $pendingstep) {
+    public function process_remote_action(question_attempt_pending_step $pendingstep) {
         $opaquestate = update_opaque_state($this->qa, $pendingstep);
 
         if (is_string($opaquestate)) {
@@ -144,22 +144,25 @@ class qim_opaque extends question_interaction_model {
                         question_state::graded_state_for_fraction($pendingstep->get_fraction()));
             }
 
-// TODO
-//            if (!empty($opaquestate->results->questionLine)) {
-//                $state->responses['__questionLine'] = addslashes(
-//                        $this->cleanup_results($opaquestate->results->questionLine));
-//            }
-//            if (!empty($opaquestate->results->answerLine)) {
-//                $state->responses['__answerLine'] = addslashes(
-//                        $this->cleanup_results($opaquestate->results->answerLine));
-//            }
-//            if (!empty($opaquestate->results->actionSummary)) {
-//                $state->responses['__actionSummary'] = addslashes(
-//                        $this->cleanup_results($opaquestate->results->actionSummary));
-//            }
+            if (!empty($opaquestate->results->questionLine)) {
+                $this->qa->set_question_summary(
+                        $this->cleanup_results($opaquestate->results->questionLine));
+            }
+            if (!empty($opaquestate->results->answerLine)) {
+                $pendingstep->set_new_response_summary(
+                        $this->cleanup_results($opaquestate->results->answerLine));
+            }
+            if (!empty($opaquestate->results->actionSummary)) {
+                $pendingstep->set_im_var('_actionsummary',
+                        $this->cleanup_results($opaquestate->results->actionSummary));
+            }
         }
 
         return question_attempt::KEEP;
+    }
+
+    protected function cleanup_results($line) {
+        return preg_replace('/\\s+/', ' ', $line);
     }
 }
 

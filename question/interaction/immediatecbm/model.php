@@ -59,8 +59,7 @@ class qim_immediatecbm extends qim_immediatefeedback {
 
     public function get_right_answer_summary() {
         $summary = parent::get_right_answer_summary();
-        $certainty = get_string('certainty' . question_cbm::HIGH, 'qim_deferredcbm');
-        return $summary . ' [' . $certainty . ']';
+        return question_cbm::summary_with_certainty($summary, question_cbm::HIGH);
     }
 
     public function get_correct_response() {
@@ -88,7 +87,7 @@ class qim_immediatecbm extends qim_immediatefeedback {
         return parent::is_complete_response($pendingstep) && $pendingstep->has_im_var('certainty');
     }
 
-    public function process_submit(question_attempt_step $pendingstep) {
+    public function process_submit(question_attempt_pending_step $pendingstep) {
         if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
@@ -102,7 +101,7 @@ class qim_immediatecbm extends qim_immediatefeedback {
         return $this->do_grading($pendingstep, $pendingstep);
     }
 
-    public function process_finish(question_attempt_step $pendingstep) {
+    public function process_finish(question_attempt_pending_step $pendingstep) {
         if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;
         }
@@ -111,12 +110,14 @@ class qim_immediatecbm extends qim_immediatefeedback {
         return $this->do_grading($laststep, $pendingstep);
     }
 
-    protected function do_grading(question_attempt_step $responsesstep, question_attempt_step $pendingstep) {
+    protected function do_grading(question_attempt_step $responsesstep,
+            question_attempt_pending_step $pendingstep) {
         if (!$this->question->is_gradable_response($responsesstep->get_qt_data())) {
             $pendingstep->set_state(question_state::$gaveup);
 
         } else {
-            list($fraction, $state) = $this->question->grade_response($responsesstep->get_qt_data());
+            $response = $responsesstep->get_qt_data();
+            list($fraction, $state) = $this->question->grade_response($response);
 
             if ($responsesstep->has_im_var('certainty')) {
                 $certainty = $responsesstep->get_im_var('certainty');
@@ -128,6 +129,9 @@ class qim_immediatecbm extends qim_immediatefeedback {
             $pendingstep->set_im_var('_rawfraction', $fraction);
             $pendingstep->set_fraction(question_cbm::adjust_fraction($fraction, $certainty));
             $pendingstep->set_state($state);
+            $pendingstep->set_new_response_summary(
+                    question_cbm::summary_with_certainty(
+                    $this->question->summarise_response($response), $responsesstep->get_im_var('certainty')));
         }
         return question_attempt::KEEP;
     }

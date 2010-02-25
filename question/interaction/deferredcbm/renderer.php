@@ -37,18 +37,18 @@ class qim_deferredcbm_renderer extends qim_renderer {
         }
 
         $choices = '';
-        foreach (question_cbm::$certainties as $certainly) {
-            $id = $controlname . $certainly;
+        foreach (question_cbm::$certainties as $certainty) {
+            $id = $controlname . $certainty;
             $attributes['id'] = $id;
-            $attributes['value'] = $certainly;
-            if ($selected == $certainly) {
+            $attributes['value'] = $certainty;
+            if ($selected == $certainty) {
                 $attributes['checked'] = 'checked';
             } else {
                 unset($attributes['checked']);
             }
             $choices .= ' ' . $this->output_empty_tag('input', $attributes) . ' ' .
                     $this->output_tag('label', array('for' => $id),
-                    get_string('certainty' . $certainly, 'qim_deferredcbm'));
+                    question_cbm::get_string($certainty));
         }
         return $choices;
     }
@@ -69,8 +69,7 @@ class qim_deferredcbm_renderer extends qim_renderer {
         if (!$qa->get_last_im_var('certainty')) {
             $feedback .= $this->output_tag('p', array(),
                     get_string('assumingcertainty', 'qim_deferredcbm',
-                    get_string('certainty' . $qa->get_last_im_var('_assumedcertainty'),
-                    'qim_deferredcbm')));
+                    question_cbm::get_string($qa->get_last_im_var('_assumedcertainty'))));
         }
 
         if ($options->marks) {

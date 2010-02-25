@@ -41,7 +41,7 @@ class qim_missing_test extends UnitTestCase {
         $qa = new question_attempt(test_question_maker::make_a_truefalse_question(), 0);
         $model = new qim_missing($qa, 'deferredfeedback');
         $this->expectException();
-        $model->process_action(new question_attempt_step(array()));
+        $model->process_action(new question_attempt_pending_step(array()));
     }
 
     public function test_missing_cannot_get_min_grade() {

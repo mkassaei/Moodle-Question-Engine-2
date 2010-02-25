@@ -88,7 +88,7 @@ class qim_deferredcbm extends qim_deferredfeedback {
 
     }
 
-    public function process_finish(question_attempt_step $pendingstep) {
+    public function process_finish(question_attempt_pending_step $pendingstep) {
         $status = parent::process_finish($pendingstep);
         if ($status == question_attempt::KEEP) {
             $fraction = $pendingstep->get_fraction();
@@ -102,6 +102,9 @@ class qim_deferredcbm extends qim_deferredfeedback {
                 $pendingstep->set_im_var('_rawfraction', $fraction);
                 $pendingstep->set_fraction(question_cbm::adjust_fraction($fraction, $certainty));
             }
+            $pendingstep->set_new_response_summary(
+                    question_cbm::summary_with_certainty($pendingstep->get_new_response_summary(),
+                    $this->qa->get_last_step()->get_im_var('certainty')));
         }
         return $status;
     }
