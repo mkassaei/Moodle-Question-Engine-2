@@ -66,6 +66,34 @@ class qtype_match_question extends question_graded_automatically {
         }
     }
 
+    public function get_question_summary() {
+        $question = strip_tags($this->format_questiontext());
+        $stems = array();
+        foreach ($this->stemorder as $stemid) {
+            $stems[] = strip_tags($this->format_text($this->stems[$stemid]));
+        }
+        $choices = array();
+        foreach ($this->choiceorder as $choiceid) {
+            $choices[] = strip_tags($this->format_text($this->choices[$choiceid]));
+        }
+        return $question . ' {' . implode('; ', $stems) . '} -> {' .
+                implode('; ', $choices) . '}';
+    }
+
+    public function summarise_response(array $response) {
+        $matches = array();
+        foreach ($this->stemorder as $key => $stemid) {
+            if (array_key_exists($this->field($key), $response)) {
+                $matches[] = strip_tags($this->format_text($this->stems[$stemid])) . ' -> ' .
+                        strip_tags($this->format_text($this->choices[$this->right[$stemid]]));
+            }
+        }
+        if (empty($matches)) {
+            return null;
+        }
+        return implode('; ', $matches);
+    }
+
     public function clear_wrong_from_response(array $response) {
         foreach ($this->stemorder as $key => $stemid) {
             if ($response[$this->field($key)] != $this->get_right_choice_for($stemid)) {

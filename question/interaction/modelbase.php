@@ -197,6 +197,34 @@ abstract class question_interaction_model {
     }
 
     /**
+     * Generate a brief, plain-text, summary of this question. This is used by
+     * various reports. This should show the particular variant of the question
+     * as presented to students. For example, the calculated quetsion type would
+     * fill in the particular numbers that were presented to the student.
+     * This method will return null if such a summary is not possible, or
+     * inappropriate.
+     *
+     * Normally, this method delegates to {question_definition::get_question_summary()}.
+     *
+     * @return string|null a plain text summary of this question.
+     */
+    public function get_question_summary() {
+        return $this->question->get_question_summary();
+    }
+
+    /**
+     * Generate a brief, plain-text, summary of the correct answer to this question.
+     * This is used by various reports, and can also be useful when testing.
+     * This method will return null if such a summary is not possible, or
+     * inappropriate.
+     *
+     * @return string|null a plain text summary of the right answer to this question.
+     */
+    public function get_right_answer_summary() {
+        return null;
+    }
+
+    /**
      * Used by {@link start_based_on()} to get the data needed to start a new
      * attempt from the point this attempt has go to.
      * @return array name => value pairs.
@@ -408,5 +436,13 @@ abstract class question_cbm {
      */
     public static function adjust_fraction($fraction, $certainty) {
         return self::$offset[$certainty] + self::$factor[$certainty] * $fraction;
+    }
+
+    /**
+     * @param integer $certainty one of the LOW/MED/HIGH constants.
+     * @return string a textual desciption of this certainly.
+     */
+    public static function get_string($certainty) {
+        return get_string('certainty' . $certainty, 'qim_deferredcbm');
     }
 }

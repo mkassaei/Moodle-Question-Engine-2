@@ -65,4 +65,20 @@ class qtype_truefalse_question_test extends UnitTestCase {
         $this->assertEqual(array('answer' => 1),
                 $question->get_correct_response());
     }
+
+    public function test_get_question_summary() {
+        $tf = test_question_maker::make_a_truefalse_question();
+        $qsummary = $tf->get_question_summary();
+        $this->assertEqual('The answer is true.', $qsummary);
+    }
+
+    public function test_summarise_response() {
+        $tf = test_question_maker::make_a_truefalse_question();
+
+        $this->assertEqual(get_string('false', 'qtype_truefalse'),
+                $tf->summarise_response(array('answer' => '0')));
+
+        $this->assertEqual(get_string('true', 'qtype_truefalse'),
+                $tf->summarise_response(array('answer' => '1')));
+    }
 }

@@ -68,6 +68,9 @@ class qim_opaque_test extends qim_walkthrough_test_base {
                 new PatternExpectation('/Below is a plan of a proposed garden/'),
                 new PatternExpectation('/You have 3 attempts/'),
                 $this->get_contains_button_expectation($qa->get_qt_field_name('omact_gen_14'), 'Check'));
+        $this->assertPattern('/^\s*Below is a plan of a proposed garden./',
+                $qa->get_question_summary());
+        $this->assertNull($qa->get_right_answer_summary());
 
         // Submit a wrong answer.
         $this->process_submission(array('omval_response1' => 1, 'omval_response2' => 666,

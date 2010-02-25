@@ -1498,14 +1498,24 @@ class question_attempt {
      */
     protected $minfraction = null;
 
-    /** @var string not currently used, but in the database schema. */
-    protected $questionsummary = '';
+    /**
+     * @var string plain text summary of the variant of the question the
+     * student saw. Intended for reporting purposes.
+     */
+    protected $questionsummary = null;
 
-    /** @var string not currently used, but in the database schema. */
-    protected $rightanswer = '';
+    /**
+     * @var string plain text summary of the response the student gave.
+     * Intended for reporting purposes.
+     */
+    protected $responsesummary = null;
 
-    /** @var string not currently used, but in the database schema. */
-    protected $responsesummary = '';
+    /**
+     * @var string plain text summary of the correct response to this question
+     * variant the student saw. The format should be similar to responsesummary.
+     * Intended for reporting purposes.
+     */
+    protected $rightanswer = null;
 
     /** @var array of {@link question_attempt_step}s. The steps in this attempt. */
     protected $steps = array();
@@ -1901,6 +1911,7 @@ class question_attempt {
      * @param $userid optional, the user to attribute this action to. Defaults to the current user.
      */
     public function start($preferredmodel, $submitteddata = array(), $timestamp = null, $userid = null) {
+        // Initialise the interaction model.
         if (is_string($preferredmodel)) {
             $this->interactionmodel =
                     $this->question->make_interaction_model($this, $preferredmodel);
@@ -1908,11 +1919,19 @@ class question_attempt {
             $class = get_class($preferredmodel);
             $this->interactionmodel = new $class($this, $preferredmodel);
         }
+
+        // Record the minimum fraction.
         $this->minfraction = $this->interactionmodel->get_min_fraction();
+
+        // Initialise the first step.
         $firststep = new question_attempt_step($submitteddata, $timestamp, $userid);
         $firststep->set_state(question_state::$todo);
         $this->interactionmodel->init_first_step($firststep);
         $this->add_step($firststep);
+
+        // Record questionline and correct answer.
+        $this->questionsummary = $this->interactionmodel->get_question_summary();
+        $this->rightanswer = $this->interactionmodel->get_right_answer_summary();
     }
 
     /**
@@ -2030,6 +2049,27 @@ class question_attempt {
             $response['!' . $name] = $value;
         }
         return $response;
+    }
+
+    /**
+     * @return string a simple textual summary of the question that was asked.
+     */
+    public function get_question_summary() {
+        return $this->questionsummary;
+    }
+
+    /**
+     * @return string a simple textual summary of response given.
+     */
+    public function get_response_summary() {
+        return $this->responsesummary;
+    }
+
+    /**
+     * @return string a simple textual summary of the correct resonse.
+     */
+    public function get_right_answer_summary() {
+        return $this->rightanswer;
     }
 
     /**

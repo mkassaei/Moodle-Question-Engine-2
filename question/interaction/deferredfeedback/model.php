@@ -46,6 +46,10 @@ class qim_deferredfeedback extends question_interaction_model_with_save {
         return $this->question->get_min_fraction();
     }
 
+    public function get_right_answer_summary() {
+        return $this->question->get_right_answer_summary();
+    }
+
     public function process_action(question_attempt_step $pendingstep) {
         if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);

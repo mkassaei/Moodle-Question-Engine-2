@@ -44,6 +44,16 @@ class qtype_truefalse_question extends question_graded_automatically {
         return array('answer' => $this->rightanswer);
     }
 
+    public function summarise_response(array $response) {
+        if (!array_key_exists('answer', $response)) {
+            return null;
+        } else if ($response['answer']) {
+            return get_string('true', 'qtype_truefalse');
+        } else {
+            return get_string('false', 'qtype_truefalse');
+        }
+    }
+
     public function is_complete_response(array $response) {
         return array_key_exists('answer', $response);
     }

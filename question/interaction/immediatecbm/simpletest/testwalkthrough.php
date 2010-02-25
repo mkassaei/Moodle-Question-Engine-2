@@ -50,6 +50,11 @@ class qim_immediatecbm_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(2, true, false),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation());
+        $this->assertEqual('A [' . question_cbm::get_string(question_cbm::HIGH) . ']',
+                $this->quba->get_question_attempt($this->qnumber)->get_right_answer_summary());
+        $this->assertPattern('/' . preg_quote($mc->questiontext) . '/',
+                $this->quba->get_question_attempt($this->qnumber)->get_question_summary());
+        $this->assertNull($this->quba->get_question_attempt($this->qnumber)->get_response_summary());
 
         // Save the wrong answer.
         $this->process_submission(array('answer' => $wrongindex, '!certainty' => 1));

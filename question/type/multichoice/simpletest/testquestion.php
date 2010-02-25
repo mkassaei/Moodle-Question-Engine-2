@@ -143,4 +143,26 @@ class qtype_multichoice_multi_question_test extends UnitTestCase {
         $this->assertEqual(array('choice0' => '1', 'choice2' => '1'),
                 $question->get_correct_response());
     }
+
+    public function test_get_question_summary() {
+        $mc = test_question_maker::make_a_multichoice_single_question();
+        $mc->init_first_step(new question_attempt_step());
+
+        $qsummary = $mc->get_question_summary();
+
+        $this->assertPattern('/' . preg_quote($mc->questiontext) . '/', $qsummary);
+        foreach ($mc->answers as $answer) {
+            $this->assertPattern('/' . preg_quote($answer->answer) . '/', $qsummary);
+        }
+    }
+
+    public function test_summarise_response() {
+        $mc = test_question_maker::make_a_multichoice_single_question();
+        $mc->shuffleanswers = false;
+        $mc->init_first_step(new question_attempt_step());
+
+        $summary = $mc->summarise_response(array('answer' => 0));
+
+        $this->assertEqual('A', $summary);
+    }
 }

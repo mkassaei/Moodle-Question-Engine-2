@@ -54,6 +54,10 @@ class qim_interactive extends question_interaction_model_with_save {
         return 'question_automatically_gradable';
     }
 
+    public function get_right_answer_summary() {
+        return $this->question->get_right_answer_summary();
+    }
+
     /**
      * @return boolean are we are currently in the try_again state.
      */

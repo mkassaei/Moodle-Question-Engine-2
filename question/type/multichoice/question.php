@@ -60,6 +60,15 @@ abstract class qtype_multichoice_base extends question_graded_automatically {
         }
     }
 
+    public function get_question_summary() {
+        $question = strip_tags($this->format_questiontext());
+        $choices = array();
+        foreach ($this->order as $ansid) {
+            $choices[] = strip_tags($this->format_text($this->answers[$ansid]->answer));
+        }
+        return $question . ': ' . implode('; ', $choices);
+    }
+
     public function get_validation_error(array $response) {
         if ($this->is_gradable_response($response)) {
             return '';
@@ -107,6 +116,15 @@ class qtype_multichoice_single_question extends qtype_multichoice_base {
      */
     public function get_expected_data() {
         return array('answer' => PARAM_INT);
+    }
+
+    public function summarise_response(array $response) {
+        if (!array_key_exists('answer', $response) ||
+                !array_key_exists($response['answer'], $this->order)) {
+            return null;
+        }
+        return strip_tags($this->format_text(
+                $this->answers[$this->order[$response['answer']]]->answer));
     }
 
     public function get_correct_response() {
@@ -194,6 +212,21 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
             $expected[$this->field($key)] = PARAM_BOOL;
         }
         return $expected;
+    }
+
+    public function summarise_response(array $response) {
+        $selectedchoices = array();
+        foreach ($this->order as $key => $ans) {
+            $fieldname = $this->field($key);
+            if (array_key_exists($fieldname, $response) && $response[$fieldname]) {
+                $selectedchoices[] = strip_tags($this->format_text(
+                        $this->answers[$ans]->answer));
+            }
+        }
+        if (empty($selectedchoices)) {
+            return null;
+        }
+        return implode('; ', $selectedchoices);
     }
 
     public function get_correct_response() {

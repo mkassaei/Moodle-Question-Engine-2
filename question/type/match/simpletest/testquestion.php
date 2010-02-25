@@ -97,4 +97,27 @@ class qtype_match_question_test extends UnitTestCase {
         $this->assertEqual(array('sub0' => $orderforchoice[1], 'sub1' => $orderforchoice[2], 'sub2' => $orderforchoice[2], 'sub3' => $orderforchoice[1]),
                 $question->get_correct_response());
     }
+
+    public function test_get_question_summary() {
+        $match = test_question_maker::make_a_matching_question();
+        $match->init_first_step(new question_attempt_step());
+        $qsummary = $match->get_question_summary();
+        $this->assertPattern('/' . preg_quote($match->questiontext) . '/', $qsummary);
+        foreach ($match->stems as $stem) {
+            $this->assertPattern('/' . preg_quote($stem) . '/', $qsummary);
+        }
+        foreach ($match->choices as $choice) {
+            $this->assertPattern('/' . preg_quote($choice) . '/', $qsummary);
+        }
+    }
+
+    public function test_summarise_response() {
+        $match = test_question_maker::make_a_matching_question();
+        $match->shufflestems = false;
+        $match->init_first_step(new question_attempt_step());
+
+        $summary = $match->summarise_response(array('sub0' => 2, 'sub1' => 1));
+
+        $this->assertPattern('/Dog -> \w+; Frog -> \w+/', $summary);
+    }
 }

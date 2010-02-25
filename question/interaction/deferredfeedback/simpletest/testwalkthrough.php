@@ -41,6 +41,11 @@ class qim_deferredfeedback_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_mark(null);
         $this->check_current_output($this->get_contains_question_text_expectation($tf),
                 $this->get_does_not_contain_feedback_expectation());
+        $this->assertEqual(get_string('true', 'qtype_truefalse'),
+                $this->quba->get_question_attempt($this->qnumber)->get_right_answer_summary());
+        $this->assertPattern('/' . preg_quote($tf->questiontext) . '/',
+                $this->quba->get_question_attempt($this->qnumber)->get_question_summary());
+        $this->assertNull($this->quba->get_question_attempt($this->qnumber)->get_response_summary());
 
         // Process a true answer and check the expected result.
         $this->process_submission(array('answer' => 1));

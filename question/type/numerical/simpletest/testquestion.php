@@ -83,4 +83,16 @@ class qtype_numerical_question_test extends UnitTestCase {
         $this->assertEqual(array('answer' => '3.14'),
                 $question->get_correct_response());
     }
+
+    public function test_get_question_summary() {
+        $num = test_question_maker::make_a_numerical_question();
+        $qsummary = $num->get_question_summary();
+        $this->assertEqual('What is pi to two d.p.?', $qsummary);
+    }
+
+    public function test_summarise_response() {
+        $num = test_question_maker::make_a_numerical_question();
+        $summary = $num->summarise_response(array('answer' => '3.1'));
+        $this->assertEqual('3.1', $summary);
+    }
 }

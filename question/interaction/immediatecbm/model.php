@@ -57,6 +57,12 @@ class qim_immediatecbm extends qim_immediatefeedback {
         return array();
     }
 
+    public function get_right_answer_summary() {
+        $summary = parent::get_right_answer_summary();
+        $certainty = get_string('certainty' . question_cbm::HIGH, 'qim_deferredcbm');
+        return $summary . ' [' . $certainty . ']';
+    }
+
     public function get_correct_response() {
         if ($this->qa->get_state()->is_active()) {
             return array('certainty' => question_cbm::HIGH);

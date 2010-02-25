@@ -46,6 +46,14 @@ class qtype_shortanswer_question extends question_graded_by_strategy
         return array('answer' => PARAM_TRIM);
     }
 
+    public function summarise_response(array $response) {
+        if (isset($response['answer'])) {
+            return $response['answer'];
+        } else {
+            return null;
+        }
+    }
+
     public function is_complete_response(array $response) {
         return array_key_exists('answer', $response) &&
                 ($response['answer'] || $response['answer'] === '0');

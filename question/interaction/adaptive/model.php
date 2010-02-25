@@ -46,6 +46,10 @@ class qim_adaptive extends question_interaction_model_with_save {
         }
     }
 
+    public function get_right_answer_summary() {
+        return $this->question->get_right_answer_summary();
+    }
+
     public function adjust_display_options(question_display_options $options) {
         if ($this->qa->get_state()->is_finished()) {
             $options->readonly = true;

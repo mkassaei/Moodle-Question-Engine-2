@@ -104,4 +104,15 @@ class qtype_missing_test extends UnitTestCase {
         $this->assertPattern('/' . preg_quote(get_string('missingqtypewarning', 'qtype_missingtype')) . '/', $output);
         $this->assert(new ContainsTagWithAttribute('div', 'class', 'warning missingqtypewarning'), $output);
     }
+
+    public function test_get_question_summary() {
+        $q = new qtype_missingtype_question();
+        $q->questiontext = '<b>Test</b>';
+        $this->assertEqual('Test', $q->get_question_summary());
+    }
+
+    public function test_summarise_response() {
+        $q = new qtype_missingtype_question();
+        $this->assertNull($q->summarise_response(array('a' => 'irrelevant')));
+    }
 }

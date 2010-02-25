@@ -54,6 +54,11 @@ class qim_deferredcbm extends qim_deferredfeedback {
         return array();
     }
 
+    public function get_right_answer_summary() {
+        $summary = parent::get_right_answer_summary();
+        return $summary . ' [' . question_cbm::get_string(question_cbm::HIGH) . ']';
+    }
+
     public function get_correct_response() {
         if ($this->qa->get_state()->is_active()) {
             return array('certainty' => question_cbm::HIGH);

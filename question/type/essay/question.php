@@ -41,8 +41,16 @@ class qtype_essay_question extends question_with_responses {
         return array('answer' => PARAM_CLEANHTML);
     }
 
+    public function summarise_response(array $response) {
+        if (isset($response['answer'])) {
+            return shorten_text(strip_tags($this->format_text($response['answer'], true)), 200);
+        } else {
+            return null;
+        }
+    }
+
     public function get_correct_response() {
-        return array();
+        return null;
     }
 
     public function is_complete_response(array $response) {

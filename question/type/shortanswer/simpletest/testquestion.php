@@ -113,4 +113,16 @@ class qtype_shortanswer_question_test extends UnitTestCase {
         $this->assertEqual(array('answer' => 'frog'),
                 $question->get_correct_response());
     }
+
+    public function test_get_question_summary() {
+        $sa = test_question_maker::make_a_shortanswer_question();
+        $qsummary = $sa->get_question_summary();
+        $this->assertEqual('Name an amphibian: __________', $qsummary);
+    }
+
+    public function test_summarise_response() {
+        $sa = test_question_maker::make_a_shortanswer_question();
+        $summary = $sa->summarise_response(array('answer' => 'dog'));
+        $this->assertEqual('dog', $summary);
+    }
 }

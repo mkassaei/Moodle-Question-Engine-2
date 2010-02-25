@@ -151,6 +151,19 @@ abstract class question_definition {
     }
 
     /**
+     * Generate a brief, plain-text, summary of this question. This is used by
+     * various reports. This should show the particular variant of the question
+     * as presented to students. For example, the calculated quetsion type would
+     * fill in the particular numbers that were presented to the student.
+     * This method will return null if such a summary is not possible, or
+     * inappropriate.
+     * @return string|null a plain text summary of this question.
+     */
+    public function get_question_summary() {
+        return strip_tags($this->format_questiontext());
+    }
+
+    /**
      * Some questions can return a negative mark if the student gets it wrong.
      *
      * This method returns the lowest mark the question can return, on the
@@ -203,7 +216,7 @@ abstract class question_definition {
 
     /**
      * What data would need to be submitted to get this question correct.
-     * If there is more than one correct answer, this question only needs to
+     * If there is more than one correct answer, this method should just
      * return one possibility.
      *
      * @return array parameter name => value.
@@ -266,6 +279,10 @@ class question_information_item extends question_definition {
     public function get_correct_response() {
         return array();
     }
+
+    public function get_question_summary() {
+        return null;
+    }
 }
 
 
@@ -299,6 +316,13 @@ interface question_manually_gradable {
      *      whether the new set of responses can safely be discarded.
      */
     public function is_same_response(array $prevresponse, array $newresponse);
+
+    /**
+     * Produce a plain text summary of a response.
+     * @param $response a response, as might be passed to {@link grade_response()}.
+     * @return string a plain text summary of that response, that could be used in reports.
+     */
+    public function summarise_response(array $response);
 }
 
 
@@ -360,6 +384,21 @@ abstract class question_graded_automatically extends question_with_responses
      * @return string the message.
      */
     abstract public function get_validation_error(array $response);
+
+    /**
+     * Generate a brief, plain-text, summary of the correct answer to this question.
+     * This is used by various reports, and can also be useful when testing.
+     * This method will return null if such a summary is not possible, or
+     * inappropriate.
+     * @return string|null a plain text summary of the right answer to this question.
+     */
+    public function get_right_answer_summary() {
+        $correctresponse = $this->get_correct_response();
+        if (empty($correctresponse)) {
+            return null;
+        }
+        return $this->summarise_response($correctresponse);
+    }
 }
 
 

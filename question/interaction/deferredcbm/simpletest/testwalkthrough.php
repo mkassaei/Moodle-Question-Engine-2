@@ -157,6 +157,11 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation($wrongindex, false, true),
                 $this->get_contains_cbm_radio_expectation(2, false, true),
                 $this->get_contains_incorrect_expectation());
+        $this->assertEqual('A [' . question_cbm::get_string(question_cbm::HIGH) . ']',
+                $this->quba->get_question_attempt($this->qnumber)->get_right_answer_summary());
+        $this->assertPattern('/' . preg_quote($mc->questiontext) . '/',
+                $this->quba->get_question_attempt($this->qnumber)->get_question_summary());
+        $this->assertNull($this->quba->get_question_attempt($this->qnumber)->get_response_summary());
 
         // Save the old attempt.
         $oldqa = $this->quba->get_question_attempt($this->qnumber);
@@ -175,6 +180,11 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_cbm_radio_expectation(2, true, true),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_does_not_contain_correctness_expectation());
+        $this->assertEqual('A [' . question_cbm::get_string(question_cbm::HIGH) . ']',
+                $this->quba->get_question_attempt($this->qnumber)->get_right_answer_summary());
+        $this->assertPattern('/' . preg_quote($mc->questiontext) . '/',
+                $this->quba->get_question_attempt($this->qnumber)->get_question_summary());
+// TODO $this->assertNull($this->quba->get_question_attempt($this->qnumber)->get_response_summary());
 
         // Now get it right.
         $this->process_submission(array('answer' => $rightindex, '!certainty' => 3));

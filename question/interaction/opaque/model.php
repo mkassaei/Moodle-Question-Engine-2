@@ -36,6 +36,8 @@
 class qim_opaque extends question_interaction_model {
     /** @var string */
     protected $preferredmodel;
+    /** @var string */
+    protected $questionsummary;
 
     public function __construct(question_attempt $qa, $preferredmodel) {
         parent::__construct($qa, $preferredmodel);
@@ -60,8 +62,15 @@ class qim_opaque extends question_interaction_model {
         $step->set_im_var('_userid', $USER->id);
         $step->set_im_var('_language', current_language());
         $step->set_im_var('_preferredmodel', $this->preferredmodel);
-        $opaquestate =& update_opaque_state($this->qa, $step);
+        $opaquestate = update_opaque_state($this->qa, $step);
         $step->set_im_var('_statestring', $opaquestate->progressinfo);
+
+        // Remember the question summary.
+        $this->questionsummary = strip_tags($opaquestate->xhtml);
+    }
+
+    public function get_question_summary() {
+        return $this->questionsummary;
     }
 
     protected function is_same_response(question_attempt_step $pendingstep) {
@@ -108,7 +117,7 @@ class qim_opaque extends question_interaction_model {
     }
 
     public function process_remote_action(question_attempt_step $pendingstep) {
-        $opaquestate =& update_opaque_state($this->qa, $pendingstep);
+        $opaquestate = update_opaque_state($this->qa, $pendingstep);
 
         if (is_string($opaquestate)) {
             notify($opaquestate);
