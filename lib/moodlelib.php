@@ -2500,7 +2500,7 @@ function sync_metacourse($course) {
     // not in the meta coure. That is, get a list of the assignments that need to be made.
     if (!$assignments = get_records_sql("
             SELECT
-                ra.id, ra.roleid, ra.userid
+                ra.id, ra.roleid, ra.userid, ra.hidden
             FROM
                 {$CFG->prefix}role_assignments ra,
                 {$CFG->prefix}context con,
@@ -2561,7 +2561,7 @@ function sync_metacourse($course) {
 
     // Make the assignments.
     foreach ($assignments as $assignment) {
-        $success = role_assign($assignment->roleid, $assignment->userid, 0, $context->id) && $success;
+        $success = role_assign($assignment->roleid, $assignment->userid, 0, $context->id, 0, 0, $assignment->hidden) && $success;
     }
 
     return $success;
@@ -7785,15 +7785,15 @@ function unzip_show_status($list, $removepath, $removepath2) {
             echo "<tr>";
             $item['filename'] = str_replace(cleardoubleslashes($removepath).'/', "", $item['filename']);
             $item['filename'] = str_replace(cleardoubleslashes($removepath2).'/', "", $item['filename']);
-            print_cell("left", s(clean_param($item['filename'], PARAM_PATH)));
+            echo '<td align="left" style="white-space:nowrap ">'.s(clean_param($item['filename'], PARAM_PATH)).'</td>';
             if (! $item['folder']) {
-                print_cell("right", display_size($item['size']));
+                echo '<td align="right" style="white-space:nowrap ">'.display_size($item['size']).'</td>';
             } else {
                 echo "<td>&nbsp;</td>";
             }
             $filedate  = userdate($item['mtime'], get_string("strftimedatetime"));
-            print_cell("right", $filedate);
-            print_cell("right", $item['status']);
+            echo '<td align="right" style="white-space:nowrap ">'.$filedate.'</td>';
+            echo '<td align="right" style="white-space:nowrap ">'.$item['status'].'</td>';
             echo "</tr>";
         }
         echo "</table>";

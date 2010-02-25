@@ -198,7 +198,7 @@ class qtype_match extends question_type {
             }
         }
         return $results;
-   }
+    }
 
     public function response_summary($question, $state, $length=80) {
         // This should almost certainly be overridden
