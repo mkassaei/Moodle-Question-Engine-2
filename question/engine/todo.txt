@@ -85,7 +85,7 @@ Finish question engine core (0d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8557)
 √   Implement questionsummary and rightanswer.
 √   Implement responsesummary.
-    Put starting seq_no in a hidden input, and verify before processing, to prevent duplicate submit problems.
+√   Put starting seq_no in a hidden input, and verify before processing, to prevent duplicate submit problems.
 
 Integrate new code into the quiz reports (7d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9205)

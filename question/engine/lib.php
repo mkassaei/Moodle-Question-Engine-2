@@ -865,6 +865,17 @@ abstract class question_flags {
 }
 
 
+class question_out_of_sequence_exception extends moodle_exception {
+    function __construct($qubaid, $qnumber, $postdata) {
+        if ($postdata == null) {
+            $postdata = data_submitted();
+        }
+        parent::__construct('submissionoutofsequence', 'question', '', null,
+                "QUBAid: $qubaid, qnumber: $qnumber, post date: " . print_r($postdata, true));
+    }
+}
+
+
 /**
  * This class keeps track of a group of questions that are being attempted,
  * and which state, and so on, each one is currently in.
@@ -1228,6 +1239,7 @@ class question_usage_by_activity {
             $qnumbers = explode(',', $qnumbers);
         }
         foreach ($qnumbers as $qnumber) {
+            $this->validate_sequence_number($qnumber, $postdata);
             $submitteddata = $this->extract_responses($qnumber, $postdata);
             $this->process_action($qnumber, $submitteddata, $timestamp);
         }
@@ -1258,6 +1270,19 @@ class question_usage_by_activity {
         $this->observer->notify_attempt_modified($qa);
     }
 
+    /**
+     * 
+     * @param unknown_type $qnumber
+     * @return unknown_type
+     */
+    public function validate_sequence_number($qnumber, $postdata = null) {
+        $qa = $this->get_question_attempt($qnumber);
+        $sequencecheck = question_attempt::get_submitted_var(
+                $qa->get_field_prefix() . '!!sequencecheck', PARAM_INT, $postdata);
+        if (!is_null($sequencecheck) && $sequencecheck != $qa->get_num_steps()) {
+            throw new question_out_of_sequence_exception($this->id, $qnumber, $postdata);
+        }
+    }
     /**
      * Update the flagged state for all question_attempts in this usage, if their
      * flagged state was changed in the request.

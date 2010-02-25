@@ -50,7 +50,7 @@ class qim_informationitem_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_state(question_state::$complete);
         $this->check_current_mark(null);
         $this->check_current_output($this->get_does_not_contain_correctness_expectation(),
-                new NoPatternExpectation('/type=\"hidden\"/'),
+                new NoPatternExpectation('/type=\"hidden\"[^>]*name=\"[^"]*seen\"|name=\"[^"]*seen\"[^>]*type=\"hidden\"/'),
                 $this->get_does_not_contain_feedback_expectation());
 
         // Finish the attempt.

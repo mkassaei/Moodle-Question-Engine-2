@@ -242,6 +242,10 @@ class core_question_renderer extends moodle_renderer_base {
     protected function formulation(question_attempt $qa, qim_renderer $qimoutput,
             qtype_renderer $qtoutput, question_display_options $options) {
         $output = '';
+        $output .= $this->output_empty_tag('input', array(
+                'type' => 'hidden',
+                'name' => $qa->get_field_prefix() . '!!sequencecheck',
+                'value' => $qa->get_num_steps()));
         $output .= $qtoutput->formulation_and_controls($qa, $options);
         if ($options->clearwrong) {
             $output .= $qtoutput->clear_wrong($qa);

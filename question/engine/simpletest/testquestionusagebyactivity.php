@@ -115,4 +115,39 @@ class question_usage_by_activity_test extends UnitTestCase {
         // Verify.
         $this->assertEqual(array('answer' => 1, '!certainty' => 3), $submitteddata);
     }
+
+    public function test_access_out_of_sequence_throws_exception() {
+        // Start a deferred feedback attempt with CBM and add the question to it.
+        $tf = test_question_maker::make_a_truefalse_question();
+        $quba = question_engine::make_questions_usage_by_activity('unit_test',
+                get_context_instance(CONTEXT_SYSTEM));
+        $quba->set_preferred_interaction_model('deferredcbm');
+        $qnumber = $quba->add_question($tf);
+        $quba->start_all_questions();
+
+        // Prepare data to be submitted
+        $prefix = $quba->get_field_prefix($qnumber);
+        $answername = $prefix . 'answer';
+        $certaintyname = $prefix . '!certainty';
+        $postdata = array(
+            $answername => 1,
+            $certaintyname => 3,
+            $prefix . '!!sequencecheck' => 1,
+            'irrelevant' => 'should be ignored',
+        );
+
+        // Exercise SUT - no exception yet.
+        $quba->process_all_actions($qnumber, $postdata);
+
+        $postdata = array(
+            $answername => 1,
+            $certaintyname => 3,
+            $prefix . '!!sequencecheck' => 3,
+            'irrelevant' => 'should be ignored',
+        );
+
+        // Exercise SUT - now it should fail.
+        $this->expectException('question_out_of_sequence_exception');
+        $quba->process_all_actions($qnumber, $postdata);
+    }
 }
