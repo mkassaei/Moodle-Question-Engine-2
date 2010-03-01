@@ -207,7 +207,7 @@ function quiz_get_total_qas_graded_and_ungraded($quiz, $questionids, $userids) {
  * @param object $quiz the quiz.
  * @return array of qnumber => $question object with fields ->qnumber, ->id, ->maxmark, ->number, ->length. 
  */
-function get_significant_questions($quiz) {
+function quiz_report_get_significant_questions($quiz) {
     global $CFG;
 
     $questionids = quiz_questions_in_quiz($quiz->questions);
@@ -222,7 +222,7 @@ WHERE
 ");
 
     $qnumbers = array();
-    $number = 0;
+    $number = 1;
     foreach (explode(',', $questionids) as $key => $id) {
         if (!array_key_exists($id, $questions)) {
             continue;

@@ -3983,6 +3983,11 @@ table.quizreviewsummary td.cell {
 #mod-quiz-report table#attempts .picture {
   text-align: center !important;
 }
+#mod-quiz-report table#attempts .questionflag {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
 #mod-quiz-report .controls {
   text-align: center;
 }

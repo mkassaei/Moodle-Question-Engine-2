@@ -316,7 +316,9 @@ ORDER BY
     public function load_questions_usages_latest_steps($qubaids, $qnumbers) {
         global $CFG;
 
-        if (is_array($qubaids)) {
+        if (empty($qubaids)) {
+            return array();
+        } else if (is_array($qubaids)) {
             list($where, $params) = get_in_or_equal($qubaids, SQL_PARAMS_NAMED, 'qubaid0000');
             $qubaidswhere = "qa.questionusageid $where";
             $qajoin = "FROM {$CFG->prefix}question_attempts_new qa";
@@ -449,9 +451,9 @@ ORDER BY qa.numberinusage
         $record->maxmark = $qa->get_max_mark();
         $record->minfraction = $qa->get_min_fraction();
         $record->flagged = $qa->is_flagged();
-        $record->questionsummary = null;
-        $record->rightanswer = null;
-        $record->responsesummary = null;
+        $record->questionsummary = $qa->get_question_summary();
+        $record->rightanswer = $qa->get_right_answer_summary();
+        $record->responsesummary = $qa->get_response_summary();
         $record->timemodified = time();
 
         if (!update_record('question_attempts_new', $record)) {

@@ -74,7 +74,6 @@ class quiz_overview_report extends quiz_default_report {
             }
         }
 
-
         $pageoptions = array();
         $pageoptions['id'] = $cm->id;
         $pageoptions['q'] = $quiz->id;
@@ -148,7 +147,7 @@ class quiz_overview_report extends quiz_default_report {
 
         //work out the sql for this table.
         if ($detailedmarks) {
-            $questions = get_significant_questions($quiz);
+            $questions = quiz_report_get_significant_questions($quiz);
         } else {
             $questions = array();
         }

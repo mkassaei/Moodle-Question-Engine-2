@@ -1250,6 +1250,9 @@ class table_sql extends flexible_table{
         } else {
             $this->rawdata = get_records_sql($sql);
         }
+        if (empty($this->rawdata)) {
+            $this->rawdata = array();
+        }
     }
 
 

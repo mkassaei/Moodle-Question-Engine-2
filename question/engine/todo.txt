@@ -81,7 +81,7 @@ Incorporate other OU-specific quiz customisations into this code (8d)
 
 <-- Working quiz student interface milestone
 
-Finish question engine core (0d)
+Finish question engine core (3d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8557)
 √   Implement questionsummary and rightanswer.
 √   Implement responsesummary.
@@ -91,10 +91,10 @@ Integrate new code into the quiz reports (7d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9205)
 √   Start with Moodle 2.0 reports.
 √   overview 2d
-    responses 1d
+√   responses 1d
     manual grading 1d
     statistics 4d
-    re-implemente regrading functionality.
+    re-impliment regrading functionality.
 
 Finish database load/save code (4d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9206)
@@ -124,6 +124,7 @@ Backup and restore code (7d)
 Miscellaneous code clean-up (1.5d)
     Refactor out commonalities between multiplechoice and truefalse rendering. 0.5d
     Unit tests for mod/quiz/attemptlib.php (1d)
+    Check how the time limit is enforced.
 
 Port the code to Moodle 2.x (4d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8559)

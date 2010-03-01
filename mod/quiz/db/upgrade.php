@@ -345,6 +345,9 @@ function xmldb_quiz_upgrade($oldversion=0) {
 
     /// Launch create table for quiz_reports
         $result = $result && create_table($table);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000108, 'quiz');
     }
 
     if ($result && $oldversion < 2008000110) {
@@ -364,6 +367,9 @@ function xmldb_quiz_upgrade($oldversion=0) {
         $reporttoinsert->name = 'grading';
         $reporttoinsert->displayorder = 6000;
         $result = $result && insert_record('quiz_reports', $reporttoinsert);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000110, 'quiz');
     }
 
     commit_sql();

@@ -154,6 +154,7 @@ $string['saveflags'] = 'Save the state of the flags';
 $string['settingsformultipletries'] = 'Settings for multiple tries';
 $string['shownumpartscorrect'] = 'Show the number of correct responses';
 $string['specificfeedbackvisible'] = 'Specific feedback visible';
+$string['submissionoutofsequence'] = 'Access out of sequence. Please do not click the back button when working on quiz questions.';
 $string['submit'] = 'Submit';
 $string['submitandfinish'] = 'Submit and finish';
 $string['yougotnright'] = 'You got $a->num correct.';

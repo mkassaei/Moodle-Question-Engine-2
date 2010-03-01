@@ -227,7 +227,9 @@ class quiz_report_overview_table extends table_sql {
      * @return string the contents of the cell.
      */
     public function other_cols($colname, $attempt) {
-        if (!preg_match('/^qsgrade([0-9]+)$/', $colname, $matches)) {
+        global $CFG;
+
+        if (!preg_match('/^qsgrade(\d+)$/', $colname, $matches)) {
             return NULL;
         }
         $qnumber = $matches[1];
@@ -259,10 +261,16 @@ class quiz_report_overview_table extends table_sql {
                 'reviewquestion', $grade, 450, 650, get_string('reviewresponse', 'quiz'),
                 'none', true);
 
-        $qclass = question_get_feedback_class($stepdata->fraction);
+        $flag = '';
+        if ($stepdata->flagged) {
+            $flag = ' <img src="' . $CFG->pixpath . '/i/flagged.png" alt="' .
+                    get_string('flagged', 'question') . '" class="questionflag" />';
+        }
+
+        $qclass = question_state::get($stepdata->state)->get_state_class();
         $feedbackimg = question_get_feedback_image($stepdata->fraction);
         return '<span class="que"><span class="' . $qclass . '">' .
-                $linktopopup . " $feedbackimg</span></span>";
+                $linktopopup . " $feedbackimg $flag</span></span>";
     }
 
     public function col_feedbacktext($attempt) {

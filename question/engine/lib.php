@@ -2105,6 +2105,7 @@ class question_attempt {
      */
     public function set_question_summary($questionsummary) {
         $this->questionsummary = $questionsummary;
+        $this->observer->notify_attempt_modified($this);
     }
 
     /**
