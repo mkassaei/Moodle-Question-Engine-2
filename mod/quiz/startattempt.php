@@ -168,7 +168,7 @@ if (!($quiz->attemptonlast && $lastattempt)) {
 question_engine::save_questions_usage_by_activity($quba);
 $attempt->uniqueid = $quba->get_id();
 if (!$attempt->id = insert_record('quiz_attempts', $attempt)) {
-    quiz_error($quiz, 'newattemptfail');
+    throw new moodle_quiz_exception($quizobj, 'newattemptfail');
 }
 
 // Log the new attempt.

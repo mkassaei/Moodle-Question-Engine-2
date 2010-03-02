@@ -109,7 +109,6 @@ function quiz_create_attempt($quiz, $attemptnumber, $lastattempt, $timenow, $isp
     }
 
     $attempt->attempt = $attemptnumber;
-    $attempt->sumgrades = 0.0;
     $attempt->timestart = $timenow;
     $attempt->timefinish = 0;
     $attempt->timemodified = $timenow;
@@ -408,16 +407,19 @@ function quiz_get_all_question_grades($quiz) {
  *
  * @param float $rawgrade the unadjusted grade, fof example $attempt->sumgrades
  * @param object $quiz the quiz object. Only the fields grade, sumgrades and decimalpoints are used.
- * @return float the rescaled grade.
+ * @param boolean $format whether to format the results for display.
+ * @return float|string the rescaled grade, or null/the lang string 'notyetgraded' if the $grade is null.
  */
-function quiz_rescale_grade($rawgrade, $quiz, $round = true) {
-    if ($quiz->sumgrades) {
+function quiz_rescale_grade($rawgrade, $quiz, $format = true) {
+    if (is_null($rawgrade)) {
+        $grade = null;
+    } else if ($quiz->sumgrades) {
         $grade = $rawgrade * $quiz->grade / $quiz->sumgrades;
-        if ($round) {
-            $grade = quiz_format_grade($quiz, $grade);
-        }
     } else {
         $grade = 0;
+    }
+    if ($format) {
+        $grade = quiz_format_grade($quiz, $grade);
     }
     return $grade;
 }
@@ -431,6 +433,10 @@ function quiz_rescale_grade($rawgrade, $quiz, $round = true) {
  * @return string the comment that corresponds to this grade (empty string if there is not one.
  */
 function quiz_feedback_for_grade($grade, $quizid) {
+    if (is_null($grade)) {
+        return '';
+    }
+
     $feedback = get_field_select('quiz_feedback', 'feedbacktext',
             "quizid = $quizid AND mingrade <= $grade AND $grade < maxgrade");
 
@@ -522,7 +528,6 @@ function quiz_set_grade($newgrade, &$quiz) {
  *
  * @param object $quiz The quiz for which the best grade is to be calculated and then saved.
  * @param integer $userid The userid to calculate the grade for. Defaults to the current user.
- * @return boolean Indicates success or failure.
  */
 function quiz_save_best_grade($quiz, $userid = null) {
     global $USER;
@@ -533,35 +538,31 @@ function quiz_save_best_grade($quiz, $userid = null) {
 
     // Get all the attempts made by the user
     if (!$attempts = quiz_get_user_attempts($quiz->id, $userid)) {
-        notify('Could not find any user attempts');
-        return false;
+        throw new moodle_exception('noattemptsfound', 'quiz');
     }
 
     // Calculate the best grade
     $bestgrade = quiz_calculate_best_grade($quiz, $attempts);
-    $bestgrade = quiz_rescale_grade($bestgrade, $quiz);
+    $bestgrade = quiz_rescale_grade($bestgrade, $quiz, false);
 
     // Save the best grade in the database
-    if ($grade = get_record('quiz_grades', 'quiz', $quiz->id, 'userid', $userid)) {
+    if (is_null($bestgrade)) {
+        delete_records('quiz_grades', 'quiz', $quiz->id, 'userid', $userid);
+
+    } else if ($grade = get_record('quiz_grades', 'quiz', $quiz->id, 'userid', $userid)) {
         $grade->grade = $bestgrade;
         $grade->timemodified = time();
-        if (!update_record('quiz_grades', $grade)) {
-            notify('Could not update best grade');
-            return false;
-        }
+        update_record('quiz_grades', $grade);
+
     } else {
         $grade->quiz = $quiz->id;
         $grade->userid = $userid;
         $grade->grade = $bestgrade;
         $grade->timemodified = time();
-        if (!insert_record('quiz_grades', $grade)) {
-            notify('Could not insert new best grade');
-            return false;
-        }
+        insert_record('quiz_grades', $grade);
     }
 
     quiz_update_grades($quiz, $userid);
-    return true;
 }
 
 /**
@@ -572,14 +573,13 @@ function quiz_save_best_grade($quiz, $userid = null) {
  * @param array $attempts An array of all the attempts of the user at the quiz
  */
 function quiz_calculate_best_grade($quiz, $attempts) {
-
     switch ($quiz->grademethod) {
 
         case QUIZ_ATTEMPTFIRST:
             foreach ($attempts as $attempt) {
                 return $attempt->sumgrades;
             }
-            break;
+            return $final;
 
         case QUIZ_ATTEMPTLAST:
             foreach ($attempts as $attempt) {
@@ -591,14 +591,19 @@ function quiz_calculate_best_grade($quiz, $attempts) {
             $sum = 0;
             $count = 0;
             foreach ($attempts as $attempt) {
-                $sum += $attempt->sumgrades;
-                $count++;
+                if (!is_null($attempt->sumgrades)) {
+                    $sum += $attempt->sumgrades;
+                    $count++;
+                }
             }
-            return (float)$sum/$count;
+            if ($count == 0) {
+                return null;
+            }
+            return $sum / $count;
 
         default:
         case QUIZ_GRADEHIGHEST:
-            $max = 0;
+            $max = null;
             foreach ($attempts as $attempt) {
                 if ($attempt->sumgrades > $max) {
                     $max = $attempt->sumgrades;

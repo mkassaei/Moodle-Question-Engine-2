@@ -65,6 +65,10 @@ class qim_deferredcbm_renderer extends qim_renderer {
             return '';
         }
 
+        if ($qa->get_state() == question_state::$gaveup || $qa->get_state() == question_state::$mangaveup) {
+            return '';
+        }
+
         $feedback = '';
         if (!$qa->get_last_im_var('certainty')) {
             $feedback .= $this->output_tag('p', array(),

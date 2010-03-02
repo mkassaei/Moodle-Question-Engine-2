@@ -868,7 +868,6 @@ class quiz_attempt {
         question_engine::save_questions_usage_by_activity($this->quba);
 
         $this->attempt->timemodified = $timestamp;
-        $this->attempt->sumgrades = $this->quba->get_total_mark();
         if (!update_record('quiz_attempts', $this->attempt)) {
             throw new moodle_quiz_exception($this->get_quizobj(), 'saveattemptfailed');
         }
@@ -904,6 +903,13 @@ class quiz_attempt {
 
     public function process_comment($qnumber, $comment, $mark) {
         $this->quba->manual_grade($qnumber, $comment, $mark);
+        $this->attempt->sumgrades = $this->quba->get_total_mark();
+        if (!update_record('quiz_attempts', $this->attempt)) {
+            throw new moodle_quiz_exception($this->get_quizobj(), 'saveattemptfailed');
+        }
+        if (!$this->is_preview()) {
+            quiz_save_best_grade($this->get_quiz(), $this->get_userid());
+        }
         question_engine::save_questions_usage_by_activity($this->quba);
     }
 

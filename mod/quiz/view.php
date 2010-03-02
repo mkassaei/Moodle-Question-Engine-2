@@ -156,7 +156,7 @@ if (!($canattempt || $canpreview || $canreviewmine)) {
 }
 
 // Get this user's attempts.
-$attempts = quiz_get_user_attempts($quiz->id, $USER->id);
+$attempts = quiz_get_user_attempts($quiz->id, $USER->id,'finished', true);
 $lastfinishedattempt = end($attempts);
 $unfinished = false;
 if ($unfinishedattempt = quiz_get_user_attempt_unfinished($quiz->id, $USER->id)) {
@@ -212,7 +212,7 @@ if ($attempts) {
         $table->align[] = 'center';
         $table->size[] = '';
     }
-    $table->head[] = get_string('timecompleted', 'quiz') . ' / ' . quiz_format_grade($quiz, $quiz->sumgrades);
+    $table->head[] = get_string('timecompleted', 'quiz');
     $table->align[] = 'left';
     $table->size[] = '';
     if ($markcolumn) {
@@ -265,7 +265,7 @@ if ($attempts) {
         } else if (!$quiz->timeclose || $timenow < $quiz->timeclose) {
             // The attempt is still in progress.
             $timetaken = format_time($timenow - $attempt->timestart);
-            $datecompleted = '';
+            $datecompleted = get_string('inprogress', 'quiz');
         } else {
             $timetaken = format_time($quiz->timeclose - $attempt->timestart);
             $datecompleted = userdate($quiz->timeclose);

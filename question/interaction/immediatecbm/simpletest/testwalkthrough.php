@@ -258,4 +258,28 @@ class qim_immediatecbm_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
                 $this->get_contains_incorrect_expectation());
     }
+
+    public function test_immediatecbm_cbm_truefalse_no_certainty_feedback_when_not_answered() {
+
+        // Create a true-false question with correct answer true.
+        $tf = test_question_maker::make_a_truefalse_question();
+        $this->start_attempt_at_question($tf, 'deferredcbm', 2);
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_contains_cbm_radio_expectation(1, true, false),
+                $this->get_does_not_contain_feedback_expectation());
+
+        // Finish without answering.
+        $this->quba->finish_all_questions();
+
+        // Verify.
+        $this->check_current_state(question_state::$gaveup);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                new NoPatternExpectation('/class=\"im-feedback/'));
+    }
 }

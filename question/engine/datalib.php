@@ -399,6 +399,14 @@ WHERE
             $qnumberwhere = '';
         }
 
+        list($statetest) = get_in_or_equal(array(
+                question_state::$gradedwrong,
+                question_state::$gradedpartial,
+                question_state::$gradedright,
+                question_state::$mangrwrong,
+                question_state::$mangrpartial,
+                question_state::$mangrright));
+
         $records = get_records_sql("
 SELECT
     qa.numberinusage,
@@ -414,6 +422,7 @@ JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
 WHERE
     $qubaidswhere
     $qnumberwhere
+    AND qas.state $statetest
 
 GROUP BY qa.numberinusage
 

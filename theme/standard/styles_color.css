@@ -824,7 +824,7 @@ table.message_search_results td {
     background: #FFF3BF;
 }
 .que .comment {
-    background: #efe;
+    background: #e0ffe0;
 }
 .que .history {
     background: #eee;
@@ -846,7 +846,8 @@ table.message_search_results td {
 .que .feedback {
   border-color: #DDD;
 }
-.que .incorrect {
+.que .incorrect,
+.que .notanswered {
     background-color: #faa;
 }
 

@@ -1121,6 +1121,9 @@ class question_usage_by_activity {
     public function get_total_mark() {
         $mark = 0;
         foreach ($this->questionattempts as $qa) {
+            if ($qa->get_state() == question_state::$needsgrading) {
+                return null;
+            }
             $mark += $qa->get_mark();
         }
         return $mark;

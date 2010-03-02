@@ -152,20 +152,17 @@ class quiz_report_responses_table extends table_sql {
         }
 
         $stepdata = $this->lateststeps[$attempt->usageid][$qnumber];
-        if (is_null($stepdata->$field)) {
-            return '-';
-        }
+        $state = question_state::get($stepdata->state);
 
-        $summary = $stepdata->$field;
+        if (is_null($stepdata->$field)) {
+            $summary = '-';
+        } else {
+            $summary = $stepdata->$field;
+        }
 
         if ($this->is_downloading() || $field != 'responsesummary') {
             return $summary;
         }
-
-        $summary = link_to_popup_window('/mod/quiz/reviewquestion.php?attempt=' .
-                $attempt->attempt . '&amp;question=' . $qnumber,
-                'reviewquestion', $summary, 450, 650, get_string('reviewresponse', 'quiz'),
-                'none', true);
 
         $flag = '';
         if ($stepdata->flagged) {
@@ -173,10 +170,20 @@ class quiz_report_responses_table extends table_sql {
                     get_string('flagged', 'question') . '" class="questionflag" />';
         }
 
-        $qclass = question_state::get($stepdata->state)->get_state_class();
-        $feedbackimg = question_get_feedback_image($stepdata->fraction);
-        return '<span class="que"><span class="' . $qclass . '">' .
+        $feedbackimg = '';
+        if ($state->is_finished() && $state != question_state::$needsgrading) {
+            $feedbackimg = question_get_feedback_image($stepdata->fraction);
+        }
+
+        $summary = '<span class="que"><span class="' . $state->get_state_class() . '">' .
                 $summary . " $feedbackimg $flag</span></span>";
+
+        $summary = link_to_popup_window('/mod/quiz/reviewquestion.php?attempt=' .
+                $attempt->attempt . '&amp;question=' . $qnumber,
+                'reviewquestion', $summary, 450, 650, get_string('reviewresponse', 'quiz'),
+                'none', true);
+
+        return $summary;
     }
 
     public function other_cols($colname, $attempt) {

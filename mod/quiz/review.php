@@ -52,7 +52,7 @@ if (!$attemptobj->has_capability('mod/quiz:viewreports')) {
     }
     // Can't review other users' attempts.
     if (!$attemptobj->is_own_attempt()) {
-        quiz_error($quiz, 'notyourattempt');
+        throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'notyourattempt');
     }
     // Can't review unless Students may review -> Responses option is turned on.
     if (!$options->responses) {
@@ -183,30 +183,39 @@ if (!empty($overtime)) {
 }
 
 // Show scores (if the user is allowed to see scores at the moment).
-$grade = quiz_rescale_grade($attempt->sumgrades, $quiz);
-if ($options->scores) {
-    if (quiz_has_grades($quiz)) {
-        if($overtime) {
-            $result->sumgrades = "0";
-            $result->grade = "0.0";
-        }
+$grade = quiz_rescale_grade($attempt->sumgrades, $quiz, false);
+if ($options->scores && quiz_has_grades($quiz)) {
 
-        // Show raw marks only if they are different from the grade (like on the view page.
+    if (!$attempt->timefinish) {
+        $rows[] = '<tr><th scope="row" class="cell">' . get_string('grade') . '</th><td class="cell">' .
+                get_string('attemptstillinprogress', 'quiz') . '</td></tr>';
+
+    } else if (is_null($grade)) {
+        $rows[] = '<tr><th scope="row" class="cell">' . get_string('grade') . '</th><td class="cell">' .
+                quiz_format_grade($quiz, $grade) . '</td></tr>';
+
+    } else {
+        // Show raw marks only if they are different from the grade (like on the view page).
         if ($quiz->grade != $quiz->sumgrades) {
             $a = new stdClass;
             $a->grade = quiz_format_grade($quiz, $attempt->sumgrades);
-            $a->maxgrade = quiz_format_grade($quiz, $attempt->sumgrades);
+            $a->maxgrade = quiz_format_grade($quiz, $quiz->sumgrades);
             $rows[] = '<tr><th scope="row" class="cell">' . get_string('marks', 'quiz') . '</th><td class="cell">' .
                     get_string('outofshort', 'quiz', $a) . '</td></tr>';
         }
 
         // Now the scaled grade.
         $a = new stdClass;
-        $a->grade = '<b>' . $grade . '</b>';
+        $a->grade = '<b>' . quiz_format_grade($quiz, $grade) . '</b>';
         $a->maxgrade = quiz_format_grade($quiz, $quiz->grade);
-        $a->percent = '<b>' . round(($attempt->sumgrades/$quiz->sumgrades)*100, 0) . '</b>';
+        if ($quiz->grade != 100) {
+            $a->percent = '<b>' . round($attempt->sumgrades * 100 / $quiz->sumgrades, 0) . '</b>';
+            $formattedgrade = get_string('outofpercent', 'quiz', $a);
+        } else {
+            $formattedgrade = get_string('outof', 'quiz', $a);
+        }
         $rows[] = '<tr><th scope="row" class="cell">' . get_string('grade') . '</th><td class="cell">' .
-                get_string('outofpercent', 'quiz', $a) . '</td></tr>';
+                $formattedgrade . '</td></tr>';
     }
 }
 

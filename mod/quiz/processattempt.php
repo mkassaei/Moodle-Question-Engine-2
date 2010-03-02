@@ -80,7 +80,7 @@ confirm_sesskey();
 
 /// Check that this attempt belongs to this user.
 if ($attemptobj->get_userid() != $USER->id) {
-    quiz_error($attemptobj->get_quizobj(), 'notyourattempt');
+    throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'notyourattempt');
 }
 
 /// Check capabilites.
@@ -90,7 +90,7 @@ if (!$attemptobj->is_preview_user()) {
 
 /// If the attempt is already closed, send them to the review page.
 if ($attemptobj->is_finished()) {
-    quiz_error($attemptobj->get_quizobj(), 'attemptalreadyclosed');
+    throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'attemptalreadyclosed');
 }
 
 /// Don't log - we will end with a redirect to a page that is logged.

@@ -372,6 +372,23 @@ function xmldb_quiz_upgrade($oldversion=0) {
         upgrade_mod_savepoint($result, 2008000110, 'quiz');
     }
 
+    if ($result && $oldversion < 2008000111) {
+
+        // Changing nullability of field sumgrades on table quiz_attempts to null
+        $table = new XMLDBTable('quiz_attempts');
+        $field = new XMLDBField('sumgrades');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '10, 5', null, null, null, null, null, null, 'attempt');
+
+        // Launch change of nullability for field sumgrades
+        $result = $result && change_field_notnull($table, $field);
+
+        // Launch change of default for field sumgrades
+        $result = $result && change_field_default($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000111, 'quiz');
+    }
+
     commit_sql();
 
     return $result;

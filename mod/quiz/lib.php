@@ -131,7 +131,7 @@ function quiz_update_instance($quiz) {
 
     // Update the database.
     $quiz->id = $quiz->instance;
-    if (!update_record("quiz", $quiz)) {
+    if (!update_record('quiz', $quiz)) {
         return false;  // some error occurred
     }
 
@@ -347,6 +347,9 @@ function quiz_get_user_grades($quiz, $userid=0) {
  * @return float
  */
 function quiz_format_grade($quiz, $grade) {
+    if (is_null($grade)) {
+        return get_string('notyetgraded', 'quiz');
+    }
     return format_float($grade, $quiz->decimalpoints);
 }
 

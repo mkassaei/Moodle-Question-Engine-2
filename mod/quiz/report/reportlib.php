@@ -294,38 +294,32 @@ function quiz_report_qm_filter_select($quiz, $quizattemptsalias = 'qa') {
     $qmfilterattempts = true;
     switch ($quiz->grademethod) {
     case QUIZ_GRADEHIGHEST :
-        $field1 = 'sumgrades';
-        $field2 = 'timestart';
-        $aggregator1 = 'MAX';
-        $aggregator2 = 'MIN';
-        $qmselectpossible = true;
-        break;
-    case QUIZ_GRADEAVERAGE :
-        $qmselectpossible = false;
-        break;
-    case QUIZ_ATTEMPTFIRST :
-        $field1 = 'timestart';
-        $field2 = 'id';
-        $aggregator1 = 'MIN';
-        $aggregator2 = 'MIN';
-        $qmselectpossible = true;
-        break;
-    case QUIZ_ATTEMPTLAST :
-        $field1 = 'timestart';
-        $field2 = 'id';
-        $aggregator1 = 'MAX';
-        $aggregator2 = 'MAX';
-        $qmselectpossible = true;
-        break;
-    }
-    if ($qmselectpossible) {
-        $qmselect = "$quizattemptsalias.$field1 = (SELECT $aggregator1(qa2.$field1) FROM {$CFG->prefix}quiz_attempts qa2 WHERE qa2.quiz = $quizidsql AND qa2.userid = $useridsql) AND " .
-                    "$quizattemptsalias.$field2 = (SELECT $aggregator2(qa3.$field2) FROM {$CFG->prefix}quiz_attempts qa3 WHERE qa3.quiz = $quizidsql AND qa3.userid = $useridsql AND qa3.$field1 = $quizattemptsalias.$field1)";
-    } else {
-        $qmselect = '';
-    }
+        return "$quizattemptsalias.id = (
+                SELECT MIN(qa2.id)
+                FROM {$CFG->prefix}quiz_attempts qa2
+                WHERE qa2.quiz = $quizidsql AND qa2.userid = $useridsql AND
+                    COALESCE(qa2.sumgrades, 0) = (
+                        SELECT MAX(COALESCE(qa3.sumgrades, 0))
+                        FROM {$CFG->prefix}quiz_attempts qa3
+                        WHERE qa3.quiz = $quizidsql AND qa3.userid = $useridsql
+                    )
+                )";
 
-    return $qmselect;
+    case QUIZ_GRADEAVERAGE :
+        return '';
+
+    case QUIZ_ATTEMPTFIRST :
+        return "$quizattemptsalias.id = (
+                SELECT MIN(qa2.id)
+                FROM {$CFG->prefix}quiz_attempts qa2
+                WHERE qa2.quiz = $quizidsql AND qa2.userid = $useridsql)";
+
+    case QUIZ_ATTEMPTLAST :
+        return "$quizattemptsalias.id = (
+                SELECT MAX(qa2.id)
+                FROM {$CFG->prefix}quiz_attempts qa2
+                WHERE qa2.quiz = $quizidsql AND qa2.userid = $useridsql)";
+    }
 }
 
 /**
@@ -404,6 +398,11 @@ function quiz_report_highlighting_grading_method($quiz, $qmsubselect, $qmfilter)
 function quiz_report_feedback_for_grade($grade, $quizid) {
     global $DB;
     static $feedbackcache = array();
+
+    if (is_null($grade)) {
+        return '';
+    }
+
     if (!isset($feedbackcache[$quizid])) {
         $feedbackcache[$quizid] = get_records('quiz_feedback', 'quizid', $quizid);
     }

@@ -32,7 +32,7 @@ class quiz_report_overview_table extends table_sql {
             parent::build_table();
             //end of adding data from attempts data to table / download
             //now add averages at bottom of table :
-            $averagesql = "SELECT AVG(qg.grade) AS grade
+            $averagesql = "SELECT AVG(qg.grade) AS grade, COUNT(qg.grade) AS numaveraged
                     FROM {$CFG->prefix}quiz_grades qg
                     WHERE quiz = {$this->quiz->id}";
 
@@ -46,10 +46,11 @@ class quiz_report_overview_table extends table_sql {
                 $g_usql = ' IN (' . implode(',', $this->groupstudents) . ')';
 
                 $groupaveragesql = $averagesql." AND qg.userid $g_usql";
-                $groupaverage = get_record_sql($groupaveragesql);
-                $groupaveragerow = array($namekey => get_string('groupavg', 'grades'),
-                        'sumgrades' => quiz_format_grade($this->quiz, $groupaverage->grade),
-                        'feedbacktext'=> strip_tags(quiz_report_feedback_for_grade($groupaverage->grade, $this->quiz->id)));
+                $record = get_record_sql($groupaveragesql);
+                $groupaveragerow = array(
+                        $namekey => get_string('groupavg', 'grades'),
+                        'sumgrades' => $this->format_average($record),
+                        'feedbacktext'=> strip_tags(quiz_report_feedback_for_grade($record->grade, $this->quiz->id)));
                 if($this->detailedmarks && $this->qmsubselect) {
                     $avggradebyq = quiz_get_average_grade_for_questions($this->quiz, $this->groupstudents, array_keys($this->questions));
                     $groupaveragerow += $this->format_average_grade_for_questions($avggradebyq);
@@ -58,11 +59,12 @@ class quiz_report_overview_table extends table_sql {
             }
 
             $s_usql = ' IN (' . implode(',', $this->students) . ')';
-            $overallaverage = get_record_sql($averagesql." AND qg.userid $s_usql");
-            $overallaveragerow = array($namekey => get_string('overallaverage', 'grades'),
-                        'sumgrades' => quiz_format_grade($this->quiz, $overallaverage->grade),
-                        'feedbacktext'=> strip_tags(quiz_report_feedback_for_grade($overallaverage->grade, $this->quiz->id)));
-            if($this->detailedmarks && $this->qmsubselect) {
+            $record = get_record_sql($averagesql." AND qg.userid $s_usql");
+            $overallaveragerow = array(
+                    $namekey => get_string('overallaverage', 'grades'),
+                    'sumgrades' => $this->format_average($record),
+                    'feedbacktext'=> strip_tags(quiz_report_feedback_for_grade($record->grade, $this->quiz->id)));
+            if ($this->detailedmarks && $this->qmsubselect) {
                 $avggradebyq = quiz_get_average_grade_for_questions($this->quiz, $this->students, array_keys($this->questions));
                 $overallaveragerow += $this->format_average_grade_for_questions($avggradebyq);
             }
@@ -78,17 +80,34 @@ class quiz_report_overview_table extends table_sql {
         foreach ($this->questions as $question) {
             if (isset($gradeaverages[$question->qnumber])) {
                 $record = $gradeaverages[$question->qnumber];
-                $grade = quiz_rescale_grade($record->averagefraction * $question->maxmark, $this->quiz, 'question');
-                if (!$this->download) {
-                    $grade = '<span class="avgcell"><span class="average">' . $grade . '</span> <span class="count">(' .
-                            $record->numaveraged . ')</span></span>';
-                }
+                $record->grade = quiz_rescale_grade($record->averagefraction * $question->maxmark, $this->quiz, false);
             } else {
-                $grade = '-';
+                $record = new stdClass;
+                $record->grade = null;
+                $record->numaveraged = 0;
             }
-            $row['qsgrade' . $question->qnumber] = $grade;
+            $row['qsgrade' . $question->qnumber] = $this->format_average($record);
         }
         return $row;
+    }
+
+    /**
+     * Format an entry in an average row.
+     * @param object $record with fields grade and numaveraged
+     */
+    protected function format_average($record) {
+        if (is_null($record->grade)) {
+            $average = '-';
+        } else {
+            $average = quiz_format_grade($this->quiz, $record->grade);
+        }
+
+        if ($this->download) {
+            return $average;
+        } else {
+            return '<span class="avgcell"><span class="average">' . $average . '</span> <span class="count">(' .
+                    $record->numaveraged . ')</span></span>';
+        }
     }
 
     public function wrap_html_start() {
@@ -239,11 +258,18 @@ class quiz_report_overview_table extends table_sql {
         }
 
         $stepdata = $this->lateststeps[$attempt->usageid][$qnumber];
+        $state = question_state::get($stepdata->state);
+
         if (is_null($stepdata->fraction)) {
-            return '-';
+            if ($state == question_state::$needsgrading) {
+                $grade = get_string('requiresgrading', 'question');
+            } else {
+                $grade = '-';
+            }
+        } else {
+            $grade = quiz_rescale_grade($stepdata->fraction * $question->maxmark, $this->quiz);
         }
 
-        $grade = quiz_rescale_grade($stepdata->fraction * $question->maxmark, $this->quiz);
         if ($this->is_downloading()) {
             return $grade;
         }
@@ -256,21 +282,26 @@ class quiz_report_overview_table extends table_sql {
             $grade = '<del>'.$oldgrade.'</del><br />' . $newgrade;
         }
 
-        $linktopopup = link_to_popup_window('/mod/quiz/reviewquestion.php?attempt=' .
-                $attempt->attempt . '&amp;qnumber=' . $qnumber,
-                'reviewquestion', $grade, 450, 650, get_string('reviewresponse', 'quiz'),
-                'none', true);
-
         $flag = '';
         if ($stepdata->flagged) {
             $flag = ' <img src="' . $CFG->pixpath . '/i/flagged.png" alt="' .
                     get_string('flagged', 'question') . '" class="questionflag" />';
         }
 
-        $qclass = question_state::get($stepdata->state)->get_state_class();
-        $feedbackimg = question_get_feedback_image($stepdata->fraction);
-        return '<span class="que"><span class="' . $qclass . '">' .
-                $linktopopup . " $feedbackimg $flag</span></span>";
+        $feedbackimg = '';
+        if ($state->is_finished() && $state != question_state::$needsgrading) {
+            $feedbackimg = question_get_feedback_image($stepdata->fraction);
+        }
+
+        $grade = '<span class="que"><span class="' . $state->get_state_class() . '">' .
+                $grade . " $feedbackimg $flag</span></span>";
+
+        $grade = link_to_popup_window('/mod/quiz/reviewquestion.php?attempt=' .
+                $attempt->attempt . '&amp;qnumber=' . $qnumber,
+                'reviewquestion', $grade, 450, 650, get_string('reviewresponse', 'quiz'),
+                'none', true);
+
+        return $grade;
     }
 
     public function col_feedbacktext($attempt) {

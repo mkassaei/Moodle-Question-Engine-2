@@ -219,7 +219,7 @@
         <FIELD NAME="quiz" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="uniqueid" NEXT="userid"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="quiz" NEXT="attempt"/>
         <FIELD NAME="attempt" TYPE="int" LENGTH="6" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="userid" NEXT="sumgrades"/>
-        <FIELD NAME="sumgrades" TYPE="number" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" ENUM="false" DECIMALS="5" PREVIOUS="attempt" NEXT="timestart"/>
+        <FIELD NAME="sumgrades" TYPE="number" LENGTH="10" NOTNULL="false" UNSIGNED="false" SEQUENCE="false" ENUM="false" DECIMALS="5" PREVIOUS="attempt" NEXT="timestart"/>
         <FIELD NAME="timestart" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="sumgrades" NEXT="timefinish"/>
         <FIELD NAME="timefinish" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="timestart" NEXT="timemodified"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="timefinish" NEXT="layout"/>
