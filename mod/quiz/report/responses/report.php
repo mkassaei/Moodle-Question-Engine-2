@@ -1,16 +1,48 @@
 <?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
- * This script lists student attempts and responses
+ * This file defines the quiz responses report class.
  *
- * @author Jean-Michel Vedrine, Jamie Pratt and others.
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package quiz
- *//** */
+ * @package quiz_responses
+ * @copyright 2006 Jean-Michel Vedrine
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 
 require_once($CFG->libdir.'/tablelib.php');
 require_once($CFG->dirroot.'/mod/quiz/report/responses/responsessettings_form.php');
 require_once($CFG->dirroot.'/mod/quiz/report/responses/responses_table.php');
 
+
+/**
+ * Quiz report subclass for the responses report.
+ *
+ * This report lists some combination of
+ *  * what question each student saw (this makes sense if random questions were used).
+ *  * the response they gave,
+ *  * and what the right answer is.
+ *
+ * Like the overview report, there are options for showing students with/without
+ * attempts, and for deleting selected attempts.
+ *
+ * @copyright 1999 onwards Martin Dougiamas and others {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class quiz_responses_report extends quiz_default_report {
 
     /**
