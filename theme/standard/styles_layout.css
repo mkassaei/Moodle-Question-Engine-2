@@ -4036,40 +4036,11 @@ table.quizreviewsummary td.cell {
 }
 
 /* manual grading */
-#mod-quiz-grading table#grading
-{
-  width: 80%;
-  margin: auto;
+.toggleincludeauto {
+    text-align: center;
 }
-
-#mod-quiz-grading table#grading
-{
-  margin: 20px auto;
-}
-
-#mod-quiz-grading table#grading .header,
-#mod-quiz-grading table#grading .cell
-{
-  padding: 4px;
-}
-
-#mod-quiz-grading table#grading .header .commands
-{
-  display: inline;
-}
-
-#mod-quiz-grading table#grading .picture
-{
-  width: 40px;
-}
-
-#mod-quiz-grading table#grading td
-{
-  border-left-width: 1px;
-  border-right-width: 1px;
-  border-left-style: solid;
-  border-right-style: solid;
-  vertical-align: bottom;
+.gradetheselink {
+    font-size: 0.8em;
 }
 
 .mod-quiz .gradingdetails {

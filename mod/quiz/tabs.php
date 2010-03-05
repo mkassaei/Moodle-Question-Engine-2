@@ -33,13 +33,13 @@ $inactive = array();
 $activated = array();
 
 if (has_capability('mod/quiz:view', $context)) {
-    $row[] = new tabobject('info', "$CFG->wwwroot/mod/quiz/view.php?q=$quiz->id", get_string('info', 'quiz'));
+    $row[] = new tabobject('info', "$CFG->wwwroot/mod/quiz/view.php?id=$cm->id", get_string('info', 'quiz'));
 }
 if (has_capability('mod/quiz:viewreports', $context)) {
-    $row[] = new tabobject('reports', "$CFG->wwwroot/mod/quiz/report.php?q=$quiz->id", get_string('results', 'quiz'));
+    $row[] = new tabobject('reports', "$CFG->wwwroot/mod/quiz/report.php?id=$cm->id", get_string('results', 'quiz'));
 }
 if (has_capability('mod/quiz:preview', $context)) {
-    $row[] = new tabobject('preview', "$CFG->wwwroot/mod/quiz/attempt.php?q=$quiz->id", get_string('preview', 'quiz'));
+    $row[] = new tabobject('preview', "$CFG->wwwroot/mod/quiz/attempt.php?id=$cm->id", get_string('preview', 'quiz'));
 }
 if (has_capability('mod/quiz:manage', $context)) {
     $row[] = new tabobject('edit', "$CFG->wwwroot/mod/quiz/edit.php?cmid=$cm->id", get_string('edit'));
@@ -60,7 +60,7 @@ if ($currenttab == 'reports' and isset($mode)) {
     $reportlist = quiz_report_list($context);
 
     foreach ($reportlist as $report) {
-        $row[] = new tabobject($report, "$CFG->wwwroot/mod/quiz/report.php?q=$quiz->id&amp;mode=$report",
+        $row[] = new tabobject($report, "$CFG->wwwroot/mod/quiz/report.php?id=$cm->id&amp;mode=$report",
                                 get_string($report, 'quiz_'.$report));
         if ($report == $mode) {
             $currenttab = $report;

@@ -403,13 +403,14 @@ class quiz_report_overview_table extends table_sql {
                     $attemptids[] = $attempt->usageid;
                 }
             }
-            $this->lateststeps = quiz_report_get_latest_step($attemptids, array_keys($this->questions));
+            $this->lateststeps = quiz_report_get_latest_steps($attemptids, array_keys($this->questions));
             if (has_capability('mod/quiz:regrade', $this->context)) {
                 $this->regradedqs = quiz_get_regraded_qs($attemptids);
             }
 
         } else {
-            $this->lateststeps = quiz_report_get_latest_step($this->sql, array_keys($this->questions));
+            $this->sql->usageidcolumn = 'usageid';
+            $this->lateststeps = quiz_report_get_latest_steps($this->sql, array_keys($this->questions));
             if (has_capability('mod/quiz:regrade', $this->context)) {
                 $this->regradedqs = quiz_get_regraded_qs($this->sql);
             }

@@ -269,7 +269,7 @@ class quiz_overview_report extends quiz_default_report {
 
             $table->set_count_sql("SELECT COUNT(1) FROM $from WHERE $where");
 
-            $sqlobject = new object;
+            $sqlobject = new stdClass;
             $sqlobject->from = $from;
             $sqlobject->where = $where;
             //test to see if there are any regraded attempts to be listed.

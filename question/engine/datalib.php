@@ -308,10 +308,17 @@ ORDER BY
     }
 
     /**
-     * Load a {@link question_usage_by_activity} from the database, including
-     * all its {@link question_attempt}s and all their steps.
-     * @param integer $qubaid the id of the usage to load.
-     * @param question_usage_by_activity the usage that was loaded.
+     * Load information about the latest state of each question from the database.
+     *
+     * The $qubaids can either be an array of usege ids, or it can be a join,
+     * represented as an object with fields ->from, ->usageidcolumn and ->where.
+     * To understand this possibility, I recommend you read the code below, and
+     * in mod/quiz/report/reportlib.php where it is currently used. If you can't
+     * understand that code, you should not try to use this option;-)
+     *
+     * @param mixed $qubaid either an array of usage ids, or a subquery, as above.
+     * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
+     * @return array of records. See the SQL in this function to see the fields available.
      */
     public function load_questions_usages_latest_steps($qubaids, $qnumbers) {
         global $CFG;
@@ -364,7 +371,210 @@ WHERE
     qa.numberinusage $qnumbertest
         ");
 
+        if (!$records) {
+            $records = array();
+        }
+
         return $records;
+    }
+
+    /**
+     * Load summary information about the state of each question in a group of attempts.
+     * This is used by the quiz manual grading report, to show how many attempts
+     * at each question need to be graded.
+     *
+     * The $qubaids can either be an array of usege ids, or it can be a join,
+     * represented as an object with fields ->from, ->usageidcolumn and ->where.
+     * To understand this possibility, I recommend you read the code below, and
+     * in mod/quiz/report/reportlib.php where it is currently used. If you can't
+     * understand that code, you should not try to use this option;-)
+     *
+     * @param mixed $qubaid either an array of usage ids, or a subquery, as above.
+     * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
+     * @return array The array keys are qnumber,qestionid. The values are objects with
+     * fields $qnumber, $questionid, $inprogress, $name, $needsgrading, $autograded,
+     * $manuallygraded and $all.
+     */
+    public function load_questions_usages_question_state_summary($qubaids, $qnumbers) {
+        global $CFG;
+
+        if (empty($qubaids)) {
+            return array();
+        } else if (is_array($qubaids)) {
+            list($where, $params) = get_in_or_equal($qubaids, SQL_PARAMS_NAMED, 'qubaid0000');
+            $qubaidswhere = "qa.questionusageid $where";
+            $qajoin = "FROM {$CFG->prefix}question_attempts_new qa";
+        } else {
+            $qubaidswhere = $qubaids->where;
+            $qajoin = $qubaids->from .
+                    "\nJOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = " .
+                    $qubaids->usageidcolumn;
+        }
+
+        list($qnumbertest, $params) = get_in_or_equal($qnumbers, SQL_PARAMS_NAMED, 'qnumber0000');
+
+        $rs = get_recordset_sql("
+SELECT
+    qa.numberinusage,
+    qa.questionid,
+    q.name,
+    CASE qas.state
+        {$this->full_states_to_summary_state_sql()}
+    END AS summarystate,
+    COUNT(1) AS numattempts
+
+$qajoin
+JOIN (
+    SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
+) lateststepid ON lateststepid.questionattemptid = qa.id
+JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
+JOIN {$CFG->prefix}question q ON q.id = qa.questionid
+
+WHERE
+    $qubaidswhere AND
+    qa.numberinusage $qnumbertest
+
+GROUP BY
+    qa.numberinusage,
+    qa.questionid,
+    q.name,
+    q.id,
+    summarystate
+
+ORDER BY 
+    qa.numberinusage,
+    qa.questionid,
+    q.name,
+    q.id
+        ");
+
+        if (!$rs) {
+            throw new moodle_exception('errorloadingdata');
+        }
+
+        $results = array();
+        while ($row = rs_fetch_next_record($rs)) {
+            $index = $row->numberinusage . ',' . $row->questionid;
+
+            if (!array_key_exists($index, $results)) {
+                $res = new stdClass;
+                $res->qnumber = $row->numberinusage;
+                $res->questionid = $row->questionid;
+                $res->name = $row->name;
+                $res->inprogress = 0;
+                $res->needsgrading = 0;
+                $res->autograded = 0;
+                $res->manuallygraded = 0;
+                $res->all = 0;
+                $results[$index] = $res;
+            }
+
+            $results[$index]->{$row->summarystate} = $row->numattempts;
+            $results[$index]->all += $row->numattempts;
+        }
+        rs_close($rs);
+
+        return $results;
+    }
+
+    /**
+     * Get a list of usage ids where the question with qnumber $qnumber, and optionally
+     * also with question id $questionid, is in summary state $summarystate. Also
+     * return the total count of such states.
+     *
+     * Only a subset of the ids can be returned by using $orderby, $limitfrom and
+     * $limitnum. A special value 'random' can be passed as $orderby, in which case
+     * $limitfrom is ignored.
+     *
+     * The $qubaids can either be an array of usege ids, or it can be a join,
+     * represented as an object with fields ->from, ->usageidcolumn and ->where.
+     * To understand this possibility, I recommend you read the code below, and
+     * in mod/quiz/report/reportlib.php where it is currently used. If you can't
+     * understand that code, you should not try to use this option;-)
+     *
+     * @param mixed $qubaid either an array of usage ids, or a subquery, as above.
+     * @param integer $qnumber The qnumber for the questions you want to konw about.
+     * @param integer $questionid (optional) Only return attempts that were of this specific question.
+     * @param string $summarystate the summary state of interest, or 'all'.
+     * @param string $orderby the column to order by.
+     * @param integer $limitfrom implements paging of the results.
+     *      Ignored if $orderby = random or $limitnum is null.
+     * @param integer $limitnum implements paging of the results. null = all.
+     * @return array with two elements, an array of usage ids, and a count of the total number.
+     */
+    public function load_questions_usages_where_question_in_state($qubaids, $summarystate,
+            $qnumber, $questionid = null, $orderby = 'random', $limitfrom = 0, $limitnum = null) {
+        global $CFG;
+
+        if (empty($qubaids)) {
+            return array();
+        } else if (is_array($qubaids)) {
+            list($where, $params) = get_in_or_equal($qubaids, SQL_PARAMS_NAMED, 'qubaid0000');
+            $qubaidswhere = "qa.questionusageid $where";
+            $qajoin = "FROM {$CFG->prefix}question_attempts_new qa";
+        } else {
+            $qubaidswhere = $qubaids->where;
+            $qajoin = $qubaids->from .
+                    "\nJOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = " .
+                    $qubaids->usageidcolumn;
+        }
+
+        $extrawhere = '';
+        if ($questionid) {
+            $extrawhere .= ' AND qa.questionid = ' . $questionid;
+        }
+        if ($summarystate != 'all') {
+            $test = $this->in_summary_state_test($summarystate);
+            $extrawhere .= ' AND qas.state ' . $test;
+        }
+
+        if ($orderby == 'random') {
+            $sqlorderby = '';
+        } else if ($orderby) {
+            $sqlorderby = 'ORDER BY ' . $orderby;
+        } else {
+            $sqlorderby = '';
+        }
+
+        // We always want the total count, as well as the partcular list of ids,
+        // based on the paging and sort order. Becuase the list of ids is never
+        // going to be too rediculously long. My worst-case scenario is
+        // 10,000 students in the coures, each doing 5 quiz attempts. That
+        // is a 50,000 element int => int array, which PHP seems to use 5MB
+        // memeory to store on a 64 bit server.
+        $qubaids = get_records_sql_menu("
+SELECT
+    qa.questionusageid,
+    1
+
+$qajoin
+JOIN (
+    SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
+) lateststepid ON lateststepid.questionattemptid = qa.id
+JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
+JOIN {$CFG->prefix}question q ON q.id = qa.questionid
+
+WHERE
+    $qubaidswhere AND
+    qa.numberinusage = $qnumber
+    $extrawhere
+
+$sqlorderby
+        ");
+
+        $qubaids = array_keys($qubaids);
+        $count = count($qubaids);
+
+        if ($orderby == 'random') {
+            shuffle($qubaids);
+            $limitfrom = 0;
+        }
+
+        if (!is_null($limitnum)) {
+            $qubaids = array_slice($qubaids, $limitfrom, $limitnum);
+        }
+
+        return array($qubaids, $count);
     }
 
     /**
@@ -513,6 +723,33 @@ ORDER BY qa.numberinusage
         if (!set_field('question_attempts_new', 'flagged', $newstate, 'id', $qaid)) {
             throw new Exception('flag update failed');
         }
+    }
+
+    /**
+     * Get all the WHEN 'x' THEN 'y' terms needed to convert the question_attempt_steps.state
+     * column to a summary state. Use this like
+     * CASE qas.state {$this->full_states_to_summary_state_sql()} END AS summarystate,
+     * @param string SQL fragment.
+     */
+    protected function full_states_to_summary_state_sql() {
+        $sql = '';
+        foreach (question_state::get_all() as $state) {
+            $sql .= "WHEN '$state' THEN '{$state->get_summary_state()}'\n";
+        }
+        return $sql;
+    }
+
+    /**
+     * Get the SQL needed to test that question_attempt_steps.state is in a
+     * state corresponding to $summarystate.
+     * @param string $summarystate one of
+     * inprogress, needsgrading, manuallygraded or autograded
+     * @return string SQL fragment.
+     */
+    protected function in_summary_state_test($summarystate) {
+        $states = question_state::get_all_for_summary_state($summarystate);
+        list($sql, $params) = get_in_or_equal($states);
+        return $sql;
     }
 }
 

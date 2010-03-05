@@ -281,10 +281,10 @@ class quiz_report_responses_table extends table_sql {
                     $attemptids[] = $attempt->usageid;
                 }
             }
-            $this->lateststeps = quiz_report_get_latest_step($attemptids, array_keys($this->questions));
+            $this->lateststeps = quiz_report_get_latest_steps($attemptids, array_keys($this->questions));
 
         } else {
-            $this->lateststeps = quiz_report_get_latest_step($this->sql, array_keys($this->questions));
+            $this->lateststeps = quiz_report_get_latest_steps($this->sql, array_keys($this->questions));
         }
     }
 }

@@ -76,7 +76,18 @@ function quiz_get_newgraded_states($attemptidssql, $idxattemptq = true, $fields=
     }
 }
 
-function quiz_report_get_latest_step($qubaids, $qnumbers) {
+/**
+ * Load information about the latest state of selected questions in selected attempts.
+ *
+ * The $qubaids argument is as for {@link question_engine_data_mapper::load_questions_usages_latest_steps()}.
+ *
+ * The results are returned as an two dimensional array $qubaid => $qnumber => $dataobject
+ *
+ * @param mixed $qubaid either an array of usage ids, or a subquery, as above.
+ * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
+ * @return array of records. See the SQL in this function to see the fields available.
+ */
+function quiz_report_get_latest_steps($qubaids, $qnumbers) {
     $dm = new question_engine_data_mapper();
     $latesstepdata = $dm->load_questions_usages_latest_steps($qubaids, $qnumbers);
     $lateststeps = array();
@@ -84,6 +95,68 @@ function quiz_report_get_latest_step($qubaids, $qnumbers) {
         $lateststeps[$step->questionusageid][$step->numberinusage] = $step;
     }
     return $lateststeps;
+}
+
+/**
+ * Load information about the number of attempts at various questions in each
+ * summarystate.
+ *
+ * The $qubaids argument is as for {@link question_engine_data_mapper::load_questions_usages_question_state_summary()}.
+ *
+ * The results are returned as an two dimensional array $qubaid => $qnumber => $dataobject
+ *
+ * @param mixed $qubaid either an array of usage ids, or a subquery, as above.
+ * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
+ * @return array The array keys are qnumber,qestionid. The values are objects with
+ * fields $qnumber, $questionid, $inprogress, $name, $needsgrading, $autograded,
+ * $manuallygraded and $all.
+ */
+function quiz_report_get_state_summary($qubaids, $qnumbers) {
+    $dm = new question_engine_data_mapper();
+    return $dm->load_questions_usages_question_state_summary($qubaids, $qnumbers);
+}
+
+/**
+ * Get a list of usage ids where the question with qnumber $qnumber, and optionally
+ * also with question id $questionid, is in summary state $summarystate. Also
+ * return the total count of such states.
+ *
+ * Only a subset of the ids can be returned by using $orderby, $limitfrom and
+ * $limitnum. A special value 'random' can be passed as $orderby, in which case
+ * $limitfrom is ignored.
+ *
+ * $qubaids is a join, represented as an object with fields ->from,
+ * ->usageidcolumn and ->where.
+ *
+ * @param object $qubaid represents a JOIN, as above.
+ * @param integer $qnumber The qnumber for the questions you want to konw about.
+ * @param integer $questionid (optional) Only return attempts that were of this specific question.
+ * @param string $summarystate 'all', 'needsgrading', 'autograded' or 'manuallygraded'.
+ * @param string $orderby 'random', 'date' or 'student'.
+ * @param integer $page implements paging of the results.
+ *      Ignored if $orderby = random or $pagesize is null.
+ * @param integer $pagesize implements paging of the results. null = all.
+ */
+function quiz_report_get_usage_ids_where_question_in_state($qubaids, $summarystate,
+        $qnumber, $questionid = null, $orderby = 'random', $page = 0, $pagesize = null) {
+    global $CFG;
+
+    if ($pagesize && $orderby != 'random') {
+        $limitfrom = $page * $pagesize;
+    } else {
+        $limitfrom = 0;
+    }
+
+    if ($orderby == 'date') {
+        $orderby = 'qas.timecreated';
+    } else if ($orderby == 'student') {
+        $qubaids->from .= " JOIN {$CFG->prefix}user u ON quiza.userid = u.id ";
+        $orderby = sql_fullname('u.firstname', 'u.lastname');
+    }
+
+    $dm = new question_engine_data_mapper();
+    return $dm->load_questions_usages_where_question_in_state($qubaids, $summarystate,
+            $qnumber, $questionid, $orderby, $limitfrom, $pagesize);
 }
 
 /**
@@ -253,14 +326,14 @@ function quiz_report_load_questions($quiz) {
     //In fact in most cases the id IN $questionlist below is redundant
     //since we are also doing a JOIN on the qqi table. But will leave it in
     //since this double check will probably do no harm.
-    list($usql, $params) = $DB->get_in_or_equal(explode(',', $questionlist));
+    list($usql, $params) = get_in_or_equal(explode(',', $questionlist));
     $params[] = $quiz->id;
-    if (!$questions = $DB->get_records_sql("SELECT q.*, qqi.grade AS maxmark
-            FROM {question} q,
-            {quiz_question_instances} qqi
+    if (!$questions = get_records_sql("SELECT q.*, qqi.grade AS maxmark
+            FROM {$CFG->prefix}question q,
+            {$CFG->prefix}quiz_question_instances qqi
             WHERE q.id $usql AND
             qqi.question = q.id AND
-            qqi.quiz = ?", $params)) {
+            qqi.quiz = $quiz->id", $params)) {
         print_error('noquestionsfound', 'quiz');
     }
     //Now we have an array of questions from a quiz we work out there question nos and remove

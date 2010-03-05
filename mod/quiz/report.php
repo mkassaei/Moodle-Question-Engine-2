@@ -76,7 +76,8 @@ if (!$quiz->questions and has_capability('mod/quiz:manage', $context)) {
     redirect('edit.php?cmid='.$cm->id);
 }
 
-add_to_log($course->id, 'quiz', 'report', 'report.php?id=' . $cm->id, $quiz->id, $cm->id);
+add_to_log($course->id, 'quiz', 'report', 'report.php?id=' . $cm->id . '&mode=' . $mode,
+        $quiz->id, $cm->id);
 
 // Open the selected quiz report and display it
 include("report/$mode/report.php");
