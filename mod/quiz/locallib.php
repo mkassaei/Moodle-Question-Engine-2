@@ -154,10 +154,11 @@ function quiz_load_attempt($attemptid) {
         return false;
     }
 
-    if (!record_exists('question_sessions', 'attemptid', $attempt->uniqueid)) {
-    /// this attempt has not yet been upgraded to the new model
-        quiz_upgrade_states($attempt);
-    }
+    // TODO deal with the issue that makes this necessary.
+//    if (!record_exists('question_sessions', 'attemptid', $attempt->uniqueid)) {
+//    /// this attempt has not yet been upgraded to the new model
+//        quiz_upgrade_states($attempt);
+//    }
 
     return $attempt;
 }

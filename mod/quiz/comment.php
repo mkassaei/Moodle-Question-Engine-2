@@ -30,7 +30,7 @@ require_once('locallib.php');
 $attemptid = required_param('attempt', PARAM_INT); // attempt id
 $qnumber = required_param('qnumber', PARAM_INT); // question number in attempt
 
-$attemptobj = new quiz_attempt($attemptid);
+$attemptobj = quiz_attempt::create($attemptid);
 
 // Can only grade finished attempts.
 if (!$attemptobj->is_finished()) {

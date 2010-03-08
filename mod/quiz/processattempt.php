@@ -42,7 +42,7 @@ $thispage = optional_param('thispage', 0, PARAM_INT);
 $finishattempt = optional_param('finishattempt', 0, PARAM_BOOL);
 $timeup = optional_param('timeup', 0, PARAM_BOOL); // True if form was submitted by timer.
 
-$attemptobj = new quiz_attempt($attemptid);
+$attemptobj = quiz_attempt::create($attemptid);
 
 /// Because IE is buggy (see http://www.peterbe.com/plog/button-tag-in-IE) we cannot
 /// do the quiz navigation buttons as <button type="submit" name="page" value="N">Caption</button>.

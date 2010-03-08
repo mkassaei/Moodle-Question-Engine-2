@@ -34,7 +34,7 @@ $attemptid = required_param('attempt', PARAM_INT);
 $page = optional_param('page', 0, PARAM_INT);
 $showall = optional_param('showall', 0, PARAM_BOOL);
 
-$attemptobj = new quiz_attempt($attemptid);
+$attemptobj = quiz_attempt::create($attemptid);
 
 // Check login.
 require_login($attemptobj->get_courseid(), false, $attemptobj->get_cm());

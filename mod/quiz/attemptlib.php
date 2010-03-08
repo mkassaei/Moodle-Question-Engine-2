@@ -88,6 +88,27 @@ class quiz {
         }
     }
 
+    /**
+     * Static function to create a new quiz object for a specific user.
+     *
+     * @param integer $quizid the the quiz id.
+     * @param integer $userid the the userid.
+     * @return object the new quiz object
+     */
+    static public function create($quizid, $userid) {
+        if (!$quiz = get_record('quiz', 'id', $quizid)) {
+            throw new moodle_exception('invalidquizid', 'quiz');
+        }
+        if (!$course = get_record('course', 'id', $quiz->course)) {
+            throw new moodle_exception('invalidcoursemodule');
+        }
+        if (!$cm = get_coursemodule_from_instance('quiz', $quiz->id, $course->id)) {
+            throw new moodle_exception('invalidcoursemodule');
+        }
+
+        return new quiz($quiz, $cm, $course);
+    }
+
     // Functions for loading more data =====================================================
     public function preload_questions() {
         global $CFG;
@@ -321,16 +342,32 @@ class quiz_attempt {
 
     // Constructor =========================================================================
     /**
-     * Constructor from just an attemptid.
+     * Constructor assuming we already have the necessary data loaded.
      *
-     * @param integer $attemptid the id of the attempt to load. We automatically load the
-     * associated quiz, course, etc.
+     * @param object $attempt the row of the quiz_attempts table.
+     * @param object $quiz the quiz object for this attempt and user.
+     * @param object $cm the course_module object for this quiz.
+     * @param object $course the row from the course table for the course we belong to.
      */
-    function __construct($attemptid) {
-        if (!$this->attempt = quiz_load_attempt($attemptid)) {
-            throw new moodle_exception('invalidattemptid', 'quiz');
+    function __construct($attempt, $quiz, $cm, $course) {
+        $this->attempt = $attempt;
+        $this->quizobj = new quiz($quiz, $cm, $course);
+        $this->quba = question_engine::load_questions_usage_by_activity($this->attempt->uniqueid);
+        $this->determine_layout();
+        $this->number_questions();
+    }
+
+    /**
+     * Static function to create a new quiz_attempt object given an attemptid.
+     *
+     * @param integer $attemptid the attempt id.
+     * @return object the new quiz_attempt object
+     */
+    static public function create($attemptid) {
+        if (!$attempt = quiz_load_attempt($attemptid)) {
+             throw new moodle_exception('invalidattemptid', 'quiz');
         }
-        if (!$quiz = get_record('quiz', 'id', $this->attempt->quiz)) {
+        if (!$quiz = get_record('quiz', 'id', $attempt->quiz)) {
             throw new moodle_exception('invalidquizid', 'quiz');
         }
         if (!$course = get_record('course', 'id', $quiz->course)) {
@@ -339,10 +376,8 @@ class quiz_attempt {
         if (!$cm = get_coursemodule_from_instance('quiz', $quiz->id, $course->id)) {
             throw new moodle_exception('invalidcoursemodule');
         }
-        $this->quizobj = new quiz($quiz, $cm, $course);
-        $this->quba = question_engine::load_questions_usage_by_activity($this->attempt->uniqueid);
-        $this->determine_layout();
-        $this->number_questions();
+
+        return new quiz_attempt($attempt, $quiz, $cm, $course);
     }
 
     private function determine_layout() {

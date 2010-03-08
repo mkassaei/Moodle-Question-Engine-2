@@ -32,7 +32,7 @@ $attemptid = required_param('attempt', PARAM_INT); // attempt id
 $qnumber = required_param('qnumber', PARAM_INT); // question number in usage
 $seq = optional_param('seq', null, PARAM_INT); // sequence number
 
-$attemptobj = new quiz_attempt($attemptid);
+$attemptobj = quiz_attempt::create($attemptid);
 
 // Check login.
 require_login($attemptobj->get_courseid(), false, $attemptobj->get_cm());
