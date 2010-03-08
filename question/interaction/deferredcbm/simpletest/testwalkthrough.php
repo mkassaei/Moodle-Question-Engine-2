@@ -49,7 +49,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_feedback_expectation());
 
         // Process the data extracted for this question.
-        $this->process_submission(array('answer' => 1, '!certainty' => 3));
+        $this->process_submission(array('answer' => 1, '-certainty' => 3));
 
         // Verify.
         $this->check_current_state(question_state::$complete);
@@ -62,16 +62,16 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
 
         // Process the same data again, check it does not create a new step.
         $numsteps = $this->get_step_count();
-        $this->process_submission(array('answer' => 1, '!certainty' => 3));
+        $this->process_submission(array('answer' => 1, '-certainty' => 3));
         $this->check_step_count($numsteps);
 
         // Process different data, check it creates a new step.
-        $this->process_submission(array('answer' => 1, '!certainty' => 1));
+        $this->process_submission(array('answer' => 1, '-certainty' => 1));
         $this->check_step_count($numsteps + 1);
         $this->check_current_state(question_state::$complete);
 
         // Change back, check it creates a new step.
-        $this->process_submission(array('answer' => 1, '!certainty' => 3));
+        $this->process_submission(array('answer' => 1, '-certainty' => 3));
         $this->check_step_count($numsteps + 2);
 
         // Finish the attempt.
@@ -119,7 +119,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_feedback_expectation());
 
         // Submit ansewer with low certainty.
-        $this->process_submission(array('answer' => 1, '!certainty' => 1));
+        $this->process_submission(array('answer' => 1, '-certainty' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$complete);
@@ -179,7 +179,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->start_attempt_at_question($mc, 'deferredcbm', 3);
         $rightindex = $this->get_mc_right_answer_index($mc);
         $wrongindex = ($rightindex + 1) % 3;
-        $this->process_submission(array('answer' => $wrongindex, '!certainty' => 2));
+        $this->process_submission(array('answer' => $wrongindex, '-certainty' => 2));
         $this->quba->finish_all_questions();
 
         // Verify.
@@ -220,7 +220,7 @@ class qim_deferredcbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->assertNull($this->quba->get_response_summary($this->qnumber));
 
         // Now get it right.
-        $this->process_submission(array('answer' => $rightindex, '!certainty' => 3));
+        $this->process_submission(array('answer' => $rightindex, '-certainty' => 3));
         $this->quba->finish_all_questions();
 
         // Verify.

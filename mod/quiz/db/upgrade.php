@@ -389,6 +389,19 @@ function xmldb_quiz_upgrade($oldversion=0) {
         upgrade_mod_savepoint($result, 2008000111, 'quiz');
     }
 
+    if ($result && $oldversion < 2008000112) {
+
+        // Chage im vars from !... to -... for validity reasons.
+        $result = $result && execute_sql("
+            UPDATE {$CFG->prefix}question_attempt_step_data
+            SET name = " . sql_concat("'-'", 'substring(name FROM 2)') . "
+            WHERE name LIKE '!%'
+        ");
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000112, 'quiz');
+    }
+
     commit_sql();
 
     return $result;

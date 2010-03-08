@@ -37,7 +37,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
     protected function get_contains_try_again_button_expectation($enabled = null) {
         $expectedattributes = array(
             'type' => 'submit',
-            'name' => $this->quba->get_field_prefix($this->qnumber) . '!tryagain',
+            'name' => $this->quba->get_field_prefix($this->qnumber) . '-tryagain',
         );
         $forbiddenattributes = array();
         if ($enabled === true) {
@@ -50,7 +50,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
 
     protected function get_does_not_contain_try_again_button_expectation() {
         return new NoPatternExpectation('/name="' .
-                $this->quba->get_field_prefix($this->qnumber) . '!tryagain"/');
+                $this->quba->get_field_prefix($this->qnumber) . '-tryagain"/');
     }
 
     public function test_interactive_feedback_multichoice_right() {
@@ -97,7 +97,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_no_hint_visible_expectation());
 
         // Submit the wrong answer.
-        $this->process_submission(array('answer' => $wrongindex, '!submit' => 1));
+        $this->process_submission(array('answer' => $wrongindex, '-submit' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$todo);
@@ -119,7 +119,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         $this->assert($this->get_contains_try_again_button_expectation(false), $html);
 
         // Do try again.
-        $this->process_submission(array('!tryagain' => 1));
+        $this->process_submission(array('-tryagain' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$todo);
@@ -135,7 +135,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_no_hint_visible_expectation());
 
         // Submit the right answer.
-        $this->process_submission(array('answer' => $rightindex, '!submit' => 1));
+        $this->process_submission(array('answer' => $rightindex, '-submit' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$gradedright);
@@ -213,7 +213,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_no_hint_visible_expectation());
 
         // Submit the wrong answer.
-        $this->process_submission(array('answer' => $wrongindex, '!submit' => 1));
+        $this->process_submission(array('answer' => $wrongindex, '-submit' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$todo);
@@ -263,7 +263,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_no_hint_visible_expectation());
 
         // Submit blank.
-        $this->process_submission(array('!submit' => 1, 'answer' => ''));
+        $this->process_submission(array('-submit' => 1, 'answer' => ''));
 
         // Verify.
         $this->check_current_state(question_state::$invalid);
@@ -276,7 +276,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_no_hint_visible_expectation());
 
         // Now get it wrong.
-        $this->process_submission(array('!submit' => 1, 'answer' => 'newt'));
+        $this->process_submission(array('-submit' => 1, 'answer' => 'newt'));
 
         // Verify.
         $this->check_current_state(question_state::$todo);
@@ -291,7 +291,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->quba->get_response_summary($this->qnumber));
 
         // Try again.
-        $this->process_submission(array('!tryagain' => 1));
+        $this->process_submission(array('-tryagain' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$todo);
@@ -304,7 +304,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_no_hint_visible_expectation());
 
         // Now submit blank again.
-        $this->process_submission(array('!submit' => 1, 'answer' => ''));
+        $this->process_submission(array('-submit' => 1, 'answer' => ''));
 
         // Verify.
         $this->check_current_state(question_state::$invalid);
@@ -317,7 +317,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_no_hint_visible_expectation());
 
         // Now get it right.
-        $this->process_submission(array('!submit' => 1, 'answer' => 'frog'));
+        $this->process_submission(array('-submit' => 1, 'answer' => 'frog'));
 
         // Verify.
         $this->check_current_state(question_state::$gradedright);
@@ -361,7 +361,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_no_hint_visible_expectation());
 
         // Submit an answer with one right, and one wrong.
-        $this->process_submission(array($right[0] => 1, $wrong[0] => 1, '!submit' => 1));
+        $this->process_submission(array($right[0] => 1, $wrong[0] => 1, '-submit' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$todo);
@@ -383,7 +383,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . $wrong[1]));
 
         // Do try again.
-        $this->process_submission(array($right[0] => 1, '!tryagain' => 1));
+        $this->process_submission(array($right[0] => 1, '-tryagain' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$todo);
@@ -436,7 +436,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         // Submit an answer with one right, and one wrong.
         $this->process_submission(array('sub0' => $orderforchoice[1],
                 'sub1' => $orderforchoice[1], 'sub2' => $orderforchoice[1],
-                'sub3' => $orderforchoice[1], '!submit' => 1));
+                'sub3' => $orderforchoice[1], '-submit' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$todo);
@@ -463,7 +463,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->quba->extract_responses($this->qnumber, array($prefix . 'sub0' => 1)));
 
         // Do try again.
-        $this->process_submission(array('sub0' => $orderforchoice[1], 'sub3' => $orderforchoice[1], '!tryagain' => 1));
+        $this->process_submission(array('sub0' => $orderforchoice[1], 'sub3' => $orderforchoice[1], '-tryagain' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$todo);
@@ -482,7 +482,7 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         // Submit an answer with one right, and one wrong.
         $this->process_submission(array('sub0' => $orderforchoice[1],
                 'sub1' => $orderforchoice[2], 'sub2' => $orderforchoice[2],
-                'sub3' => $orderforchoice[1], '!submit' => 1));
+                'sub3' => $orderforchoice[1], '-submit' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$gradedright);

@@ -189,7 +189,7 @@ class core_question_renderer extends moodle_renderer_base {
                 } else {
                     $checked = '';
                 }
-                $postdata = question_flags::get_postdate($qa);
+                $postdata = question_flags::get_postdata($qa);
                 $flagcontent = '<input type="hidden" name="' . $id . '" value="0" />' .
                         '<input type="checkbox" id="' . $id . '" name="' . $id . '" value="1" ' . $checked . ' />' .
                         '<label id="' . $id . 'label" for="' . $id . '">' . $this->get_flag_html(
@@ -244,7 +244,7 @@ class core_question_renderer extends moodle_renderer_base {
         $output = '';
         $output .= $this->output_empty_tag('input', array(
                 'type' => 'hidden',
-                'name' => $qa->get_field_prefix() . '!!sequencecheck',
+                'name' => $qa->get_field_prefix() . ':sequencecheck',
                 'value' => $qa->get_num_steps()));
         $output .= $qtoutput->formulation_and_controls($qa, $options);
         if ($options->clearwrong) {

@@ -102,7 +102,7 @@ class question_usage_by_activity_test extends UnitTestCase {
         // Prepare data to be submitted
         $prefix = $quba->get_field_prefix($qnumber);
         $answername = $prefix . 'answer';
-        $certaintyname = $prefix . '!certainty';
+        $certaintyname = $prefix . '-certainty';
         $getdata = array(
             $answername => 1,
             $certaintyname => 3,
@@ -113,7 +113,7 @@ class question_usage_by_activity_test extends UnitTestCase {
         $submitteddata = $quba->extract_responses($qnumber, $getdata);
 
         // Verify.
-        $this->assertEqual(array('answer' => 1, '!certainty' => 3), $submitteddata);
+        $this->assertEqual(array('answer' => 1, '-certainty' => 3), $submitteddata);
     }
 
     public function test_access_out_of_sequence_throws_exception() {
@@ -128,11 +128,11 @@ class question_usage_by_activity_test extends UnitTestCase {
         // Prepare data to be submitted
         $prefix = $quba->get_field_prefix($qnumber);
         $answername = $prefix . 'answer';
-        $certaintyname = $prefix . '!certainty';
+        $certaintyname = $prefix . '-certainty';
         $postdata = array(
             $answername => 1,
             $certaintyname => 3,
-            $prefix . '!!sequencecheck' => 1,
+            $prefix . ':sequencecheck' => 1,
             'irrelevant' => 'should be ignored',
         );
 
@@ -142,7 +142,7 @@ class question_usage_by_activity_test extends UnitTestCase {
         $postdata = array(
             $answername => 1,
             $certaintyname => 3,
-            $prefix . '!!sequencecheck' => 3,
+            $prefix . ':sequencecheck' => 3,
             'irrelevant' => 'should be ignored',
         );
 

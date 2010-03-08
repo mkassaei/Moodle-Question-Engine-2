@@ -55,6 +55,11 @@ class qim_informationitem extends question_interaction_model {
         return array();
     }
 
+    public function adjust_display_options(question_display_options $options) {
+        parent::adjust_display_options($options);
+        $options->manualcomment = question_display_options::HIDDEN;
+    }
+
     public function process_action(question_attempt_pending_step $pendingstep) {
         if ($pendingstep->has_im_var('comment')) {
             return $this->process_comment($pendingstep);

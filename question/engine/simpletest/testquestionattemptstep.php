@@ -53,7 +53,7 @@ class question_attempt_step_test extends UnitTestCase {
     }
 
     public function test_has_var() {
-        $step = new question_attempt_step(array('x' => 1, '!y' => 'frog'));
+        $step = new question_attempt_step(array('x' => 1, '-y' => 'frog'));
         $this->assertTrue($step->has_qt_var('x'));
         $this->assertTrue($step->has_im_var('y'));
         $this->assertFalse($step->has_qt_var('y'));
@@ -61,7 +61,7 @@ class question_attempt_step_test extends UnitTestCase {
     }
 
     public function test_get_var() {
-        $step = new question_attempt_step(array('x' => 1, '!y' => 'frog'));
+        $step = new question_attempt_step(array('x' => 1, '-y' => 'frog'));
         $this->assertEqual('1', $step->get_qt_var('x'));
         $this->assertEqual('frog', $step->get_im_var('y'));
         $this->assertNull($step->get_qt_var('y'));
@@ -88,17 +88,17 @@ class question_attempt_step_test extends UnitTestCase {
     }
 
     public function test_get_data() {
-        $step = new question_attempt_step(array('x' => 1, '!y' => 'frog'));
+        $step = new question_attempt_step(array('x' => 1, '-y' => 'frog'));
         $this->assertEqual(array('x' => '1'), $step->get_qt_data());
         $this->assertEqual(array('y' => 'frog'), $step->get_im_data());
-        $this->assertEqual(array('x' => 1, '!y' => 'frog'), $step->get_all_data());
+        $this->assertEqual(array('x' => 1, '-y' => 'frog'), $step->get_all_data());
     }
 
     public function test_get_submitted_data() {
-        $step = new question_attempt_step(array('x' => 1, '!y' => 'frog'));
+        $step = new question_attempt_step(array('x' => 1, '-y' => 'frog'));
         $step->set_qt_var('_x', 1);
         $step->set_im_var('_x', 2);
-        $this->assertEqual(array('x' => 1, '!y' => 'frog'), $step->get_submitted_data());
+        $this->assertEqual(array('x' => 1, '-y' => 'frog'), $step->get_submitted_data());
     }
 
     public function test_constructor_default_params() {
@@ -130,9 +130,9 @@ class question_attempt_step_db_test extends data_loading_method_test_base {
             array(  1,               1,                   1,                0,  'todo',       null,    1256228502,       13,   null,    null),
             array(  2,               2,                   1,                1,  'complete',   null,    1256228505,       13,    'x',     'a'),
             array(  3,               2,                   1,                1,  'complete',   null,    1256228505,       13,   '_y',    '_b'),
-            array(  4,               2,                   1,                1,  'complete',   null,    1256228505,       13,   '!z',    '!c'),
-            array(  5,               2,                   1,                1,  'complete',   null,    1256228505,       13, '!_t',    '!_d'),
-            array(  6,               3,                   1,                2,  'gradedright', 1.0,    1256228515,       13, '!finish',  '1'),
+            array(  4,               2,                   1,                1,  'complete',   null,    1256228505,       13,   '-z',    '!c'),
+            array(  5,               2,                   1,                1,  'complete',   null,    1256228505,       13, '-_t',    '!_d'),
+            array(  6,               3,                   1,                2,  'gradedright', 1.0,    1256228515,       13, '-finish',  '1'),
         ));
 
         $step = question_attempt_step::load_from_records($records, 2);
@@ -140,7 +140,7 @@ class question_attempt_step_db_test extends data_loading_method_test_base {
         $this->assertNull($step->get_fraction());
         $this->assertEqual(1256228505, $step->get_timecreated());
         $this->assertEqual(13, $step->get_user_id());
-        $this->assertEqual(array('x' => 'a', '_y' => '_b', '!z' => '!c', '!_t' => '!_d'), $step->get_all_data());
+        $this->assertEqual(array('x' => 'a', '_y' => '_b', '-z' => '!c', '-_t' => '!_d'), $step->get_all_data());
     }
 
     public function test_load_without_data() {

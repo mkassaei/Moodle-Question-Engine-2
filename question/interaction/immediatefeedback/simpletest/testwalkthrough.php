@@ -66,7 +66,7 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_feedback_expectation());
 
         // Submit the right answer.
-        $this->process_submission(array('answer' => $rightindex, '!submit' => 1));
+        $this->process_submission(array('answer' => $rightindex, '-submit' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$gradedright);
@@ -151,7 +151,7 @@ class qim_immediatefeedback_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_feedback_expectation());
 
         // Submit nothing.
-        $this->process_submission(array('!submit' => 1));
+        $this->process_submission(array('-submit' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$invalid);

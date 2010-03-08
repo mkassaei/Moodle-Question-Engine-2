@@ -57,7 +57,7 @@ class qim_immediatecbm_walkthrough_test extends qim_walkthrough_test_base {
         $this->assertNull($this->quba->get_response_summary($this->qnumber));
 
         // Save the wrong answer.
-        $this->process_submission(array('answer' => $wrongindex, '!certainty' => 1));
+        $this->process_submission(array('answer' => $wrongindex, '-certainty' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$todo);
@@ -71,7 +71,7 @@ class qim_immediatecbm_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_feedback_expectation());
 
         // Submit the right answer.
-        $this->process_submission(array('answer' => $rightindex, '!certainty' => 2, '!submit' => 1));
+        $this->process_submission(array('answer' => $rightindex, '-certainty' => 2, '-submit' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$gradedright);
@@ -143,7 +143,7 @@ class qim_immediatecbm_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_feedback_expectation());
 
         // Submit nothing.
-        $this->process_submission(array('!submit' => 1));
+        $this->process_submission(array('-submit' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$invalid);
@@ -192,7 +192,7 @@ class qim_immediatecbm_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_feedback_expectation());
 
         // Submit with certainty missing.
-        $this->process_submission(array('!submit' => 1, 'answer' => 'frog'));
+        $this->process_submission(array('-submit' => 1, 'answer' => 'frog'));
 
         // Verify.
         $this->check_current_state(question_state::$invalid);
@@ -203,7 +203,7 @@ class qim_immediatecbm_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_validation_error_expectation());
 
         // Now get it right.
-        $this->process_submission(array('!submit' => 1, 'answer' => 'frog', '!certainty' => 3));
+        $this->process_submission(array('-submit' => 1, 'answer' => 'frog', '-certainty' => 3));
 
         // Verify.
         $this->check_current_state(question_state::$gradedright);
@@ -234,7 +234,7 @@ class qim_immediatecbm_walkthrough_test extends qim_walkthrough_test_base {
         $wrongindex = ($rightindex + 1) % 3;
 
         // Save the wrong answer.
-        $this->process_submission(array('answer' => $wrongindex, '!certainty' => 3));
+        $this->process_submission(array('answer' => $wrongindex, '-certainty' => 3));
 
         // Verify.
         $this->check_current_state(question_state::$todo);

@@ -441,7 +441,7 @@ abstract class question_flags {
      * You need to append &newstate=0/1 to this.
      * @return the post data to send.
      */
-    public static function get_postdate(question_attempt $qa) {
+    public static function get_postdata(question_attempt $qa) {
         $qaid = $qa->get_database_id();
         $qubaid = $qa->get_usage_id();
         $qid = $qa->get_question()->id;
@@ -909,7 +909,7 @@ class question_usage_by_activity {
     public function validate_sequence_number($qnumber, $postdata = null) {
         $qa = $this->get_question_attempt($qnumber);
         $sequencecheck = question_attempt::get_submitted_var(
-                $qa->get_field_prefix() . '!!sequencecheck', PARAM_INT, $postdata);
+                $qa->get_field_prefix() . ':sequencecheck', PARAM_INT, $postdata);
         if (!is_null($sequencecheck) && $sequencecheck != $qa->get_num_steps()) {
             throw new question_out_of_sequence_exception($this->id, $qnumber, $postdata);
         }
@@ -1306,7 +1306,7 @@ class question_attempt {
      * @return string  The field name to use.
      */
     public function get_flag_field_name() {
-        return $this->get_field_prefix() . '#flagged';
+        return $this->get_field_prefix() . ':flagged';
     }
 
     /**
@@ -1334,7 +1334,7 @@ class question_attempt {
      * @return string  The field name to use.
      */
     public function get_im_field_name($varname) {
-        return $this->get_field_prefix() . '!' . $varname;
+        return $this->get_field_prefix() . '-' . $varname;
     }
 
     /**
@@ -1348,7 +1348,7 @@ class question_attempt {
      * @return string  The field name to use.
      */
     public function get_field_prefix() {
-        return 'q' . $this->usageid . ',' . $this->numberinusage . '_';
+        return 'q' . $this->usageid . ':' . $this->numberinusage . '_';
     }
 
     /**
@@ -1656,7 +1656,7 @@ class question_attempt {
     /**
      * Get any data from the request that matches the list of expected params.
      * @param array $expected variable name => PARAM_... constant.
-     * @param string $extraprefix '!' or ''.
+     * @param string $extraprefix '-' or ''.
      * @return array name => value.
      */
     protected function get_expected_data($expected, $postdata, $extraprefix) {
@@ -1681,7 +1681,7 @@ class question_attempt {
             $postdata = $_POST;
         }
 
-        $pattern = '/^' . preg_quote($this->get_field_prefix()) . '[^!]/';
+        $pattern = '/^' . preg_quote($this->get_field_prefix()) . '[^-]/';
         $prefixlen = strlen($this->get_field_prefix());
 
         $submitteddata = array();
@@ -1703,7 +1703,7 @@ class question_attempt {
      */
     public function get_submitted_data($postdata = null) {
         $submitteddata = $this->get_expected_data(
-                $this->interactionmodel->get_expected_data(), $postdata, '!');
+                $this->interactionmodel->get_expected_data(), $postdata, '-');
 
         $expected = $this->interactionmodel->get_expected_qt_data();
         if ($expected === self::USE_RAW_DATA) {
@@ -1723,7 +1723,7 @@ class question_attempt {
         $response = $this->question->get_correct_response();
         $imvars = $this->interactionmodel->get_correct_response();
         foreach ($imvars as $name => $value) {
-            $response['!' . $name] = $value;
+            $response['-' . $name] = $value;
         }
         return $response;
     }
@@ -1786,7 +1786,7 @@ class question_attempt {
      * @param integer $userid the user to attribute the aciton to. (If not given, use the current user.)
      */
     public function finish($timestamp = null, $userid = null) {
-        $this->process_action(array('!finish' => 1), $timestamp, $userid);
+        $this->process_action(array('-finish' => 1), $timestamp, $userid);
     }
 
     /**
@@ -1817,10 +1817,10 @@ class question_attempt {
      * @return unknown_type
      */
     public function manual_grade($comment, $mark, $timestamp = null, $userid = null) {
-        $submitteddata = array('!comment' => $comment);
+        $submitteddata = array('-comment' => $comment);
         if (!is_null($mark)) {
-            $submitteddata['!mark'] = $mark;
-            $submitteddata['!maxmark'] = $this->maxmark;
+            $submitteddata['-mark'] = $mark;
+            $submitteddata['-maxmark'] = $this->maxmark;
         }
         $this->process_action($submitteddata, $timestamp, $userid);
     }
@@ -1994,18 +1994,18 @@ class question_attempt_reverse_step_iterator extends question_attempt_step_itera
  * categories.
  *
  * Variables may either belong to the interaction model, in which case the
- * name starts with a !, or they may belong to the question type in which case
- * they name does not start with a !.
+ * name starts with a '-', or they may belong to the question type in which case
+ * they name does not start with a '-'.
  *
  * Second, variables may either be ones that came form the original request, in
  * which case the name does not start with an _, or they are cached values that
  * were created during processing, in which case the name does start with an _.
  *
- * That is, each name will start with one of '', '_'. '!' or '!_'. The remainder
+ * That is, each name will start with one of '', '_'. '-' or '-_'. The remainder
  * of the name should match the regex [a-z][a-z0-9]*.
  *
  * These variables can be accessed with {@link get_im_var()} and {@link get_qt_var()},
- * - to be clear, ->get_im_var('x') gets the variable with name '!x' -
+ * - to be clear, ->get_im_var('x') gets the variable with name '-x' -
  * and values whose names start with '_' can be set using {@link set_im_var()}
  * and {@link set_qt_var()}. There are some other methods like {@link has_im_var()}
  * to check wether a varaible with a particular name is set, and {@link get_im_data()}
@@ -2134,7 +2134,7 @@ class question_attempt_step {
     public function get_qt_data() {
         $result = array();
         foreach ($this->data as $name => $value) {
-            if ($name[0] != '!') {
+            if ($name[0] != '-') {
                 $result[$name] = $value;
             }
         }
@@ -2146,7 +2146,7 @@ class question_attempt_step {
      * @return boolean whether a variable with this name exists in the question type data.
      */
     public function has_im_var($name) {
-        return array_key_exists('!' . $name, $this->data);
+        return array_key_exists('-' . $name, $this->data);
     }
 
     /**
@@ -2157,7 +2157,7 @@ class question_attempt_step {
         if (!$this->has_im_var($name)) {
             return null;
         }
-        return $this->data['!' . $name];
+        return $this->data['-' . $name];
     }
 
     /**
@@ -2169,7 +2169,7 @@ class question_attempt_step {
         if ($name[0] != '_') {
             throw new Exception('Cannot set question type data ' . $name . ' on an attempt step. You can only set variables with names begining with _.');
         }
-        return $this->data['!' . $name] = $value;
+        return $this->data['-' . $name] = $value;
     }
 
     /**
@@ -2179,7 +2179,7 @@ class question_attempt_step {
     public function get_im_data() {
         $result = array();
         foreach ($this->data as $name => $value) {
-            if ($name[0] == '!') {
+            if ($name[0] == '-') {
                 $result[substr($name, 1)] = $value;
             }
         }
@@ -2196,7 +2196,7 @@ class question_attempt_step {
     public function get_submitted_data() {
         $result = array();
         foreach ($this->data as $name => $value) {
-            if ($name[0] == '_' || ($name[0] == '!' && $name[1] == '_')) {
+            if ($name[0] == '_' || ($name[0] == '-' && $name[1] == '_')) {
                 continue;
             }
             $result[$name] = $value;

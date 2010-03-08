@@ -69,7 +69,7 @@ class qim_deferredcbm extends qim_deferredfeedback {
     protected function get_our_resume_data() {
         $lastcertainty = $this->qa->get_last_im_var('certainty');
         if ($lastcertainty) {
-            return array('!certainty' => $lastcertainty);
+            return array('-certainty' => $lastcertainty);
         } else {
             return array();
         }

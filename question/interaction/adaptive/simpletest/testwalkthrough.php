@@ -52,7 +52,7 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_feedback_expectation());
 
         // Process a submit.
-        $this->process_submission(array('answer' => $wrongindex, '!submit' => 1));
+        $this->process_submission(array('answer' => $wrongindex, '-submit' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$todo);
@@ -79,7 +79,7 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->quba->get_response_summary($this->qnumber));
 
         // Now submit the right answer.
-        $this->process_submission(array('answer' => $rightindex, '!submit' => 1));
+        $this->process_submission(array('answer' => $rightindex, '-submit' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$complete);
@@ -145,7 +145,7 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_feedback_expectation());
 
         // Process a submit.
-        $this->process_submission(array('choice0' => 1, 'choice2' => 1, '!submit' => 1));
+        $this->process_submission(array('choice0' => 1, 'choice2' => 1, '-submit' => 1));
 
         // Verify.
         $this->check_current_state(question_state::$complete);
@@ -188,7 +188,7 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_feedback_expectation());
 
         // Submit with blank answer.
-        $this->process_submission(array('!submit' => 1, 'answer' => ''));
+        $this->process_submission(array('-submit' => 1, 'answer' => ''));
 
         // Verify.
         $this->check_current_state(question_state::$invalid);
@@ -200,7 +200,7 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
         $this->assertNull($this->quba->get_response_summary($this->qnumber));
 
         // Now get it wrong.
-        $this->process_submission(array('!submit' => 1, 'answer' => 'toad'));
+        $this->process_submission(array('-submit' => 1, 'answer' => 'toad'));
 
         // Verify.
         $this->check_current_state(question_state::$todo);
@@ -212,7 +212,7 @@ class qim_adaptive_walkthrough_test extends qim_walkthrough_test_base {
 
 
         // Now submit blank again.
-        $this->process_submission(array('!submit' => 1, 'answer' => ''));
+        $this->process_submission(array('-submit' => 1, 'answer' => ''));
 
         // Verify.
         $this->check_current_state(question_state::$invalid);

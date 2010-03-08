@@ -32,7 +32,7 @@
 require_once(dirname(__FILE__) . '/../lib.php');
 require_once(dirname(__FILE__) . '/helpers.php');
 
-class question_attempt_test extends UnitTestCase {#
+class question_attempt_test extends UnitTestCase {
     private $question;
     private $usageid;
     private $qa;
@@ -84,7 +84,7 @@ class question_attempt_test extends UnitTestCase {#
     public function test_get_im_field_name() {
         $name = $this->qa->get_im_field_name('test');
         $this->assertPattern('/^' . preg_quote($this->qa->get_field_prefix()) . '/', $name);
-        $this->assertPattern('/_!test$/', $name);
+        $this->assertPattern('/_-test$/', $name);
     }
 
     public function test_get_field_prefix() {
@@ -230,10 +230,10 @@ class question_attempt_db_test extends data_loading_method_test_base {
             array(2, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 2, 1, 'complete',          null, 1256233705, 1,   'answer',  '1'),
             array(3, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 1, '', '', '', 1256233790, 3, 2, 'complete',          null, 1256233710, 1,   'answer',  '0'),
             array(4, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 4, 3, 'complete',          null, 1256233715, 1,   'answer',  '1'),
-            array(5, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 5, 4, 'gradedright',  1.0000000, 1256233720, 1,  '!finish',  '1'),
-            array(6, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 'mangrpartial', 0.5000000, 1256233790, 1, '!comment', 'Not good enough!'),
-            array(7, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 'mangrpartial', 0.5000000, 1256233790, 1,    '!mark',  '1'),
-            array(8, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 'mangrpartial', 0.5000000, 1256233790, 1, '!maxmark',  '2'),
+            array(5, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 5, 4, 'gradedright',  1.0000000, 1256233720, 1,  '-finish',  '1'),
+            array(6, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 'mangrpartial', 0.5000000, 1256233790, 1, '-comment', 'Not good enough!'),
+            array(7, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 'mangrpartial', 0.5000000, 1256233790, 1,    '-mark',  '1'),
+            array(8, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 'mangrpartial', 0.5000000, 1256233790, 1, '-maxmark',  '2'),
         ));
 
         $qa = question_attempt::load_from_records($records, 1, new question_usage_null_observer(), 'deferredfeedback');
@@ -273,14 +273,14 @@ class question_attempt_db_test extends data_loading_method_test_base {
         $this->assertEqual(1, $step->get_fraction());
         $this->assertEqual(1256233720, $step->get_timecreated());
         $this->assertEqual(1, $step->get_user_id());
-        $this->assertEqual(array('!finish' => '1'), $step->get_all_data());
+        $this->assertEqual(array('-finish' => '1'), $step->get_all_data());
 
         $step = $qa->get_step(5);
         $this->assertEqual(question_state::$mangrpartial, $step->get_state());
         $this->assertEqual(0.5, $step->get_fraction());
         $this->assertEqual(1256233790, $step->get_timecreated());
         $this->assertEqual(1, $step->get_user_id());
-        $this->assertEqual(array('!comment' => 'Not good enough!', '!mark' => '1', '!maxmark' => '2'),
+        $this->assertEqual(array('-comment' => 'Not good enough!', '-mark' => '1', '-maxmark' => '2'),
                 $step->get_all_data());
     }
 }

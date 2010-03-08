@@ -492,7 +492,7 @@ class qim_walkthrough_test_base extends UnitTestCase {
 
     protected function get_contains_cbm_radio_expectation($certainty, $enabled = null, $checked = null) {
         return $this->get_contains_radio_expectation(array(
-                'name' => $this->quba->get_field_prefix($this->qnumber) . '!certainty',
+                'name' => $this->quba->get_field_prefix($this->qnumber) . '-certainty',
                 'value' => $certainty,
                 ), $enabled, $checked);
     }
@@ -516,7 +516,7 @@ class qim_walkthrough_test_base extends UnitTestCase {
 
     protected function get_contains_submit_button_expectation($enabled = null) {
         return $this->get_contains_button_expectation(
-                $this->quba->get_field_prefix($this->qnumber) . '!submit', null, $enabled);
+                $this->quba->get_field_prefix($this->qnumber) . '-submit', null, $enabled);
     }
 
     protected function get_contains_select_expectation($name, $choices,

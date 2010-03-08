@@ -41,11 +41,11 @@ class qim_informationitem_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_mark(null);
         $this->check_current_output($this->get_contains_question_text_expectation($description),
                 new ContainsTagWithAttributes('input', array('type' => 'hidden',
-                'name' => $this->quba->get_field_prefix($this->qnumber) . '!seen', 'value' => 1)),
+                'name' => $this->quba->get_field_prefix($this->qnumber) . '-seen', 'value' => 1)),
                 $this->get_does_not_contain_feedback_expectation());
 
         // Process a submission indicating this question has been seen.
-        $this->process_submission(array('!seen' => 1));
+        $this->process_submission(array('-seen' => 1));
 
         $this->check_current_state(question_state::$complete);
         $this->check_current_mark(null);

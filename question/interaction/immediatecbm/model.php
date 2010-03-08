@@ -72,7 +72,7 @@ class qim_immediatecbm extends qim_immediatefeedback {
     protected function get_our_resume_data() {
         $lastcertainty = $this->qa->get_last_im_var('certainty');
         if ($lastcertainty) {
-            return array('!certainty' => $lastcertainty);
+            return array('-certainty' => $lastcertainty);
         } else {
             return array();
         }
