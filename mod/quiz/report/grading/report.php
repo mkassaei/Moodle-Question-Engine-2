@@ -125,7 +125,7 @@ class quiz_grading_report extends quiz_default_report {
         global $CFG;
 
         $from = "FROM {$CFG->prefix}quiz_attempts quiza";
-        $where = "quiza.quiz = {$this->cm->instance}";
+        $where = "quiza.quiz = {$this->cm->instance} AND quiza.preview = 0";
 
         if ($this->currentgroup) {
             $where .= ' AND quiza.userid IN (' . implode(',', $this->userids) . ')';
@@ -316,12 +316,15 @@ class quiz_grading_report extends quiz_default_report {
         $mform->set_data($settings);
 
         // Print the heading and form.
+        echo question_engine::initialise_js();
+
         $a = new stdClass;
         $a->number = $this->questions[$qnumber]->number;
         $a->questionname = format_string($counts->name);
         print_heading(get_string('gradingquestionx', 'quiz_grading', $a));
         echo '<p class="mdl-align"><a href="' . $this->list_questions_url() .
                 '">' . get_string('backtothelistofquestions', 'quiz_grading') . '</a></p>';
+
         $mform->display();
 
         // Paging info.
