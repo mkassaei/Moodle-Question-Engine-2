@@ -57,7 +57,12 @@ class qim_informationitem extends question_interaction_model {
 
     public function adjust_display_options(question_display_options $options) {
         parent::adjust_display_options($options);
-        $options->manualcomment = question_display_options::HIDDEN;
+        // At the moment, the code exists to process a manual comment on an
+        // information item, but we don't display the UI unless there is already
+        // a comment.
+        if (!$this->qa->get_state()->is_commented()) {
+            $options->manualcomment = question_display_options::HIDDEN;
+        }
     }
 
     public function process_action(question_attempt_pending_step $pendingstep) {
