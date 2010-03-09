@@ -80,6 +80,68 @@ abstract class qim_renderer extends moodle_renderer_base {
         return '';
     }
 
+    public function manual_comment_fields(question_attempt $qa, question_display_options $options) {
+
+        $commentfield = $qa->get_im_field_name('comment');
+
+        $comment = print_textarea(can_use_html_editor(), 10, 80, null, null, $commentfield, $qa->get_manual_comment(), 0, true);
+        $comment = $this->output_tag('div', array('class' => 'fitem'),
+                $this->output_tag('div', array('class' => 'fitemtitle'),
+                    $this->output_tag('label', array('for' => $commentfield), get_string('comment', 'question'))
+                ) . $this->output_tag('div', array('class' => 'felement fhtmleditor'),
+                    $comment
+                ));
+
+        $mark = '';
+        if ($qa->get_max_mark()) {
+            $fieldsize = strlen($qa->format_max_mark($options->markdp)) - 1;
+            $markfield = $qa->get_im_field_name('mark');
+
+            $attributes = array(
+                'type' => 'text',
+                'size' => $fieldsize,
+                'name' => $markfield,
+                'value' => $qa->format_mark($options->markdp),
+            );
+            $a = new stdClass;
+            $a->max = $qa->format_max_mark($options->markdp);
+            $a->mark = $this->output_empty_tag('input', $attributes);
+
+            $maxmark = $this->output_empty_tag('input', array(
+                'type' => 'hidden',
+                'name' => $qa->get_im_field_name('maxmark'),
+                'value' => $qa->get_max_mark(),
+            ));
+
+            $mark = $this->output_tag('div', array('class' => 'fitem'),
+                    $this->output_tag('div', array('class' => 'fitemtitle'),
+                        $this->output_tag('label', array('for' => $markfield), get_string('mark', 'question'))
+                    ) . $this->output_tag('div', array('class' => 'felement ftext'),
+                        get_string('xoutofmax', 'question', $a) . $maxmark
+                    ));
+            
+        }
+
+        return $this->output_tag('fieldset', array('class' => 'hidden'),
+                $this->output_tag('div', array('class' => 'fcontainer clearfix'),
+                    $comment . $mark));
+    }
+
+    public function manual_comment_view(question_attempt $qa, question_display_options $options) {
+        $output = '';
+        if ($qa->has_manual_comment()) {
+            $output .= get_string('commentx', 'question', $qa->get_manual_comment());
+        }
+        if ($options->manualcommentlink) {
+            $strcomment = get_string('commentormark', 'question');
+            $link = link_to_popup_window($options->manualcommentlink .
+                    '&amp;qnumber=' . $qa->get_number_in_usage(),
+                    'commentquestion', $strcomment, 600, 800, $strcomment, 'none', true);
+            $output .= $this->output_tag('div', array('class' => 'commentlink'), $link);
+        }
+        return $output;
+    }
+
     /**
      * Display the manual comment, and a link to edit it, if appropriate.
      *
@@ -88,21 +150,15 @@ abstract class qim_renderer extends moodle_renderer_base {
      * @return string HTML fragment.
      */
     public function manual_comment(question_attempt $qa, question_display_options $options) {
-        $output = '';
+        if ($options->manualcomment == question_display_options::EDITABLE) {
+            return $this->manual_comment_fields($qa, $options);
 
-        if ($options->manualcomment && $qa->has_manual_comment()) {
-            $output .= get_string('commentx', 'question', $qa->get_manual_comment());
+        } else if ($options->manualcomment == question_display_options::VISIBLE) {
+            return $this->manual_comment_view($qa, $options);
+
+        } else {
+            return '';
         }
-
-        if ($options->can_edit_comment()) {
-            $strcomment = get_string('commentormark', 'question');
-            $link = link_to_popup_window($options->manualcomment .
-                    '&amp;qnumber=' . $qa->get_number_in_usage(),
-                    'commentquestion', $strcomment, 480, 750, $strcomment, 'none', true);
-            $output .= $this->output_tag('div', array('class' => 'commentlink'), $link);
-        }
-
-        return $output;
     }
 
     /**

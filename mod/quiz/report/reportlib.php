@@ -140,6 +140,7 @@ function quiz_report_get_state_summary($qubaids, $qnumbers) {
 function quiz_report_get_usage_ids_where_question_in_state($qubaids, $summarystate,
         $qnumber, $questionid = null, $orderby = 'random', $page = 0, $pagesize = null) {
     global $CFG;
+    $dm = new question_engine_data_mapper();
 
     if ($pagesize && $orderby != 'random') {
         $limitfrom = $page * $pagesize;
@@ -148,13 +149,17 @@ function quiz_report_get_usage_ids_where_question_in_state($qubaids, $summarysta
     }
 
     if ($orderby == 'date') {
-        $orderby = 'qas.timecreated';
+        $orderby = "(
+                SELECT MAX(sortqas.timecreated)
+                FROM {$CFG->prefix}question_attempt_steps sortqas
+                WHERE sortqas.questionattemptid = qa.id
+                    AND sortqas.state {$dm->in_summary_state_test('manuallygraded', false)}
+                )";
     } else if ($orderby == 'student') {
         $qubaids->from .= " JOIN {$CFG->prefix}user u ON quiza.userid = u.id ";
         $orderby = sql_fullname('u.firstname', 'u.lastname');
     }
 
-    $dm = new question_engine_data_mapper();
     return $dm->load_questions_usages_where_question_in_state($qubaids, $summarystate,
             $qnumber, $questionid, $orderby, $limitfrom, $pagesize);
 }

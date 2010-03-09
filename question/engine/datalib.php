@@ -744,11 +744,12 @@ ORDER BY qa.numberinusage
      * state corresponding to $summarystate.
      * @param string $summarystate one of
      * inprogress, needsgrading, manuallygraded or autograded
+     * @param boolean $equal if false, do a NOT IN test. Default true.
      * @return string SQL fragment.
      */
-    protected function in_summary_state_test($summarystate) {
+    public function in_summary_state_test($summarystate, $equal = true) {
         $states = question_state::get_all_for_summary_state($summarystate);
-        list($sql, $params) = get_in_or_equal($states);
+        list($sql, $params) = get_in_or_equal($states, SQL_PARAMS_QM, 'param0000', $equal);
         return $sql;
     }
 }

@@ -808,12 +808,19 @@ function quiz_get_reviewoptions($quiz, $attempt, $context) {
 
     $options->flags = quiz_get_flag_option($attempt, $context);
 
+    if ($quiz->questiondecimalpoints == -1) {
+        $options->markdp = $quiz->decimalpoints;
+    } else {
+        $options->markdp = $quiz->questiondecimalpoints;
+    }
+
     // Provide the links to the question review and comment script
     $options->questionreviewlink = '/mod/quiz/reviewquestion.php';
 
     // Show a link to the comment box only for closed attempts
     if ($attempt->timefinish && !is_null($context) && has_capability('mod/quiz:grade', $context)) {
-        $options->manualcomment = '/mod/quiz/comment.php?attempt=' . $attempt->id;
+        $options->manualcomment = question_display_options::VISIBLE;
+        $options->manualcommentlink = '/mod/quiz/comment.php?attempt=' . $attempt->id;
     }
 
     if (!is_null($context) && has_capability('mod/quiz:viewreports', $context) && 

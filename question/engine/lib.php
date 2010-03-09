@@ -335,11 +335,18 @@ class question_display_options {
     /**
      * Should the manually added marker's comment be visible. Should the link for
      * adding/editing the comment be there.
-     * @var integer|string {@link question_display_options::HIDDEN},
-     * {@link question_display_options::VISIBLE}, or string base URL for the edit
-     * comment script (meaning show any comment, and the link).
+     * @var integer {@link question_display_options::HIDDEN},
+     * {@link question_display_options::VISIBLE}, or {@link question_display_options::EDITABLE}.
+     * Editable means that form fields are displayed inline.
      */
     public $manualcomment = self::VISIBLE;
+
+    /**
+     * Should we show a 'Make comment or override grade' link?
+     * @var string base URL for the edit comment script, which will be shown if
+     * $manualcomment = self::VISIBLE.
+     */
+    public $manualcommentlink = null;
 
     /**
      * Should the history of previous question states table be visible?
@@ -385,13 +392,6 @@ class question_display_options {
         $this->generalfeedback = self::HIDDEN;
         $this->correctresponse = self::HIDDEN;
         $this->manualcomment = self::HIDDEN;
-    }
-
-    /**
-     * @return boolean Whether the link to manually grade this question should be shown.
-     */
-    public function can_edit_comment() {
-        return is_string($this->manualcomment);
     }
 
     /**

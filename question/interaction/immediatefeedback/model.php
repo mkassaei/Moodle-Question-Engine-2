@@ -54,7 +54,7 @@ class qim_immediatefeedback extends question_interaction_model_with_save {
                 'submit' => PARAM_BOOL,
             );
         }
-        return array();
+        return parent::get_expected_data();
     }
 
     public function get_right_answer_summary() {

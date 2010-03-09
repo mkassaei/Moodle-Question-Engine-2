@@ -45,7 +45,7 @@ class qim_informationitem extends question_interaction_model {
         if ($this->qa->get_state() == question_state::$todo) {
             return array('seen' => PARAM_BOOL);
         }
-        return array();
+        return parent::get_expected_data();
     }
 
     public function get_correct_response() {

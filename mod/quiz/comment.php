@@ -55,10 +55,9 @@ print_header();
 print_heading(format_string($attemptobj->get_question_name($qnumber)));
 
 // Process any data that was submitted.
-if (($data = data_submitted()) && confirm_sesskey()) {
+if ((data_submitted()) && confirm_sesskey()) {
     if (optional_param('submit', false, PARAM_BOOL)) {
-        $attemptobj->process_comment($qnumber,
-                $data->response['comment'], $data->response['grade']);
+        $attemptobj->process_all_actions(time());
         notify(get_string('changessaved'), 'notifysuccess');
         print_js_call('window.opener.location.reload', array());
         close_window(2);
@@ -68,11 +67,12 @@ if (($data = data_submitted()) && confirm_sesskey()) {
 
 // Print the comment form.
 echo '<form method="post" class="mform" id="manualgradingform" action="' . $CFG->wwwroot . '/mod/quiz/comment.php">';
-$attemptobj->question_print_comment_fields($qnumber, 'response');
+echo $attemptobj->render_question_for_commenting($qnumber);
 ?>
 <div>
     <input type="hidden" name="attempt" value="<?php echo $attemptobj->get_attemptid(); ?>" />
     <input type="hidden" name="qnumber" value="<?php echo $qnumber; ?>" />
+    <input type="hidden" name="qnumbers" value="<?php echo $qnumber; ?>" />
     <input type="hidden" name="sesskey" value="<?php echo sesskey(); ?>" />
 </div>
 <fieldset class="hidden">
@@ -83,7 +83,7 @@ $attemptobj->question_print_comment_fields($qnumber, 'response');
             </div>
             <fieldset class="felement fgroup">
                 <input id="id_submitbutton" type="submit" name="submit" value="<?php print_string('save', 'quiz'); ?>"/>
-                <input id="id_cancel" type="button" value="<?php print_string('cancel'); ?>" onclick="close_window"/>
+                <input id="id_cancel" type="button" value="<?php print_string('cancel'); ?>" onclick="self.close()"/>
             </fieldset>
         </div>
     </div>
@@ -92,4 +92,5 @@ $attemptobj->question_print_comment_fields($qnumber, 'response');
 echo '</form>';
 
 // End of the page.
+use_html_editor();
 print_footer('empty');

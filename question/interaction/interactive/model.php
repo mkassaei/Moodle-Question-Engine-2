@@ -101,7 +101,7 @@ class qim_interactive extends question_interaction_model_with_save {
                 'submit' => PARAM_BOOL,
             );
         }
-        return array();
+        return parent::get_expected_data();
     }
 
     public function get_expected_qt_data() {

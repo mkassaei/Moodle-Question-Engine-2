@@ -92,11 +92,12 @@ Integrate new code into the quiz reports (7d)
 √   Start with Moodle 2.0 reports.
 √   overview 2d
 √   responses 1d
-    manual grading 1d
+√   manual grading 1d
     statistics 4d
     re-impliment regrading functionality
     sorting on question grade/summary columns
     if you change the quiz Grading method setting, overall grades are not re-computed
+        nor when changing question weights.
     test ungraded quizzes, and ungraded questions
     delete unused code from reportlib.php
     refactor to eliminate some duplicated code

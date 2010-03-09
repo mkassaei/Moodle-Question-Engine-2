@@ -93,7 +93,7 @@ class quiz {
      *
      * @param integer $quizid the the quiz id.
      * @param integer $userid the the userid.
-     * @return object the new quiz object
+     * @return quiz_attempt the new quiz object
      */
     static public function create($quizid, $userid) {
         if (!$quiz = get_record('quiz', 'id', $quizid)) {
@@ -361,7 +361,7 @@ class quiz_attempt {
      * Static function to create a new quiz_attempt object given an attemptid.
      *
      * @param integer $attemptid the attempt id.
-     * @return object the new quiz_attempt object
+     * @return quiz_attempt the new quiz_attempt object
      */
     static public function create($attemptid) {
         if (!$attempt = quiz_load_attempt($attemptid)) {
@@ -861,6 +861,20 @@ class quiz_attempt {
         return $this->quba->render_question($qnumber, $options, $this->quba->get_question($qnumber)->_number);
     }
 
+    /**
+     * Wrapper round print_question from lib/questionlib.php.
+     *
+     * @param integer $id the id of a question in this quiz attempt.
+     * @param boolean $reviewing is the being printed on an attempt or a review page.
+     * @param string $thispageurl the URL of the page this question is being printed on.
+     */
+    public function render_question_for_commenting($qnumber) {
+        $options = $this->get_review_options();
+        $options->hide_all_feedback();
+        $options->manualcomment = question_display_options::EDITABLE;
+        return $this->quba->render_question($qnumber, $options, $this->quba->get_question($qnumber)->_number);
+    }
+
     public function quiz_send_notification_emails() {
         quiz_send_notification_emails($this->get_course(), $this->get_quiz(), $this->attempt,
                 $this->quizobj->get_context(), $this->get_cm());
@@ -903,8 +917,14 @@ class quiz_attempt {
         question_engine::save_questions_usage_by_activity($this->quba);
 
         $this->attempt->timemodified = $timestamp;
+        if ($this->attempt->timefinish) {
+            $this->attempt->sumgrades = $this->quba->get_total_mark();
+        }
         if (!update_record('quiz_attempts', $this->attempt)) {
             throw new moodle_quiz_exception($this->get_quizobj(), 'saveattemptfailed');
+        }
+        if (!$this->is_preview() && $this->attempt->timefinish) {
+            quiz_save_best_grade($this->get_quiz(), $this->get_userid());
         }
     }
 
@@ -934,18 +954,6 @@ class quiz_attempt {
             quiz_save_best_grade($this->get_quiz());
             $this->quiz_send_notification_emails();
         }
-    }
-
-    public function process_comment($qnumber, $comment, $mark) {
-        $this->quba->manual_grade($qnumber, $comment, $mark);
-        $this->attempt->sumgrades = $this->quba->get_total_mark();
-        if (!update_record('quiz_attempts', $this->attempt)) {
-            throw new moodle_quiz_exception($this->get_quizobj(), 'saveattemptfailed');
-        }
-        if (!$this->is_preview()) {
-            quiz_save_best_grade($this->get_quiz(), $this->get_userid());
-        }
-        question_engine::save_questions_usage_by_activity($this->quba);
     }
 
     public function question_print_comment_fields($qnumber, $prefix) {

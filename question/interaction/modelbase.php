@@ -162,7 +162,16 @@ abstract class question_interaction_model {
      * @return array variable name => PARAM_... constant.
      */
     public function get_expected_data() {
-        return array();
+        if (!$this->qa->get_state()->is_finished()) {
+            return array();
+        }
+
+        $vars = array('comment' => PARAM_RAW);
+        if ($this->qa->get_max_mark()) {
+            $vars['mark'] = PARAM_NUMBER;
+            $vars['maxmark'] = PARAM_NUMBER;
+        }
+        return $vars;
     }
 
     /**

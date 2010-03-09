@@ -44,6 +44,7 @@ class qim_adaptive extends question_interaction_model_with_save {
         if ($this->qa->get_state()->is_active()) {
             return array('submit' => PARAM_BOOL);
         }
+        return parent::get_expected_data();
     }
 
     public function get_right_answer_summary() {

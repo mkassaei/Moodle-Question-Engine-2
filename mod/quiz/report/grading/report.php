@@ -54,6 +54,7 @@ class quiz_grading_report extends quiz_default_report {
 
         $this->quiz = $quiz;
         $this->cm = $cm;
+        $this->course = $course;
 
         // Get the URL options.
         $qnumber = optional_param('qnumber', null, PARAM_INT);
@@ -93,13 +94,18 @@ class quiz_grading_report extends quiz_default_report {
         $this->context = get_context_instance(CONTEXT_MODULE, $cm->id);
         require_capability('mod/quiz:grade', $this->context);
 
-        // Process any submitted data.
-        if ($data = data_submitted() && confirm_sesskey()) {
-            $this->process_submitted_data($data, $questions, $quiz);
-        }
-
         // Get the list of questions in this quiz.
         $this->questions = quiz_report_get_significant_questions($quiz);
+        if ($qnumber && !array_key_exists($qnumber, $this->questions)) {
+            throw new moodle_exception('unknownquestion', 'quiz_grading');
+        }
+
+        // Process any submitted data.
+        if ($data = data_submitted() && confirm_sesskey()) {
+            $this->process_submitted_data();
+
+            redirect($this->grade_question_url($qnumber, $questionid, $grade, $page + 1));
+        }
 
         // Get the group, and the list of significant users.
         $this->currentgroup = groups_get_activity_group($this->cm, true);
@@ -125,7 +131,7 @@ class quiz_grading_report extends quiz_default_report {
         global $CFG;
 
         $from = "FROM {$CFG->prefix}quiz_attempts quiza";
-        $where = "quiza.quiz = {$this->cm->instance} AND quiza.preview = 0";
+        $where = "quiza.quiz = {$this->cm->instance} AND quiza.preview = 0 AND quiza.timefinish <> 0";
 
         if ($this->currentgroup) {
             $where .= ' AND quiza.userid IN (' . implode(',', $this->userids) . ')';
@@ -139,6 +145,37 @@ class quiz_grading_report extends quiz_default_report {
         return $sql;
     }
 
+    protected function load_attempts_by_usage_ids($qubaids) {
+        global $CFG;
+
+        list($asql, $params) = get_in_or_equal($qubaids);
+
+        $attemptsbyid = get_records_sql("
+            SELECT quiza.*, u.firstname, u.lastname
+            FROM {$CFG->prefix}quiz_attempts quiza
+            JOIN {$CFG->prefix}user u ON u.id = quiza.userid
+            WHERE quiza.uniqueid $asql AND quiza.timefinish <> 0 AND quiza.quiz = {$this->quiz->id}
+        ");
+
+        $attempts = array();
+        foreach ($attemptsbyid as $attempt) {
+            $attempts[$attempt->uniqueid] = $attempt;
+        }
+        return $attempts;
+    }
+
+    /**
+     * Get the URL of the front page of the report that lists all the questions.
+     * @param $includeauto if not given, use the current setting, otherwise,
+     *      force a paricular value of includeauto in the URL.
+     * @return string the URL.
+     */
+    protected function base_url() {
+        global $CFG;
+        return $CFG->wwwroot . '/mod/quiz/report.php?id=' . $this->cm->id .
+                '&mode=grading';
+    }
+
     /**
      * Get the URL of the front page of the report that lists all the questions.
      * @param $includeauto if not given, use the current setting, otherwise,
@@ -146,10 +183,7 @@ class quiz_grading_report extends quiz_default_report {
      * @return string the URL.
      */
     protected function list_questions_url($includeauto = null) {
-        global $CFG;
-
-        $url = $CFG->wwwroot . '/mod/quiz/report.php?id=' . $this->cm->id .
-                '&mode=grading';
+        $url = $this->base_url();
 
         $options = $this->viewoptions;
         if (!is_null($includeauto)) {
@@ -160,20 +194,27 @@ class quiz_grading_report extends quiz_default_report {
         }
 
         return $url;
-        
     }
 
-    protected function grade_question_url($qnumber, $questionid, $grade, $includecurrentpage = true) {
-        global $CFG;
+    /**
+     * @param integer $qnumber
+     * @param integer $questionid
+     * @param string $grade
+     * @param mixed $page = true, link to current page. false = omit page.
+     *      number = link to specific page.
+     */
+    protected function grade_question_url($qnumber, $questionid, $grade, $page = true) {
 
-        $url = $CFG->wwwroot . '/mod/quiz/report.php?id=' . $this->cm->id .
-                '&mode=grading&qnumber=' . $qnumber . '&qid=' . $questionid .
+        $url = $this->base_url() . '&qnumber=' . $qnumber . '&qid=' . $questionid .
                 '&grade=' . $grade;
 
         $options = $this->viewoptions;
-        if (!$includecurrentpage) {
+        if (!$page) {
             unset($options['page']);
+        } else if (is_integer($page)) {
+            $options['page'] = $page;
         }
+
         foreach ($options as $name => $value) {
             $url .= '&' . $name . '=' . $value;
         }
@@ -231,8 +272,6 @@ class quiz_grading_report extends quiz_default_report {
                 $row[] = $this->format_count_for_table($counts, 'autograded', 'updategrade');
             }
 
-            $row[] = $counts->inprogress;
-
             $row[] = $this->format_count_for_table($counts, 'all', 'gradeall');
 
             $data[] = $row;
@@ -254,7 +293,6 @@ class quiz_grading_report extends quiz_default_report {
         if ($includeauto) {
             $table->head[] = get_string('automaticallygraded', 'quiz_grading');
         }
-        $table->head[] = get_string('inprogress', 'quiz_grading');
         $table->head[] = get_string('total', 'quiz_grading');
 
         $table->data = $data;
@@ -281,20 +319,15 @@ class quiz_grading_report extends quiz_default_report {
             redirect($this->list_questions_url(), get_string('alldoneredirecting', 'quiz_grading'));
         }
 
-        if ($counts->$grade < $pagesize * $page) {
+        if ($pagesize * $page >= $counts->$grade) {
             $page = 0;
         }
 
         list($qubaids, $count) = quiz_report_get_usage_ids_where_question_in_state($attemptssql,
                 $grade, $qnumber, $questionid, $order, $page, $pagesize);
-        $attemptsbyid = get_records_list('quiz_attempts', 'uniqueid', implode(',', $qubaids));
-        $attempts = array();
-        foreach ($attemptsbyid as $attempt) {
-            $attempts[$attempt->uniqueid] = $attempt;
-        }
+        $attempts = $this->load_attempts_by_usage_ids($qubaids);
 
         // Prepare the form.
-        $actionurl = 
         $hidden = array(
             'id' => $this->cm->id,
             'mode' => 'grading',
@@ -342,9 +375,12 @@ class quiz_grading_report extends quiz_default_report {
         // Display the form with one section for each attempt.
         $usehtmleditor = can_use_html_editor();
         $sesskey = sesskey();
+        $qubaidlist = implode(',', $qubaids);
         echo <<<END
-<form method="post" action="{$this->grade_question_url($qnumber, $questionid, $grade)}" class="mform" id="manualgradingform">
+<form method="post" action="{$this->grade_question_url($qnumber, $questionid, $grade, $page)}" class="mform" id="manualgradingform">
 <div>
+<input type="hidden" name="qubaids" value="$qubaidlist" />
+<input type="hidden" name="qnumbers" value="$qnumber" />
 <input type="hidden" name="sesskey" value="$sesskey" />
 END;
 
@@ -353,60 +389,38 @@ END;
             $quba = question_engine::load_questions_usage_by_activity($qubaid);
             $displayoptions = quiz_get_reviewoptions($this->quiz, $attempt, $this->context);
             $displayoptions->hide_all_feedback();
+            $displayoptions->manualcomment = question_display_options::EDITABLE;
 
+            if ($shownames) {
+                $a = new stdClass;
+                $a->fullname = fullname($attempt);
+                $a->attempt = $attempt->attempt;
+                print_heading(get_string('gradingattempt', 'quiz_grading', $a), '', 4);
+            }
             echo $quba->render_question($qnumber, $displayoptions, $this->questions[$qnumber]->number);
-
-            // TODO comment fields.
-//            // The print the comment and grade fields, putting back the previous comment.
-//            $state->manualcomment = $copy;
-//            question_print_comment_fields($question, $state, 'manualgrades[' . $attempt->uniqueid . ']',
-//                    $quiz, get_string('manualgrading', 'quiz'));
-
         }
-        echo '<div class="boxaligncenter"><input type="submit" value="'.get_string('savechanges').'" /></div>'.
+
+        echo '<div class="mdl-align"><input type="submit" value="' .
+                get_string('saveandnext', 'quiz_grading') . '" /></div>'.
             '</div></form>';
+        use_html_editor();
     }
 
-    protected function process_submitted_data($data, $questions, $quiz) {
-        // TODO
+    protected function process_submitted_data() {
+        $qubaids = optional_param('qubaids', null, PARAM_SEQUENCE);
 
-        // now go through all of the responses and save them.
-        $allok = true;
-        foreach ($data->manualgrades as $uniqueid => $response) {
-            // get our attempt
-            $uniqueid = clean_param($uniqueid, PARAM_INT);
-            list($usql, $params) = get_in_or_equal(array_keys($this->users));
-
-            if (!$attempt = get_record_sql("
-                    SELECT * FROM {$CFG->prefix}quiz_attempts
-                            WHERE uniqueid = $uniqueid AND
-                            userid $usql AND
-                            quiz = $quiz->id")) {
-                print_error('invalidattemptid', 'quiz_grading');
-            }
-
-            // Load the state for this attempt (The questions array was created earlier)
-            $states = get_question_states($questions, $quiz, $attempt);
-            // The $states array is indexed by question id but because we are dealing
-            // with only one question there is only one entry in this array
-            $state = $states[$question->id];
-
-            // the following will update the state and attempt
-            $error = question_process_comment($question, $state, $attempt, $response['comment'], $response['grade']);
-            if (is_string($error)) {
-                notify($error);
-                $allok = false;
-            } else if ($state->changed) {
-                // If the state has changed save it and update the quiz grade
-                save_question_session($question, $state);
-                quiz_save_best_grade($quiz, $attempt->userid);
-            }
+        if (!$qubaids) {
+            return;
         }
+        $qubaids = explode(',', $qubaids);
+        $qubaids = clean_param($qubaids, PARAM_INT);
+        $attempts = $this->load_attempts_by_usage_ids($qubaids);
 
-        if ($allok) {
-            notify(get_string('changessaved', 'quiz'), 'notifysuccess');
-        } else {
-            notify(get_string('changessavedwitherrors', 'quiz'), 'notifysuccess');
+        foreach ($qubaids as $qubaid) {
+            $attempt = $attempts[$qubaid];
+            $quba = question_engine::load_questions_usage_by_activity($qubaid);
+            $attemptobj = new quiz_attempt($attempt, $this->quiz, $this->cm, $this->course);
+            $attemptobj->process_all_actions(time());
         }
     }
 }

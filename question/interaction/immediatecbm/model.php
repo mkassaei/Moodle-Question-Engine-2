@@ -54,7 +54,7 @@ class qim_immediatecbm extends qim_immediatefeedback {
                 'certainty' => PARAM_INT,
             );
         }
-        return array();
+        return parent::get_expected_data();
     }
 
     public function get_right_answer_summary() {

@@ -51,7 +51,7 @@ class qim_deferredcbm extends qim_deferredfeedback {
         if ($this->qa->get_state()->is_active()) {
             return array('certainty' => PARAM_INT);
         }
-        return array();
+        return parent::get_expected_data();
     }
 
     public function get_right_answer_summary() {

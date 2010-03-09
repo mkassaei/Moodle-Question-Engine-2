@@ -1595,40 +1595,6 @@ function get_question_image($question) {
     return $img;
 }
 
-function question_print_comment_fields(question_attempt $qa, $prefix, $dp, $caption = '') {
-    global $QTYPES;
-    $idprefix = preg_replace('/[^-_a-zA-Z0-9]/', '', $prefix);
-    $fieldsize = strlen($qa->format_max_mark($dp)) - 1;
-    if (empty($caption)) {
-        $caption = format_string($qa->get_question()->name);
-    }
-    ?>
-<fieldset class="que comment clearfix">
-    <legend class="ftoggler"><?php echo $caption; ?></legend>
-    <div class="fcontainer clearfix">
-        <div class="fitem">
-            <div class="fitemtitle">
-                <label for="<?php echo $idprefix; ?>_comment_box"><?php print_string('comment', 'quiz'); ?></label>
-            </div>
-            <div class="felement fhtmleditor">
-                <?php print_textarea(can_use_html_editor(), 15, 60, 630, 300, $prefix . '[comment]',
-                        $qa->get_manual_comment(), 0, false, $idprefix . '_comment_box'); ?>
-            </div>
-        </div>
-        <div class="fitem">
-            <div class="fitemtitle">
-                <label for="<?php echo $idprefix; ?>_grade_field"><?php print_string('grade', 'quiz'); ?></label>
-            </div>
-            <div class="felement ftext">
-                <input type="text" name="<?php echo $prefix; ?>[grade]" size="<?php echo $fieldsize; ?>" id="<?php echo $idprefix;
-                        ?>_grade_field" value="<?php echo $qa->format_mark($dp); ?>" /> / <?php echo $qa->format_max_mark($dp); ?>
-            </div>
-        </div>
-    </div>
-</fieldset>
-    <?php
-}
-
 function question_print_comment_box($question, $state, $attempt, $url) {
     global $CFG, $QTYPES;
 
