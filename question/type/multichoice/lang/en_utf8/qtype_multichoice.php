@@ -31,6 +31,7 @@ $string['overallcorrectfeedback'] = 'Feedback for any correct response';
 $string['overallincorrectfeedback'] = 'Feedback for any incorrect response';
 $string['overallpartiallycorrectfeedback'] = 'Feedback for any partially correct response';
 $string['partiallycorrectfeedback'] = 'For any partially correct response';
+$string['selectmulti'] = 'Select one or more:';
 $string['selectone'] = 'Select one:';
 $string['shuffleanswers'] = 'Shuffle the choices?';
 $string['singleanswer'] = 'Choose one answer.';

@@ -210,7 +210,8 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_tries_remaining_expectation(2),
-                $this->get_no_hint_visible_expectation());
+                $this->get_no_hint_visible_expectation(),
+                new PatternExpectation('/' . preg_quote(get_string('selectone', 'qtype_multichoice'), '/') . '/'));
 
         // Submit the wrong answer.
         $this->process_submission(array('answer' => $wrongindex, '-submit' => 1));
@@ -358,7 +359,8 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_does_not_contain_num_parts_correct(),
                 $this->get_tries_remaining_expectation(3),
-                $this->get_no_hint_visible_expectation());
+                $this->get_no_hint_visible_expectation(),
+                new PatternExpectation('/' . preg_quote(get_string('selectmulti', 'qtype_multichoice'), '/') . '/'));
 
         // Submit an answer with one right, and one wrong.
         $this->process_submission(array($right[0] => 1, $wrong[0] => 1, '-submit' => 1));

@@ -47,6 +47,8 @@ abstract class qtype_multichoice_renderer_base extends qtype_renderer {
 
     abstract protected function get_response(question_attempt $qa);
 
+    abstract protected function prompt();
+
     public function formulation_and_controls(question_attempt $qa,
             question_display_options $options) {
 
@@ -106,8 +108,7 @@ abstract class qtype_multichoice_renderer_base extends qtype_renderer {
                 $question->format_questiontext());
 
         $result .= $this->output_start_tag('div', array('class' => 'ablock'));
-        $result .= $this->output_tag('div', array('class' => 'prompt'),
-                get_string('selectone', 'qtype_multichoice'));
+        $result .= $this->output_tag('div', array('class' => 'prompt'), $this->prompt());
 
         $result .= $this->output_start_tag('div', array('class' => 'answer'));
         foreach ($radiobuttons as $key => $radio) {
@@ -207,6 +208,10 @@ class qtype_multichoice_single_renderer extends qtype_multichoice_renderer_base 
         return $ans->fraction > 0.9999999;
     }
 
+    protected function prompt() {
+        return get_string('selectone', 'qtype_multichoice');
+    }
+
     public function correct_response(question_attempt $qa) {
         $question = $qa->get_question();
 
@@ -255,6 +260,10 @@ class qtype_multichoice_multi_renderer extends qtype_multichoice_renderer_base {
 
     protected function is_right(question_answer $ans) {
         return $ans->fraction > 0;
+    }
+
+    protected function prompt() {
+        return get_string('selectmulti', 'qtype_multichoice');
     }
 
     public function correct_response(question_attempt $qa) {
