@@ -101,7 +101,7 @@ Integrate new code into the quiz reports (7d)
     test ungraded quizzes, and ungraded questions
     delete unused code from reportlib.php
     refactor to eliminate some duplicated code
-    check formatting by question or quiz decimal points
+√   check formatting by question or quiz decimal points
 
 Finish database load/save code (4d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9206)

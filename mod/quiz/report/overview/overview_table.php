@@ -115,7 +115,7 @@ class quiz_report_overview_table extends table_sql {
                 $record->grade = null;
                 $record->numaveraged = 0;
             }
-            $row['qsgrade' . $question->qnumber] = $this->format_average($record);
+            $row['qsgrade' . $question->qnumber] = $this->format_average($record, true);
         }
         return $row;
     }
@@ -124,9 +124,11 @@ class quiz_report_overview_table extends table_sql {
      * Format an entry in an average row.
      * @param object $record with fields grade and numaveraged
      */
-    protected function format_average($record) {
+    protected function format_average($record, $question = false) {
         if (is_null($record->grade)) {
             $average = '-';
+        } else if ($question) {
+            $average = quiz_format_question_grade($this->quiz, $record->grade);
         } else {
             $average = quiz_format_grade($this->quiz, $record->grade);
         }
@@ -296,7 +298,7 @@ class quiz_report_overview_table extends table_sql {
                 $grade = '-';
             }
         } else {
-            $grade = quiz_rescale_grade($stepdata->fraction * $question->maxmark, $this->quiz);
+            $grade = quiz_rescale_grade($stepdata->fraction * $question->maxmark, $this->quiz, 'question');
         }
 
         if ($this->is_downloading()) {

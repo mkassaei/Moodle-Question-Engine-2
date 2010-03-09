@@ -408,7 +408,8 @@ function quiz_get_all_question_grades($quiz) {
  *
  * @param float $rawgrade the unadjusted grade, fof example $attempt->sumgrades
  * @param object $quiz the quiz object. Only the fields grade, sumgrades and decimalpoints are used.
- * @param boolean $format whether to format the results for display.
+ * @param boolean|string $format whether to format the results for display
+ *      or 'question' to format a question grade (different number of decimal places.
  * @return float|string the rescaled grade, or null/the lang string 'notyetgraded' if the $grade is null.
  */
 function quiz_rescale_grade($rawgrade, $quiz, $format = true) {
@@ -419,7 +420,9 @@ function quiz_rescale_grade($rawgrade, $quiz, $format = true) {
     } else {
         $grade = 0;
     }
-    if ($format) {
+    if ($format === 'question') {
+        $grade = quiz_format_question_grade($quiz, $grade);
+    } else if ($format) {
         $grade = quiz_format_grade($quiz, $grade);
     }
     return $grade;
@@ -769,6 +772,12 @@ function quiz_get_renderoptions($quiz, $attempt, $context) {
     $options->readonly = false;
 
     $options->flags = quiz_get_flag_option($attempt, $context);
+
+    if ($quiz->questiondecimalpoints == -1) {
+        $options->markdp = $quiz->decimalpoints;
+    } else {
+        $options->markdp = $quiz->questiondecimalpoints;
+    }
 
     // Show feedback once the question has been graded (if allowed by the quiz)
     $options->feedback = $quiz->review & QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_IMMEDIATELY;
