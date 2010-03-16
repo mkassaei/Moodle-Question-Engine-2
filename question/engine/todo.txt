@@ -111,6 +111,7 @@ Finish database load/save code (4d)
     Database update on regrading 0.5d
     Kill question.image column, with upgrade.
     Upgrade essay question type. Kill its use of an answer, and merge all feedback into generalfeedback.
+    Add transactions.
 
 <-- Working quiz reports milestone
 
