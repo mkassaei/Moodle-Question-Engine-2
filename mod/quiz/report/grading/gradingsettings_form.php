@@ -40,7 +40,7 @@ class quiz_grading_settings extends moodleform {
 
     public function __construct($hidden, $counts) {
         global $CFG;
-        $this->includeauto = !empty($this->hidden['includeauto']);
+        $this->includeauto = !empty($hidden['includeauto']);
         $this->hidden = $hidden;
         $this->counts = $counts;
         parent::__construct($CFG->wwwroot . '/mod/quiz/report.php', null, 'get');
