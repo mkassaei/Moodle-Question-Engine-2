@@ -74,6 +74,14 @@ abstract class question_bank {
     }
 
     /**
+     * @param $qtypename the internal name of a question type, for example multichoice.
+     * @return string the human_readable name of this question type, from the language pack.
+     */
+    public static function get_qtype_name($qtypename) {
+        return $this->get_qtype($qtypename)->menu_name();
+    }
+
+    /**
      * @return array all the installed question types.
      */
     public static function get_all_qtypes() {

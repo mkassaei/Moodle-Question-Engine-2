@@ -197,6 +197,29 @@ class qtype_truefalse extends question_type {
         return $responses;
     }
 
+    function get_random_guess_score($questiondata) {
+        return 0.5;
+    }
+
+    function get_possible_responses($questiondata) {
+        $true = new stdClass;
+        $true->responseclass = get_string('true', 'question_truefalse');
+        $true->fraction = $questiondata->options->answers[
+                $questiondata->options->trueanswer]->fraction;
+
+        $false = new stdClass;
+        $false->responseclass = get_string('false', 'question_truefalse');
+        $false->fraction = $questiondata->options->answers[
+                $questiondata->options->falseanswer]->fraction;
+
+        return array(
+            $questiondata->id => array(
+                0 => $true,
+                1 => $false
+            )
+        );
+    }
+
 /// BACKUP FUNCTIONS ////////////////////////////
 
     /*

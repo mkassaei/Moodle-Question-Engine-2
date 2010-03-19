@@ -115,4 +115,19 @@ class qtype_missing_test extends UnitTestCase {
         $q = new qtype_missingtype_question();
         $this->assertNull($q->summarise_response(array('a' => 'irrelevant')));
     }
+
+    public function test_can_analyse_responses() {
+        $qtype = new qtype_missingtype();
+        $this->assertFalse($qtype->can_analyse_responses());
+    }
+
+    public function test_get_random_guess_score() {
+        $qtype = new qtype_missingtype();
+        $this->assertNull($qtype->get_random_guess_score(null));
+    }
+
+    public function test_get_possible_responses() {
+        $qtype = new qtype_missingtype();
+        $this->assertEqual(array(), $qtype->get_possible_responses(null));
+    }
 }

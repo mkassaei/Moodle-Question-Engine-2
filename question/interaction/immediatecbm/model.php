@@ -135,4 +135,8 @@ class qim_immediatecbm extends qim_immediatefeedback {
         }
         return question_attempt::KEEP;
     }
+
+    public static function adjust_random_guess_score($fraction) {
+        return question_cbm::adjust_fraction($fraction, question_cbm::default_certainty());
+    }
 }

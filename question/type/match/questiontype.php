@@ -166,25 +166,6 @@ class qtype_match extends question_type {
         return true;
     }
 
-    // ULPGC ecastro for stats report
-    public function get_all_responses($question, $state) {
-        $answers = array();
-        if (is_array($question->options->subquestions)) {
-            foreach ($question->options->subquestions as $aid => $answer) {
-                if ($answer->questiontext !== '' && !is_null($answer->questiontext)) {
-                    $r = new stdClass;
-                    $r->answer = $answer->questiontext . ": " . $answer->answertext;
-                    $r->credit = 1;
-                    $answers[$aid] = $r;
-                }
-            }
-        }
-        $result = new stdClass;
-        $result->id = $question->id;
-        $result->responses = $answers;
-        return $result;
-    }
-
     // ULPGC ecastro
     public function get_actual_response($question, $state) {
         $subquestions = &$state->options->subquestions;
@@ -203,6 +184,35 @@ class qtype_match extends question_type {
     public function response_summary($question, $state, $length=80) {
         // This should almost certainly be overridden
         return shorten_text(implode(', ', $this->get_actual_response($question, $state)), $length);
+    }
+
+    function get_random_guess_score($questiondata) {
+        return 1 / count($questiondata->options->subquestions);
+    }
+
+    function get_possible_responses($questiondata) {
+        $subqs = array();
+
+        foreach ($questiondata->options->subquestions as $subqid => $subq) {
+            if (!$subq->questiontext) {
+                continue;
+            }
+
+            $responses = array();
+            foreach ($questiondata->options->subquestions as $aid => $answer) {
+                $r = new stdClass;
+                $r->responseclass = $subq->questiontext . ': ' . $answer->answertext;
+                $r->fraction = 0;
+                if ($subqid == $aid) {
+                    $r->fraction = 1;
+                }
+                $responses[$aid] = $r;
+            }
+
+            $subqs[$subqid] = $responses;
+        }
+
+        return $subqs;
     }
 
 /// BACKUP FUNCTIONS ////////////////////////////

@@ -24,6 +24,7 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+require_once($CFG->libdir . '/questionlib.php');
 
 /**
  * The description 'question' type.
@@ -33,6 +34,10 @@
  */
 class qtype_description extends question_type {
     public function is_usable_by_random() {
+        return false;
+    }
+
+    public function can_analyse_responses() {
         return false;
     }
 
@@ -60,6 +65,10 @@ class qtype_description extends question_type {
         /// The question type description is not even a question
         /// in itself so it will return ZERO!
         return 0;
+    }
+
+    public function get_random_guess_score($questiondata) {
+        return null;
     }
 }
 question_register_questiontype(question_bank::get_qtype('description'));

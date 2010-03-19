@@ -73,6 +73,21 @@ class question_type {
     }
 
     /**
+     * Whether this question type can perform a frequency analysis of student
+     * responses.
+     *
+     * If this method returns true, you must implement the get_possible_responses
+     * and TODO methods.
+     *
+     * @return boolean whether this report can analyse all the student reponses
+     * for things like the quiz statistics report.
+     */
+    public function can_analyse_responses() {
+        // This works in most cases.
+        return !$this->is_manual_graded();
+    }
+
+    /**
      * @return whether the question_answers.answer field needs to have
      * restore_decode_content_links_worker called on it.
      */
@@ -620,37 +635,43 @@ class question_type {
     }
 
     /**
-    * Return an array of values with the texts for all possible responses stored
-    * for the question
-    *
-    * All answers are found and their text values isolated
-    * @return object          A mixed object
-    *             ->id        question id. Needed to manage random questions:
-    *                         it's the id of the actual question presented to user in a given attempt
-    *             ->responses An array of values giving the responses corresponding
-    *                         to all answers to the question. Answer ids are used as keys.
-    *                         The text and partial credit are the object components
-    * @param object $question The question for which the answers are to
-    *                         be retrieved. Question type specific information is
-    *                         available.
-    */
-    // ULPGC ecastro
-    public function get_all_responses(&$question, &$state) {
-        if (isset($question->options->answers) && is_array($question->options->answers)) {
-            $answers = array();
-            foreach ($question->options->answers as $aid=>$answer) {
-                $r = new stdClass;
-                $r->answer = $answer->answer;
-                $r->credit = $answer->fraction;
-                $answers[$aid] = $r;
-            }
-            $result = new stdClass;
-            $result->id = $question->id;
-            $result->responses = $answers;
-            return $result;
-        } else {
-            return null;
-        }
+     * @param object $question
+     * @return number|null either a fraction estimating what the student would
+     * score by guessing, or null, if it is not possible to estimate.
+     */
+    function get_random_guess_score($questiondata) {
+        return 0;
+    }
+
+    /**
+     * This method should return all the possible types of response that are
+     * recognised for this question. 
+     *
+     * The question is modelled as comprising one or more subquestions. For each
+     * subquestion, there are one or more categories that that students response
+     * might fall into, each of those categories earning a certain score.
+     *
+     * For example, in a shortanswer question, there is only one subquestion, the
+     * text entry field. The response the student gave will be classified according
+     * to which of the possible $question->options->answers it matches.
+     *
+     * For the matching question type, there will be one subquestion for each
+     * question stem, and for each stem, each of the possible choices might be
+     * the student's response.
+     *
+     * A response is an object with two fields, ->responseclass is a string
+     * presentation of that response, and ->fraction, the credit for a response
+     * in that class.
+     *
+     * Array keys have no specific meaning, but must be unique, and must be
+     * the same if this function is called repeatedly.
+     *
+     * @param object $question the question definition data.
+     * @return array keys are subquestionid, values are arrays of possible
+     *      responses to that subquestion.
+     */
+    function get_possible_responses($questiondata) {
+        return array();
     }
 
     /**

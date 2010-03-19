@@ -291,34 +291,42 @@ class qtype_numerical extends question_type {
         return $correct;
     }
 
-    // ULPGC ecastro
-    public function get_all_responses(&$question, &$state) {
-        $result = new stdClass;
-        $answers = array();
-        $unit = $this->get_default_numerical_unit($question);
-        if (is_array($question->options->answers)) {
-            foreach ($question->options->answers as $aid=>$answer) {
-                $r = new stdClass;
-                $r->answer = $answer->answer;
-                $r->credit = $answer->fraction;
-                $this->get_tolerance_interval($answer);
-                if ($r->answer != '*' && $unit) {
-                    $r->answer .= ' ' . $unit->unit;
-                }
-                if ($r->answer != '*') {
-                    $ans = new qtype_numerical_answer($answer->answer, $answer->fraction, $answer->feedback, $answer->tolerance);
-                    list($min, $max) = $ans->get_tolerance_interval();
-                    $r->answer .= ' ('.$min.'..'.$max.')';
-                }
-                $answers[$aid] = $r;
+    function get_random_guess_score($questiondata) {
+        foreach ($questiondata->options->answers as $aid => $answer) {
+            if ('*' == trim($answer->answer)) {
+                return $answer->fraction;
             }
         }
-        $result->id = $question->id;
-        $result->responses = $answers;
-        return $result;
+        return 0;
     }
 
-    /// BACKUP FUNCTIONS ////////////////////////////
+    function get_possible_responses($questiondata) {
+        $responses = array();
+
+        $unit = $this->get_default_numerical_unit($questiondata);
+
+        foreach ($questiondata->options->answers as $aid => $answer) {
+            $r = new stdClass;
+            $r->responseclass = $answer->answer;
+            $r->fraction = $answer->fraction;
+
+            if ($answer->answer != '*') {
+                if ($unit) {
+                    $r->responseclass .= ' ' . $unit->unit;
+                }
+
+                $ans = new qtype_numerical_answer($answer->answer, $answer->fraction, $answer->feedback, $answer->tolerance);
+                list($min, $max) = $ans->get_tolerance_interval();
+                $r->responseclass .= " ($min..$max)";
+            }
+
+            $responses[$aid] = $r;
+        }
+
+        return array($questiondata->id => $responses);
+    }
+
+/// BACKUP FUNCTIONS ////////////////////////////
 
     /**
      * Backup the data in the question

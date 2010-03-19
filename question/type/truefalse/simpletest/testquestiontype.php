@@ -47,4 +47,33 @@ class qtype_truefalse_test extends UnitTestCase {
         $this->assertEqual($this->qtype->name(), 'truefalse');
     }
 
+    public function test_can_analyse_responses() {
+        $this->assertTrue($this->qtype->can_analyse_responses());
+    }
+
+    public function test_get_random_guess_score() {
+        $this->assertEqual(0.5, $this->qtype->get_random_guess_score(null));
+    }
+
+    public function test_get_possible_responses() {
+        $q = new stdClass;
+        $q->id = 1;
+        $q->options->trueanswer = 1;
+        $q->options->falseanswer = 2;
+        $q->options->answers[1] = (object) array('fraction' => 1);
+        $q->options->answers[2] = (object) array('fraction' => 0);
+
+        $responses = $this->qtype->get_possible_responses($q);
+
+        $this->assertEqual(1, count($responses));
+
+        $response = reset($responses);
+        $this->assertEqual(2, count($response));
+
+        $this->assertEqual(1, $response[0]->fraction);
+        $this->assertEqual(get_string('true', 'question_truefalse'), $response[0]->responseclass);
+
+        $this->assertEqual(0, $response[1]->fraction);
+        $this->assertEqual(get_string('false', 'question_truefalse'), $response[1]->responseclass);
+    }
 }

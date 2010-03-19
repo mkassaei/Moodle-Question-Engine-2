@@ -235,6 +235,14 @@ class qtype_multianswer extends question_type {
         return $responses;
     }
 
+    function get_random_guess_score($question) {
+        $totalfraction = 0;
+        foreach (array_keys($question->options->questions) as $key){
+            $totalfraction += question_get_random_guess_score($question->options->questions[$key]);
+        }
+        return $totalfraction / count($question->options->questions);
+    }
+
     function print_question_formulation_and_controls(&$question, &$state, $cmoptions, $options) {
 
         global $QTYPES, $CFG, $USER;

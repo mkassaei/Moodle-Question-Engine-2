@@ -126,6 +126,28 @@ class qtype_shortanswer extends question_type {
         return $response;
     }
 
+    function get_random_guess_score($questiondata) {
+        foreach ($questiondata->options->answers as $aid => $answer) {
+            if ('*' == trim($answer->answer)) {
+                return $answer->fraction;
+            }
+        }
+        return 0;
+    }
+
+    function get_possible_responses($questiondata) {
+        $responses = array();
+
+        foreach ($questiondata->options->answers as $aid => $answer) {
+            $r = new stdClass;
+            $r->responseclass = $answer->answer;
+            $r->fraction = $answer->fraction;
+            $responses[$aid] = $r;
+        }
+
+        return array($questiondata->id => $responses);
+    }
+
 /// RESTORE FUNCTIONS /////////////////
 
     /*

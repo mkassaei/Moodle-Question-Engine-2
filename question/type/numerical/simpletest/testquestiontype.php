@@ -33,7 +33,6 @@ require_once($CFG->dirroot . '/question/type/numerical/questiontype.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_numerical_test extends UnitTestCase {
-    protected $tolerance = 0.00000001;
     protected $qtype;
 
     public function setUp() {
@@ -44,7 +43,56 @@ class qtype_numerical_test extends UnitTestCase {
         $this->qtype = null;   
     }
 
+    protected function get_test_question_data() {
+        $q = new stdClass;
+        $q->id = 1;
+        $q->options->answers[1] = (object) array(
+            'answer' => 42,
+            'fraction' => 1,
+            'feedback' => 'yes',
+            'tolerance' => 0.5
+        );
+        $q->options->answers[2] = (object) array(
+            'answer' => '*',
+            'fraction' => 0.1,
+            'feedback' => 'no',
+            'tolerance' => ''
+        );
+
+        $q->options->units = array(
+            (object) array('unit' => 'm', 'multiplier' => 1),
+            (object) array('unit' => 'cm', 'multiplier' => 0.01)
+        );
+
+        return $q;
+    }
+
     public function test_name() {
         $this->assertEqual($this->qtype->name(), 'numerical');
+    }
+
+    public function test_can_analyse_responses() {
+        $this->assertTrue($this->qtype->can_analyse_responses());
+    }
+
+    public function test_get_random_guess_score() {
+        $q = $this->get_test_question_data();
+        $this->assertEqual(0.1, $this->qtype->get_random_guess_score($q));
+    }
+
+    public function test_get_possible_responses() {
+        $q = $this->get_test_question_data();
+        $responses = $this->qtype->get_possible_responses($q);
+
+        $this->assertEqual(1, count($responses));
+
+        $response = reset($responses);
+        $this->assertEqual(2, count($response));
+
+        $this->assertEqual(1, $response[1]->fraction);
+        $this->assertEqual('42 m (41.5..42.5)', $response[1]->responseclass);
+
+        $this->assertEqual(0.1, $response[2]->fraction);
+        $this->assertEqual('*', $response[2]->responseclass);
     }
 }

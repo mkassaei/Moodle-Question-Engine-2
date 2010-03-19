@@ -214,5 +214,9 @@ class qtype_random extends question_type {
         }
         return null;
     }
+
+    function get_random_guess_score($questiondata) {
+        return null;
+    }
 }
 question_register_questiontype(question_bank::get_qtype('random'));

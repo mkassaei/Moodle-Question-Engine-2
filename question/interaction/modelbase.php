@@ -156,6 +156,17 @@ abstract class question_interaction_model {
     }
 
     /**
+     * Adjust a random guess score for a question using this model. You have to
+     * do this without knowing details of the specific question, or which usage
+     * it is in.
+     * @param number $fraction the random guess score from the question type.
+     * @return number the adjusted fraction.
+     */
+    public static function adjust_random_guess_score($fraction) {
+        return $fraction;
+    }
+
+    /**
      * Return an array of the interaction model variables that could be submitted
      * as part of a question of this type, with their types, so they can be
      * properly cleaned.

@@ -30,6 +30,11 @@ require_once(dirname(__FILE__) . '/locallib.php');
  * The Opaque question type.
  */
 class qtype_opaque extends question_type {
+
+    public function can_analyse_responses() {
+        return false;
+    }
+
     function extra_question_fields() {
         return array('question_opaque', 'engineid', 'remoteid', 'remoteversion');
     }
@@ -55,18 +60,6 @@ class qtype_opaque extends question_type {
         return null;
     }
 
-    function get_all_responses(&$question, &$state) {
-        // We cannot tell the range of possible respnoses that the question can respond to,
-        // but we need to return something to make things show up in the item analysis report.
-        $r = new stdClass();
-        $r->answer = get_string('notcompleted', 'qtype_opaque');
-        $r->credit = 0.0;
-        $result = new stdClass;
-        $result->id = $question->id;
-        $result->responses = array($r);
-        return $result;
-    }
-
     function get_actual_response($question, $state) {
         $responses = array();
         if (!empty($state->responses['__answerLine'])) {
@@ -77,6 +70,10 @@ class qtype_opaque extends question_type {
             $responses[] = implode(', ', $state->responses);
         }
         return $responses;
+    }
+
+    public function get_random_guess_score($questiondata) {
+        return null;
     }
 
     function export_to_xml($question, $format, $extra=null) {

@@ -71,7 +71,7 @@ Incorporate other OU-specific quiz customisations into this code (8d)
         quiz backup version 0d
         OCI revisioneditor stuff 0.5d
     Changes to eliminate (with permission)
-        nasty hack  in report.php and tabs.php to prevent tutors accessing the responses report (check separate groups works). 0.5d
+        nasty hack in report.php and tabs.php to prevent tutors accessing the responses report (check separate groups works). 0.5d
     Review lang files as a double-check that nothing was missed. 0.5d
     Don't auto redirect to edit.php for empty quizzes. 0d
     Activity completion changes. 0d
@@ -98,10 +98,12 @@ Integrate new code into the quiz reports (7d)
     sorting on question grade/summary columns
     if you change the quiz Grading method setting, overall grades are not re-computed
         nor when changing question weights.
-    test ungraded quizzes, and ungraded questions
-    delete unused code from reportlib.php
+    test ungraded quizzes and ungraded questions
+√   delete unused code from reportlib.php
     refactor to eliminate some duplicated code
 √   check formatting by question or quiz decimal points
+√   delete obsolete get_all_responses method.
+    remove obsolete functions from questionlib.php
 
 Finish database load/save code (4d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9206)

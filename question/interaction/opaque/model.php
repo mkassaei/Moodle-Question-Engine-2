@@ -165,5 +165,3 @@ class qim_opaque extends question_interaction_model {
         return preg_replace('/\\s+/', ' ', $line);
     }
 }
-
-

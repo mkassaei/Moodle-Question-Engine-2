@@ -1782,19 +1782,6 @@ function save_question_options($question) {
 }
 
 /**
-* Gets all teacher stored answers for a given question
-*
-* Simply calls the question type specific get_all_responses() method.
-*/
-// ULPGC ecastro
-function get_question_responses($question, $state) {
-    global $QTYPES;
-    $r = $QTYPES[$question->qtype]->get_all_responses($question, $state);
-    return $r;
-}
-
-
-/**
 * Gets the response given by the user in a particular state
 *
 * Simply calls the question type specific get_actual_response() method.

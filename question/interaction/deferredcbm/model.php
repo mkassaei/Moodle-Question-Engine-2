@@ -108,4 +108,8 @@ class qim_deferredcbm extends qim_deferredfeedback {
         }
         return $status;
     }
+
+    public static function adjust_random_guess_score($fraction) {
+        return question_cbm::adjust_fraction($fraction, question_cbm::default_certainty());
+    }
 }

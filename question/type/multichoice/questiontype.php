@@ -246,6 +246,27 @@ class qtype_multichoice extends question_type {
         return implode(',', $this->get_actual_response($question, $state));
     }
 
+    function get_random_guess_score($questiondata) {
+        $totalfraction = 0;
+        foreach ($questiondata->options->answers as $answer) {
+            $totalfraction += $answer->fraction;
+        }
+        return $totalfraction / count($questiondata->options->answers);
+    }
+
+    function get_possible_responses($questiondata) {
+        $responses = array();
+
+        foreach ($questiondata->options->answers as $aid => $answer) {
+            $r = new stdClass;
+            $r->responseclass = $answer->answer;
+            $r->fraction = $answer->fraction;
+            $responses[$aid] = $r;
+        }
+
+        return array($questiondata->id => $responses);
+    }
+
 /// BACKUP FUNCTIONS ////////////////////////////
 
     /*

@@ -44,6 +44,14 @@ class qtype_missingtype extends question_type {
         return false;
     }
 
+    public function can_analyse_responses() {
+        return false;
+    }
+
+    public function get_random_guess_score($questiondata) {
+        return null;
+    }
+
     public function display_question_editing_page($mform, $question, $wizardnow){
         print_heading(get_string('missingqtypewarning', 'qtype_missingtype'));
         $mform->display();
