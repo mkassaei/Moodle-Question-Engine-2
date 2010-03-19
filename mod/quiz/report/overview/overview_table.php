@@ -187,7 +187,7 @@ class quiz_report_overview_table extends table_sql {
 
     public function col_picture($attempt) {
         global $COURSE;
-        $user = new object();
+        $user = new stdClass;
         $user->id = $attempt->userid;
         $user->lastname = $attempt->lastname;
         $user->firstname = $attempt->firstname;

@@ -34,49 +34,6 @@ define('QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH', 2);
 define('QUIZ_REPORT_ATTEMPTS_ALL_STUDENTS', 3);
 
 /**
- * Get newest graded state or newest state for a number of attempts. Pass in the
- * uniqueid field from quiz_attempt table not the id. Use question_state_is_graded
- * function to check that the question is actually graded.
- * @param array attemptidssql either an array of attemptids with numerical keys
- * or an object with properties from, where and params.
- * @param boolean idxattemptq true if a multidimensional array should be
- * constructed with keys indexing array first by attempt and then by question
- * id.
- */
-function quiz_get_newgraded_states($attemptidssql, $idxattemptq = true, $fields='qs.*') {
-    global $CFG;
-
-    if ($attemptidssql && is_array($attemptidssql)) {
-        list($usql, $params) = $DB->get_in_or_equal($attemptidssql);
-        $gradedstatesql = "SELECT $fields FROM " .
-                "{question_sessions} qns, " .
-                "{question_states} qs " .
-                "WHERE qns.attemptid $usql AND " .
-                "qns.newest = qs.id";
-
-    } else if ($attemptidssql && is_object($attemptidssql)) {
-        $gradedstatesql = "SELECT $fields FROM " .
-                $attemptidssql->from.",".
-                "{question_sessions} qns, " .
-                "{question_states} qs " .
-                "WHERE qns.attemptid = qa.uniqueid AND " .
-                $attemptidssql->where." AND ".
-                "qns.newest = qs.id";
-
-    } else {
-        return array();
-    }
-
-    $gradedstates = get_records_sql($gradedstatesql);
-
-    if ($idxattemptq) {
-        return quiz_report_index_by_keys($gradedstates, array('attempt', 'question'));
-    } else {
-        return $gradedstates;
-    }
-}
-
-/**
  * Load information about the latest state of selected questions in selected attempts.
  *
  * The $qubaids argument is as for {@link question_engine_data_mapper::load_questions_usages_latest_steps()}.
@@ -256,30 +213,6 @@ WHERE
     return $dm->load_average_marks($qubaids, $qnumbers);
 }
 
-function quiz_get_total_qas_graded_and_ungraded($quiz, $questionids, $userids) {
-    global $CFG;
-    $params = array($quiz->id);
-    list($u_sql, $u_params) = $DB->get_in_or_equal($userids);
-    list($q_sql, $q_params) = $DB->get_in_or_equal($questionids);
-    
-    $params = array_merge($params, $u_params, $q_params);
-    $sql = "SELECT qs.question, COUNT(1) AS totalattempts,
-            SUM(CASE WHEN (qs.event IN(".QUESTION_EVENTS_GRADED.")) THEN 1 ELSE 0 END) AS gradedattempts
-            FROM
-            {quiz_attempts} qa,
-            {question_sessions} qns,
-            {question_states} qs
-            WHERE
-            qa.quiz = ? AND
-            qa.userid $u_sql AND
-            qns.attemptid = qa.uniqueid AND
-            qns.newest = qs.id AND
-            qs.event IN (".QUESTION_EVENTS_CLOSED_OR_GRADED.") AND
-            qs.question $q_sql
-            GROUP BY qs.question";
-    return $DB->get_records_sql($sql, $params);
-}
-
 /**
  * Get the qnumbers of real questions (not descriptions) in this quiz, in order.
  * @param object $quiz the quiz.
@@ -318,45 +251,6 @@ WHERE
     return $qnumbers;
 }
 
-/**
- * Load the question data necessary in the reports.
- * - Remove description questions.
- * - Order questions in order that they are in the quiz
- * - Add question numbers.
- * - Add grade from quiz_questions_instance
- */
-function quiz_report_load_questions($quiz) {
-    global $CFG;
-    $questionlist = quiz_questions_in_quiz($quiz->questions);
-    //In fact in most cases the id IN $questionlist below is redundant
-    //since we are also doing a JOIN on the qqi table. But will leave it in
-    //since this double check will probably do no harm.
-    list($usql, $params) = get_in_or_equal(explode(',', $questionlist));
-    $params[] = $quiz->id;
-    if (!$questions = get_records_sql("SELECT q.*, qqi.grade AS maxmark
-            FROM {$CFG->prefix}question q,
-            {$CFG->prefix}quiz_question_instances qqi
-            WHERE q.id $usql AND
-            qqi.question = q.id AND
-            qqi.quiz = $quiz->id", $params)) {
-        print_error('noquestionsfound', 'quiz');
-    }
-    //Now we have an array of questions from a quiz we work out there question nos and remove
-    //questions with zero length ie. description questions etc.
-    //also put questions in order.
-    $number = 1;
-    $realquestions = array();
-    $questionids = explode(',', $questionlist);
-    foreach ($questionids as $id) {
-        if ($questions[$id]->length) {
-            // Ignore questions of zero length
-            $realquestions[$id] = $questions[$id];
-            $realquestions[$id]->number = $number;
-            $number += $questions[$id]->length;
-        }
-    }
-    return $realquestions;
-}
 /**
  * Given the quiz grading method return sub select sql to find the id of the
  * one attempt that will be graded for each user. Or return
@@ -452,18 +346,21 @@ ORDER BY
 }
 
 function quiz_report_highlighting_grading_method($quiz, $qmsubselect, $qmfilter) {
-    if ($quiz->attempts == 1) {//only one attempt allowed on this quiz
-        return "<p>".get_string('onlyoneattemptallowed', "quiz_overview")."</p>";
+    if ($quiz->attempts == 1) {
+        return '<p>' . get_string('onlyoneattemptallowed', 'quiz_overview') . '</p>';
+
     } else if (!$qmsubselect) {
-        return "<p>".get_string('allattemptscontributetograde', "quiz_overview")."</p>";
+        return '<p>' . get_string('allattemptscontributetograde', 'quiz_overview') . '</p>';
+
     } else if ($qmfilter) {
-        return "<p>".get_string('showinggraded', "quiz_overview")."</p>";
-    }else {
-        return "<p>".get_string('showinggradedandungraded', "quiz_overview",
-                ('<span class="highlight">'.quiz_get_grading_option_name($quiz->grademethod).'</span>'))."</p>";
+        return '<p>' . get_string('showinggraded', 'quiz_overview') . '</p>';
+
+    } else {
+        return '<p>' . get_string('showinggradedandungraded', 'quiz_overview',
+                '<span class="highlight">' . quiz_get_grading_option_name($quiz->grademethod) .
+                '</span>') . '</p>';
     }
 }
-
 
 /**
  * Get the feedback text for a grade on this quiz. The feedback is
@@ -474,7 +371,6 @@ function quiz_report_highlighting_grading_method($quiz, $qmsubselect, $qmfilter)
  * @return string the comment that corresponds to this grade (empty string if there is not one.
  */
 function quiz_report_feedback_for_grade($grade, $quizid) {
-    global $DB;
     static $feedbackcache = array();
 
     if (is_null($grade)) {
@@ -501,21 +397,27 @@ function quiz_report_feedback_for_grade($grade, $quizid) {
     return $feedbacktext;
 }
 
+/**
+ * Format a number as a percentage out of $quiz->sumgrades
+ * @param number $rawgrade the mark to format.
+ * @param object $quiz the quiz settings
+ * @param boolean $round whether to round the results ot $quiz->decimalpoints.
+ */
 function quiz_report_scale_sumgrades_as_percentage($rawgrade, $quiz, $round = true) {
-    if ($quiz->sumgrades != 0) {
-        $grade = $rawgrade * 100 / $quiz->sumgrades;
-        if ($round) {
-            $grade = quiz_format_grade($quiz, $grade);
-        }
-    } else {
+    if ($quiz->sumgrades == 0) {
         return '';
     }
-    return $grade.'%';
+
+    $grade = $rawgrade * 100 / $quiz->sumgrades;
+    if ($round) {
+        $grade = quiz_format_grade($quiz, $grade);
+    }
+    return $grade . '%';
 }
 
 /**
  * Returns an array of reports to which the current user has access to.
- * Reports are ordered as they should be for display in tabs.
+ * @return array reports are ordered as they should be for display in tabs.
  */
 function quiz_report_list($context) {
     static $reportlist = null;
