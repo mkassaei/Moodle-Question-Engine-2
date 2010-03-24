@@ -724,22 +724,90 @@ function quiz_upgrade_states($attempt) {
         }
     }
 }
+/**
+ * @param object $quiz the quiz.
+ * @param integer $cmid the course_module object for this quiz.
+ * @param object $question the question.
+ * @param string $returnurl url to return to after action is done.
+ * @return string html for a number of icons linked to action pages for a
+ * question - preview and edit / view icons depending on user capabilities.
+ */
+function quiz_question_action_icons($quiz, $cmid, $question, $returnurl) {
+    $html = quiz_question_preview_button($quiz, $question) . ' ' .
+            quiz_question_edit_button($cmid, $question, $returnurl);
+    return $html;
+}
+
+/**
+ * @param integer $cmid the course_module.id for this quiz.
+ * @param object $question the question.
+ * @param string $returnurl url to return to after action is done.
+ * @param string $contentbeforeicon some HTML content to be added inside the link, before the icon.
+ * @return the HTML for an edit icon, view icon, or nothing for a question (depending on permissions).
+ */
+function quiz_question_edit_button($cmid, $question, $returnurl, $contentbeforeicon = '') {
+    global $CFG;
+
+    // Minor efficiency saving. Only get strings once, even if there are a lot of icons on one page.
+    static $stredit = null;
+    static $strview = null;
+    if ($stredit === null){
+        $stredit = get_string('edit');
+        $strview = get_string('view');
+    }
+
+    // What sort of icon should we show?
+    $action = '';
+    if (question_has_capability_on($question, 'edit', $question->category) ||
+            question_has_capability_on($question, 'move', $question->category)) {
+        $action = $stredit;
+        $icon = '/t/edit';
+    } else if (question_has_capability_on($question, 'view', $question->category)) {
+        $action = $strview;
+        $icon = '/i/info';
+    }
+
+    // Build the icon.
+    if ($action) {
+        $questionparams = array('returnurl' => $returnurl, 'cmid' => $cmid, 'id' => $question->id);
+        $questionurl = new moodle_url("$CFG->wwwroot/question/question.php", $questionparams);
+        return '<a title="' . $action . '" href="' . $questionurl->out() . '">' . $contentbeforeicon .
+                '<img src="' . $CFG->pixpath . $icon . '.gif" alt="' . $action . '" /></a>';
+    } else {
+        return $contentbeforeicon;
+    }
+}
 
 /**
  * @param object $quiz the quiz
  * @param object $question the question
+ * @param boolean $label if true, show the previewquestion label after the icon
  * @return the HTML for a preview question icon.
  */
-function quiz_question_preview_button($quiz, $question) {
+function quiz_question_preview_button($quiz, $question, $label = false) {
     global $CFG, $COURSE;
     if (!question_has_capability_on($question, 'use', $question->category)) {
         return '';
     }
-    $strpreview = get_string('previewquestion', 'quiz');
-    $quizorcourseid = $quiz->id?('&amp;quizid=' . $quiz->id):('&amp;courseid=' .$COURSE->id);
-    return link_to_popup_window('/question/preview.php?id=' . $question->id . $quizorcourseid, 'questionpreview',
-            "<img src=\"$CFG->pixpath/t/preview.gif\" class=\"iconsmall\" alt=\"$strpreview\" />",
-            0, 0, $strpreview, QUESTION_PREVIEW_POPUP_OPTIONS, true);
+
+    // Minor efficiency saving. Only get strings once, even if there are a lot of icons on one page.
+    static $strpreview = null;
+    static $strpreviewquestion = null;
+    if ($strpreview === null){
+        $strpreview = get_string('preview', 'quiz');
+        $strpreviewquestion = get_string('previewquestion', 'quiz');
+    }
+
+    // Do we want a label?
+    $strpreviewlabel="";
+    if ($label) {
+        $strpreviewlabel = $strpreview;
+    }
+
+    // Build the icon.
+    return link_to_popup_window('/question/preview.php?id=' . $question->id . '&amp;quizid=' . $quiz->id, 'questionpreview',
+            "<img src=\"$CFG->pixpath/t/preview.gif\" class=\"iconsmall\" alt=\"$strpreviewquestion\" /> $strpreviewlabel",
+            0, 0, $strpreviewquestion, QUESTION_PREVIEW_POPUP_OPTIONS, true);
 }
 
 /**

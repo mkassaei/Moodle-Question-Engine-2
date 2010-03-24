@@ -223,16 +223,21 @@ function quiz_report_get_significant_questions($quiz) {
 
     $questionids = quiz_questions_in_quiz($quiz->questions);
     $questions = get_records_sql("
-SELECT q.id, q.length, qqi.grade AS maxmark
+SELECT
+    q.id,
+    q.length,
+    qqi.grade AS maxmark
+
 FROM {$CFG->prefix}question q
 JOIN {$CFG->prefix}quiz_question_instances qqi ON qqi.question = q.id
+
 WHERE
     qqi.quiz = $quiz->id AND
     q.id IN ($questionids) AND
     length > 0
 ");
 
-    $qnumbers = array();
+    $qsbyqnumber = array();
     $number = 1;
     foreach (explode(',', $questionids) as $key => $id) {
         if (!array_key_exists($id, $questions)) {
@@ -244,11 +249,12 @@ WHERE
         $question->qnumber = $qnumber;
         $question->number = $number;
 
-        $qnumbers[$qnumber] = $question;
+        $qsbyqnumber[$qnumber] = $question;
 
         $number += $question->length;
     }
-    return $qnumbers;
+
+    return $qsbyqnumber;
 }
 
 /**
@@ -403,16 +409,16 @@ function quiz_report_feedback_for_grade($grade, $quizid) {
  * @param object $quiz the quiz settings
  * @param boolean $round whether to round the results ot $quiz->decimalpoints.
  */
-function quiz_report_scale_sumgrades_as_percentage($rawgrade, $quiz, $round = true) {
+function quiz_report_scale_summarks_as_percentage($rawmark, $quiz, $round = true) {
     if ($quiz->sumgrades == 0) {
         return '';
     }
 
-    $grade = $rawgrade * 100 / $quiz->sumgrades;
+    $mark = $rawmark * 100 / $quiz->sumgrades;
     if ($round) {
-        $grade = quiz_format_grade($quiz, $grade);
+        $mark = quiz_format_grade($quiz, $mark);
     }
-    return $grade . '%';
+    return $mark . '%';
 }
 
 /**
