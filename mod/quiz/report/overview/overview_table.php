@@ -399,20 +399,22 @@ class quiz_report_overview_table extends table_sql {
         // Get all the attempt ids we want to display on this page
         // or to export for download.
         if (!$this->is_downloading()) {
-            $attemptids = array();
+            $qubaids = array();
             foreach ($this->rawdata as $attempt) {
                 if ($attempt->usageid > 0) {
-                    $attemptids[] = $attempt->usageid;
+                    $qubaids[] = $attempt->usageid;
                 }
             }
-            $this->lateststeps = quiz_report_get_latest_steps($attemptids, array_keys($this->questions));
+            $this->lateststeps = quiz_report_get_latest_steps(
+                    new qubaid_list($qubaids), array_keys($this->questions));
             if (has_capability('mod/quiz:regrade', $this->context)) {
-                $this->regradedqs = quiz_get_regraded_qs($attemptids);
+                $this->regradedqs = quiz_get_regraded_qs($qubaids);
             }
 
         } else {
-            $this->sql->usageidcolumn = 'usageid';
-            $this->lateststeps = quiz_report_get_latest_steps($this->sql, array_keys($this->questions));
+            $from = substr($this->sql->from, 5); // Strip of 'FROM '.
+            $qubaids = new qubaid_join($from, 'usageid', $this->sql->where);
+            $this->lateststeps = quiz_report_get_latest_steps($qubaids, array_keys($this->questions));
             if (has_capability('mod/quiz:regrade', $this->context)) {
                 $this->regradedqs = quiz_get_regraded_qs($this->sql);
             }

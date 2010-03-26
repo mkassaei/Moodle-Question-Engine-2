@@ -36,15 +36,14 @@ define('QUIZ_REPORT_ATTEMPTS_ALL_STUDENTS', 3);
 /**
  * Load information about the latest state of selected questions in selected attempts.
  *
- * The $qubaids argument is as for {@link question_engine_data_mapper::load_questions_usages_latest_steps()}.
- *
  * The results are returned as an two dimensional array $qubaid => $qnumber => $dataobject
  *
- * @param mixed $qubaid either an array of usage ids, or a subquery, as above.
+ * @param qubaid_condition $qubaids used to restrict which usages are included
+ * in the query. See {@link qubaid_condition}.
  * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
  * @return array of records. See the SQL in this function to see the fields available.
  */
-function quiz_report_get_latest_steps($qubaids, $qnumbers) {
+function quiz_report_get_latest_steps(qubaid_condition $qubaids, $qnumbers) {
     $dm = new question_engine_data_mapper();
     $latesstepdata = $dm->load_questions_usages_latest_steps($qubaids, $qnumbers);
     $lateststeps = array();
@@ -58,17 +57,16 @@ function quiz_report_get_latest_steps($qubaids, $qnumbers) {
  * Load information about the number of attempts at various questions in each
  * summarystate.
  *
- * The $qubaids argument is as for {@link question_engine_data_mapper::load_questions_usages_question_state_summary()}.
- *
  * The results are returned as an two dimensional array $qubaid => $qnumber => $dataobject
  *
- * @param mixed $qubaid either an array of usage ids, or a subquery, as above.
+ * @param qubaid_condition $qubaids used to restrict which usages are included
+ * in the query. See {@link qubaid_condition}.
  * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
  * @return array The array keys are qnumber,qestionid. The values are objects with
  * fields $qnumber, $questionid, $inprogress, $name, $needsgrading, $autograded,
  * $manuallygraded and $all.
  */
-function quiz_report_get_state_summary($qubaids, $qnumbers) {
+function quiz_report_get_state_summary(qubaid_condition $qubaids, $qnumbers) {
     $dm = new question_engine_data_mapper();
     return $dm->load_questions_usages_question_state_summary($qubaids, $qnumbers);
 }
@@ -82,10 +80,8 @@ function quiz_report_get_state_summary($qubaids, $qnumbers) {
  * $limitnum. A special value 'random' can be passed as $orderby, in which case
  * $limitfrom is ignored.
  *
- * $qubaids is a join, represented as an object with fields ->from,
- * ->usageidcolumn and ->where.
- *
- * @param object $qubaid represents a JOIN, as above.
+ * @param qubaid_condition $qubaids used to restrict which usages are included
+ *      in the query. See {@link qubaid_condition}.
  * @param integer $qnumber The qnumber for the questions you want to konw about.
  * @param integer $questionid (optional) Only return attempts that were of this specific question.
  * @param string $summarystate 'all', 'needsgrading', 'autograded' or 'manuallygraded'.
@@ -94,8 +90,9 @@ function quiz_report_get_state_summary($qubaids, $qnumbers) {
  *      Ignored if $orderby = random or $pagesize is null.
  * @param integer $pagesize implements paging of the results. null = all.
  */
-function quiz_report_get_usage_ids_where_question_in_state($qubaids, $summarystate,
-        $qnumber, $questionid = null, $orderby = 'random', $page = 0, $pagesize = null) {
+function quiz_report_get_usage_ids_where_question_in_state(qubaid_condition $qubaids,
+        $summarystate, $qnumber, $questionid = null, $orderby = 'random',
+        $page = 0, $pagesize = null) {
     global $CFG;
     $dm = new question_engine_data_mapper();
 

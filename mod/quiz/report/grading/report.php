@@ -50,7 +50,7 @@ class quiz_grading_report extends quiz_default_report {
     protected $context;
 
     function display($quiz, $cm, $course) {
-        global $CFG, $QTYPES;
+        global $CFG;
 
         $this->quiz = $quiz;
         $this->cm = $cm;
@@ -143,6 +143,21 @@ class quiz_grading_report extends quiz_default_report {
         $sql->usageidcolumn = 'quiza.uniqueid';
 
         return $sql;
+    }
+
+    protected function get_qubaids_condition() {
+        global $CFG;
+
+        $where = "quiza.quiz = {$this->cm->instance} AND
+                quiza.preview = 0 AND
+                quiza.timefinish <> 0";
+        if ($this->currentgroup) {
+            $where .= ' AND
+                quiza.userid IN (' . implode(',', $this->userids) . ')';
+        }
+
+        return new qubaid_join("{$CFG->prefix}quiz_attempts quiza",
+                'quiza.uniqueid', $where);
     }
 
     protected function load_attempts_by_usage_ids($qubaids) {
@@ -246,8 +261,8 @@ class quiz_grading_report extends quiz_default_report {
         echo '<p class="toggleincludeauto"><a href="' . $this->list_questions_url(!$includeauto) .
                 '">' . $linktext . '</a></p>';
 
-        $attemptssql = $this->get_attempts_query();
-        $statecounts = quiz_report_get_state_summary($attemptssql, array_keys($this->questions));
+        $qubaidscondition = $this->get_qubaids_condition();
+        $statecounts = quiz_report_get_state_summary($qubaidscondition, array_keys($this->questions));
 
         $data = array();
         foreach ($statecounts as $counts) {
@@ -303,8 +318,8 @@ class quiz_grading_report extends quiz_default_report {
             $pagesize, $page, $shownames, $order) {
 
         // Make sure there is something to do.
-        $attemptssql = $this->get_attempts_query();
-        $statecounts = quiz_report_get_state_summary($attemptssql, array($qnumber));
+        $qubaidscondition = $this->get_qubaids_condition();
+        $statecounts = quiz_report_get_state_summary($qubaidscondition, array($qnumber));
 
         $counts = null;
         foreach ($statecounts as $record) {
@@ -323,8 +338,8 @@ class quiz_grading_report extends quiz_default_report {
             $page = 0;
         }
 
-        list($qubaids, $count) = quiz_report_get_usage_ids_where_question_in_state($attemptssql,
-                $grade, $qnumber, $questionid, $order, $page, $pagesize);
+        list($qubaids, $count) = quiz_report_get_usage_ids_where_question_in_state(
+                $qubaidscondition, $grade, $qnumber, $questionid, $order, $page, $pagesize);
         $attempts = $this->load_attempts_by_usage_ids($qubaids);
 
         // Prepare the form.

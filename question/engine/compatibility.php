@@ -66,6 +66,26 @@ class moodle_exception extends Exception {
 
 
 /**
+ * Exception indicating programming error, must be fixed by a programer. For example
+ * a core API might throw this type of exception if a plugin calls it incorrectly.
+ *
+ * @package   moodlecore
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class coding_exception extends moodle_exception {
+    /**
+     * Constructor
+     * @param string $hint short description of problem
+     * @param string $debuginfo detailed information how to fix problem
+     */
+    function __construct($hint, $debuginfo=null) {
+        parent::__construct('codingerror', 'debug', '', $hint, $debuginfo);
+    }
+}
+
+
+/**
  * This constant is used for html attributes which need to have an empty
  * value and still be output by the renderers (e.g. alt="");
  *

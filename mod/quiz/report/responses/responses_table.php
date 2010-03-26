@@ -218,8 +218,6 @@ class quiz_report_responses_table extends table_sql {
     }
 
     public function other_cols($colname, $attempt) {
-        global $QTYPES;
-
         if (preg_match('/^question(\d+)$/', $colname, $matches)) {
             return $this->data_col($matches[1], 'questionsummary', $attempt);
 
@@ -275,16 +273,19 @@ class quiz_report_responses_table extends table_sql {
         // Get all the attempt ids we want to display on this page
         // or to export for download.
         if (!$this->is_downloading()) {
-            $attemptids = array();
+            $qubaids = array();
             foreach ($this->rawdata as $attempt) {
                 if ($attempt->usageid > 0) {
-                    $attemptids[] = $attempt->usageid;
+                    $qubaids[] = $attempt->usageid;
                 }
             }
-            $this->lateststeps = quiz_report_get_latest_steps($attemptids, array_keys($this->questions));
+            $this->lateststeps = quiz_report_get_latest_steps(
+                    new qubaid_list($qubaids), array_keys($this->questions));
 
         } else {
-            $this->lateststeps = quiz_report_get_latest_steps($this->sql, array_keys($this->questions));
+            $from = substr($this->sql->from, 5); // Strip of 'FROM '.
+            $qubaids = new qubaid_join($from, 'usageid', $this->sql->where);
+            $this->lateststeps = quiz_report_get_latest_steps($qubaids, array_keys($this->questions));
         }
     }
 }

@@ -310,31 +310,13 @@ ORDER BY
     /**
      * Load information about the latest state of each question from the database.
      *
-     * The $qubaids can either be an array of usege ids, or it can be a join,
-     * represented as an object with fields ->from, ->usageidcolumn and ->where.
-     * To understand this possibility, I recommend you read the code below, and
-     * in mod/quiz/report/reportlib.php where it is currently used. If you can't
-     * understand that code, you should not try to use this option;-)
-     *
-     * @param mixed $qubaid either an array of usage ids, or a subquery, as above.
+     * @param qubaid_condition $qubaids used to restrict which usages are included
+     * in the query. See {@link qubaid_condition}.
      * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
      * @return array of records. See the SQL in this function to see the fields available.
      */
-    public function load_questions_usages_latest_steps($qubaids, $qnumbers) {
+    public function load_questions_usages_latest_steps(qubaid_condition $qubaids, $qnumbers) {
         global $CFG;
-
-        if (empty($qubaids)) {
-            return array();
-        } else if (is_array($qubaids)) {
-            list($where, $params) = get_in_or_equal($qubaids, SQL_PARAMS_NAMED, 'qubaid0000');
-            $qubaidswhere = "qa.questionusageid $where";
-            $qajoin = "FROM {$CFG->prefix}question_attempts_new qa";
-        } else {
-            $qubaidswhere = $qubaids->where;
-            $qajoin = $qubaids->from .
-                    "\nJOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = " .
-                    $qubaids->usageidcolumn;
-        }
 
         list($qnumbertest, $params) = get_in_or_equal($qnumbers, SQL_PARAMS_NAMED, 'qnumber0000');
 
@@ -360,14 +342,14 @@ SELECT
     qas.timecreated,
     qas.userid
 
-$qajoin
+FROM {$qubaids->from_question_attempts('qa')}
 JOIN (
     SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
 ) lateststepid ON lateststepid.questionattemptid = qa.id
 JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
 
 WHERE
-    $qubaidswhere AND
+    {$qubaids->where()} AND
     qa.numberinusage $qnumbertest
         ");
 
@@ -383,33 +365,15 @@ WHERE
      * This is used by the quiz manual grading report, to show how many attempts
      * at each question need to be graded.
      *
-     * The $qubaids can either be an array of usege ids, or it can be a join,
-     * represented as an object with fields ->from, ->usageidcolumn and ->where.
-     * To understand this possibility, I recommend you read the code below, and
-     * in mod/quiz/report/reportlib.php where it is currently used. If you can't
-     * understand that code, you should not try to use this option;-)
-     *
-     * @param mixed $qubaid either an array of usage ids, or a subquery, as above.
+     * @param qubaid_condition $qubaids used to restrict which usages are included
+     * in the query. See {@link qubaid_condition}.
      * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
      * @return array The array keys are qnumber,qestionid. The values are objects with
      * fields $qnumber, $questionid, $inprogress, $name, $needsgrading, $autograded,
      * $manuallygraded and $all.
      */
-    public function load_questions_usages_question_state_summary($qubaids, $qnumbers) {
+    public function load_questions_usages_question_state_summary(qubaid_condition $qubaids, $qnumbers) {
         global $CFG;
-
-        if (empty($qubaids)) {
-            return array();
-        } else if (is_array($qubaids)) {
-            list($where, $params) = get_in_or_equal($qubaids, SQL_PARAMS_NAMED, 'qubaid0000');
-            $qubaidswhere = "qa.questionusageid $where";
-            $qajoin = "FROM {$CFG->prefix}question_attempts_new qa";
-        } else {
-            $qubaidswhere = $qubaids->where;
-            $qajoin = $qubaids->from .
-                    "\nJOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = " .
-                    $qubaids->usageidcolumn;
-        }
 
         list($qnumbertest, $params) = get_in_or_equal($qnumbers, SQL_PARAMS_NAMED, 'qnumber0000');
 
@@ -423,7 +387,7 @@ SELECT
     END AS summarystate,
     COUNT(1) AS numattempts
 
-$qajoin
+FROM {$qubaids->from_question_attempts('qa')}
 JOIN (
     SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
 ) lateststepid ON lateststepid.questionattemptid = qa.id
@@ -431,7 +395,7 @@ JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
 JOIN {$CFG->prefix}question q ON q.id = qa.questionid
 
 WHERE
-    $qubaidswhere AND
+    {$qubaids->where()} AND
     qa.numberinusage $qnumbertest
 
 GROUP BY
@@ -486,13 +450,8 @@ ORDER BY
      * $limitnum. A special value 'random' can be passed as $orderby, in which case
      * $limitfrom is ignored.
      *
-     * The $qubaids can either be an array of usege ids, or it can be a join,
-     * represented as an object with fields ->from, ->usageidcolumn and ->where.
-     * To understand this possibility, I recommend you read the code below, and
-     * in mod/quiz/report/reportlib.php where it is currently used. If you can't
-     * understand that code, you should not try to use this option;-)
-     *
-     * @param mixed $qubaid either an array of usage ids, or a subquery, as above.
+     * @param qubaid_condition $qubaids used to restrict which usages are included
+     * in the query. See {@link qubaid_condition}.
      * @param integer $qnumber The qnumber for the questions you want to konw about.
      * @param integer $questionid (optional) Only return attempts that were of this specific question.
      * @param string $summarystate the summary state of interest, or 'all'.
@@ -502,22 +461,10 @@ ORDER BY
      * @param integer $limitnum implements paging of the results. null = all.
      * @return array with two elements, an array of usage ids, and a count of the total number.
      */
-    public function load_questions_usages_where_question_in_state($qubaids, $summarystate,
-            $qnumber, $questionid = null, $orderby = 'random', $limitfrom = 0, $limitnum = null) {
+    public function load_questions_usages_where_question_in_state(
+            qubaid_condition $qubaids, $summarystate, $qnumber, $questionid = null,
+            $orderby = 'random', $limitfrom = 0, $limitnum = null) {
         global $CFG;
-
-        if (empty($qubaids)) {
-            return array();
-        } else if (is_array($qubaids)) {
-            list($where, $params) = get_in_or_equal($qubaids, SQL_PARAMS_NAMED, 'qubaid0000');
-            $qubaidswhere = "qa.questionusageid $where";
-            $qajoin = "FROM {$CFG->prefix}question_attempts_new qa";
-        } else {
-            $qubaidswhere = $qubaids->where;
-            $qajoin = $qubaids->from .
-                    "\nJOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = " .
-                    $qubaids->usageidcolumn;
-        }
 
         $extrawhere = '';
         if ($questionid) {
@@ -547,7 +494,7 @@ SELECT
     qa.questionusageid,
     1
 
-$qajoin
+FROM {$qubaids->from_question_attempts('qa')}
 JOIN (
     SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
 ) lateststepid ON lateststepid.questionattemptid = qa.id
@@ -555,7 +502,7 @@ JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
 JOIN {$CFG->prefix}question q ON q.id = qa.questionid
 
 WHERE
-    $qubaidswhere AND
+    {$qubaids->where()} AND
     qa.numberinusage = $qnumber
     $extrawhere
 
@@ -838,5 +785,119 @@ class question_engine_unit_of_work implements question_usage_observer {
         if ($this->modified) {
             $dm->update_questions_usage_by_activity($this->quba);
         }
+    }
+}
+
+
+/**
+ * This class represents a restriction on the set of question_usage ids to include
+ * in a larger database query. Depending of the how you are going to restrict the
+ * list of usages, construct an appropriate subclass.
+ *
+ * If $qubaids is an instance of this class, example usage might be
+ *
+ * SELECT qa.id, qa.maxmark
+ * FROM $qubaids->from_question_attempts('qa')
+ * WHERE $qubaids->where() AND qa.numberinusage = 1
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+abstract class qubaid_condition {
+
+    /**
+     * @return the SQL that needs to go in the FROM clause when trying to select
+     * records from the 'question_attempts_new' table based on the qubaid_condition.
+     */
+    public abstract function from_question_attempts($alias);
+
+    /** @return the SQL that needs to go in the where clause. */
+    public abstract function where();
+}
+
+
+/**
+ * This class represents a restriction on the set of question_usage ids to include
+ * in a larger database query based on an explicit list of ids.
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class qubaid_list extends qubaid_condition {
+    /** @var array of ids. */
+    protected $qubaids;
+    protected $columntotest = null;
+
+    /**
+     * Constructor.
+     * @param array $qubaids of question usage ids.
+     */
+    public function __construct(array $qubaids) {
+        $this->qubaids = $qubaids;
+    }
+
+    public function from_question_attempts($alias) {
+        global $CFG;
+        $this->columntotest = $alias . '.questionusageid';
+        return "{$CFG->prefix}question_attempts_new $alias";
+    }
+
+    public function where() {
+        if (is_null($this->columntotest)) {
+            throw new coding_exception('Must call another method that before where().');
+        }
+        list($where, $params) = get_in_or_equal($this->qubaids, SQL_PARAMS_NAMED, 'qubaid0000');
+        return "{$this->columntotest} $where";
+    }
+}
+
+
+/**
+ * This class represents a restriction on the set of question_usage ids to include
+ * in a larger database query based on JOINing to some other tables.
+ *
+ * The general form of the query is something like
+ *
+ * SELECT qa.id, qa.maxmark
+ * FROM $from
+ * JOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = $usageidcolumn
+ * WHERE $where AND qa.numberinusage = 1
+ *
+ * where $from, $usageidcolumn and $where are the arguments to the constructor.
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class qubaid_join extends qubaid_condition {
+    /** @var array of ids. */
+    protected $from;
+    protected $usageidcolumn;
+    protected $where;
+
+    /**
+     * Constructor. The meaning of the arguments is explained in the class comment.
+     * @param string $from SQL fragemnt to go in the FROM clause.
+     * @param string $usageidcolumn the column in $from that should be
+     * made equal to the usageid column in the JOIN clause.
+     * @param string $where SQL fragment to go in the where clause.
+     */
+    public function __construct($from, $usageidcolumn, $where = '') {
+        $this->from = $from;
+        $this->usageidcolumn = $usageidcolumn;
+        if (empty($where)) {
+            $where = '1 = 1';
+        }
+        $this->where = $where;
+    }
+
+    public function from_question_attempts($alias) {
+        global $CFG;
+        return "$this->from
+                JOIN {$CFG->prefix}question_attempts_new {$alias} ON " .
+                        "{$alias}.questionusageid = $this->usageidcolumn";
+    }
+
+    public function where() {
+        return $this->where;
     }
 }
