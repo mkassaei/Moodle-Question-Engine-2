@@ -122,12 +122,15 @@ function quiz_add_instance($quiz) {
  * @return mixed true on success, false or a string error message on failure.
  */
 function quiz_update_instance($quiz) {
+    global $CFG;
 
     // Process the options from the form.
     $result = quiz_process_options($quiz);
     if ($result && is_string($result)) {
         return $result;
     }
+
+    $oldquiz = get_record('quiz', 'id', $quiz->instance);
 
     // Update the database.
     $quiz->id = $quiz->instance;
@@ -137,6 +140,14 @@ function quiz_update_instance($quiz) {
 
     // Do the processing required after an add or an update.
     quiz_after_add_or_update($quiz);
+
+    if ($oldquiz->grademethod != $quiz->grademethod) {
+        require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+        $quiz->sumgrades = $oldquiz->sumgrades;
+        $quiz->grade = $oldquiz->grade;
+        quiz_update_all_final_grades($quiz);
+        quiz_update_grades($quiz);
+    }
 
     // Delete any previous preview attempts
     delete_records('quiz_attempts', 'preview', '1', 'quiz', $quiz->id);

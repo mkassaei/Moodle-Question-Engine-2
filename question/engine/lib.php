@@ -123,6 +123,19 @@ abstract class question_engine {
     }
 
     /**
+     * Change the maxmark for the question_attempt with number in usage $qnumber
+     * for all the specified question_attempts.
+     * @param qubaid_condition $qubaids Selects which usages are updated.
+     * @param integer $qnumber the number is usage to affect.
+     * @param number $newmaxmark the new max mark to set.
+     */
+    public static function set_max_mark_in_attempts(qubaid_condition $qubaids,
+            $qnumber, $newmaxmark) {
+        $dm = new question_engine_data_mapper();
+        $dm->set_max_mark_in_attempts($qubaids, $qnumber, $newmaxmark);
+    }
+
+    /**
      * Create an archetypal interaction model for a particular question attempt.
      * Used by {@link question_definition::make_interaction_model()}.
      *
@@ -1846,6 +1859,16 @@ class question_attempt {
             }
         }
         return null;
+    }
+
+    /**
+     * @return array subpartid => object with fields
+     *      ->responseclassid the 
+     *      ->response the actual response the student gave to this part, as a string.
+     *      ->fraction the credit awarded for this subpart, may be null.
+     */
+    public function get_response_classification() {
+        return array(); // TODO
     }
 
     /**

@@ -1,15 +1,37 @@
-<?php // $Id$
+<?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * Functions used by edit.php to edit quizzes
  *
- * @author Martin Dougiamas and many others. This has recently been extensively
- *         rewritten by members of the Serving Mathematics project
- *         {@link http://maths.york.ac.uk/serving_maths}
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package quiz
+ * This contains functions that are called from within the quiz module only
+ * Functions that are also called by core Moodle are in {@link lib.php}
+ * This script also loads the code in {@link questionlib.php} which holds
+ * the module-indpendent code for handling questions and which in turn
+ * initialises all the questiontype classes.
+ *
+ * @package mod_quiz
+ * @copyright 1999 onwards Martin Dougiamas and others {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once("locallib.php");
+
+require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+
 
 /**
 * Delete a question from a quiz
@@ -91,9 +113,13 @@ function quiz_add_quiz_question($id, &$quiz) {
 
     // update question grades
     $questionrecord = get_record("question", "id", $id);
-    $quiz->grades[$id]
-            = $questionrecord->defaultgrade;
-    quiz_update_question_instance($quiz->grades[$id], $id, $quiz->instance);
+    $quiz->grades[$id] = $questionrecord->defaultgrade;
+
+    $instance = new stdClass;
+    $instance->quiz = $quiz->id;
+    $instance->question = $questionid;
+    $instance->grade = $grade;
+    insert_record("quiz_question_instances", $instance);
 
     return true;
 }
@@ -108,17 +134,25 @@ function quiz_add_quiz_question($id, &$quiz) {
 * @param integer $questionid  The id of the question
 * @param integer $quizid  The id of the quiz to update / add the instances for.
 */
-function quiz_update_question_instance($grade, $questionid, $quizid) {
-    if ($instance = get_record("quiz_question_instances", "quiz", $quizid, 'question', $questionid)) {
-        $instance->grade = $grade;
-        return update_record('quiz_question_instances', $instance);
-    } else {
-        unset($instance);
-        $instance->quiz = $quizid;
-        $instance->question = $questionid;
-        $instance->grade = $grade;
-        return insert_record("quiz_question_instances", $instance);
+function quiz_update_question_instance($grade, $questionid, $quiz) {
+    $instance = get_record('quiz_question_instances', 'quiz', $quiz->id,
+            'question', $questionid);
+    $qnumber = quiz_get_qnumber_for_question($quiz, $questionid);
+
+    if (!$instance || !$qnumber) {
+        throw new coding_exception('Attempt to change the grade of a quesion not in the quiz.');
     }
+
+    if (abs($grade - $instance->grade) < 1e-7) {
+        // Grade has not changed. Nothing to do.
+        return;
+    }
+
+    $instance->grade = $grade;
+    update_record('quiz_question_instances', $instance);
+
+    question_engine::set_max_mark_in_attempts(new quibaid_for_quiz($quiz->id),
+            $qnumber, $grade);
 }
 
 /**

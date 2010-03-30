@@ -470,6 +470,33 @@ function quiz_has_feedback($quiz) {
     return $cache[$quiz->id];
 }
 
+function quiz_update_sumgrades($quiz) {
+    global $CFG;
+    $sql = "UPDATE {$CFG->prefix}quiz
+            SET sumgrades = (
+                SELECT SUM(grade)
+                FROM {$CFG->prefix}quiz_question_instances
+                WHERE quiz = {$CFG->prefix}quiz.id
+            )
+            WHERE id = $quiz->id";
+    execute_sql($sql, false);
+}
+
+function quiz_update_all_attempt_sumgrades($quiz) {
+    global $CFG;
+    $dm = new question_engine_data_mapper();
+    $timenow = time();
+
+    $sql = "UPDATE {$CFG->prefix}quiz_attempts
+            SET
+                timemodified = $timenow,
+                sumgrades = (
+                    {$dm->sum_usage_marks_subquery('uniqueid')}
+                )
+            WHERE quiz = $quiz->id AND timefinish <> 0";
+    execute_sql($sql, false);
+}
+
 /**
  * The quiz grade is the score that student's results are marked out of. When it
  * changes, the corresponding data in quiz_grades and quiz_feedback needs to be
@@ -615,6 +642,88 @@ function quiz_calculate_best_grade($quiz, $attempts) {
             }
             return $max;
     }
+}
+
+/**
+ * Update the final grade at this quiz for all students.
+ *
+ * This function is equivalent to calling quiz_save_best_grade for all
+ * users, but much more efficient.
+ *
+ * @param object $quiz the quiz settings.
+ */
+function quiz_update_all_final_grades($quiz) {
+    global $CFG;
+
+    if (!$quiz->sumgrades) {
+        return;
+    }
+
+    $firstlastattemptjoin = "JOIN (
+            SELECT
+                iquiza.userid,
+                MIN(attempt) AS firstattempt,
+                MAX(attempt) AS lastattempt
+
+            FROM {$CFG->prefix}quiz_attempts iquiza
+
+            WHERE
+                iquiza.timefinish <> 0 AND
+                iquiza.preview = 0 AND
+                iquiza.quiz = $quiz->id
+
+            GROUP BY iquiza.userid
+        ) first_last_attempts ON first_last_attempts.userid = quiza.userid";
+
+    switch ($quiz->grademethod) {
+        case QUIZ_ATTEMPTFIRST:
+            $select = 'quiza.sumgrades';
+            $join = $firstlastattemptjoin;
+            $where = 'quiza.attempt = first_last_attempts.firstattempt AND';
+            break;
+
+        case QUIZ_ATTEMPTLAST:
+            $select = 'quiza.sumgrades';
+            $join = $firstlastattemptjoin;
+            $where = 'quiza.attempt = first_last_attempts.lastattempt AND';
+            break;
+
+        case QUIZ_GRADEAVERAGE:
+            $select = 'AVG(quiza.sumgrades)';
+            $join = '';
+            $where = '';
+            break;
+
+        default:
+        case QUIZ_GRADEHIGHEST:
+            $select = 'MAX(quiza.sumgrades)';
+            $join = '';
+            $where = '';
+            break;
+    }
+
+    $finalgradesubquery = "
+            SELECT $select
+            FROM {$CFG->prefix}quiz_attempts quiza
+            $join
+            WHERE
+                $where
+                quiza.timefinish <> 0 AND
+                quiza.preview = 0 AND
+                quiza.quiz = $quiz->id AND
+                quiza.userid = {$CFG->prefix}quiz_grades.userid";
+
+    $timenow = time();
+    $sql = "UPDATE {$CFG->prefix}quiz_grades
+    
+            SET
+                timemodified = $timenow,
+                grade = (
+                    $finalgradesubquery
+                ) * $quiz->grade / $quiz->sumgrades
+
+            WHERE quiz = $quiz->id";
+    execute_sql($sql, false);
 }
 
 /**
@@ -1021,6 +1130,22 @@ function quiz_clean_layout($layout, $removeemptypages = false) {
     return implode(',', $cleanerlayout);
 }
 
+/**
+ * Get the qnumber for a question with a particular id.
+ * @param object $quiz the quiz settings.
+ * @param integer $questionid the of a question in the quiz.
+ * @return integer the corresponding qnumber. Null if the question is not in the quiz.
+ */
+function quiz_get_qnumber_for_question($quiz, $questionid) {
+    $questionids = quiz_questions_in_quiz($quiz->questions);
+    foreach (explode(',', $questionids) as $key => $id) {
+        if ($id == $questionid) {
+            return $key + 1;
+        }
+    }
+    return null;
+}
+
 /// FUNCTIONS FOR SENDING NOTIFICATION EMAILS ///////////////////////////////
 
 /**
@@ -1200,4 +1325,30 @@ function quiz_check_safe_browser() {
     return strpos($_SERVER['HTTP_USER_AGENT'], "SEB") !== false;
 }
 
-?>
+
+/**
+ * A {@link qubaid_condition} for finding all the question usages belonging to
+ * a particular quiz.
+ *
+ * @copyright © 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class quibaid_for_quiz extends qubaid_join {
+    public function __construct($quizid, $includepreviews = true, $onlyfinished = false) {
+        global $CFG;
+
+        $from = $CFG->prefix . 'quiz_attempts quiza';
+
+        $where = 'quiza.quiz = ' . $quizid;
+
+        if (!$includepreviews) {
+            $where .= ' AND preview = 0';
+        }
+
+        if ($onlyfinished) {
+            $where .= ' AND timefinish <> 0';
+        }
+
+        parent::__construct($from, 'quiza.uniqueid', $where);
+    }
+}

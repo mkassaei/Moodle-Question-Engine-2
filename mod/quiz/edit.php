@@ -264,10 +264,10 @@
             if (preg_match('!^q([0-9]+)$!', $key, $matches)) {
                 $key = $matches[1];
                 $quiz->grades[$key] = clean_param($value, PARAM_INTEGER);
-                quiz_update_question_instance($quiz->grades[$key], $key, $quiz->instance);
+                quiz_update_question_instance($quiz->grades[$key], $key, $quiz);
 
             /// Parse input for ordering info
-            } elseif (preg_match('!^o([0-9]+)$!', $key, $matches)) {
+            } else if (preg_match('!^o([0-9]+)$!', $key, $matches)) {
                 $key = $matches[1];
                 // Make sure two questions don't overwrite each other. If we get a second
                 // question with the same position, shift the second one along to the next gap.
@@ -317,6 +317,11 @@
                 quiz_delete_attempt($attempt, $quiz);
             }
         }
+
+        quiz_update_sumgrades($quiz);
+        quiz_update_all_attempt_sumgrades($quiz);
+        quiz_update_all_final_grades($quiz);
+        quiz_update_grades($quiz);
     }
 
     question_showbank_actions($thispageurl, $cm);
@@ -346,10 +351,7 @@
                 get_string('cannoteditafterattempts', 'quiz');
         echo "</div>\n";
 
-        $sumgrades = quiz_print_question_list($quiz,  $thispageurl, false, $quiz_showbreaks, $quiz_reordertool);
-        if (!set_field('quiz', 'sumgrades', $sumgrades, 'id', $quiz->instance)) {
-            error('Failed to set sumgrades');
-        }
+        quiz_print_question_list($quiz,  $thispageurl, false, $quiz_showbreaks, $quiz_reordertool);
 
         print_box_end();
         print_footer($course);

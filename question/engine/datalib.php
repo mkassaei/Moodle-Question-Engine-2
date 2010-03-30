@@ -699,6 +699,41 @@ ORDER BY qa.numberinusage
         list($sql, $params) = get_in_or_equal($states, SQL_PARAMS_QM, 'param0000', $equal);
         return $sql;
     }
+
+    /**
+     * Change the maxmark for the question_attempt with number in usage $qnumber
+     * for all the specified question_attempts.
+     * @param qubaid_condition $qubaids Selects which usages are updated.
+     * @param integer $qnumber the number is usage to affect.
+     * @param number $newmaxmark the new max mark to set.
+     */
+    public function set_max_mark_in_attempts(qubaid_condition $qubaids, $qnumber, $newmaxmark) {
+        set_field_select('question_attempts_new', 'maxmark', $newmaxmark,
+                "questionusageid {$qubaids->usage_id_in()} AND numberinusage = $qnumber");
+    }
+
+    /**
+     * Return a subquery that computes the sum of the marks for all the questions
+     * in a usage. Which useage to compute the sum for is controlled bu the $qubaid
+     * parameter.
+     *
+     * See {@link quiz_update_all_attempt_sumgrades()} for an example of the usage of
+     * this method.
+     *
+     * @param string $qubaid SQL fragment that controls which usage is summed.
+     * This might be the name of a column in the outer query.
+     * @return string SQL code for the subquery.
+     */
+    public function sum_usage_marks_subquery($qubaid) {
+        global $CFG;
+        return "SELECT SUM(qa.maxmark * qas.fraction)
+            FROM {$CFG->prefix}question_attempts_new qa
+            JOIN (
+                SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
+            ) lateststepid ON lateststepid.questionattemptid = qa.id
+            JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
+            WHERE qa.questionusageid = $qubaid";
+    }
 }
 
 /**
@@ -806,13 +841,21 @@ class question_engine_unit_of_work implements question_usage_observer {
 abstract class qubaid_condition {
 
     /**
-     * @return the SQL that needs to go in the FROM clause when trying to select
-     * records from the 'question_attempts_new' table based on the qubaid_condition.
+     * @return string the SQL that needs to go in the FROM clause when trying
+     * to select records from the 'question_attempts_new' table based on the
+     * qubaid_condition.
      */
     public abstract function from_question_attempts($alias);
 
-    /** @return the SQL that needs to go in the where clause. */
+    /** @return string the SQL that needs to go in the where clause. */
     public abstract function where();
+
+    /**
+     * @return string SQL that can use used in a WHERE qubaid IN (...) query.
+     * This method returns the "IN (...)" part.
+     */
+    public abstract function usage_id_in();
+
 }
 
 
@@ -847,7 +890,12 @@ class qubaid_list extends qubaid_condition {
             throw new coding_exception('Must call another method that before where().');
         }
         list($where, $params) = get_in_or_equal($this->qubaids, SQL_PARAMS_NAMED, 'qubaid0000');
-        return "{$this->columntotest} $where";
+        return "{$this->columntotest} {$this->usage_id_in()}";
+    }
+
+    public function usage_id_in() {
+        list($where, $params) = get_in_or_equal($this->qubaids, SQL_PARAMS_NAMED, 'qubaid0000');
+        return $where;
     }
 }
 
@@ -899,5 +947,9 @@ class qubaid_join extends qubaid_condition {
 
     public function where() {
         return $this->where;
+    }
+
+    public function usage_id_in() {
+        return "IN (SELECT $this->usageidcolumn FROM $this->from WHERE $this->where)";
     }
 }
