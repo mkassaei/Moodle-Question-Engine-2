@@ -1,58 +1,23 @@
 The bug URLs only work within the OU network. Sorry. Overall tracking bug:
 http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8553
 
-Convert existing question type code (3d)
-√   Convert question types to the new API
-√       multichoice 0.5d
-√       match 1d
-
-More interaction models (2d)
-√   Interactive model 2d
-
-Integrate new code into the quiz (3d)
-(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9212)
-√   backport & update key 2.0 changes (2d)
-√       attemptlib.php 0.5d
-√       accessmanager.php
-√       comment.php
-√       view.php 0.5d
-√       startattempt.php
-√       attempt.php
-√       processattempt.php 0.5d
-√       summary.php
-√       review.php
-√       reviewquestion.php 0.5d
-√       quiz.js
-√   question flag update JS - and non-js.
-√   quiz timer JS
-√   scroll-down JavaScript on adaptive/immediate/interactive submit button - but not the first on the page.
-√   deal with TODOs and test
-√   adaptive mode submit goes to next page
-√   quiz settings form and database
-√   quiz default settings form
-
-<-- Christmas target milestone (7d)
-
-Finish converting simple question types (6.5d)
-(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9203)
-√   Opaque question type 0.5d
-√   Numerical units 0.5d
-√   Test missing qtype 1d
-√   New fields for editing hints (4d)
-√       Fields on editing form 1d
-√       Database columns, load/save code 1d
-√       Import export 1d
-√       Use by interactive mode 1d
-
-Finish interaction models (2.5d)
-(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9204)
-√   Opaque model 0.5d
-√   Each attempt builds on last (eachattemptonlast) model 1d
-√   New Adaptive mode without penalties (adaptivenopenalty) model. (0.5d)
-√   Minor refactoring of the different interaction models' process_action methods. 0d
-√   Fix manual grading of automatically graded question types.
-√   What happens when submit of a blank response is ignored - need verify failure state. 0.5d
-√   Issue with when the try-again button should be read-only. (Think teacher review of in-progress attempt.)
+Integrate new code into the quiz reports (7d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9205)
+√   Start with Moodle 2.0 reports.
+√   overview 2d
+√   responses 1d
+√   manual grading 1d
+    statistics
+√       statistics computation and display
+        response analysis 2d
+√   delete unused code from reportlib.php
+√   check formatting by question or quiz decimal points
+√   delete obsolete get_all_responses method.
+    re-impliment regrading functionality 1d
+    sorting on question grade/summary columns 1d
+√   if you change the quiz Grading method setting, overall grades are not re-computed
+        nor when changing question weights. 1d
+    refactor to eliminate some duplicated code 1d
 
 Incorporate other OU-specific quiz customisations into this code (8d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8558)
@@ -79,45 +44,11 @@ Incorporate other OU-specific quiz customisations into this code (8d)
 √       attempt_close_js.php
 √       jstimer.php
 
-<-- Working quiz student interface milestone
+<-- Ready for funcitional testing milestone
 
-Finish question engine core (3d)
-(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8557)
-√   Implement questionsummary and rightanswer.
-√   Implement responsesummary.
-√   Put starting seq_no in a hidden input, and verify before processing, to prevent duplicate submit problems.
-
-Integrate new code into the quiz reports (7d)
-(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9205)
-√   Start with Moodle 2.0 reports.
-√   overview 2d
-√   responses 1d
-√   manual grading 1d
-    statistics 4d
-    re-impliment regrading functionality
-    sorting on question grade/summary columns
-    if you change the quiz Grading method setting, overall grades are not re-computed
-        nor when changing question weights.
-√   delete unused code from reportlib.php
-    refactor to eliminate some duplicated code
-√   check formatting by question or quiz decimal points
-√   delete obsolete get_all_responses method.
-
-Finish database load/save code (4d)
-(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9206)
-    Garbage collect old preview question usages. 0d
-    Make more efficient code using lazy-loading, etc. 2d
-    Unit tests for Unit of Work 1d
-    Database update on regrading 0.5d
-    Kill question.image column, with upgrade.
-    Add transactions.
-
-<-- Working quiz reports milestone
-
-Database upgrade script (8d)
+Database upgrade script (5d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9207)
     For OU Moodle 5d
-    For Moodle 2.x 3d
     Deal with question images 0d
 
 Backup and restore code (7d)
@@ -126,7 +57,21 @@ Backup and restore code (7d)
     Restore old backup code ? 5d
     Decide what to do about pre-Moodle 1.5 backups ? 0d?
 
-<-- Working upgrade and backup/restore milestone
+Performance testing 5d
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9209)
+    Load test the entire quiz (count DB queries and time)
+    Profile some key parts of the question processing.
+
+Finish database load/save code (7d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9206)
+    Garbage collect old preview question usages. 1d
+    Make more efficient code using lazy-loading, etc. 2d
+    Unit tests for Unit of Work 1d
+    Database update on regrading 0.5d
+    Kill question.image column, with upgrade. 2d
+    Add transactions. 0.5d
+
+<-- OU version done milestone
 
 Miscellaneous code clean-up (1.5d)
     Refactor out commonalities between multiplechoice and truefalse rendering. 0.5d
@@ -136,15 +81,16 @@ Miscellaneous code clean-up (1.5d)
     test ungraded quizzes and ungraded questions
     Upgrade essay question type. Kill its use of an answer, and merge all feedback into generalfeedback.
 
-Port the code to Moodle 2.x (4d)
+Port the code to Moodle 2.x (10d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8559)
     Convert question/engine/datalib.php 1d
+    Change all renderes to match recent core API changes 3d
     Get rid of question/engine/compatibility 0d
-    Change quiz settings.php to correspond to teh changes in config.html.
+    Change quiz settings.php to correspond to the changes in config.html.
     Update file handling 2.5d
     Update unit tests to PHP Unit. 0.5d
     Update qtype plugin version numbers and requires numbers, when this is merged into core code 0d.
-    Consider using extra_question_fields more, e.g. in shortanswer initialise_question_instance
+    Database upgrade for Moodle 2.x 3d
 
 Convert complex question types to the new API (8d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8559)
@@ -157,13 +103,6 @@ Documentation (2d)
     Overview of how the system works. 1d
     Guide for module (or other plugin authors) wanting to use the question engine in their code. 0.5d
 
-<-- Ready to go into Moodle core milestone.
-
-Performance testing 5d
-(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9209)
-    Load test the entire quiz (count DB queries and time)
-    Profile some key parts of the question processing.
-
 >-- The following items are things that it would be nice to do later.
 
 Quiz module renderers (4d)
@@ -175,7 +114,7 @@ Enhance the question preview window (3d)
 
 Other odds and ends
     Need a way to mock question_bank::load_question when testing then question engine.
-
+    Consider using extra_question_fields more, e.g. in shortanswer initialise_question_instance
 
 --------------------------------------------------------------------------------
 
@@ -393,3 +332,69 @@ CONSTRAINT  PRIMARY KEY (id)
 ALTER TABLE git_question_hints COMMENT='Stores the the part of the question definition that gives di';
 
 CREATE INDEX git_queshint_que_ix ON git_question_hints (questionid);
+
+
+
+--------------------------------------------------------------------------------
+
+-- Old todo items
+
+Convert existing question type code (3d)
+√   Convert question types to the new API
+√       multichoice 0.5d
+√       match 1d
+
+More interaction models (2d)
+√   Interactive model 2d
+
+Integrate new code into the quiz (3d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9212)
+√   backport & update key 2.0 changes (2d)
+√       attemptlib.php 0.5d
+√       accessmanager.php
+√       comment.php
+√       view.php 0.5d
+√       startattempt.php
+√       attempt.php
+√       processattempt.php 0.5d
+√       summary.php
+√       review.php
+√       reviewquestion.php 0.5d
+√       quiz.js
+√   question flag update JS - and non-js.
+√   quiz timer JS
+√   scroll-down JavaScript on adaptive/immediate/interactive submit button - but not the first on the page.
+√   deal with TODOs and test
+√   adaptive mode submit goes to next page
+√   quiz settings form and database
+√   quiz default settings form
+
+<-- Christmas target milestone (7d)
+
+Finish converting simple question types (6.5d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9203)
+√   Opaque question type 0.5d
+√   Numerical units 0.5d
+√   Test missing qtype 1d
+√   New fields for editing hints (4d)
+√       Fields on editing form 1d
+√       Database columns, load/save code 1d
+√       Import export 1d
+√       Use by interactive mode 1d
+
+Finish interaction models (2.5d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9204)
+√   Opaque model 0.5d
+√   Each attempt builds on last (eachattemptonlast) model 1d
+√   New Adaptive mode without penalties (adaptivenopenalty) model. (0.5d)
+√   Minor refactoring of the different interaction models' process_action methods. 0d
+√   Fix manual grading of automatically graded question types.
+√   What happens when submit of a blank response is ignored - need verify failure state. 0.5d
+√   Issue with when the try-again button should be read-only. (Think teacher review of in-progress attempt.)
+
+Finish question engine core (3d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8557)
+√   Implement questionsummary and rightanswer.
+√   Implement responsesummary.
+√   Put starting seq_no in a hidden input, and verify before processing, to prevent duplicate submit problems.
+
