@@ -24,7 +24,7 @@
  */
 
 
-require_once($CFG->libdir.'/tablelib.php');
+require_once($CFG->dirroot.'/mod/quiz/report/attemptsreport.php');
 require_once($CFG->dirroot.'/mod/quiz/report/responses/responsessettings_form.php');
 require_once($CFG->dirroot.'/mod/quiz/report/responses/responses_table.php');
 
@@ -43,31 +43,21 @@ require_once($CFG->dirroot.'/mod/quiz/report/responses/responses_table.php');
  * @copyright 1999 onwards Martin Dougiamas and others {@link http://moodle.com}
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class quiz_responses_report extends quiz_default_report {
+class quiz_responses_report extends quiz_attempt_report {
 
-    /**
-     * Display the report.
-     */
     function display($quiz, $cm, $course) {
         global $CFG, $COURSE;
 
-        $context = get_context_instance(CONTEXT_MODULE, $cm->id);
-
-        // Work out some display options - whether there is feedback, and whether scores should be shown.
-        $hasfeedback = quiz_has_feedback($quiz);
-        $fakeattempt = new stdClass();
-        $fakeattempt->preview = false;
-        $fakeattempt->timefinish = $quiz->timeopen;
-        $fakeattempt->userid = 0;
-        $fakeattempt->id = 0;
-        $reviewoptions = quiz_get_reviewoptions($quiz, $fakeattempt, $context);
-        $showgrades = quiz_has_grades($quiz) && $reviewoptions->scores;
+        $this->context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
         $download = optional_param('download', '', PARAM_ALPHA);
 
+        list($currentgroup, $students, $groupstudents, $allowed) =
+                $this->load_relevant_students($cm);
+
         if ($attemptids = optional_param('attemptid', array(), PARAM_INT)) {
             //attempts need to be deleted
-            require_capability('mod/quiz:deleteattempts', $context);
+            require_capability('mod/quiz:deleteattempts', $this->context);
             $attemptids = optional_param('attemptid', array(), PARAM_INT);
             foreach($attemptids as $attemptid) {
                 add_to_log($course->id, 'quiz', 'delete attempt', 'report.php?id=' . $cm->id,
@@ -87,18 +77,12 @@ class quiz_responses_report extends quiz_default_report {
         $reporturl = new moodle_url($CFG->wwwroot . '/mod/quiz/report.php', $pageoptions);
         $qmsubselect = quiz_report_qm_filter_select($quiz);
 
-        /// find out current groups mode
-        $currentgroup = groups_get_activity_group($cm, true);
-
         $mform = new mod_quiz_report_responses_settings($reporturl,
                 array('qmsubselect' => $qmsubselect, 'quiz' => $quiz, 'currentgroup' => $currentgroup));
 
         if ($fromform = $mform->get_data()) {
             $attemptsmode = $fromform->attemptsmode;
             if ($qmsubselect) {
-                //control is not on the form if
-                //the grading method is not set
-                //to grade one attempt per user eg. for average attempt grade.
                 $qmfilter = $fromform->qmfilter;
             } else {
                 $qmfilter = 0;
@@ -113,19 +97,11 @@ class quiz_responses_report extends quiz_default_report {
             $pagesize = $fromform->pagesize;
 
         } else {
-            $qmfilter = optional_param('qmfilter', 0, PARAM_INT);
             $attemptsmode = optional_param('attemptsmode', null, PARAM_INT);
-            if ($attemptsmode === null) {
-                //default
-                $attemptsmode = QUIZ_REPORT_ATTEMPTS_ALL;
-            } else if ($currentgroup) {
-                //default for when a group is selected
-                if ($attemptsmode === null  || $attemptsmode == QUIZ_REPORT_ATTEMPTS_ALL) {
-                    $attemptsmode = QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH;
-                }
-            } else if (!$currentgroup && $course->id == SITEID) {
-                //force report on front page to show all, unless a group is selected.
-                $attemptsmode = QUIZ_REPORT_ATTEMPTS_ALL;
+            if ($qmsubselect) {
+                $qmfilter = optional_param('qmfilter', 0, PARAM_INT);
+            } else {
+                $qmfilter = 0;
             }
             $includeqtext = get_user_preferences('quiz_report_responses_qtext', 0);
             $includeresp = get_user_preferences('quiz_report_responses_resp', 1);
@@ -133,18 +109,15 @@ class quiz_responses_report extends quiz_default_report {
             $pagesize = get_user_preferences('quiz_report_pagesize', 0);
         }
 
+        $this->validate_common_options($attemptsmode, $pagesize, $course, $currentgroup);
         if (!$includeqtext && !$includeresp && !$includeright) {
             $includeresp = 1;
             set_user_preference('quiz_report_responses_resp', 1);
         }
 
-        if ($pagesize < 1) {
-            $pagesize = QUIZ_REPORT_DEFAULT_PAGE_SIZE;
-        }
-
         // We only want to show the checkbox to delete attempts
         // if the user has permissions and if the report mode is showing attempts.
-        $candelete = has_capability('mod/quiz:deleteattempts', $context)
+        $candelete = has_capability('mod/quiz:deleteattempts', $this->context)
                 && ($attemptsmode!= QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH_NO);
 
         $displayoptions = array();
@@ -154,27 +127,7 @@ class quiz_responses_report extends quiz_default_report {
         $displayoptions['resp'] = $includeresp;
         $displayoptions['right'] = $includeright;
 
-        //work out the sql for this table.
-        if (!$students = get_users_by_capability($context, array('mod/quiz:reviewmyattempts', 'mod/quiz:attempt'),'','','','','','',false)) {
-            $students = array();
-        } else {
-            $students = array_keys($students);
-        }
-
-        if (empty($currentgroup)) {
-            // all users who can attempt quizzes
-            $allowed = $students;
-            $groupstudents = array();
-        } else {
-            // all users who can attempt quizzes and who are in the currently selected group
-            if (!$groupstudents = get_users_by_capability($context, array('mod/quiz:reviewmyattempts', 'mod/quiz:attempt'),'','','','',$currentgroup,'',false)) {
-                $groupstudents = array();
-            } else {
-                $groupstudents = array_keys($groupstudents);
-            }
-            $allowed = $groupstudents;
-        }
-
+        // Load the required questions.
         $questions = quiz_report_get_significant_questions($quiz);
 
         $table = new quiz_report_responses_table($quiz , $qmsubselect, $groupstudents,
@@ -185,8 +138,7 @@ class quiz_responses_report extends quiz_default_report {
 
         if (!$table->is_downloading()) {
             // Only print headers if not asked to download data
-            $meta = '<link rel="stylesheet" type="text/css" href="'.$CFG->wwwroot.'/mod/quiz/report/responses/styles.css" />'."\n";
-            $this->print_header_and_tabs($cm, $course, $quiz, 'responses', $meta);
+            $this->print_header_and_tabs($cm, $course, $quiz, 'responses');
         }
 
         if ($groupmode = groups_get_activity_groupmode($cm)) {   // Groups are being used
@@ -223,56 +175,8 @@ class quiz_responses_report extends quiz_default_report {
                 }
             }
 
-            $showgrades = quiz_has_grades($quiz) && $reviewoptions->scores;
-            $hasfeedback = quiz_has_feedback($quiz);
-
-            // Construct the SQL
-            $fields = sql_concat('u.id', "'#'", 'COALESCE(qa.attempt, 0)') . ' AS uniqueid, ';
-            if ($qmsubselect) {
-                $fields .=
-                    "(CASE " .
-                    "   WHEN $qmsubselect THEN 1" .
-                    "   ELSE 0 " .
-                    "END) AS gradedattempt, ";
-            }
-
-            $fields .='qa.uniqueid AS usageid, qa.id AS attempt, u.id AS userid, u.idnumber, u.firstname,'.
-                ' u.lastname, u.institution, u.department, u.email, u.picture, u.imagealt, '.
-                'qa.sumgrades, qa.timefinish, qa.timestart, qa.timefinish - qa.timestart AS duration, ' .
-                'qa.layout ';
-
-            // This part is the same for all cases - join users and quiz_attempts tables
-            $from = "{$CFG->prefix}user u ";
-            $from .= "LEFT JOIN {$CFG->prefix}quiz_attempts qa ON qa.userid = u.id AND qa.quiz = $quiz->id";
-            $params = array('quizid' => $quiz->id);
-
-            if ($qmsubselect && $qmfilter) {
-                $from .= ' AND ' . $qmsubselect;
-            }
-            switch ($attemptsmode) {
-                case QUIZ_REPORT_ATTEMPTS_ALL:
-                    // Show all attempts, including students who are no longer in the course
-                    $where = 'qa.id IS NOT NULL AND qa.preview = 0';
-                    break;
-                case QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH:
-                    // Show only students with attempts
-                    list($allowed_usql, $allowed_params) = get_in_or_equal($allowed, SQL_PARAMS_NAMED, 'u0000');
-                    $params += $allowed_params;
-                    $where = "u.id $allowed_usql AND qa.preview = 0 AND qa.id IS NOT NULL";
-                    break;
-                case QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH_NO:
-                    // Show only students without attempts
-                    list($allowed_usql, $allowed_params) = get_in_or_equal($allowed, SQL_PARAMS_NAMED, 'u0000');
-                    $params += $allowed_params;
-                    $where = "u.id $allowed_usql AND qa.id IS NULL";
-                    break;
-                case QUIZ_REPORT_ATTEMPTS_ALL_STUDENTS:
-                    // Show all students with or without attempts
-                    list($allowed_usql, $allowed_params) = get_in_or_equal($allowed, SQL_PARAMS_NAMED, 'u0000');
-                    $params += $allowed_params;
-                    $where = "u.id $allowed_usql AND (qa.preview = 0 OR qa.preview IS NULL)";
-                    break;
-            }
+            list($fields, $from, $where, $params) =
+                    $this->base_sql($quiz, $qmsubselect, $qmfilter, $attemptsmode, $allowed);
 
             $table->set_count_sql("SELECT COUNT(1) FROM $from WHERE $where", $params);
 
@@ -283,57 +187,17 @@ class quiz_responses_report extends quiz_default_report {
             $headers = array();
 
             if (!$table->is_downloading() && $candelete) {
-                $columns[]= 'checkbox';
-                $headers[]= NULL;
+                $columns[] = 'checkbox';
+                $headers[] = NULL;
             }
 
-            if (!$table->is_downloading() && $CFG->grade_report_showuserimage) {
-                $columns[]= 'picture';
-                $headers[]= '';
-            }
-            if (!$table->is_downloading()) {
-                $columns[]= 'fullname';
-                $headers[]= get_string('name');
-            } else {
-                $columns[]= 'lastname';
-                $headers[]= get_string('lastname');
-                $columns[]= 'firstname';
-                $headers[]= get_string('firstname');
-            }
+            $this->add_user_columns($table, $columns, $headers);
 
-            if ($CFG->grade_report_showuseridnumber) {
-                $columns[]= 'idnumber';
-                $headers[]= get_string('idnumber');
-            }
             if ($table->is_downloading()) {
-                $columns[]= 'institution';
-                $headers[]= get_string('institution');
-
-                $columns[]= 'department';
-                $headers[]= get_string('department');
-
-                $columns[]= 'email';
-                $headers[]= get_string('email');
-
-                $columns[]= 'timestart';
-                $headers[]= get_string('startedon', 'quiz');
-
-                $columns[]= 'timefinish';
-                $headers[]= get_string('timecompleted','quiz');
-
-                $columns[]= 'duration';
-                $headers[]= get_string('attemptduration', 'quiz');
+                $this->add_time_columns($table, $columns, $headers);
             }
 
-            if ($showgrades) {
-                $columns[] = 'sumgrades';
-                $headers[] = get_string('grade', 'quiz').'/'.quiz_format_grade($quiz, $quiz->grade);
-            }
-
-            if ($hasfeedback) {
-                $columns[] = 'feedbacktext';
-                $headers[] = get_string('feedback', 'quiz');
-            }
+            $this->add_grade_columns($quiz, $columns, $headers);
 
             foreach ($questions as $id => $question) {
                 if ($displayoptions['qtext']) {
@@ -357,25 +221,17 @@ class quiz_responses_report extends quiz_default_report {
             // Set up the table
             $table->define_baseurl($reporturl->out(false, $displayoptions));
 
-            $table->collapsible(true);
-
-            $table->column_suppress('picture');
-            $table->column_suppress('fullname');
-            $table->column_suppress('idnumber');
+            $this->configure_user_columns($table);
 
             $table->no_sorting('feedbacktext');
-
-            $table->column_class('picture', 'picture');
-            $table->column_class('lastname', 'bold');
-            $table->column_class('firstname', 'bold');
-            $table->column_class('fullname', 'bold');
             $table->column_class('sumgrades', 'bold');
 
             $table->set_attribute('id', 'attempts');
+
+            $table->collapsible(true);
 
             $table->out($pagesize, true);
         }
         return true;
     }
-
 }

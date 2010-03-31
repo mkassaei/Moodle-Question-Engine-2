@@ -24,33 +24,18 @@
  */
 
 
-define ('QUIZ_REPORT_RESPONSES_MAX_LEN_TO_DISPLAY', 150);
-
-
 /**
  * This is a table subclass for displaying the quiz responses report.
  *
  * @copyright 2008 Jean-Michel Vedrine
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class quiz_report_responses_table extends table_sql {
-
-    public $useridfield = 'userid';
-
-    protected $reporturl;
-    protected $displayoptions;
+class quiz_report_responses_table extends quiz_attempt_report_table {
 
     public function __construct($quiz , $qmsubselect, $groupstudents,
-                $students, $questions, $candelete, $reporturl, $displayoptions) {
-        parent::table_sql('mod-quiz-report-responses-report');
-        $this->quiz = $quiz;
-        $this->qmsubselect = $qmsubselect;
-        $this->groupstudents = $groupstudents;
-        $this->students = $students;
-        $this->questions = $questions;
-        $this->candelete = $candelete;
-        $this->reporturl = $reporturl;
-        $this->displayoptions = $displayoptions;
+            $students, $questions, $candelete, $reporturl, $displayoptions) {
+        parent::__construct('mod-quiz-report-responses-report', $quiz , $qmsubselect, $groupstudents,
+                $students, $questions, $candelete, $reporturl, $displayoptions);
     }
 
     public function build_table() {
@@ -92,65 +77,6 @@ class quiz_report_responses_table extends table_sql {
         // Close form
         echo '</div>';
         echo '</form></div>';
-    }
-
-    public function col_checkbox($attempt) {
-        if ($attempt->attempt) {
-            return '<input type="checkbox" name="attemptid[]" value="'.$attempt->attempt.'" />';
-        } else {
-            return '';
-        }
-    }
-
-    public function col_picture($attempt) {
-        global $COURSE;
-        $user = new stdClass;
-        $user->id = $attempt->userid;
-        $user->lastname = $attempt->lastname;
-        $user->firstname = $attempt->firstname;
-        $user->imagealt = $attempt->imagealt;
-        $user->picture = $attempt->picture;
-        return print_user_picture($user, $COURSE->id, $attempt->picture, false, true);
-    }
-
-
-    public function col_timestart($attempt) {
-        if (!$attempt->attempt) {
-            return  '-';
-        }
-
-        $startdate = userdate($attempt->timestart, $this->strtimeformat);
-        if (!$this->is_downloading()) {
-            return  '<a href="review.php?q='.$this->quiz->id.'&amp;attempt='.$attempt->attempt.'">'.$startdate.'</a>';
-        } else {
-            return  $startdate;
-        }
-    }
-
-    public function col_timefinish($attempt) {
-        if (!$attempt->attempt) {
-            return  '-';
-        }
-        if (!$attempt->timefinish) {
-            return  '-';
-        }
-
-        $timefinish = userdate($attempt->timefinish, $this->strtimeformat);
-        if (!$this->is_downloading()) {
-            return '<a href="review.php?q='.$this->quiz->id.'&amp;attempt='.$attempt->attempt.'">'.$timefinish.'</a>';
-        } else {
-            return $timefinish;
-        }
-    }
-
-    public function col_duration($attempt) {
-        if ($attempt->timefinish) {
-            return format_time($attempt->duration);
-        } elseif ($attempt->timestart) {
-            return get_string('unfinished', 'quiz');
-        } else {
-            return '-';
-        }
     }
 
     public function col_sumgrades($attempt) {
@@ -229,18 +155,6 @@ class quiz_report_responses_table extends table_sql {
 
         } else {
             return NULL;
-        }
-    }
-
-    public function col_feedbacktext($attempt) {
-        if (!$attempt->timefinish) {
-            return '-';
-        }
-
-        if (!$this->is_downloading()) {
-            return quiz_report_feedback_for_grade(quiz_rescale_grade($attempt->sumgrades, $this->quiz, false), $this->quiz->id);
-        } else {
-            return strip_tags(quiz_report_feedback_for_grade(quiz_rescale_grade($attempt->sumgrades, $this->quiz, false), $this->quiz->id));
         }
     }
 

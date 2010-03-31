@@ -17,7 +17,7 @@ Integrate new code into the quiz reports (7d)
     sorting on question grade/summary columns 1d
 √   if you change the quiz Grading method setting, overall grades are not re-computed
         nor when changing question weights. 1d
-    refactor to eliminate some duplicated code 1d
+√   refactor to eliminate some duplicated code 1d
 
 Incorporate other OU-specific quiz customisations into this code (8d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8558)

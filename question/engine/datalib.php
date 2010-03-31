@@ -889,6 +889,9 @@ class qubaid_list extends qubaid_condition {
         if (is_null($this->columntotest)) {
             throw new coding_exception('Must call another method that before where().');
         }
+        if (empty($this->qubaids)) {
+            return '1 = 0';
+        }
         list($where, $params) = get_in_or_equal($this->qubaids, SQL_PARAMS_NAMED, 'qubaid0000');
         return "{$this->columntotest} {$this->usage_id_in()}";
     }
