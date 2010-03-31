@@ -55,10 +55,10 @@ define("QUIZ_ATTEMPTLAST",  "4");
 /**#@+
  * Constants to describe the various states a quiz attempt can be in.
  */
-define('QUIZ_STATE_DURING', 'during'); 
-define('QUIZ_STATE_IMMEDIATELY', 'immedately'); 
-define('QUIZ_STATE_OPEN', 'open'); 
-define('QUIZ_STATE_CLOSED', 'closed'); 
+define('QUIZ_STATE_DURING', 'during');
+define('QUIZ_STATE_IMMEDIATELY', 'immedately');
+define('QUIZ_STATE_OPEN', 'open');
+define('QUIZ_STATE_CLOSED', 'closed');
 define('QUIZ_STATE_TEACHERACCESS', 'teacheraccess'); // State only relevant if you are in a studenty role.
 /**#@-*/
 
@@ -715,7 +715,7 @@ function quiz_update_all_final_grades($quiz) {
 
     $timenow = time();
     $sql = "UPDATE {$CFG->prefix}quiz_grades
-    
+
             SET
                 timemodified = $timenow,
                 grade = (
@@ -1009,12 +1009,12 @@ function quiz_get_reviewoptions($quiz, $attempt, $context) {
         $options->manualcommentlink = '/mod/quiz/comment.php?attempt=' . $attempt->id;
     }
 
-    if (!is_null($context) && has_capability('mod/quiz:viewreports', $context) && 
+    if (!is_null($context) && has_capability('mod/quiz:viewreports', $context) &&
             has_capability('moodle/grade:viewhidden', $context) && !$attempt->preview) {
         // People who can see reports and hidden grades should be shown everything,
         // except during preview when teachers want to see what students see.
         $options->responses = true;
-        $options->scores = true; 
+        $options->scores = true;
         $options->feedback = true;
         $options->correct_responses = true;
         $options->solutions = false;
@@ -1034,7 +1034,7 @@ function quiz_get_reviewoptions($quiz, $attempt, $context) {
             $options->quizstate = QUIZ_STATE_CLOSED;
         }
 
-        // ... and hence extract the appropriate review options. 
+        // ... and hence extract the appropriate review options.
         $options->responses = ($quiz->review & $quiz_state_mask & QUIZ_REVIEW_RESPONSES) ? 1 : 0;
         $options->scores = ($quiz->review & $quiz_state_mask & QUIZ_REVIEW_SCORES) ? 1 : 0;
         $options->feedback = ($quiz->review & $quiz_state_mask & QUIZ_REVIEW_FEEDBACK) ? 1 : 0;
@@ -1086,7 +1086,7 @@ function quiz_get_combined_reviewoptions($quiz, $attempts, $context=null) {
  * - Remove duplicate question id's
  * - Remove extra "," from beginning and end
  * - Finally, add a ",0" in the end if there is none
- * 
+ *
  * @param $string $layout the quiz layout to clean up, usually from $quiz->questions.
  * @param boolean $removeemptypages If true, remove empty pages from the quiz. False by default.
  * @return $string the cleaned-up layout
@@ -1318,7 +1318,7 @@ function quiz_send_notification_emails($course, $quiz, $attempt, $context, $cm) 
 
 /**
  * Checks if browser is safe browser
- * 
+ *
  * @return true, if browser is safe browser else false
  */
 function quiz_check_safe_browser() {
