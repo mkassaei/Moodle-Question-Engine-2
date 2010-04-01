@@ -14,7 +14,7 @@ Integrate new code into the quiz reports (7d)
 √   check formatting by question or quiz decimal points
 √   delete obsolete get_all_responses method.
     re-impliment regrading functionality 1d
-    sorting on question grade/summary columns 1d
+√   sorting on question grade/summary columns 1d
 √   if you change the quiz Grading method setting, overall grades are not re-computed
         nor when changing question weights. 1d
 √   refactor to eliminate some duplicated code 1d

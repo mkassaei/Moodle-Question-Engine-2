@@ -527,27 +527,13 @@ $sqlorderby
     /**
      * Load a {@link question_usage_by_activity} from the database, including
      * all its {@link question_attempt}s and all their steps.
-     * @param integer $qubaid the id of the usage to load.
-     * @param question_usage_by_activity the usage that was loaded.
+     * @param qubaid_condition $qubaids used to restrict which usages are included
+     * in the query. See {@link qubaid_condition}.
+     * @param array $qnumbers if null, load info for all quesitions, otherwise only
+     * load the averages for the specified questions.
      */
-    public function load_average_marks($qubaids, $qnumbers = null) {
+    public function load_average_marks(qubaid_condition $qubaids, $qnumbers = null) {
         global $CFG;
-
-        if (is_array($qubaids)) {
-            list($where, $params) = get_in_or_equal($qubaids, SQL_PARAMS_NAMED, 'qubaid0000');
-            $qubaidswhere = "qa.questionusageid $where";
-            $qajoin = "FROM {$CFG->prefix}question_attempts_new qa";
-
-        } else if (is_string($qubaids)) {
-            $qubaidswhere = "qa.questionusageid IN ($qubaids)";
-            $qajoin = "FROM {$CFG->prefix}question_attempts_new qa";
-
-        } else {
-            $qubaidswhere = $qubaids->where;
-            $qajoin = $qubaids->from .
-                    "\nJOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = " .
-                    $qubaids->usageidcolumn;
-        }
 
         if (!empty($qnumbers)) {
             list($qnumbertest, $params) = get_in_or_equal($qnumbers, SQL_PARAMS_NAMED, 'qnumber0000');
@@ -570,14 +556,14 @@ SELECT
     AVG(qas.fraction) AS averagefraction,
     COUNT(1) AS numaveraged
 
-$qajoin
+FROM {$qubaids->from_question_attempts('qa')}
 JOIN (
     SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
 ) lateststepid ON lateststepid.questionattemptid = qa.id
 JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
 
 WHERE
-    $qubaidswhere
+    {$qubaids->where()}
     $qnumberwhere
     AND qas.state $statetest
 
@@ -733,6 +719,37 @@ ORDER BY qa.numberinusage
             ) lateststepid ON lateststepid.questionattemptid = qa.id
             JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
             WHERE qa.questionusageid = $qubaid";
+    }
+
+    public function question_attempt_latest_state_view($alias) {
+        global $CFG;
+        return "(
+                SELECT
+                    {$alias}qa.id AS questionattemptid,
+                    {$alias}qa.questionusageid,
+                    {$alias}qa.numberinusage,
+                    {$alias}qa.interactionmodel,
+                    {$alias}qa.questionid,
+                    {$alias}qa.maxmark,
+                    {$alias}qa.minfraction,
+                    {$alias}qa.flagged,
+                    {$alias}qa.questionsummary,
+                    {$alias}qa.rightanswer,
+                    {$alias}qa.responsesummary,
+                    {$alias}qa.timemodified,
+                    {$alias}qas.id AS attemptstepid,
+                    {$alias}qas.sequencenumber,
+                    {$alias}qas.state,
+                    {$alias}qas.fraction,
+                    {$alias}qas.timecreated,
+                    {$alias}qas.userid
+
+                FROM {$CFG->prefix}question_attempts_new {$alias}qa
+                JOIN (
+                    SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
+                ) {$alias}lateststepid ON {$alias}lateststepid.questionattemptid = {$alias}qa.id
+                JOIN {$CFG->prefix}question_attempt_steps {$alias}qas ON {$alias}qas.id = {$alias}lateststepid.latestid
+            ) $alias";
     }
 }
 

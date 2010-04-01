@@ -72,7 +72,7 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
                         'sumgrades' => $this->format_average($record),
                         'feedbacktext'=> strip_tags(quiz_report_feedback_for_grade($record->grade, $this->quiz->id)));
                 if($this->detailedmarks && $this->qmsubselect) {
-                    $avggradebyq = quiz_get_average_grade_for_questions($this->quiz, $this->groupstudents, array_keys($this->questions));
+                    $avggradebyq = $this->load_average_question_grades($this->groupstudents);
                     $groupaveragerow += $this->format_average_grade_for_questions($avggradebyq);
                 }
                 $this->add_data_keyed($groupaveragerow);
@@ -85,7 +85,7 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
                     'sumgrades' => $this->format_average($record),
                     'feedbacktext'=> strip_tags(quiz_report_feedback_for_grade($record->grade, $this->quiz->id)));
             if ($this->detailedmarks && $this->qmsubselect) {
-                $avggradebyq = quiz_get_average_grade_for_questions($this->quiz, $this->students, array_keys($this->questions));
+                $avggradebyq = $this->load_average_question_grades($this->students);
                 $overallaveragerow += $this->format_average_grade_for_questions($avggradebyq);
             }
             $this->add_data_keyed($overallaveragerow);
@@ -277,67 +277,48 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
         }
     }
 
-    public function query_db($pagesize, $useinitialsbar=true) {
-        // Add table joins so we can sort by question grade
-        // unfortunately can't join all tables necessary to fetch all grades
-        // to get the state for one question per attempt row we must join two tables
-        // and there is a limit to how many joins you can have in one query. In MySQL it
-        // is 61. This means that when having more than 29 questions the query will fail.
-        // So we join just the tables needed to sort the attempts.
-        if ($sort = $this->get_sql_sort()) {
-            if ($this->detailedmarks) {
-                $this->sql->from .= ' ';
-                $sortparts    = explode(',', $sort);
-                $matches = array();
-                foreach ($sortparts as $sortpart) {
-                    $sortpart = trim($sortpart);
-                    if (preg_match('/^qsgrade([0-9]+)/', $sortpart, $matches)) {
-                        $qid = intval($matches[1]);
-                        // TODO
-                        $this->sql->fields .=  ", qs$qid.grade AS qsgrade$qid, qs$qid.event AS qsevent$qid, qs$qid.id AS qsid$qid";
-                        $this->sql->from .= "LEFT JOIN {question_sessions} qns$qid ON qns$qid.attemptid = qa.uniqueid AND qns$qid.questionid = :qid$qid ";
-                        $this->sql->from .=  "LEFT JOIN  {question_states} qs$qid ON qs$qid.id = qns$qid.newgraded ";
-                        $this->sql->params['qid'.$qid] = $qid;
-                    }
-                }
-            } else {
-                // Unset any sort columns that sort on question grade as the
-                // grades are not being fetched as fields.
-                foreach ($this->sess->sortby as $column => $order) {
-                    if (preg_match('/^qsgrade([0-9]+)/', trim($column))) {
-                        unset($this->sess->sortby[$column]);
-                    }
-                }
-            }
-        }
+    protected function requires_latest_steps_loaded() {
+        return $this->detailedmarks;
+    }
 
+    protected function is_latest_step_column($column) {
+        if (preg_match('/^qsgrade([0-9]+)/', $column, $matches)) {
+            return $matches[1];
+        }
+        return false;
+    }
+
+    protected function get_required_latest_state_fields($qnumber, $alias) {
+        return "$alias.fraction * $alias.maxmark AS qsgrade$qnumber";
+    }
+
+    public function query_db($pagesize, $useinitialsbar = true) {
         parent::query_db($pagesize, $useinitialsbar);
-        if (!$this->detailedmarks) {
-            return;
-        }
 
-        // Get all the attempt ids we want to display on this page
-        // or to export for download.
-        if (!$this->is_downloading()) {
-            $qubaids = array();
-            foreach ($this->rawdata as $attempt) {
-                if ($attempt->usageid > 0) {
-                    $qubaids[] = $attempt->usageid;
-                }
-            }
-            $this->lateststeps = quiz_report_get_latest_steps(
-                    new qubaid_list($qubaids), array_keys($this->questions));
-            if (has_capability('mod/quiz:regrade', $this->context)) {
-                $this->regradedqs = quiz_get_regraded_qs($qubaids);
-            }
-
-        } else {
-            $from = substr($this->sql->from, 5); // Strip of 'FROM '.
-            $qubaids = new qubaid_join($from, 'usageid', $this->sql->where);
-            $this->lateststeps = quiz_report_get_latest_steps($qubaids, array_keys($this->questions));
-            if (has_capability('mod/quiz:regrade', $this->context)) {
-                $this->regradedqs = quiz_get_regraded_qs($this->sql);
-            }
+        if ($this->detailedmarks && has_capability('mod/quiz:regrade', $this->context)) {
+            $qubaids = $this->get_qubaids_condition();
+            $this->regradedqs = quiz_get_regraded_qs($qubaids);
         }
+    }
+
+    /**
+     * Load the average grade for each question, averaged over particular users.
+     * @param array $userids the user ids to average over.
+     */
+    function load_average_question_grades($userids) {
+        global $CFG;
+
+        $qmfilter = quiz_report_qm_filter_select($this->quiz, 'quiza');
+        list($usql, $params) = get_in_or_equal($userids);
+
+        $qubaids = new qubaid_join(
+                "{$CFG->prefix}quiz_attempts quiza",
+                'quiza.uniqueid',
+                "($qmfilter) AND
+                    quiza.userid $usql AND
+                    quiza.quiz = {$this->quiz->id}");
+
+        $dm = new question_engine_data_mapper();
+        return $dm->load_average_marks($qubaids, array_keys($this->questions));
     }
 }

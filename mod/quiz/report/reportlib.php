@@ -34,91 +34,6 @@ define('QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH', 2);
 define('QUIZ_REPORT_ATTEMPTS_ALL_STUDENTS', 3);
 
 /**
- * Load information about the latest state of selected questions in selected attempts.
- *
- * The results are returned as an two dimensional array $qubaid => $qnumber => $dataobject
- *
- * @param qubaid_condition $qubaids used to restrict which usages are included
- * in the query. See {@link qubaid_condition}.
- * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
- * @return array of records. See the SQL in this function to see the fields available.
- */
-function quiz_report_get_latest_steps(qubaid_condition $qubaids, $qnumbers) {
-    $dm = new question_engine_data_mapper();
-    $latesstepdata = $dm->load_questions_usages_latest_steps($qubaids, $qnumbers);
-    $lateststeps = array();
-    foreach ($latesstepdata as $step) {
-        $lateststeps[$step->questionusageid][$step->numberinusage] = $step;
-    }
-    return $lateststeps;
-}
-
-/**
- * Load information about the number of attempts at various questions in each
- * summarystate.
- *
- * The results are returned as an two dimensional array $qubaid => $qnumber => $dataobject
- *
- * @param qubaid_condition $qubaids used to restrict which usages are included
- * in the query. See {@link qubaid_condition}.
- * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
- * @return array The array keys are qnumber,qestionid. The values are objects with
- * fields $qnumber, $questionid, $inprogress, $name, $needsgrading, $autograded,
- * $manuallygraded and $all.
- */
-function quiz_report_get_state_summary(qubaid_condition $qubaids, $qnumbers) {
-    $dm = new question_engine_data_mapper();
-    return $dm->load_questions_usages_question_state_summary($qubaids, $qnumbers);
-}
-
-/**
- * Get a list of usage ids where the question with qnumber $qnumber, and optionally
- * also with question id $questionid, is in summary state $summarystate. Also
- * return the total count of such states.
- *
- * Only a subset of the ids can be returned by using $orderby, $limitfrom and
- * $limitnum. A special value 'random' can be passed as $orderby, in which case
- * $limitfrom is ignored.
- *
- * @param qubaid_condition $qubaids used to restrict which usages are included
- *      in the query. See {@link qubaid_condition}.
- * @param integer $qnumber The qnumber for the questions you want to konw about.
- * @param integer $questionid (optional) Only return attempts that were of this specific question.
- * @param string $summarystate 'all', 'needsgrading', 'autograded' or 'manuallygraded'.
- * @param string $orderby 'random', 'date' or 'student'.
- * @param integer $page implements paging of the results.
- *      Ignored if $orderby = random or $pagesize is null.
- * @param integer $pagesize implements paging of the results. null = all.
- */
-function quiz_report_get_usage_ids_where_question_in_state(qubaid_condition $qubaids,
-        $summarystate, $qnumber, $questionid = null, $orderby = 'random',
-        $page = 0, $pagesize = null) {
-    global $CFG;
-    $dm = new question_engine_data_mapper();
-
-    if ($pagesize && $orderby != 'random') {
-        $limitfrom = $page * $pagesize;
-    } else {
-        $limitfrom = 0;
-    }
-
-    if ($orderby == 'date') {
-        $orderby = "(
-                SELECT MAX(sortqas.timecreated)
-                FROM {$CFG->prefix}question_attempt_steps sortqas
-                WHERE sortqas.questionattemptid = qa.id
-                    AND sortqas.state {$dm->in_summary_state_test('manuallygraded', false)}
-                )";
-    } else if ($orderby == 'student') {
-        $qubaids->from .= " JOIN {$CFG->prefix}user u ON quiza.userid = u.id ";
-        $orderby = sql_fullname('u.firstname', 'u.lastname');
-    }
-
-    return $dm->load_questions_usages_where_question_in_state($qubaids, $summarystate,
-            $qnumber, $questionid, $orderby, $limitfrom, $pagesize);
-}
-
-/**
  * Takes an array of objects and constructs a multidimensional array keyed by
  * the keys it finds on the object.
  * @param array $datum an array of objects with properties on the object
@@ -168,6 +83,7 @@ function quiz_report_unindex($datum) {
 }
 
 function quiz_get_regraded_qs($attemptidssql, $limitfrom=0, $limitnum=0) {
+    return array(); // TODO
     global $CFG;
     if ($attemptidssql && is_array($attemptidssql)) {
         list($asql, $params) = get_in_or_equal($attemptidssql);
@@ -189,25 +105,6 @@ function quiz_get_regraded_qs($attemptidssql, $limitfrom=0, $limitnum=0) {
         return array();
     }
     return quiz_report_index_by_keys($regradedqs, array('attemptid', 'questionid'));
-}
-
-function quiz_get_average_grade_for_questions($quiz, $userids, $qnumbers) {
-    global $CFG;
-
-    $qmfilter = quiz_report_qm_filter_select($quiz, 'quiza');
-    list($usql, $params) = get_in_or_equal($userids);
-
-    $qubaids = "
-SELECT quiza.uniqueid
-FROM {$CFG->prefix}quiz_attempts quiza 
-WHERE 
-    ($qmfilter) AND 
-    quiza.userid $usql AND 
-    quiza.quiz = $quiz->id
-";
-
-    $dm = new question_engine_data_mapper();
-    return $dm->load_average_marks($qubaids, $qnumbers);
 }
 
 /**

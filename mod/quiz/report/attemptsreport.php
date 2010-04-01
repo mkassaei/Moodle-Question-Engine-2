@@ -140,28 +140,36 @@ abstract class quiz_attempt_report extends quiz_default_report {
     protected function base_sql($quiz, $qmsubselect, $qmfilter, $attemptsmode, $reportstudents) {
         global $CFG;
 
-        $fields = sql_concat('u.id', "'#'", 'COALESCE(qa.attempt, 0)') . ' AS uniqueid, ';
+        $fields = sql_concat('u.id', "'#'", 'COALESCE(qa.attempt, 0)') . ' AS uniqueid,';
 
         if ($qmsubselect) {
-            $fields .=
-                "(CASE " .
-                "   WHEN $qmsubselect THEN 1" .
-                "   ELSE 0 " .
-                "END) AS gradedattempt, ";
+            $fields .= "\n(CASE WHEN $qmsubselect THEN 1 ELSE 0 END) AS gradedattempt,";
         }
 
-        $fields .= 'qa.uniqueid AS usageid, qa.id AS attempt, ' .
-            'u.id AS userid, u.idnumber, u.firstname, u.lastname, ' .
-            'u.picture, u.imagealt, u.institution, u.department, u.email, ' .
-            'qa.sumgrades, qa.timefinish, qa.timestart, qa.timefinish - qa.timestart AS duration ';
+        $fields .= "
+                qa.uniqueid AS usageid,
+                qa.id AS attempt,
+                u.id AS userid,
+                u.idnumber,
+                u.firstname,
+                u.lastname,
+                u.picture,
+                u.imagealt,
+                u.institution,
+                u.department,
+                u.email,
+                qa.sumgrades,
+                qa.timefinish,
+                qa.timestart,
+                qa.timefinish - qa.timestart AS duration";
 
         // This part is the same for all cases - join users and quiz_attempts tables
-        $from = "{$CFG->prefix}user u ";
-        $from .= "LEFT JOIN {$CFG->prefix}quiz_attempts qa ON qa.userid = u.id AND qa.quiz = $quiz->id";
+        $from = "\n{$CFG->prefix}user u";
+        $from .= "\nLEFT JOIN {$CFG->prefix}quiz_attempts qa ON qa.userid = u.id AND qa.quiz = $quiz->id";
         $params = array('quizid' => $quiz->id);
 
         if ($qmsubselect && $qmfilter) {
-            $from .= ' AND ' . $qmsubselect;
+            $from .= " AND $qmsubselect";
         }
         switch ($attemptsmode) {
             case QUIZ_REPORT_ATTEMPTS_ALL:
@@ -323,6 +331,12 @@ abstract class quiz_attempt_report_table extends table_sql {
     /** @var array the display options. */
     protected $displayoptions;
 
+    /**
+     * @var array information about the latest step of each question.
+     * Loaded by {@link load_question_latest_steps()}, if applicable.
+     */
+    protected $lateststeps = null;
+
     public function __construct($uniqueid, $quiz , $qmsubselect, $groupstudents,
             $students, $questions, $candelete, $reporturl, $displayoptions) {
         parent::table_sql('mod-quiz-report-responses-report');
@@ -404,6 +418,123 @@ abstract class quiz_attempt_report_table extends table_sql {
             return quiz_report_feedback_for_grade(quiz_rescale_grade($attempt->sumgrades, $this->quiz, false), $this->quiz->id);
         } else {
             return strip_tags(quiz_report_feedback_for_grade(quiz_rescale_grade($attempt->sumgrades, $this->quiz, false), $this->quiz->id));
+        }
+    }
+
+    /**
+     * Load information about the latest state of selected questions in selected attempts.
+     *
+     * The results are returned as an two dimensional array $qubaid => $qnumber => $dataobject
+     *
+     * @param qubaid_condition $qubaids used to restrict which usages are included
+     * in the query. See {@link qubaid_condition}.
+     * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
+     * @return array of records. See the SQL in this function to see the fields available.
+     */
+    function load_question_latest_steps(qubaid_condition $qubaids) {
+        $dm = new question_engine_data_mapper();
+        $latesstepdata = $dm->load_questions_usages_latest_steps(
+                $qubaids, array_keys($this->questions));
+
+        $lateststeps = array();
+        foreach ($latesstepdata as $step) {
+            $lateststeps[$step->questionusageid][$step->numberinusage] = $step;
+        }
+
+        return $lateststeps;
+    }
+
+    /**
+     * @return boolean should {@link query_db()} call {@link load_question_latest_steps}?
+     */
+    protected function requires_latest_steps_loaded() {
+        return false;
+    }
+
+    /**
+     * Is this a column that depends on joining to the latest state information?
+     * If so, return the corresponding qnumber. If not, return false.
+     * @param string $column a column name
+     * @return integer false if no, else a qnumber.
+     */
+    protected function is_latest_step_column($column) {
+        return false;
+    }
+
+    /**
+     * Get any fields that might be needed when sorting on date for a particular qnumber.
+     * @param integer $qnumber the qnumber for the column we want.
+     * @param string $alias the table alias for latest state information relating to that qnumber.
+     */
+    protected function get_required_latest_state_fields($qnumber, $alias) {
+        return '';
+    }
+
+    /**
+     * Add the information about the latest state of the question with qnumber
+     * $qnumber to the query.
+     *
+     * The extra information is added as a join to a
+     * 'table' with alias qa$qnumber, with columns that are a union of
+     * the columns of the question_attempts and question_attempts_states tables.
+     *
+     * @param integer $qnumber the question to add information for.
+     */
+    protected function add_latest_state_join($qnumber) {
+        $alias = 'qa' . $qnumber;
+
+        $fields = $this->get_required_latest_state_fields($qnumber, $alias);
+        if (!$fields) {
+            return;
+        }
+
+        $dm = new question_engine_data_mapper();
+        $inlineview = $dm->question_attempt_latest_state_view($alias);
+
+        $this->sql->fields .= ",\n$fields";
+        $this->sql->from .= "\nLEFT JOIN $inlineview ON " .
+                "$alias.questionusageid = qa.uniqueid AND $alias.numberinusage = $qnumber";
+    }
+
+    /**
+     * Get an appropriate qubaid_condition for loading more data about the
+     * attempts we are displaying.
+     * @return qubaid_condition
+     */
+    protected function get_qubaids_condition() {
+        if (is_null($this->rawdata)) {
+            throw new coding_exception(
+                    'Cannot call get_qubaids_condition until the main data has been loaded.');
+        }
+
+        if ($this->is_downloading()) {
+            // We want usages for all attempts.
+            $from = substr($this->sql->from, 5); // Strip off 'FROM '.
+            return new qubaid_join($from, 'usageid', $this->sql->where);
+        }
+
+        $qubaids = array();
+        foreach ($this->rawdata as $attempt) {
+            if ($attempt->usageid > 0) {
+                $qubaids[] = $attempt->usageid;
+            }
+        }
+        return new qubaid_list($qubaids);
+    }
+
+
+    public function query_db($pagesize, $useinitialsbar=true) {
+        foreach ($this->get_sort_columns() as $column => $notused) {
+            if ($qnumber = $this->is_latest_step_column($column)) {
+                $this->add_latest_state_join($qnumber);
+            }
+        }
+
+        parent::query_db($pagesize, $useinitialsbar);
+
+        if ($this->requires_latest_steps_loaded()) {
+            $qubaids = $this->get_qubaids_condition();
+            $this->lateststeps = $this->load_question_latest_steps($qubaids);
         }
     }
 }

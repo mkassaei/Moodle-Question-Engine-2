@@ -19,7 +19,7 @@
  * This file defines the quiz manual grading report class.
  *
  * @package quiz_grading
- * @copyright 2006 Gustav Delius 
+ * @copyright 2006 Gustav Delius
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -34,7 +34,7 @@ require_once($CFG->dirroot . '/mod/quiz/report/grading/gradingsettings_form.php'
  * - List question that might need manual grading (or optionally all questions).
  * - Provide an efficient UI to grade all attempts at a particular question.
  *
- * @copyright 2006 Gustav Delius 
+ * @copyright 2006 Gustav Delius
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class quiz_grading_report extends quiz_default_report {
@@ -261,8 +261,7 @@ class quiz_grading_report extends quiz_default_report {
         echo '<p class="toggleincludeauto"><a href="' . $this->list_questions_url(!$includeauto) .
                 '">' . $linktext . '</a></p>';
 
-        $qubaidscondition = $this->get_qubaids_condition();
-        $statecounts = quiz_report_get_state_summary($qubaidscondition, array_keys($this->questions));
+        $statecounts = $this->get_question_state_summary(array_keys($this->questions));
 
         $data = array();
         foreach ($statecounts as $counts) {
@@ -318,8 +317,7 @@ class quiz_grading_report extends quiz_default_report {
             $pagesize, $page, $shownames, $order) {
 
         // Make sure there is something to do.
-        $qubaidscondition = $this->get_qubaids_condition();
-        $statecounts = quiz_report_get_state_summary($qubaidscondition, array($qnumber));
+        $statecounts = $this->get_question_state_summary(array($qnumber));
 
         $counts = null;
         foreach ($statecounts as $record) {
@@ -338,8 +336,8 @@ class quiz_grading_report extends quiz_default_report {
             $page = 0;
         }
 
-        list($qubaids, $count) = quiz_report_get_usage_ids_where_question_in_state(
-                $qubaidscondition, $grade, $qnumber, $questionid, $order, $page, $pagesize);
+        list($qubaids, $count) = $this->get_usage_ids_where_question_in_state(
+                $grade, $qnumber, $questionid, $order, $page, $pagesize);
         $attempts = $this->load_attempts_by_usage_ids($qubaids);
 
         // Prepare the form.
@@ -437,5 +435,68 @@ END;
             $attemptobj = new quiz_attempt($attempt, $this->quiz, $this->cm, $this->course);
             $attemptobj->process_all_actions(time());
         }
+    }
+
+    /**
+     * Load information about the number of attempts at various questions in each
+     * summarystate.
+     *
+     * The results are returned as an two dimensional array $qubaid => $qnumber => $dataobject
+     *
+     * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
+     * @return array The array keys are qnumber,qestionid. The values are objects with
+     * fields $qnumber, $questionid, $inprogress, $name, $needsgrading, $autograded,
+     * $manuallygraded and $all.
+     */
+    protected function get_question_state_summary($qnumbers) {
+        $dm = new question_engine_data_mapper();
+        return $dm->load_questions_usages_question_state_summary(
+                $this->get_qubaids_condition(), $qnumbers);
+    }
+
+    /**
+     * Get a list of usage ids where the question with qnumber $qnumber, and optionally
+     * also with question id $questionid, is in summary state $summarystate. Also
+     * return the total count of such states.
+     *
+     * Only a subset of the ids can be returned by using $orderby, $limitfrom and
+     * $limitnum. A special value 'random' can be passed as $orderby, in which case
+     * $limitfrom is ignored.
+     *
+     * @param integer $qnumber The qnumber for the questions you want to konw about.
+     * @param integer $questionid (optional) Only return attempts that were of this specific question.
+     * @param string $summarystate 'all', 'needsgrading', 'autograded' or 'manuallygraded'.
+     * @param string $orderby 'random', 'date' or 'student'.
+     * @param integer $page implements paging of the results.
+     *      Ignored if $orderby = random or $pagesize is null.
+     * @param integer $pagesize implements paging of the results. null = all.
+     */
+    function get_usage_ids_where_question_in_state($summarystate, $qnumber,
+            $questionid = null, $orderby = 'random', $page = 0, $pagesize = null) {
+        global $CFG;
+        $dm = new question_engine_data_mapper();
+
+        if ($pagesize && $orderby != 'random') {
+            $limitfrom = $page * $pagesize;
+        } else {
+            $limitfrom = 0;
+        }
+
+        $qubaids = $this->get_qubaids_condition();
+
+        if ($orderby == 'date') {
+            $orderby = "(
+                    SELECT MAX(sortqas.timecreated)
+                    FROM {$CFG->prefix}question_attempt_steps sortqas
+                    WHERE sortqas.questionattemptid = qa.id
+                        AND sortqas.state {$dm->in_summary_state_test('manuallygraded', false)}
+                    )";
+        } else if ($orderby == 'student') {
+            $qubaids->from .= " JOIN {$CFG->prefix}user u ON quiza.userid = u.id ";
+            $orderby = sql_fullname('u.firstname', 'u.lastname');
+        }
+
+        return $dm->load_questions_usages_where_question_in_state($qubaids, $summarystate,
+                $qnumber, $questionid, $orderby, $limitfrom, $pagesize);
     }
 }

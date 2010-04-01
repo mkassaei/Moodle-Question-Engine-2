@@ -158,48 +158,25 @@ class quiz_report_responses_table extends quiz_attempt_report_table {
         }
     }
 
-    public function query_db($pagesize, $useinitialsbar=true) {
-        // Add table joins so we can sort by question answer
-        // unfortunately can't join all tables necessary to fetch all answers
-        // to get the state for one question per attempt row we must join two tables
-        // and there is a limit to how many joins you can have in one query. In MySQL it
-        // is 61. This means that when having more than 29 questions the query will fail.
-        // So we join just the tables needed to sort the attempts.
-        if ($sort = $this->get_sql_sort()) {
-                $this->sql->from .= ' ';
-                $sortparts    = explode(',', $sort);
-                $matches = array();
-                foreach ($sortparts as $sortpart) {
-                    $sortpart = trim($sortpart);
-                    if (preg_match('/^qsanswer([0-9]+)/', $sortpart, $matches)) {
-                        $qid = intval($matches[1]);
-                        // TODO
-                        $this->sql->fields .=  ", qs$qid.grade AS qsgrade$qid, qs$qid.answer AS qsanswer$qid, qs$qid.event AS qsevent$qid, qs$qid.id AS qsid$qid";
-                        $this->sql->from .= "LEFT JOIN {question_sessions} qns$qid ON qns$qid.attemptid = qa.uniqueid AND qns$qid.questionid = :qid$qid ";
-                        $this->sql->from .=  "LEFT JOIN  {question_states} qs$qid ON qs$qid.id = qns$qid.newgraded ";
-                        $this->sql->params['qid'.$qid] = $qid;
-                    }
-                }
+    protected function requires_latest_steps_loaded() {
+        return true;
+    }
+
+    protected function is_latest_step_column($column) {
+        if (preg_match('/^(?:question|response|right)([0-9]+)/', $column, $matches)) {
+            return $matches[1];
         }
+        return false;
+    }
 
-        parent::query_db($pagesize, $useinitialsbar);
-
-        // Get all the attempt ids we want to display on this page
-        // or to export for download.
-        if (!$this->is_downloading()) {
-            $qubaids = array();
-            foreach ($this->rawdata as $attempt) {
-                if ($attempt->usageid > 0) {
-                    $qubaids[] = $attempt->usageid;
-                }
-            }
-            $this->lateststeps = quiz_report_get_latest_steps(
-                    new qubaid_list($qubaids), array_keys($this->questions));
-
-        } else {
-            $from = substr($this->sql->from, 5); // Strip of 'FROM '.
-            $qubaids = new qubaid_join($from, 'usageid', $this->sql->where);
-            $this->lateststeps = quiz_report_get_latest_steps($qubaids, array_keys($this->questions));
-        }
+    /**
+     * Get any fields that might be needed when sorting on date for a particular qnumber.
+     * @param integer $qnumber the qnumber for the column we want.
+     * @param string $alias the table alias for latest state information relating to that qnumber.
+     */
+    protected function get_required_latest_state_fields($qnumber, $alias) {
+        return "$alias.questionsummary AS question$qnumber,
+                $alias.rightanswer AS right$qnumber,
+                $alias.responsesummary AS response$qnumber";
     }
 }

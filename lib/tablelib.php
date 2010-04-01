@@ -496,43 +496,73 @@ class flexible_table {
         } else if (!in_array('flexible', explode(' ', $this->attributes['class']))) {
             $this->attributes['class'] = trim('flexible ' . $this->attributes['class']);
         }
-
     }
 
     /**
-     * @param string $uniqueid used to identify the table you want the sql sort
-     * string for when method is called as a static method.
-     * @return string sql to put after ORDER BY or empty string if there is
-     * none.
+     * Get the order by clause from the session, for the table with id $uniqueid.
+     * @param string $uniqueid the identifier for a table.
+     * @return SQL fragment that can be used in an ORDER BY clause.
      */
-    function get_sql_sort($uniqueid = NULL) {
-        if($uniqueid === NULL) {
-            // "Non-static" function call
-            if(!$this->setup) {
-               return false;
-            }
-            $sess = &$this->sess;
-        }
-        else {
-            // "Static" function call
-            global $SESSION;
-            if(empty($SESSION->flextable[$uniqueid])) {
-               return '';
-            }
-            $sess = &$SESSION->flextable[$uniqueid];
+    public static function get_sort_for_table($uniqueid) {
+        global $SESSION;
+        if(empty($SESSION->flextable[$uniqueid])) {
+           return '';
         }
 
-        if(!empty($sess->sortby)) {
-            $sortstring = '';
-            foreach($sess->sortby as $column => $order) {
-                if(!empty($sortstring)) {
-                    $sortstring .= ', ';
-                }
-                $sortstring .= $column.($order == SORT_ASC ? ' ASC' : ' DESC');
-            }
-            return $sortstring;
+        $sess = &$SESSION->flextable[$uniqueid];
+        if (empty($sess->sortby)) {
+            return '';
         }
-        return '';
+
+        return self::construct_order_by($sess->sortby);
+    }
+
+    /**
+     * Prepare an an order by clause from the list of columns to be sorted.
+     * @param array $cols column name => SORT_ASC or SORT_DESC
+     * @return SQL fragment that can be used in an ORDER BY clause.
+     */
+    public static function construct_order_by($cols) {
+        $bits = array();
+
+        foreach($cols as $column => $order) {
+            if ($order == SORT_ASC) {
+                $bits[] = $column . ' ASC';
+            } else {
+                $bits[] = $column . ' DESC';
+            }
+        }
+
+        return implode(', ', $bits);
+    }
+
+    /**
+     * @return SQL fragment that can be used in an ORDER BY clause.
+     */
+    public function get_sql_sort() {
+        return self::construct_order_by($this->get_sort_columns());
+    }
+
+    /**
+     * Get the columns to sort by, in the form required by {@link construct_order_by()}.
+     * @return array column name => SORT_... constant.
+     */
+    public function get_sort_columns() {
+        if (!$this->setup) {
+            throw new coding_exception('Cannot call get_sort_columns until you have called setup.');
+        }
+
+        if (empty($this->sess->sortby)) {
+            return array();
+        }
+
+        foreach ($this->sess->sortby as $column => $notused) {
+            if (!isset($this->columns[$column])) {
+                unset($this->sess->sortby[$column]);
+            }
+        }
+
+        return $this->sess->sortby;
     }
 
     /**
@@ -1237,24 +1267,30 @@ class table_sql extends flexible_table{
                 $total = $totalinitials;
             }
 
-
             $this->pagesize($pagesize, $total);
         }
 
         // Fetch the attempts
         $sort = $this->get_sql_sort();
-        $sort = $sort?" ORDER BY {$sort}":'';
-        $sql = "SELECT {$this->sql->fields} FROM {$this->sql->from} WHERE {$this->sql->where}{$sort}";
+        if ($sort) {
+            $sort = "ORDER BY $sort";
+        }
+        $sql = "SELECT
+                {$this->sql->fields}
+                FROM {$this->sql->from}
+                WHERE {$this->sql->where}
+                {$sort}";
+
         if (!$this->is_downloading()) {
             $this->rawdata = get_records_sql($sql, $this->get_page_start(), $this->get_page_size());
         } else {
             $this->rawdata = get_records_sql($sql);
         }
+
         if (empty($this->rawdata)) {
             $this->rawdata = array();
         }
     }
-
 
     /**
      * Convenience method to call a number of methods for you to display the
