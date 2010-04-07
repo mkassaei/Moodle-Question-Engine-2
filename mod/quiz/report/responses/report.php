@@ -55,23 +55,8 @@ class quiz_responses_report extends quiz_attempt_report {
         list($currentgroup, $students, $groupstudents, $allowed) =
                 $this->load_relevant_students($cm);
 
-        if ($attemptids = optional_param('attemptid', array(), PARAM_INT)) {
-            //attempts need to be deleted
-            require_capability('mod/quiz:deleteattempts', $this->context);
-            $attemptids = optional_param('attemptid', array(), PARAM_INT);
-            foreach($attemptids as $attemptid) {
-                add_to_log($course->id, 'quiz', 'delete attempt', 'report.php?id=' . $cm->id,
-                        $attemptid, $cm->id);
-                quiz_delete_attempt($attemptid, $quiz);
-            }
-            //No need for a redirect, any attemptids that do not exist are ignored.
-            //So no problem if the user refreshes and tries to delete the same attempts
-            //twice.
-        }
-
         $pageoptions = array();
         $pageoptions['id'] = $cm->id;
-        $pageoptions['q'] = $quiz->id;
         $pageoptions['mode'] = 'responses';
 
         $reporturl = new moodle_url($CFG->wwwroot . '/mod/quiz/report.php', $pageoptions);
@@ -118,7 +103,7 @@ class quiz_responses_report extends quiz_attempt_report {
         // We only want to show the checkbox to delete attempts
         // if the user has permissions and if the report mode is showing attempts.
         $candelete = has_capability('mod/quiz:deleteattempts', $this->context)
-                && ($attemptsmode!= QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH_NO);
+                && ($attemptsmode != QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH_NO);
 
         $displayoptions = array();
         $displayoptions['attemptsmode'] = $attemptsmode;
@@ -126,6 +111,12 @@ class quiz_responses_report extends quiz_attempt_report {
         $displayoptions['qtext'] = $includeqtext;
         $displayoptions['resp'] = $includeresp;
         $displayoptions['right'] = $includeright;
+
+        if ($attemptids = optional_param('attemptid', array(), PARAM_INT) && confirm_sesskey()) {
+            require_capability('mod/quiz:deleteattempts', $this->context);
+            $this->delete_selected_attempts($quiz, $cm, $attemptids, $groupstudents);
+            redirect($reporturl->out(false, $displayoptions));
+        }
 
         // Load the required questions.
         $questions = quiz_report_get_significant_questions($quiz);

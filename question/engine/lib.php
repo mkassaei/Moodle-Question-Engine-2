@@ -735,6 +735,16 @@ class question_usage_by_activity {
     }
 
     /**
+     * Get the current fraction awarded for the attempt at a question.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @return number|null The current fraction for this question, or null if one has
+     * not been assigned yet.
+     */
+    public function get_question_fraction($qnumber) {
+        return $this->get_question_attempt($qnumber)->get_mark();
+    }
+
+    /**
      * Get the current mark awarded for the attempt at a question.
      * @param integer $qnumber the number used to identify this question within this usage.
      * @return number|null The current mark for this question, or null if one has
@@ -1009,11 +1019,16 @@ class question_usage_by_activity {
         if (is_null($newmaxmark)) {
             $newmaxmark = $oldqa->get_max_mark();
         }
-        $newqa = new question_attempt($oldqa->get_question(), $oldqa->get_usage_id(), null, $newmaxmark);
-        $oldfirststep = $oldqa->get_step(0);
+
+        $this->observer->notify_delete_attempt_steps($oldqa);
+
+        $newqa = new question_attempt($oldqa->get_question(), $oldqa->get_usage_id(),
+                $this->observer, $newmaxmark);
+        $newqa->set_database_id($oldqa->get_database_id());
         $newqa->regrade($oldqa);
+
         $this->questionattempts[$qnumber] = $newqa;
-        // TODO notify observer.
+        $this->observer->notify_attempt_modified($newqa);
     }
 
     /**
@@ -1277,6 +1292,15 @@ class question_attempt {
      */
     public function get_database_id() {
         return $this->id;
+    }
+
+    /**
+     * For internal use only. Set the id of the corresponding database row.
+     * @param integer $id the id of row for this question_attempt, if it is
+     * stored in the database.
+     */
+    public function set_database_id($id) {
+        $this->id = $id;
     }
 
     /** @return integer|string the id of the {@link question_usage_by_activity} we belong to. */
@@ -1893,7 +1917,7 @@ class question_attempt {
         $question = question_bank::load_question($record->questionid);
 
         $qa = new question_attempt($question, $record->questionusageid, null, $record->maxmark + 0);
-        $qa->id = $record->questionattemptid;
+        $qa->set_database_id($record->questionattemptid);
         $qa->set_number_in_usage($record->numberinusage);
         $qa->minfraction = $record->minfraction + 0;
         $qa->set_flagged($record->flagged);
@@ -2377,6 +2401,13 @@ interface question_usage_observer {
     public function notify_attempt_added(question_attempt $qa);
 
     /**
+     * Called we want to delete the old step records for an attempt, prior to
+     * inserting newones. This is used by regrading.
+     * @param question_attempt $qa the question attempt to delete the steps for.
+     */
+    public function notify_delete_attempt_steps(question_attempt $qa);
+
+    /**
      * Called when a new step is added to a question attempt in this usage.
      * @param $step the new step.
      * @param $qa the usage it is being added to.
@@ -2399,6 +2430,8 @@ class question_usage_null_observer implements question_usage_observer {
     public function notify_attempt_modified(question_attempt $qa) {
     }
     public function notify_attempt_added(question_attempt $qa) {
+    }
+    public function notify_delete_attempt_steps(question_attempt $qa) {
     }
     public function notify_step_added(question_attempt_step $step, question_attempt $qa, $seq) {
     }

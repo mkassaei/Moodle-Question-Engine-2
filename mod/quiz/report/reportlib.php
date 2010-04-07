@@ -46,7 +46,7 @@ define('QUIZ_REPORT_ATTEMPTS_ALL_STUDENTS', 3);
  * returned will have count($keys) + 1 indexs.
  * @return array multidimensional array properly indexed.
  */
-function quiz_report_index_by_keys($datum, $keys, $keysunique=true) {
+function quiz_report_index_by_keys($datum, $keys, $keysunique = true) {
     if (!$datum) {
         return $datum;
     }
@@ -80,31 +80,6 @@ function quiz_report_unindex($datum) {
         }
     }
     return $datumunkeyed;
-}
-
-function quiz_get_regraded_qs($attemptidssql, $limitfrom=0, $limitnum=0) {
-    return array(); // TODO
-    global $CFG;
-    if ($attemptidssql && is_array($attemptidssql)) {
-        list($asql, $params) = get_in_or_equal($attemptidssql);
-        $regradedqsql = "SELECT qqr.* FROM " .
-                "{$CFG->prefix}quiz_question_regrade qqr " .
-                "WHERE qqr.attemptid $asql";
-        $regradedqs = get_records_sql($regradedqsql, $limitfrom, $limitnum);
-    } else if ($attemptidssql && is_object($attemptidssql)) {
-        $regradedqsql = "SELECT qqr.* FROM " .
-                $attemptidssql->from.", ".
-                "{$CFG->prefix}quiz_question_regrade qqr " .
-                "WHERE qqr.attemptid = qa.uniqueid AND " .
-                $attemptidssql->where;
-        $regradedqs = get_records_sql($regradedqsql, $limitfrom, $limitnum);
-        if (empty($regradedqs)) {
-            $regradedqs = array();
-        }
-    } else {
-        return array();
-    }
-    return quiz_report_index_by_keys($regradedqs, array('attemptid', 'questionid'));
 }
 
 /**

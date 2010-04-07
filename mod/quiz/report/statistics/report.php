@@ -61,7 +61,6 @@ class quiz_statistics_report extends quiz_default_report {
 
         $pageoptions = array();
         $pageoptions['id'] = $cm->id;
-        $pageoptions['q'] = $quiz->id;
         $pageoptions['mode'] = 'statistics';
 
         $reporturl = new moodle_url($CFG->wwwroot . '/mod/quiz/report.php', $pageoptions);
@@ -98,7 +97,7 @@ class quiz_statistics_report extends quiz_default_report {
         }
 
         // If recalculate was requeted, handle that.
-        if ($recalculate) {
+        if ($recalculate && confirm_sesskey()) {
             $this->clear_cached_data($quiz->id, $currentgroup, $useallattempts);
             redirect($reporturl->out());
         }
@@ -899,8 +898,9 @@ class quiz_statistics_report extends quiz_default_report {
         $output = '';
         $output .= print_box_start('boxaligncenter generalbox boxwidthnormal mdl-align', '', true);
         $output .= get_string('lastcalculated', 'quiz_statistics', $a);
-        $output .= print_single_button($reporturl->out(true), $reporturl->params()+array('recalculate'=>1),
-                            get_string('recalculatenow', 'quiz_statistics'), 'post', '', true);
+        $output .= print_single_button($reporturl->out(true),
+                $reporturl->params()+array('recalculate' => 1, 'sesskey' => sesskey()),
+                get_string('recalculatenow', 'quiz_statistics'), 'post', '', true);
         $output .= print_box_end(true);
 
         return $output;

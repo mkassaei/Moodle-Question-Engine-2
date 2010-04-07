@@ -57,6 +57,7 @@ class quiz_report_responses_table extends quiz_attempt_report_table {
                 '" onsubmit="confirm(\''.$strreallydel.'\');">';
         echo '<div style="display: none;">';
         echo $this->reporturl->hidden_params_out(array(), 0, $this->displayoptions);
+        echo '<input type="hidden" name="sesskey" value="' . sesskey() . '" />' . "\n";
         echo '</div>';
         echo '<div>';
     }

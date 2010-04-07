@@ -481,7 +481,7 @@ function quiz_grade_item_update($quiz, $grades=NULL) {
         $params['reset'] = true;
         $grades = NULL;
     }
-    
+
     $gradebook_grades = grade_get_grades($quiz->course, 'mod', 'quiz', $quiz->id);
     if (!empty($gradebook_grades->items)) {
         $grade_item = $gradebook_grades->items[0];

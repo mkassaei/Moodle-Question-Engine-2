@@ -314,6 +314,26 @@ abstract class quiz_attempt_report extends quiz_default_report {
 
         $table->collapsible($collapsible);
     }
+
+    /**
+     * Delete the quiz attempts 
+     * @param object $quiz the quiz settings. Attempts that don't belong to
+     * this quiz are not deleted.
+     * @param object $cm the course_module object.
+     * @param array $attemptids the list of attempt ids to delete.
+     * @param array $groupstudents if this 
+     */
+    protected function delete_selected_attempts($quiz, $cm, $attemptids, $groupstudents) {
+        foreach($attemptids as $attemptid) {
+            $attempt = get_record('quiz_attempts', 'id', $attemptid);
+            if ($groupstudents && !in_array($attempt->userid, $groupstudents)) {
+                continue;
+            }
+            add_to_log($quiz->course, 'quiz', 'delete attempt', 'report.php?id=' . $cm->id,
+                    $attemptid, $cm->id);
+            quiz_delete_attempt($attempt, $quiz);
+        }
+    }
 }
 
 /**

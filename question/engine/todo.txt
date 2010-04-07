@@ -13,7 +13,7 @@ Integrate new code into the quiz reports (7d)
 √   delete unused code from reportlib.php
 √   check formatting by question or quiz decimal points
 √   delete obsolete get_all_responses method.
-    re-impliment regrading functionality 1d
+√   re-impliment regrading functionality 1d
 √   sorting on question grade/summary columns 1d
 √   if you change the quiz Grading method setting, overall grades are not re-computed
         nor when changing question weights. 1d
@@ -66,8 +66,10 @@ Finish database load/save code (7d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9206)
     Garbage collect old preview question usages. 1d
     Make more efficient code using lazy-loading, etc. 2d
+        When reports load lots of usages, have a way to cache the question definitions.
+        A way to only load information about some question_attempts in a usage.
     Unit tests for Unit of Work 1d
-    Database update on regrading 0.5d
+√   Database update on regrading 0.5d
     Kill question.image column, with upgrade. 2d
     Add transactions. 0.5d
 

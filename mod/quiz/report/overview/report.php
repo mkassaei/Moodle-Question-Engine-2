@@ -47,28 +47,8 @@ class quiz_overview_report extends quiz_attempt_report {
         list($currentgroup, $students, $groupstudents, $allowed) =
                 $this->load_relevant_students($cm);
 
-        if (empty($currentgroup) || $groupstudents) {
-            if (optional_param('delete', 0, PARAM_BOOL)) {
-                if($attemptids = optional_param('attemptid', array(), PARAM_INT)) {
-                    //attempts need to be deleted
-                    $this->delete_selected_attempts($quiz, $cm, $attemptids, $groupstudents);
-                    //No need for a redirect, any attemptids that do not exist are ignored.
-                    //So no problem if the user refreshes and tries to delete the same attempts
-                    //twice.
-                }
-            } else if (optional_param('regrade', 0, PARAM_BOOL)) {
-                if($attemptids = optional_param('attemptid', array(), PARAM_INT)) {
-                    $this->regrade_selected_attempts($quiz, $attemptids, $groupstudents);
-                    //No need for a redirect, any attemptids that do not exist are ignored.
-                    //So no problem if the user refreshes and tries to delete the same attempts
-                    //twice.
-                }
-            }
-        }
-
         $pageoptions = array();
         $pageoptions['id'] = $cm->id;
-        $pageoptions['q'] = $quiz->id;
         $pageoptions['mode'] = 'overview';
 
         $reporturl = new moodle_url($CFG->wwwroot.'/mod/quiz/report.php', $pageoptions);
@@ -136,20 +116,44 @@ class quiz_overview_report extends quiz_attempt_report {
         $table->is_downloading($download, get_string('reportoverview','quiz'),
                     "$COURSE->shortname ".format_string($quiz->name,true));
 
+        // Process actions.
+        if (empty($currentgroup) || $groupstudents) {
+            if (optional_param('delete', 0, PARAM_BOOL) && confirm_sesskey()) {
+                if ($attemptids = optional_param('attemptid', array(), PARAM_INT)) {
+                    require_capability('mod/quiz:deleteattempts', $this->context);
+                    $this->delete_selected_attempts($quiz, $cm, $attemptids, $groupstudents);
+                    redirect($reporturl->out(false, $displayoptions));
+                }
+
+            } else if (optional_param('regrade', 0, PARAM_BOOL) && confirm_sesskey()) {
+                if ($attemptids = optional_param('attemptid', array(), PARAM_INT)) {
+                    require_capability('mod/quiz:regrade', $this->context);
+                    $this->regrade_attempts($quiz, false, $groupstudents, $attemptids);
+                    redirect($reporturl->out(false, $displayoptions));
+                }
+            }
+        }
+
+        if ($regradeall && confirm_sesskey()) {
+            require_capability('mod/quiz:regrade', $this->context);
+            $this->regrade_attempts($quiz, false, $groupstudents);
+            redirect($reporturl->out(false, $displayoptions), '', 5);
+
+        } else if ($regradealldry && confirm_sesskey()) {
+            require_capability('mod/quiz:regrade', $this->context);
+            $this->regrade_attempts($quiz, true, $groupstudents);
+            redirect($reporturl->out(false, $displayoptions), '', 5);
+
+        } else if ($regradealldrydo && confirm_sesskey()) {
+            require_capability('mod/quiz:regrade', $this->context);
+            $this->regrade_attempts_needing_it($quiz, $groupstudents);
+            redirect($reporturl->out(false, $displayoptions), '', 5);
+        }
+
+        // Start output.
         if (!$table->is_downloading()) {
             // Only print headers if not asked to download data
             $this->print_header_and_tabs($cm, $course, $quiz, 'overview');
-        }
-
-        if ($regradeall) {
-            $this->regrade_all(false, $quiz, $groupstudents);
-        } else if ($regradealldry) {
-            $this->regrade_all(true, $quiz, $groupstudents);
-        } else if ($regradealldrydo) {
-            $this->regrade_all_needed($quiz, $groupstudents);
-        }
-        if ($regradeall || $regradealldry || $regradealldrydo) {
-            redirect($reporturl->out(false, $displayoptions), '', 5);
         }
 
         if ($groupmode = groups_get_activity_groupmode($cm)) {   // Groups are being used
@@ -194,35 +198,28 @@ class quiz_overview_report extends quiz_attempt_report {
 
             $table->set_count_sql("SELECT COUNT(1) FROM $from WHERE $where", $params);
 
-            $sqlobject = new stdClass;
-            $sqlobject->from = $from;
-            $sqlobject->where = $where;
-            //test to see if there are any regraded attempts to be listed.
-            if (quiz_get_regraded_qs($sqlobject, 0, 1)) {
-                $regradedattempts = true;
-            } else {
-                $regradedattempts = false;
-            }
-            $fields .= ", COALESCE((SELECT MAX(qqr.regraded) FROM {$CFG->prefix}quiz_question_regrade qqr WHERE qqr.attemptid = qa.uniqueid),-1) AS regraded";
+            // Test to see if there are any regraded attempts to be listed.
+            $fields .= ", COALESCE((SELECT MAX(qqr.regraded) FROM {$CFG->prefix}quiz_question_regrade qqr WHERE qqr.questionusageid = qa.uniqueid),-1) AS regraded";
             if ($regradefilter) {
-                $where .= " AND COALESCE((SELECT MAX(qqr.regraded) FROM {$CFG->prefix}quiz_question_regrade} qqr WHERE qqr.attemptid = qa.uniqueid),-1) <> -1";
+                $where .= " AND COALESCE((SELECT MAX(qqr.regraded) FROM {$CFG->prefix}quiz_question_regrade} qqr WHERE qqr.questionusageid = qa.uniqueid),-1) <> -1";
             }
             $table->set_sql($fields, $from, $where);
 
             if (!$table->is_downloading()) { //do not print notices when downloading
                 //regrade buttons
                 if (has_capability('mod/quiz:regrade', $this->context)) {
-                    $countregradeneeded = $this->count_regrade_all_needed($quiz, $groupstudents);
+                    $regradesneeded = $this->count_question_attempts_needing_regrade(
+                            $quiz, $groupstudents);
                     if ($currentgroup) {
                         $a= new stdClass;
                         $a->groupname = groups_get_group_name($currentgroup);
                         $a->coursestudents = get_string('participants');
-                        $a->countregradeneeded = $countregradeneeded;
+                        $a->countregradeneeded = $regradesneeded;
                         $regradealldrydolabel = get_string('regradealldrydogroup', 'quiz_overview', $a);
                         $regradealldrylabel = get_string('regradealldrygroup', 'quiz_overview', $a);
                         $regradealllabel = get_string('regradeallgroup', 'quiz_overview', $a);
                     } else {
-                        $regradealldrydolabel = get_string('regradealldrydo', 'quiz_overview', $countregradeneeded);
+                        $regradealldrydolabel = get_string('regradealldrydo', 'quiz_overview', $regradesneeded);
                         $regradealldrylabel = get_string('regradealldry', 'quiz_overview');
                         $regradealllabel = get_string('regradeall', 'quiz_overview');
                     }
@@ -230,9 +227,10 @@ class quiz_overview_report extends quiz_attempt_report {
                     echo '<form action="'.$reporturl->out(true).'">';
                     echo '<div>';
                     echo $reporturl->hidden_params_out(array(), 0, $displayoptions);
+                    echo '<input type="hidden" name="sesskey" value="' . sesskey() . '" />' . "\n";
                     echo '<input type="submit" name="regradeall" value="'.$regradealllabel.'"/>';
                     echo '<input type="submit" name="regradealldry" value="'.$regradealldrylabel.'"/>';
-                    if ($countregradeneeded) {
+                    if ($regradesneeded) {
                         echo '<input type="submit" name="regradealldrydo" value="'.$regradealldrydolabel.'"/>';
                     }
                     echo '</div>';
@@ -273,7 +271,8 @@ class quiz_overview_report extends quiz_attempt_report {
                  }
             }
 
-            if (!$table->is_downloading() && has_capability('mod/quiz:regrade', $this->context) && $regradedattempts) {
+            if (!$table->is_downloading() && has_capability('mod/quiz:regrade', $this->context) &&
+                    $this->has_regraded_questions($from, $where)) {
                 $columns[] = 'regraded';
                 $headers[] = get_string('regrade', 'quiz_overview');
             }
@@ -295,6 +294,7 @@ class quiz_overview_report extends quiz_attempt_report {
                      echo '<div class="mdl-align"><img src="'.$imageurl.'" alt="'.$graphname.'" /></div>';
                 }
             }
+
             if (record_exists('quiz_grades', 'quiz', $quiz->id)) {
                  $graphname = get_string('overviewreportgraph', 'quiz_overview');
                  $imageurl = $CFG->wwwroot.'/mod/quiz/report/overview/overviewgraph.php?id='.$quiz->id;
@@ -306,150 +306,192 @@ class quiz_overview_report extends quiz_attempt_report {
     }
 
     /**
-     * @param bool $dry whether to change contents of state and grades
-     * tables.
+     * Regrade a particular quiz attempt. Either for real ($dryrun = false), or
+     * as a pretend regrade to see which fractions would change. The outcome is
+     * stored in the quiz_question_regrade table.
+     *
+     * Note, $attempt is not upgraded in the database. The caller needs to do that.
+     * However, $attempt->sumgrades is updated, if this is not a dry run.
+     *
+     * @param object $attempt the quiz attempt to regrade.
+     * @param boolean $dryrun if true, do a pretend regrade, otherwise do it for real.
+     * @param array $qnumbers if null, regrade all questoins, otherwise, just regrade
+     *      the quetsions with those qnumbers.
      */
-    function regrade_all($dry, $quiz, $groupstudents) {
-        if (!has_capability('mod/quiz:regrade', $this->context)) {
-            notify(get_string('regradenotallowed', 'quiz'));
-            return true;
-        }
-        // Fetch all attempts
-        if ($groupstudents) {
-            list($usql, $params) = get_in_or_equal($groupstudents);
-            $select = "userid $usql AND ";
-        } else {
-            $select = '';
-        }
-        $select .= "quiz = $quiz->id AND preview = 0";
-        if (!$attempts = get_records_select('quiz_attempts', $select)) {
-            print_heading(get_string('noattempts', 'quiz'));
-            return true;
+    protected function regrade_attempt($attempt, $dryrun = false, $qnumbers = null) {
+        begin_sql();
+
+        $quba = question_engine::load_questions_usage_by_activity($attempt->uniqueid);
+
+        if (is_null($qnumbers)) {
+            $qnumbers = $quba->get_question_numbers();
         }
 
-        $this->clear_regrade_table($quiz, $groupstudents);
+        foreach ($qnumbers as $qnumber) {
+            $qqr = new stdClass;
+            $qqr->oldfraction = $quba->get_question_fraction($qnumber);
 
-        // Fetch all questions
-        $questions = question_load_questions(explode(',',quiz_questions_in_quiz($quiz->questions)), 'qqi.grade AS maxmark, qqi.id AS instance',
-            '{quiz_question_instances} qqi ON qqi.quiz = ' . $quiz->id . ' AND q.id = qqi.question');
+            $quba->regrade_question($qnumber);
 
-        // Print heading
-        print_heading(get_string('regradingquiz', 'quiz', format_string($quiz->name)));
-        $qstodo = count($questions);
-        $qsdone = 0;
-        if ($qstodo > 1) {
-            $qpb = new progress_bar('qregradingbar', 500, true);
-            $qpb->update($qsdone, $qstodo, "Question $qsdone of $qstodo");
-        }
-        $apb = new progress_bar('aregradingbar', 500, true);
+            $qqr->newfraction = $quba->get_question_fraction($qnumber);
 
-        // Loop through all questions and all attempts and regrade while printing progress info
-        $attemptstodo = count($attempts);
-        foreach ($questions as $question) {
-            $attemptsdone = 0;
-            $apb->restart();
-            echo '<p class="mdl-align"><strong>'.get_string('regradingquestion', 'quiz', $question->name).'</strong></p>';
-            @flush();@ob_flush();
-            foreach ($attempts as $attempt) {
-                set_time_limit(30);
-                $changed = regrade_question_in_attempt($question, $attempt, $quiz, true, $dry);
-
-                $attemptsdone++;
-                $a = new stdClass;
-                $a->done = $attemptsdone;
-                $a->todo = $attemptstodo;
-                $apb->update($attemptsdone, $attemptstodo, get_string('attemptprogress', 'quiz_overview', $a));
+            if (abs($qqr->oldfraction - $qqr->newfraction) > 1e-7) {
+                $qqr->questionusageid = $quba->get_id();
+                $qqr->numberinusage = $qnumber;
+                $qqr->regraded = empty($dryrun);
+                $qqr->timemodified = time();
+                insert_record('quiz_question_regrade', $qqr, false);
             }
-            $qsdone++;
-            if (isset($qpb)) {
-                $a = new stdClass;
-                $a->done = $qsdone;
-                $a->todo = $qstodo;
-                $qpb->update($qsdone, $qstodo, get_string('qprogress', 'quiz_overview', $a));
-            }
-            // the following makes sure that the output is sent immediately.
-            @flush();@ob_flush();
         }
 
-        if (!$dry) {
-            $this->check_overall_grades($quiz, $groupstudents);
+        if (!$dryrun) {
+            $attempt->sumgrades = $quba->get_total_mark();
+
+            question_engine::save_questions_usage_by_activity($quba);
         }
-    }
-    function count_regrade_all_needed($quiz, $groupstudents) {
-        global $CFG;
-        // Fetch all attempts that need regrading
-        if ($groupstudents) {
-            list($usql, $params) = get_in_or_equal($groupstudents);
-            $where = "qa.userid $usql AND ";
-        } else {
-            $where = '';
-        }
-        $where .= "qa.quiz = $quiz->id AND qa.preview = 0 AND qa.uniqueid = qqr.attemptid AND qqr.regraded = 0";
-        return get_field_sql("SELECT COUNT(1) FROM {$CFG->prefix}quiz_attempts qa, {$CFG->prefix}quiz_question_regrade qqr WHERE $where");
+
+        commit_sql();
     }
 
-    function regrade_all_needed($quiz, $groupstudents) {
-        if (!has_capability('mod/quiz:regrade', $this->context)) {
-            notify(get_string('regradenotallowed', 'quiz'));
+    /**
+     * Regrade attempts for this quiz, exactly which attempts are regraded is
+     * controlled by the parameters.
+     * @param object $quiz the quiz settings.
+     * @param boolean $dryrun if true, do a pretend regrade, otherwise do it for real.
+     * @param array $groupstudents blank for all attempts, otherwise regrade attempts
+     * for these users.
+     * @param array $attemptids blank for all attempts, otherwise only regrade
+     * attempts whose id is in this list.
+     */
+    protected function regrade_attempts($quiz, $dryrun = false,
+            $groupstudents = array(), $attemptids = array()) {
+        $where = "quiz = $quiz->id AND preview = 0";
+
+        if ($groupstudents) {
+            list($usql, $params) = get_in_or_equal($groupstudents);
+            $where .= " AND userid $usql";
+        }
+
+        if ($attemptids) {
+            list($asql, $aparams) = get_in_or_equal($attemptids);
+            $where .= " AND id $asql";
+        }
+
+        $attempts = get_records_select('quiz_attempts', $where);
+        if (!$attempts) {
             return;
         }
+
+        $this->clear_regrade_table($quiz, $groupstudents);
+
+        foreach ($attempts as $attempt) {
+            set_time_limit(30);
+            $this->regrade_attempt($attempt, $dryrun);
+        }
+
+        if (!$dryrun) {
+            $this->update_overall_grades($quiz);
+        }
+    }
+
+    /**
+     * Regrade those questions in those attempts that are marked as needing regrading
+     * in the quiz_question_regrade table.
+     * @param object $quiz the quiz settings.
+     * @param array $groupstudents blank for all attempts, otherwise regrade attempts
+     * for these users.
+     */
+    protected function regrade_attempts_needing_it($quiz, $groupstudents) {
+        global $CFG;
+
+        $where = "qa.quiz = $quiz->id AND qa.preview = 0 AND qqr.regraded = 0";
+
         // Fetch all attempts that need regrading
         if ($groupstudents) {
             list($usql, $params) = get_in_or_equal($groupstudents);
-            $where = "qa.userid $usql AND ";
-        } else {
-            $where = '';
+            $where .= " AND qa.userid $usql";
         }
-        $where .= "qa.quiz = $quiz->id AND qa.preview = 0 AND qa.uniqueid = qqr.attemptid AND qqr.regraded = 0";
-        if (!$attempts = get_records_sql("SELECT qa.*, qqr.questionid FROM {$CFG->prefix}quiz_attempts qa, {$CFG->prefix}quiz_question_regrade qqr WHERE $where")) {
-            print_heading(get_string('noattemptstoregrade', 'quiz_overview'));
-            return true;
+
+        $toregrade = get_records_sql("
+                SELECT qa.uniqueid, qqr.numberinusage
+                FROM {$CFG->prefix}quiz_attempts qa
+                JOIN {$CFG->prefix}quiz_question_regrade qqr ON qqr.questionusageid = qa.uniqueid
+                WHERE $where");
+
+        if (!$toregrade) {
+            return;
         }
+
+        $attemptquestions = array();
+        foreach ($toregrade as $row) {
+            $attemptquestions[$row->uniqueid][] = $row->numberinusag;
+        }
+        $attempts = get_records_list('quiz_attempts', 'uniqueid', implode(array_keys($attemptquestions)));
+
         $this->clear_regrade_table($quiz, $groupstudents);
-        // Fetch all questions
-        $questions = question_load_questions(explode(',',quiz_questions_in_quiz($quiz->questions)), 'qqi.grade AS maxmark, qqi.id AS instance',
-            "{$CFG->prefix}quiz_question_instances qqi ON qqi.quiz = $quiz->id AND q.id = qqi.question");
 
-        // Print heading
-        print_heading(get_string('regradingquiz', 'quiz', format_string($quiz->name)));
-
-        $apb = new progress_bar('aregradingbar', 500, true);
-
-        // Loop through all questions and all attempts and regrade while printing progress info
-        $attemptstodo = count($attempts);
-        $attemptsdone = 0;
-        @flush();@ob_flush();
-        $attemptschanged = array();
         foreach ($attempts as $attempt) {
-            $question = $questions[$attempt->questionid];
-            $changed = regrade_question_in_attempt($question, $attempt, $quiz, true);
-            if ($changed) {
-                $attemptschanged[] = $attempt->uniqueid;
-                $usersschanged[] = $attempt->userid;
-            }
-            if (!empty($apb)) {
-                $attemptsdone++;
-                $a = new stdClass;
-                $a->done = $attemptsdone;
-                $a->todo = $attemptstodo;
-                $apb->update($attemptsdone, $attemptstodo, get_string('attemptprogress', 'quiz_overview', $a));
-            }
+            set_time_limit(30);
+            $this->regrade_attempt($attempt, false, $attemptquestions[$attempt->usageid]);
         }
-        $this->check_overall_grades($quiz, array(), $attemptschanged);
+
+        $this->update_overall_grades($quiz);
     }
 
-    function clear_regrade_table($quiz, $groupstudents) {
+    /**
+     * Count the number of attempts in need of a regrade.
+     * @param object $quiz the quiz settings.
+     * @param array $groupstudents user ids. If this is given, only data relating
+     * to these users is cleared.
+     */
+    protected function count_question_attempts_needing_regrade($quiz, $groupstudents) {
+        global $CFG;
+        if ($groupstudents) {
+            list($usql, $params) = get_in_or_equal($groupstudents);
+            $usertest = "qa.userid $usql AND ";
+        } else {
+            $usertest = '';
+        }
+        $sql = "SELECT COUNT(1)
+                FROM {$CFG->prefix}quiz_attempts qa
+                JOIN {$CFG->prefix}quiz_question_regrade qqr ON qa.uniqueid = qqr.questionusageid
+                WHERE
+                    $usertest
+                    qa.quiz = $quiz->id AND
+                    qa.preview = 0 AND
+                    qqr.regraded = 0";
+        return count_records_sql($sql);
+    }
+
+    /**
+     * Are there any pending regrades in the table we are going to show?
+     * @param $from tables used by the main query.
+     * @param $where where clause used by the main query.
+     * @return boolean
+     */
+    protected function has_regraded_questions($from, $where) {
+        $qubaids = new qubaid_join($from, 'uniqueid', $where);
+        return record_exists_select('quiz_question_regrade',
+                'questionusageid ' . $qubaids->usage_id_in(), '', '*');
+    }
+
+    /**
+     * Remove all information about pending/complete regrades from the database.
+     * @param object $quiz the quiz settings.
+     * @param array $groupstudents user ids. If this is given, only data relating
+     * to these users is cleared.
+     */
+    protected function clear_regrade_table($quiz, $groupstudents) {
         global $CFG;
         // Fetch all attempts that need regrading
         if ($groupstudents) {
             list($usql, $params) = get_in_or_equal($groupstudents);
             $where = "userid $usql AND ";
         } else {
-            $usql = '';
             $where = '';
         }
         if (!delete_records_select('quiz_question_regrade',
-                "attemptid IN (
+                "questionusageid IN (
                     SELECT uniqueid
                     FROM {$CFG->prefix}quiz_attempts
                     WHERE $where quiz = $quiz->id
@@ -458,87 +500,16 @@ class quiz_overview_report extends quiz_attempt_report {
         }
     }
 
-    function check_overall_grades($quiz, $userids=array(), $attemptids=array()) {
-        global $CFG;
-        //recalculate $attempt->sumgrade
-        //already updated in regrade_question_in_attempt
-        $sql = "UPDATE {quiz_attempts} SET sumgrades= " .
-                    "COALESCE((SELECT SUM(qs.grade) FROM {question_sessions} qns, {question_states} qs " .
-                        "WHERE qns.newgraded = qs.id AND qns.attemptid = {quiz_attempts}.uniqueid ), 0) WHERE ";
-        $attemptsql='';
-        if (!$attemptids) {
-            if ($userids) {
-                list($usql, $params) = get_in_or_equal($userids);
-                $attemptsql .= "{$CFG->prefix}quiz_attempts.userid $usql AND ";
-            }
-            $attemptsql .= "{$CFG->prefix}quiz_attempts.quiz = $quiz->id AND preview = 0";
-        } else {
-            list($asql, $params) = get_in_or_equal($attemptids);
-            $attemptsql .= "{$CFG->prefix}quiz_attempts.uniqueid $asql";
-        }
-        $sql .= $attemptsql;
-        if (!execute_sql($sql)) {
-            print_error('err_failedtorecalculateattemptgrades', 'quiz_overview');
-        }
-
-        // Update the overall quiz grades
-        if ($attemptids) {
-            //make sure we fetch all attempts for users to calculate grade.
-            //not just those that have changed.
-            $sql = "SELECT qa2.* FROM {$CFG->prefix}quiz_attempts qa2 WHERE " .
-                    "qa2.userid IN (SELECT DISTINCT userid FROM {$CFG->prefix}quiz_attempts WHERE $attemptsql) " .
-                    "AND qa2.timefinish > 0";
-        } else {
-            $sql = "SELECT * FROM {$CFG->prefix}quiz_attempts WHERE $attemptsql AND timefinish > 0";
-        }
-        if ($attempts = get_records_sql($sql)) {
-            $attemptsbyuser = quiz_report_index_by_keys($attempts, array('userid', 'id'));
-            foreach($attemptsbyuser as $userid => $attemptsforuser) {
-                quiz_save_best_grade($quiz, $userid, $attemptsforuser);
-            }
-        }
-    }
-
-    function delete_selected_attempts($quiz, $cm, $attemptids, $groupstudents) {
-        require_capability('mod/quiz:deleteattempts', $this->context);
-        $attemptids = optional_param('attemptid', array(), PARAM_INT);
-        if ($groupstudents) {
-            list($usql, $params) = get_in_or_equal($groupstudents);
-            $where = "qa.userid $usql AND ";
-        }
-        foreach($attemptids as $attemptid) {
-            add_to_log($quiz->course, 'quiz', 'delete attempt', 'report.php?id=' . $cm->id,
-                    $attemptid, $cm->id);
-            quiz_delete_attempt($attemptid, $quiz);
-        }
-    }
-
-    function regrade_selected_attempts($quiz, $attemptids, $groupstudents) {
-        global $CFG;
-        require_capability('mod/quiz:regrade', $this->context);
-        if ($groupstudents) {
-            list($usql, $params) = get_in_or_equal($groupstudents);
-            $where = "qa.userid $usql AND ";
-        } else {
-            $where = '';
-        }
-        list($asql, $aparams) = get_in_or_equal($attemptids);
-        $where = "qa.id $asql AND ";
-        $where .= "qa.quiz = $quiz->id AND qa.preview = 0";
-        if (!$attempts = get_records_sql("SELECT qa.* FROM {$CFG->prefix}quiz_attempts qa WHERE $where")) {
-            print_error('noattemptstoregrade', 'quiz_overview');
-        }
-
-        // Fetch all questions
-        $questions = question_load_questions(explode(',', quiz_questions_in_quiz($quiz->questions)), 'qqi.grade AS maxmark, qqi.id AS instance',
-            "{$CFG->prefix}quiz_question_instances qqi ON qqi.quiz = $quiz->id AND q.id = qqi.question");
-        $updateoverallgrades = array();
-        foreach($attempts as $attempt) {
-            foreach ($questions as $question) {
-                $changed = regrade_question_in_attempt($question, $attempt, $quiz, true);
-            }
-            $updateoverallgrades[] = $attempt->uniqueid;
-        }
-        $this->check_overall_grades($quiz, array(), $updateoverallgrades);
+    /**
+     * Update the final grades for all attempts. This method is used following
+     * a regrade.
+     * @param object $quiz the quiz settings.
+     * @param array $userids only update scores for these userids.
+     * @param array $attemptids attemptids only update scores for these attempt ids.
+     */
+    protected function update_overall_grades($quiz) {
+        quiz_update_all_attempt_sumgrades($quiz);
+        quiz_update_all_final_grades($quiz);
+        quiz_update_grades($quiz);
     }
 }

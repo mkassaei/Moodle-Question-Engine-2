@@ -640,6 +640,16 @@ ORDER BY qa.numberinusage
         delete_records_select('question_usages', $where);
     }
 
+    public function delete_steps_for_question_attempts($qaids) {
+        global $CFG;
+        list($test, $params) = get_in_or_equal($qaids);
+        delete_records_select('question_attempt_step_data', "attemptstepid IN (
+                SELECT qas.id
+                FROM {$CFG->prefix}question_attempt_steps qas
+                WHERE questionattemptid $test)");
+        delete_records_select('question_attempt_steps', 'questionattemptid ' . $test);
+    }
+
     /**
      * Update the flagged state of a question in the database.
      * @param integer $qubaid the question usage id.
@@ -783,6 +793,12 @@ class question_engine_unit_of_work implements question_usage_observer {
     protected $attemptsadded = array();
 
     /**
+     * @var array list of question attempt ids to delete the steps for, before
+     * inserting new steps.
+     */
+    protected $attemptstodeletestepsfor = array();
+
+    /**
      * @var array list of array(question_attempt_step, question_attempt id, seq number)
      * of steps that have been added to question attempts in this usage.
      */
@@ -811,9 +827,24 @@ class question_engine_unit_of_work implements question_usage_observer {
         $this->attemptsadded[$qa->get_number_in_usage()] = $qa;
     }
 
+    public function notify_delete_attempt_steps(question_attempt $qa) {
+
+        if (array_key_exists($qa->get_number_in_usage(), $this->attemptsadded)) {
+            return;
+        }
+
+        $qaid = $qa->get_database_id();
+        foreach ($this->stepsadded as $key => $stepinfo) {
+            if ($stepinfo[1] == $qaid) {
+                unset($this->stepsadded[$key]);
+            }
+        }
+
+        $this->attemptstodeletestepsfor[$qaid] = 1;
+    }
+
     public function notify_step_added(question_attempt_step $step, question_attempt $qa, $seq) {
-        $no = $qa->get_number_in_usage();
-        if (array_key_exists($no, $this->attemptsadded)) {
+        if (array_key_exists($qa->get_number_in_usage(), $this->attemptsadded)) {
             return;
         }
         $this->stepsadded[] = array($step, $qa->get_database_id(), $seq);
@@ -824,6 +855,7 @@ class question_engine_unit_of_work implements question_usage_observer {
      * @param question_engine_data_mapper $dm the mapper to use to update the database.
      */
     public function save(question_engine_data_mapper $dm) {
+        $dm->delete_steps_for_question_attempts(array_keys($this->attemptstodeletestepsfor));
         foreach ($this->stepsadded as $stepinfo) {
             list($step, $questionattemptid, $seq) = $stepinfo;
             $dm->insert_question_attempt_step($step, $questionattemptid, $seq);
