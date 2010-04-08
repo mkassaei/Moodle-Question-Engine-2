@@ -642,6 +642,9 @@ ORDER BY qa.numberinusage
 
     public function delete_steps_for_question_attempts($qaids) {
         global $CFG;
+        if (empty($qaids)) {
+            return;
+        }
         list($test, $params) = get_in_or_equal($qaids);
         delete_records_select('question_attempt_step_data', "attemptstepid IN (
                 SELECT qas.id
