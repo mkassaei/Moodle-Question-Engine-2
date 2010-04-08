@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// ou-specific until the new question engine is merged into Moodle core (probably 2.1).
+
 /**
  * Code for handling and processing questions
  *
@@ -764,6 +766,9 @@ function get_question_options(&$questions, $loadtags = false) {
  */
 function question_get_feedback_image($fraction, $selected=true) {
 
+// ou-specific begins
+    return '';
+// ou-specific ends
     global $CFG;
 
     if ($fraction >= 1.0) {

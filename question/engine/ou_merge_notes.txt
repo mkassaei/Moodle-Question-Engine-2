@@ -1,0 +1,18 @@
+PHP files that have been so extensively hacked around with that there should be
+no attempt to merge them are marked with a
+
+// ou-specific until the new question engine is merged into Moodle core (probably 2.1).
+
+after the boiler-plate "This is part of Moodle" comment, and before the file-level
+PHP doc comment.
+
+
+Old lank files to delete (leave blank file with OU specific marker saying lang strings are now in the plugin):
+    lang/en_utf8/qtype_match.php
+    lang/en_utf8/quiz_overview.php
+    lang/en_utf8/quiz_responses.php
+    lang/en_utf8/quiz_statistics.php
+    actually, need to do this for all moved lang files, not just the ones that currently have ou-specific changes.
+
+
+
