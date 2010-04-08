@@ -154,49 +154,6 @@ class qtype_truefalse extends question_type {
         return true;
     }
 
-    public function get_correct_responses(&$question, &$state) {
-        // The correct answer is the one which gives full marks
-        foreach ($question->options->answers as $answer) {
-            if (((int) $answer->fraction) === 1) {
-                return array('' => $answer->id);
-            }
-        }
-        return null;
-    }
-
-    public function grade_responses(&$question, &$state, $cmoptions) {
-        if (isset($state->responses['']) && isset($question->options->answers[$state->responses['']])) {
-            $state->raw_grade = $question->options->answers[$state->responses['']]->fraction * $question->maxgrade;
-        } else {
-            $state->raw_grade = 0;
-        }
-        // Only allow one attempt at the question
-        $state->penalty = 1 * $question->maxgrade;
-
-        // mark the state as graded
-        $state->event = ($state->event ==  QUESTION_EVENTCLOSE) ? QUESTION_EVENTCLOSEANDGRADE : QUESTION_EVENTGRADE;
-
-        return true;
-    }
-
-    public function response_summary($question, $state, $length=80) {
-        if (isset($question->options->answers[$state->answer])) {
-            $responses = $question->options->answers[$state->answer]->answer;
-        } else {
-            $responses = '';
-        }
-        return $responses;
-    }
-
-    public function get_actual_response($question, $state) {
-        if (isset($question->options->answers[$state->responses['']])) {
-            $responses[] = $question->options->answers[$state->responses['']]->answer;
-        } else {
-            $responses[] = '';
-        }
-        return $responses;
-    }
-
     function get_random_guess_score($questiondata) {
         return 0.5;
     }

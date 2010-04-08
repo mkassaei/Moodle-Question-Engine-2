@@ -217,11 +217,14 @@ class question_type {
     }
 
     /**
+     * Set any missing settings for this question to the default values. This is
+     * called before displaying the question editing form.
      *
-     *
-     * @param $question
+     * @param object $questiondata the question data, loaded from the databsae,
+     *      or more likely a newly created question object that is only partially
+     *      initialised.
      */
-    public function set_default_options(&$question) {
+    public function set_default_options($questiondata) {
     }
 
     /**
@@ -344,13 +347,13 @@ class question_type {
     }
 
     /**
-    * Saves question-type specific options
-    *
-    * This is called by {@link save_question()} to save the question-type specific data
-    * @return object $result->error or $result->noticeyesno or $result->notice
-    * @param object $question  This holds the information from the editing form,
-    *                          it is not a standard question object.
-    */
+     * Saves question-type specific options
+     *
+     * This is called by {@link save_question()} to save the question-type specific data
+     * @return object $result->error or $result->noticeyesno or $result->notice
+     * @param object $question  This holds the information from the editing form,
+     *      it is not a standard question object.
+     */
     public function save_question_options($question) {
         $extra_question_fields = $this->extra_question_fields();
 
@@ -422,37 +425,17 @@ class question_type {
     }
 
     /**
-    * Changes all states for the given attempts over to a new question
-    *
-    * This is used by the versioning code if the teacher requests that a question
-    * gets replaced by the new version. In order for the attempts to be regraded
-    * properly all data in the states referring to the old question need to be
-    * changed to refer to the new version instead. In particular for question types
-    * that use the answers table the answers belonging to the old question have to
-    * be changed to those belonging to the new version.
-    *
-    * @param integer $oldquestionid  The id of the old question
-    * @param object $newquestion    The new question
-    * @param array  $attempts       An array of all attempt objects in whose states
-    *                               replacement should take place
-    */
-    public function replace_question_in_attempts($oldquestionid, $newquestion, $attemtps) {
-        echo 'Not yet implemented';
-        return;
-    }
-
-    /**
-    * Loads the question type specific options for the question.
-    *
-    * This function loads any question type specific options for the
-    * question from the database into the question object. This information
-    * is placed in the $question->options field. A question type is
-    * free, however, to decide on a internal structure of the options field.
-    * @return bool            Indicates success or failure.
-    * @param object $question The question object for the question. This object
-    *                         should be updated to include the question type
-    *                         specific information (it is passed by reference).
-    */
+     * Loads the question type specific options for the question.
+     *
+     * This function loads any question type specific options for the
+     * question from the database into the question object. This information
+     * is placed in the $question->options field. A question type is
+     * free, however, to decide on a internal structure of the options field.
+     * @return bool            Indicates success or failure.
+     * @param object $question The question object for the question. This object
+     *                         should be updated to include the question type
+     *                         specific information (it is passed by reference).
+     */
     public function get_question_options($question) {
         global $CFG;
 
@@ -675,45 +658,11 @@ class question_type {
     }
 
     /**
-    * Return the actual response to the question in a given state
-    * for the question.
-    *
-    * @return mixed           An array containing the response or reponses (multiple answer, match)
-    *                         given by the user in a particular attempt.
-    * @param object $question The question for which the correct answer is to
-    *                         be retrieved. Question type specific information is
-    *                         available.
-    * @param object $state    The state object that corresponds to the question,
-    *                         for which a correct answer is needed. Question
-    *                         type specific information is included.
-    */
-    // ULPGC ecastro
-    public function get_actual_response($question, $state) {
-       if (!empty($state->responses)) {
-           $responses[] = stripslashes($state->responses['']);
-       } else {
-           $responses[] = '';
-       }
-       return $responses;
-    }
-
-    // ULPGC ecastro
-    public function get_fractional_grade(&$question, &$state) {
-        $maxgrade = $question->maxgrade;
-        $grade = $state->grade;
-        if ($maxgrade) {
-            return (float)($grade/$maxgrade);
-        } else {
-            return (float)$grade;
-        }
-    }
-
-    /**
      * Return any CSS JavaScript required on the head of the question editing
      * page question/question.php.
      *
      * @return an array of bits of HTML to add to the head of pages where
-     * this question is print_question-ed in the body. The array should use
+     * this question is displayed in the body. The array should use
      * integer array keys, which have no significance.
      */
     public function get_editing_head_contributions() {
@@ -756,97 +705,6 @@ class question_type {
                     $baseurl . '/' . $stylesheet . '" />';
         }
         return $contributions;
-    }
-
-    /**
-     * Get a link to an edit icon for this question, if the current user is allowed
-     * to edit it.
-     *
-     * @param object $question the question object.
-     * @param object $cmoptions the options from the module. If $cmoptions->thispageurl is set
-     *      then the link will be to edit the question in this browser window, then return to
-     *      $cmoptions->thispageurl. Otherwise the link will be to edit in a popup. $cmoptions->cmid should also be set.
-     * @return string the HTML of the link, or nothing it the currenty user is not allowed to edit.
-     */
-    public function get_question_edit_link($question, $cmoptions, $options) {
-        global $CFG;
-
-    /// Is this user allowed to edit this question?
-        if (!empty($options->noeditlink) || !question_has_capability_on($question, 'edit')) {
-            return '';
-        }
-
-    /// Work out the right URL.
-        $linkurl = '/question/question.php?id=' . $question->id;
-        if (!empty($cmoptions->cmid)) {
-            $linkurl .= '&amp;cmid=' . $cmoptions->cmid;
-        } else if (!empty($cmoptions->course)) {
-            $linkurl .= '&amp;courseid=' . $cmoptions->course;
-        } else {
-            error('Need to provide courseid or cmid to get_question_edit_link.');
-        }
-
-    /// Work out the contents of the link.
-        $stredit = get_string('edit');
-        $linktext = '<img src="' . $CFG->pixpath . '/t/edit.gif" alt="' . $stredit . '" />';
-
-        if (!empty($cmoptions->thispageurl)) {
-        /// The module allow editing in the same window, print an ordinary link.
-            return '<a href="' . $CFG->wwwroot . $linkurl . '&amp;returnurl=' .
-                    urlencode($cmoptions->thispageurl . '#q' . $question->id) .
-                    '" title="' . $stredit . '">' . $linktext . '</a>';
-        } else {
-        /// We have to edit in a pop-up.
-            return link_to_popup_window($linkurl . '&amp;inpopup=1', 'editquestion',
-                    $linktext, false, false, $stredit, '', true);
-        }
-    }
-
-    /**
-    * Return a summary of the student response
-    *
-    * This function returns a short string of no more than a given length that
-    * summarizes the student's response in the given $state. This is used for
-    * example in the response history table. This string should already be,
-    * for output.
-    * @return string         The summary of the student response
-    * @param object $question
-    * @param object $state   The state whose responses are to be summarized
-    * @param int $length     The maximum length of the returned string
-    */
-    public function response_summary($question, $state, $length = 80) {
-        // This should almost certainly be overridden
-        $responses = $this->get_actual_response($question, $state);
-        if (empty($responses) || !is_array($responses)) {
-            $responses = array();
-        }
-        if (is_array($responses)) {
-            $responses = implode(', ', array_map('s', $responses));
-        }
-        return shorten_text($responses, $length);
-    }
-
-    /**
-    * Renders the question for printing and returns the LaTeX source produced
-    *
-    * This function should render the question suitable for a printed problem
-    * or solution sheet in LaTeX and return the rendered output.
-    * @return string          The LaTeX output.
-    * @param object $question The question to be rendered. Question type
-    *                         specific information is included.
-    * @param object $state    The state to render the question in. The
-    *                         question type specific information is also
-    *                         included.
-    * @param object $cmoptions
-    * @param string $type     Indicates if the question or the solution is to be
-    *                         rendered with the values 'question' and
-    *                         'solution'.
-    */
-    public function get_texsource(&$question, &$state, $cmoptions, $type) {
-        // The default implementation simply returns a string stating that
-        // the question is only available online.
-
-        return get_string('onlineonly', 'texsheet');
     }
 
     /**
@@ -997,22 +855,6 @@ class question_type {
                     }
                 }
             }
-        }
-    }
-
-    /**
-     * @return the best link to pass to print_error.
-     * @param $cmoptions as passed in from outside.
-     */
-    public function error_link($cmoptions) {
-        global $CFG;
-        $cm = get_coursemodule_from_instance('quiz', $cmoptions->id);
-        if (!empty($cm->id)) {
-            return $CFG->wwwroot . '/mod/quiz/view.php?id=' . $cm->id;
-        } else if (!empty($cm->course)) {
-            return $CFG->wwwroot . '/course/view.php?id=' . $cm->course;
-        } else {
-            return '';
         }
     }
 

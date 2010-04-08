@@ -370,11 +370,6 @@ class mod_quiz_mod_form extends moodleform_mod {
             $default_values['overallfeedbackclosed'] = $review & QUIZ_REVIEW_OVERALLFEEDBACK & QUIZ_REVIEW_CLOSED;
         }
 
-        if (isset($default_values['optionflags'])){
-            $default_values['adaptive'] = $default_values['optionflags'] & QUESTION_ADAPTIVE;
-            unset($default_values['optionflags']);
-        }
-
         // Password field - different in form to stop browsers that remember passwords
         // getting confused.
         if (isset($default_values['password'])) {

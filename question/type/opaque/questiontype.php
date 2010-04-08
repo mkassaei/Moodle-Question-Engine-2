@@ -55,23 +55,6 @@ class qtype_opaque extends question_type {
         $question->remoteversion = $questiondata->options->remoteversion;
     }
 
-    function get_correct_responses(&$question, &$state) {
-        // We cannot tell what the correct response is.
-        return null;
-    }
-
-    function get_actual_response($question, $state) {
-        $responses = array();
-        if (!empty($state->responses['__answerLine'])) {
-            $responses[] = stripslashes($state->responses['__answerLine']);
-        } else if (!empty($state->responses['__actionSummary'])) {
-            $responses[] = stripslashes($state->responses['__actionSummary']);
-        } else {
-            $responses[] = implode(', ', $state->responses);
-        }
-        return $responses;
-    }
-
     public function get_random_guess_score($questiondata) {
         return null;
     }

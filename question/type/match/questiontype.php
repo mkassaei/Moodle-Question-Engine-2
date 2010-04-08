@@ -166,26 +166,6 @@ class qtype_match extends question_type {
         return true;
     }
 
-    // ULPGC ecastro
-    public function get_actual_response($question, $state) {
-        $subquestions = &$state->options->subquestions;
-        $responses    = &$state->responses;
-        $results = array();
-        foreach ($responses as $ind => $code) {
-            foreach ($subquestions as $key => $sub) {
-                if (isset($sub->options->answers[$code])) {
-                    $results[$ind] =  $subquestions[$ind]->questiontext . ": " . $sub->options->answers[$code]->answer;
-                }
-            }
-        }
-        return $results;
-    }
-
-    public function response_summary($question, $state, $length=80) {
-        // This should almost certainly be overridden
-        return shorten_text(implode(', ', $this->get_actual_response($question, $state)), $length);
-    }
-
     function get_random_guess_score($questiondata) {
         return 1 / count($questiondata->options->subquestions);
     }

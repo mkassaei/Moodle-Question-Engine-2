@@ -61,8 +61,7 @@ if (optional_param('gotosummary', false, PARAM_BOOL)) {
     }
 }
 
-/// Set $nexturl now. It will be updated if a particular question was sumbitted in
-/// adaptive mode.
+/// Set $nexturl.
 if ($nextpage == -1) {
     $nexturl = $attemptobj->summary_url();
 } else {

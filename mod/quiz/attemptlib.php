@@ -846,11 +846,13 @@ class quiz_attempt {
     }
 
     /**
-     * Wrapper round print_question from lib/questionlib.php.
+     * Generate the HTML that displayes the question in its current state, with
+     * the appropriate display options.
      *
      * @param integer $id the id of a question in this quiz attempt.
      * @param boolean $reviewing is the being printed on an attempt or a review page.
      * @param string $thispageurl the URL of the page this question is being printed on.
+     * @return string HTML for the question in its current state.
      */
     public function render_question($qnumber, $reviewing, $thispageurl = '') {
         if ($reviewing) {

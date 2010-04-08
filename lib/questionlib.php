@@ -37,25 +37,6 @@ require_once($CFG->dirroot . '/question/engine/lib.php');
 /// CONSTANTS ///////////////////////////////////
 
 /**#@+
- * The different types of events that can create question states
- */
-define('QUESTION_EVENTOPEN', '0');      // The state was created by Moodle
-define('QUESTION_EVENTNAVIGATE', '1');  // The responses were saved because the student navigated to another page (this is not currently used)
-define('QUESTION_EVENTSAVE', '2');      // The student has requested that the responses should be saved but not submitted or validated
-define('QUESTION_EVENTGRADE', '3');     // Moodle has graded the responses. A SUBMIT event can be changed to a GRADE event by Moodle.
-define('QUESTION_EVENTDUPLICATE', '4'); // The responses submitted were the same as previously
-define('QUESTION_EVENTVALIDATE', '5');  // The student has requested a validation. This causes the responses to be saved as well, but not graded.
-define('QUESTION_EVENTCLOSEANDGRADE', '6'); // Moodle has graded the responses. A CLOSE event can be changed to a CLOSEANDGRADE event by Moodle.
-define('QUESTION_EVENTSUBMIT', '7');    // The student response has been submitted but it has not yet been marked
-define('QUESTION_EVENTCLOSE', '8');     // The response has been submitted and the session has been closed, either because the student requested it or because Moodle did it (e.g. because of a timelimit). The responses have not been graded.
-define('QUESTION_EVENTMANUALGRADE', '9');   // Grade was entered by teacher
-
-define('QUESTION_EVENTS_GRADED', QUESTION_EVENTGRADE.','.
-                    QUESTION_EVENTCLOSEANDGRADE.','.
-                    QUESTION_EVENTMANUALGRADE);
-/**#@-*/
-
-/**#@+
  * The core question types.
  */
 define("SHORTANSWER",   "shortanswer");
@@ -75,7 +56,7 @@ define("ESSAY",         "essay");
  * Constant determines the number of answer boxes supplied in the editing
  * form for multiple choice and similar question types.
  */
-define("QUESTION_NUMANS", "10");
+define("QUESTION_NUMANS", 10);
 
 /**
  * Constant determines the number of answer boxes supplied in the editing
@@ -97,19 +78,7 @@ define("QUESTION_NUMANS_ADD", 3);
 define('QUESTION_PREVIEW_POPUP_OPTIONS', 'scrollbars=yes,resizable=yes,width=700,height=540');
 
 /**#@+
- * Option flags for ->optionflags
- * The options are read out via bitwise operation using these constants
- */
-/**
- * Whether the questions is to be run in adaptive mode. If this is not set then
- * a question closes immediately after the first submission of responses. This
- * is how question is Moodle always worked before version 1.5
- */
-define('QUESTION_ADAPTIVE', 1);
-
-/**
  * options used in forms that move files.
- *
  */
 define('QUESTION_FILENOTHINGSELECTED', 0);
 define('QUESTION_FILEDONOTHING', 1);
@@ -122,21 +91,11 @@ define('QUESTION_FILEMOVELINKSONLY', 4);
 /// QTYPES INITIATION //////////////////
 // These variables get initialised via calls to question_register_questiontype
 // as the question type classes are included.
-global $QTYPES, $QTYPE_MANUAL, $QTYPE_EXCLUDE_FROM_RANDOM;
+global $QTYPES;
 /**
  * Array holding question type objects
  */
 $QTYPES = array();
-/**
- * String in the format "'type1','type2'" that can be used in SQL clauses like
- * "WHERE q.type IN ($QTYPE_MANUAL)".
- */
-$QTYPE_MANUAL = '';
-/**
- * String in the format "'type1','type2'" that can be used in SQL clauses like
- * "WHERE q.type NOT IN ($QTYPE_EXCLUDE_FROM_RANDOM)".
- */
-$QTYPE_EXCLUDE_FROM_RANDOM = '';
 
 /**
  * Add a new question type to the various global arrays above.
@@ -144,22 +103,10 @@ $QTYPE_EXCLUDE_FROM_RANDOM = '';
  * @param object $qtype An instance of the new question type class.
  */
 function question_register_questiontype($qtype) {
-    global $QTYPES, $QTYPE_MANUAL, $QTYPE_EXCLUDE_FROM_RANDOM;
+    global $QTYPES;
 
     $name = $qtype->name();
     $QTYPES[$name] = $qtype;
-    if ($qtype->is_manual_graded()) {
-        if ($QTYPE_MANUAL) {
-            $QTYPE_MANUAL .= ',';
-        }
-        $QTYPE_MANUAL .= "'$name'";
-    }
-    if (!$qtype->is_usable_by_random()) {
-        if ($QTYPE_EXCLUDE_FROM_RANDOM) {
-            $QTYPE_EXCLUDE_FROM_RANDOM .= ',';
-        }
-        $QTYPE_EXCLUDE_FROM_RANDOM .= "'$name'";
-    }
 }
 
 require_once("$CFG->dirroot/question/type/questiontype.php");
@@ -202,63 +149,6 @@ function question_type_menu() {
     }
     return $menu_options;
 }
-
-/// OTHER CLASSES /////////////////////////////////////////////////////////
-
-/**
- * This holds the options that are set by the course module
- */
-class cmoptions {
-    /**
-    * Whether a new attempt should be based on the previous one. If true
-    * then a new attempt will start in a state where all responses are set
-    * to the last responses from the previous attempt.
-    */
-    var $attemptonlast = false;
-
-    /**
-    * Various option flags. The flags are accessed via bitwise operations
-    * using the constants defined in the CONSTANTS section above.
-    */
-    var $optionflags = QUESTION_ADAPTIVE;
-
-    /**
-    * Determines whether in the calculation of the score for a question
-    * penalties for earlier wrong responses within the same attempt will
-    * be subtracted.
-    */
-    var $penaltyscheme = true;
-
-    /**
-    * The maximum time the user is allowed to answer the questions withing
-    * an attempt. This is measured in minutes so needs to be multiplied by
-    * 60 before compared to timestamps. If set to 0 no timelimit will be applied
-    */
-    var $timelimit = 0;
-
-    /**
-    * Timestamp for the closing time. Responses submitted after this time will
-    * be saved but no credit will be given for them.
-    */
-    var $timeclose = 9999999999;
-
-    /**
-    * The id of the course from withing which the question is currently being used
-    */
-    var $course = SITEID;
-
-    /**
-    * Whether the answers in a multiple choice question should be randomly
-    * shuffled when a new attempt is started.
-    */
-    var $shuffleanswers = true;
-
-    /**
-    * The number of decimals to be shown when scores are printed
-    */
-    var $decimalpoints = 2;
-}
-
 
 /// FUNCTIONS //////////////////////////////////////////////////////
 
@@ -827,7 +717,6 @@ function _tidy_question(&$question, $loadtags = false) {
         $question->qtype = 'missingtype';
         $question->questiontext = '<p>' . get_string('warningmissingtype', 'quiz') . '</p>' . $question->questiontext;
     }
-    $question->name_prefix = question_make_name_prefix($question->id);
     if ($success = $QTYPES[$question->qtype]->get_question_options($question)) {
         if (isset($question->_partiallyloaded)) {
             unset($question->_partiallyloaded);
@@ -864,328 +753,6 @@ function get_question_options(&$questions, $loadtags = false) {
         return _tidy_question($questions, $loadtags);
     }
 }
-
-/**
-* Loads the most recent state of each question session from the database
-* or create new one.
-*
-* For each question the most recent session state for the current attempt
-* is loaded from the question_states table and the question type specific data and
-* responses are added by calling {@link restore_question_state()} which in turn
-* calls {@link restore_session_and_responses()} for each question.
-* If no states exist for the question instance an empty state object is
-* created representing the start of a session and empty question
-* type specific information and responses are created by calling
-* {@link create_session_and_responses()}.
-*
-* @return array           An array of state objects representing the most recent
-*                         states of the question sessions.
-* @param array $questions The questions for which sessions are to be restored or
-*                         created.
-* @param object $cmoptions
-* @param object $attempt  The attempt for which the question sessions are
-*                         to be restored or created.
-* @param mixed either the id of a previous attempt, if this attmpt is
-*                         building on a previous one, or false for a clean attempt.
-*/
-function get_question_states(&$questions, $cmoptions, $attempt, $lastattemptid = false) {
-    global $CFG, $QTYPES;
-
-    // get the question ids
-    $ids = array_keys($questions);
-    $questionlist = implode(',', $ids);
-
-    // The question field must be listed first so that it is used as the
-    // array index in the array returned by get_records_sql
-    $statefields = 'n.questionid as question, s.id, s.attempt, s.originalquestion, ' .
-            's.seq_number, s.answer, s.timestamp, s.event, s.grade, s.raw_grade, ' .
-            's.penalty, n.sumpenalty, n.manualcomment';
-    // Load the newest states for the questions
-    $sql = "SELECT $statefields".
-           "  FROM {$CFG->prefix}question_states s,".
-           "       {$CFG->prefix}question_sessions n".
-           " WHERE s.id = n.newest".
-           "   AND n.attemptid = '$attempt->uniqueid'".
-           "   AND n.questionid IN ($questionlist)";
-    $states = get_records_sql($sql);
-
-    // Load the newest graded states for the questions
-    $sql = "SELECT $statefields".
-           "  FROM {$CFG->prefix}question_states s,".
-           "       {$CFG->prefix}question_sessions n".
-           " WHERE s.id = n.newgraded".
-           "   AND n.attemptid = '$attempt->uniqueid'".
-           "   AND n.questionid IN ($questionlist)";
-    $gradedstates = get_records_sql($sql);
-
-    // loop through all questions and set the last_graded states
-    foreach ($ids as $i) {
-        if (isset($states[$i])) {
-            restore_question_state($questions[$i], $states[$i]);
-            if (isset($gradedstates[$i])) {
-                restore_question_state($questions[$i], $gradedstates[$i]);
-                $states[$i]->last_graded = $gradedstates[$i];
-            } else {
-                $states[$i]->last_graded = clone($states[$i]);
-            }
-        } else {
-            if ($lastattemptid) {
-                // If the new attempt is to be based on this previous attempt.
-                // Find the responses from the previous attempt and save them to the new session
-
-                // Load the last graded state for the question. Note, $statefields is
-                // the same as above, except that we don't want n.manualcomment.
-                $statefields = 'n.questionid as question, s.id, s.attempt, s.originalquestion, ' .
-                        's.seq_number, s.answer, s.timestamp, s.event, s.grade, s.raw_grade, ' .
-                        's.penalty, n.sumpenalty';
-                $sql = "SELECT $statefields".
-                       "  FROM {$CFG->prefix}question_states s,".
-                       "       {$CFG->prefix}question_sessions n".
-                       " WHERE s.id = n.newest".
-                       "   AND n.attemptid = '$lastattemptid'".
-                       "   AND n.questionid = '$i'";
-                if (!$laststate = get_record_sql($sql)) {
-                    // Only restore previous responses that have been graded
-                    continue;
-                }
-                // Restore the state so that the responses will be restored
-                restore_question_state($questions[$i], $laststate);
-                $states[$i] = clone($laststate);
-                unset($states[$i]->id);
-            } else {
-                // create a new empty state
-                $states[$i] = new object;
-                $states[$i]->question = $i;
-                $states[$i]->responses = array('' => '');
-                $states[$i]->raw_grade = 0;
-            }
-
-            // now fill/overide initial values
-            $states[$i]->attempt = $attempt->uniqueid;
-            $states[$i]->seq_number = 0;
-            $states[$i]->timestamp = $attempt->timestart;
-            $states[$i]->event = ($attempt->timefinish) ? QUESTION_EVENTCLOSE : QUESTION_EVENTOPEN;
-            $states[$i]->grade = 0;
-            $states[$i]->penalty = 0;
-            $states[$i]->sumpenalty = 0;
-            $states[$i]->manualcomment = '';
-
-            // Prevent further changes to the session from incrementing the
-            // sequence number
-            $states[$i]->changed = true;
-
-            if ($lastattemptid) {
-                // prepare the previous responses for new processing
-                $action = new stdClass;
-                $action->responses = $laststate->responses;
-                $action->timestamp = $laststate->timestamp;
-                $action->event = QUESTION_EVENTSAVE; //emulate save of questions from all pages MDL-7631
-
-                // Process these responses ...
-                question_process_responses($questions[$i], $states[$i], $action, $cmoptions, $attempt);
-
-                // Fix for Bug #5506: When each attempt is built on the last one,
-                // preserve the options from any previous attempt.
-                if ( isset($laststate->options) ) {
-                    $states[$i]->options = $laststate->options;
-                }
-            } else {
-                // Create the empty question type specific information
-                if (!$QTYPES[$questions[$i]->qtype]->create_session_and_responses(
-                        $questions[$i], $states[$i], $cmoptions, $attempt)) {
-                    return false;
-                }
-            }
-            $states[$i]->last_graded = clone($states[$i]);
-        }
-    }
-    return $states;
-}
-
-
-/**
-* Creates the run-time fields for the states
-*
-* Extends the state objects for a question by calling
-* {@link restore_session_and_responses()}
-* @param object $question The question for which the state is needed
-* @param object $state The state as loaded from the database
-* @return boolean Represents success or failure
-*/
-function restore_question_state(&$question, &$state) {
-    global $QTYPES;
-
-    // initialise response to the value in the answer field
-    $state->responses = array('' => addslashes($state->answer));
-    unset($state->answer);
-    $state->manualcomment = isset($state->manualcomment) ? addslashes($state->manualcomment) : '';
-
-    // Set the changed field to false; any code which changes the
-    // question session must set this to true and must increment
-    // ->seq_number. The save_question_session
-    // function will save the new state object to the database if the field is
-    // set to true.
-    $state->changed = false;
-
-    // Load the question type specific data
-    return $QTYPES[$question->qtype]
-            ->restore_session_and_responses($question, $state);
-
-}
-
-/**
-* Saves the current state of the question session to the database
-*
-* The state object representing the current state of the session for the
-* question is saved to the question_states table with ->responses[''] saved
-* to the answer field of the database table. The information in the
-* question_sessions table is updated.
-* The question type specific data is then saved.
-* @return mixed           The id of the saved or updated state or false
-* @param object $question The question for which session is to be saved.
-* @param object $state    The state information to be saved. In particular the
-*                         most recent responses are in ->responses. The object
-*                         is updated to hold the new ->id.
-*/
-function save_question_session(&$question, &$state) {
-    global $QTYPES;
-    // Check if the state has changed
-    if (!$state->changed && isset($state->id)) {
-        return $state->id;
-    }
-    // Set the legacy answer field
-    $state->answer = isset($state->responses['']) ? $state->responses[''] : '';
-
-    // Save the state
-    if (!empty($state->update)) { // this forces the old state record to be overwritten
-        update_record('question_states', $state);
-    } else {
-        if (!$state->id = insert_record('question_states', $state)) {
-            unset($state->id);
-            unset($state->answer);
-            return false;
-        }
-    }
-
-    // create or update the session
-    if (!$session = get_record('question_sessions', 'attemptid',
-            $state->attempt, 'questionid', $question->id)) {
-        $session->attemptid = $state->attempt;
-        $session->questionid = $question->id;
-        $session->newest = $state->id;
-        // The following may seem weird, but the newgraded field needs to be set
-        // already even if there is no graded state yet.
-        $session->newgraded = $state->id;
-        $session->sumpenalty = $state->sumpenalty;
-        $session->manualcomment = $state->manualcomment;
-        if (!insert_record('question_sessions', $session)) {
-            error('Could not insert entry in question_sessions');
-        }
-    } else {
-        $session->newest = $state->id;
-        if (question_state_is_graded($state) or $state->event == QUESTION_EVENTOPEN) {
-            // this state is graded or newly opened, so it goes into the lastgraded field as well
-            $session->newgraded = $state->id;
-            $session->sumpenalty = $state->sumpenalty;
-            $session->manualcomment = $state->manualcomment;
-        } else {
-            $session->manualcomment = addslashes($session->manualcomment);
-        }
-        update_record('question_sessions', $session);
-    }
-
-    unset($state->answer);
-
-    // Save the question type specific state information and responses
-    if (!$QTYPES[$question->qtype]->save_session_and_responses(
-     $question, $state)) {
-        return false;
-    }
-    // Reset the changed flag
-    $state->changed = false;
-    return $state->id;
-}
-
-/**
-* Determines whether a state has been graded by looking at the event field
-*
-* @return boolean         true if the state has been graded
-* @param object $state
-*/
-function question_state_is_graded($state) {
-    $gradedevents = explode(',', QUESTION_EVENTS_GRADED);
-    return (in_array($state->event, $gradedevents));
-}
-
-/**
-* Determines whether a state has been closed by looking at the event field
-*
-* @return boolean         true if the state has been closed
-* @param object $state
-*/
-function question_state_is_closed($state) {
-    return ($state->event == QUESTION_EVENTCLOSE
-        or $state->event == QUESTION_EVENTCLOSEANDGRADE
-        or $state->event == QUESTION_EVENTMANUALGRADE);
-}
-
-
-/**
- * Extracts responses from submitted form
- *
- * This can extract the responses given to one or several questions present on a page
- * It returns an array with one entry for each question, indexed by question id
- * Each entry is an object with the properties
- *  ->event     The event that has triggered the submission. This is determined by which button
- *               the user has pressed.
- *  ->responses An array holding the responses to an individual question, indexed by the
- *               name of the corresponding form element.
- *  ->timestamp A unix timestamp
- * @return array            array of action objects, indexed by question ids.
- * @param array $questions  an array containing at least all questions that are used on the form
- * @param array $formdata   the data submitted by the form on the question page
- * @param integer $defaultevent  the event type used if no 'mark' or 'validate' is submitted
- */
-function question_extract_responses($questions, $formdata, $defaultevent=QUESTION_EVENTSAVE) {
-
-    $time = time();
-    $actions = array();
-    foreach ($formdata as $key => $response) {
-        // Get the question id from the response name
-        if (false !== ($quid = question_get_id_from_name_prefix($key))) {
-            // check if this is a valid id
-            if (!isset($questions[$quid])) {
-                error('Form contained question that is not in questionids');
-            }
-
-            // Remove the name prefix from the name
-            //decrypt trying
-            $key = substr($key, strlen($questions[$quid]->name_prefix));
-            if (false === $key) {
-                $key = '';
-            }
-            // Check for question validate and mark buttons & set events
-            if ($key === 'validate') {
-                $actions[$quid]->event = QUESTION_EVENTVALIDATE;
-            } else if ($key === 'submit') {
-                $actions[$quid]->event = QUESTION_EVENTSUBMIT;
-            } else {
-                $actions[$quid]->event = $defaultevent;
-            }
-
-            // Update the state with the new response
-            $actions[$quid]->responses[$key] = $response;
-
-            // Set the timestamp
-            $actions[$quid]->timestamp = $time;
-        }
-    }
-    foreach ($actions as $quid => $notused) {
-        ksort($actions[$quid]->responses);
-    }
-    return $actions;
-}
-
 
 /**
  * Returns the html for question feedback image.
@@ -1248,305 +815,6 @@ function question_get_feedback_class($fraction) {
     return $class;
 }
 
-
-/**
-* For a given question in an attempt we walk the complete history of states
-* and recalculate the grades as we go along.
-*
-* This is used when a question is changed and old student
-* responses need to be marked with the new version of a question.
-*
-* TODO: Make sure this is not quiz-specific
-*
-* @return boolean            Indicates whether the grade has changed
-* @param object  $question   A question object
-* @param object  $attempt    The attempt, in which the question needs to be regraded.
-* @param object  $cmoptions
-* @param boolean $verbose    Optional. Whether to print progress information or not.
-*/
-function regrade_question_in_attempt($question, $attempt, $cmoptions, $verbose=false) {
-
-    // load all states for this question in this attempt, ordered in sequence
-    if ($states = get_records_select('question_states',
-            "attempt = '{$attempt->uniqueid}' AND question = '{$question->id}'",
-            'seq_number ASC')) {
-        $states = array_values($states);
-
-        // Subtract the grade for the latest state from $attempt->sumgrades to get the
-        // sumgrades for the attempt without this question.
-        $attempt->sumgrades -= $states[count($states)-1]->grade;
-
-        // Initialise the replaystate
-        $state = clone($states[0]);
-        $state->manualcomment = get_field('question_sessions', 'manualcomment', 'attemptid',
-                $attempt->uniqueid, 'questionid', $question->id);
-        restore_question_state($question, $state);
-        $state->sumpenalty = 0.0;
-        $replaystate = clone($state);
-        $replaystate->last_graded = $state;
-
-        $changed = false;
-        for($j = 1; $j < count($states); $j++) {
-            restore_question_state($question, $states[$j]);
-            $action = new stdClass;
-            $action->responses = $states[$j]->responses;
-            $action->timestamp = $states[$j]->timestamp;
-
-            // Change event to submit so that it will be reprocessed
-            if (QUESTION_EVENTCLOSE == $states[$j]->event
-                    or QUESTION_EVENTGRADE == $states[$j]->event
-                    or QUESTION_EVENTCLOSEANDGRADE == $states[$j]->event) {
-                $action->event = QUESTION_EVENTSUBMIT;
-
-            // By default take the event that was saved in the database
-            } else {
-                $action->event = $states[$j]->event;
-            }
-
-            if ($action->event == QUESTION_EVENTMANUALGRADE) {
-                // Ensure that the grade is in range - in the past this was not checked,
-                // but now it is (MDL-14835) - so we need to ensure the data is valid before
-                // proceeding.
-                if ($states[$j]->grade < 0) {
-                    $states[$j]->grade = 0;
-                } else if ($states[$j]->grade > $question->maxgrade) {
-                    $states[$j]->grade = $question->maxgrade;
-                }
-                $error = question_process_comment($question, $replaystate, $attempt,
-                        $replaystate->manualcomment, $states[$j]->grade);
-                if (is_string($error)) {
-                     notify($error);
-                }
-            } else {
-
-                // Reprocess (regrade) responses
-                if (!question_process_responses($question, $replaystate,
-                        $action, $cmoptions, $attempt)) {
-                    $verbose && notify("Couldn't regrade state #{$state->id}!");
-                }
-            }
-
-            // We need rounding here because grades in the DB get truncated
-            // e.g. 0.33333 != 0.3333333, but we want them to be equal here
-            if ((round((float)$replaystate->raw_grade, 5) != round((float)$states[$j]->raw_grade, 5))
-                    or (round((float)$replaystate->penalty, 5) != round((float)$states[$j]->penalty, 5))
-                    or (round((float)$replaystate->grade, 5) != round((float)$states[$j]->grade, 5))) {
-                $changed = true;
-            }
-
-            $replaystate->id = $states[$j]->id;
-            $replaystate->changed = true;
-            $replaystate->update = true; // This will ensure that the existing database entry is updated rather than a new one created
-            save_question_session($question, $replaystate);
-        }
-        if ($changed) {
-            // TODO, call a method in quiz to do this, where 'quiz' comes from
-            // the question_attempts table.
-            update_record('quiz_attempts', $attempt);
-        }
-
-        return $changed;
-    }
-    return false;
-}
-
-/**
-* Processes an array of student responses, grading and saving them as appropriate
-*
-* @param object $question Full question object, passed by reference
-* @param object $state    Full state object, passed by reference
-* @param object $action   object with the fields ->responses which
-*                         is an array holding the student responses,
-*                         ->action which specifies the action, e.g., QUESTION_EVENTGRADE,
-*                         and ->timestamp which is a timestamp from when the responses
-*                         were submitted by the student.
-* @param object $cmoptions
-* @param object $attempt  The attempt is passed by reference so that
-*                         during grading its ->sumgrades field can be updated
-* @return boolean         Indicates success/failure
-*/
-function question_process_responses(&$question, &$state, $action, $cmoptions, &$attempt) {
-    global $QTYPES;
-
-    // if no responses are set initialise to empty response
-    if (!isset($action->responses)) {
-        $action->responses = array('' => '');
-    }
-
-    // make sure these are gone!
-    unset($action->responses['submit'], $action->responses['validate']);
-
-    // Check the question session is still open
-    if (question_state_is_closed($state)) {
-        return true;
-    }
-
-    // If $action->event is not set that implies saving
-    if (! isset($action->event)) {
-        debugging('Ambiguous action in question_process_responses.' , DEBUG_DEVELOPER);
-        $action->event = QUESTION_EVENTSAVE;
-    }
-    // If submitted then compare against last graded
-    // responses, not last given responses in this case
-    if (question_isgradingevent($action->event)) {
-        $state->responses = $state->last_graded->responses;
-    }
-
-    // Check for unchanged responses (exactly unchanged, not equivalent).
-    // We also have to catch questions that the student has not yet attempted
-    $sameresponses = $QTYPES[$question->qtype]->compare_responses($question, $action, $state);
-    if (!empty($state->last_graded) && $state->last_graded->event == QUESTION_EVENTOPEN &&
-            question_isgradingevent($action->event)) {
-        $sameresponses = false;
-    }
-
-    // If the response has not been changed then we do not have to process it again
-    // unless the attempt is closing or validation is requested
-    if ($sameresponses and QUESTION_EVENTCLOSE != $action->event
-            and QUESTION_EVENTVALIDATE != $action->event) {
-        return true;
-    }
-
-    // Roll back grading information to last graded state and set the new
-    // responses
-    $newstate = clone($state->last_graded);
-    $newstate->responses = $action->responses;
-    $newstate->seq_number = $state->seq_number + 1;
-    $newstate->changed = true; // will assure that it gets saved to the database
-    $newstate->last_graded = clone($state->last_graded);
-    $newstate->timestamp = $action->timestamp;
-    $state = $newstate;
-
-    // Set the event to the action we will perform. The question type specific
-    // grading code may override this by setting it to QUESTION_EVENTCLOSE if the
-    // attempt at the question causes the session to close
-    $state->event = $action->event;
-
-    if (!question_isgradingevent($action->event)) {
-        // Grade the response but don't update the overall grade
-        if (!$QTYPES[$question->qtype]->grade_responses($question, $state, $cmoptions)) {
-            return false;
-        }
-
-        // Temporary hack because question types are not given enough control over what is going
-        // on. Used by Opaque questions.
-        // TODO fix this code properly.
-        if (!empty($state->believeevent)) {
-            // If the state was graded we need to ...
-            if (question_state_is_graded($state)) {
-                question_apply_penalty_and_timelimit($question, $state, $attempt, $cmoptions);
-
-                // update the attempt grade
-                $attempt->sumgrades -= (float)$state->last_graded->grade;
-                $attempt->sumgrades += (float)$state->grade;
-
-                // and update the last_graded field.
-                unset($state->last_graded);
-                $state->last_graded = clone($state);
-                unset($state->last_graded->changed);
-            }
-        } else {
-            // Don't allow the processing to change the event type
-            $state->event = $action->event;
-        }
-
-    } else { // grading event
-
-        // Unless the attempt is closing, we want to work out if the current responses
-        // (or equivalent responses) were already given in the last graded attempt.
-        if(QUESTION_EVENTCLOSE != $action->event && QUESTION_EVENTOPEN != $state->last_graded->event &&
-                $QTYPES[$question->qtype]->compare_responses($question, $state, $state->last_graded)) {
-            $state->event = QUESTION_EVENTDUPLICATE;
-        }
-
-        // If we did not find a duplicate or if the attempt is closing, perform grading
-        if ((!$sameresponses and QUESTION_EVENTDUPLICATE != $state->event) or
-                QUESTION_EVENTCLOSE == $action->event) {
-            if (!$QTYPES[$question->qtype]->grade_responses($question, $state, $cmoptions)) {
-                return false;
-            }
-
-            // Calculate overall grade using correct penalty method
-            question_apply_penalty_and_timelimit($question, $state, $attempt, $cmoptions);
-        }
-
-        // If the state was graded we need to ...
-        if (question_state_is_graded($state)) {
-            // update the attempt grade
-            $attempt->sumgrades -= (float)$state->last_graded->grade;
-            $attempt->sumgrades += (float)$state->grade;
-
-            // and update the last_graded field.
-            unset($state->last_graded);
-            $state->last_graded = clone($state);
-            unset($state->last_graded->changed);
-        }
-    }
-    $attempt->timemodified = $action->timestamp;
-
-    return true;
-}
-
-/**
-* Determine if event requires grading
-*/
-function question_isgradingevent($event) {
-    return (QUESTION_EVENTSUBMIT == $event || QUESTION_EVENTCLOSE == $event);
-}
-
-/**
-* Applies the penalty from the previous graded responses to the raw grade
-* for the current responses
-*
-* The grade for the question in the current state is computed by subtracting the
-* penalty accumulated over the previous graded responses at the question from the
-* raw grade. If the timestamp is more than 1 minute beyond the end of the attempt
-* the grade is set to zero. The ->grade field of the state object is modified to
-* reflect the new grade but is never allowed to decrease.
-* @param object $question The question for which the penalty is to be applied.
-* @param object $state    The state for which the grade is to be set from the
-*                         raw grade and the cumulative penalty from the last
-*                         graded state. The ->grade field is updated by applying
-*                         the penalty scheme determined in $cmoptions to the ->raw_grade and
-*                         ->last_graded->penalty fields.
-* @param object $cmoptions  The options set by the course module.
-*                           The ->penaltyscheme field determines whether penalties
-*                           for incorrect earlier responses are subtracted.
-*/
-function question_apply_penalty_and_timelimit(&$question, &$state, $attempt, $cmoptions) {
-    // TODO. Quiz dependancy. The fact that the attempt that is passed in here
-    // is from quiz_attempts, and we use things like $cmoptions->timelimit.
-
-    // deal with penalty
-    if ($cmoptions->penaltyscheme) {
-        $state->grade = $state->raw_grade - $state->sumpenalty;
-        $state->sumpenalty += (float) $state->penalty;
-    } else {
-        $state->grade = $state->raw_grade;
-    }
-
-    // deal with timelimit
-    if ($cmoptions->timelimit) {
-        // We allow for 5% uncertainty in the following test
-        if ($state->timestamp - $attempt->timestart > $cmoptions->timelimit * 63) {
-            $cm = get_coursemodule_from_instance('quiz', $cmoptions->id);
-            if (!has_capability('mod/quiz:ignoretimelimits', get_context_instance(CONTEXT_MODULE, $cm->id),
-                    $attempt->userid, false)) {
-                $state->grade = 0;
-            }
-        }
-    }
-
-    // deal with closing time
-    if ($cmoptions->timeclose and $state->timestamp > ($cmoptions->timeclose + 60) // allowing 1 minute lateness
-             and !$attempt->preview) { // ignore closing time for previews
-        $state->grade = 0;
-    }
-
-    // Ensure that the grade does not go down
-    $state->grade = max($state->grade, $state->last_graded->grade);
-}
-
 /**
 * Print the icon for the question type
 *
@@ -1569,168 +837,6 @@ function print_question_icon($question, $return = false) {
     } else {
         echo $html;
     }
-}
-
-/**
-* Returns a html link to the question image if there is one
-*
-* @return string The html image tag or the empy string if there is no image.
-* @param object $question The question object
-*/
-function get_question_image($question) {
-
-    global $CFG;
-    $img = '';
-
-    if (!$category = get_record('question_categories', 'id', $question->category)){
-        error('invalid category id '.$question->category);
-    }
-    $coursefilesdir = get_filesdir_from_context(get_context_instance_by_id($category->contextid));
-
-    if ($question->image) {
-
-        if (substr(strtolower($question->image), 0, 7) == 'http://') {
-            $img .= $question->image;
-
-        } else {
-            require_once($CFG->libdir .'/filelib.php');
-            $img = get_file_url("$coursefilesdir/{$question->image}");
-        }      
-    }
-    return $img;
-}
-
-function question_print_comment_box($question, $state, $attempt, $url) {
-    global $CFG, $QTYPES;
-
-    $prefix = 'response';
-    $usehtmleditor = can_use_richtext_editor();
-    if (!question_state_is_graded($state) && $QTYPES[$question->qtype]->is_question_manual_graded($question, $attempt->layout)) {
-        $grade = '';
-    } else {
-        $grade = round($state->last_graded->grade, 3);
-    }
-    echo '<form method="post" action="'.$url.'">';
-    include($CFG->dirroot.'/question/comment.html');
-    echo '<input type="hidden" name="attempt" value="'.$attempt->uniqueid.'" />';
-    echo '<input type="hidden" name="question" value="'.$question->id.'" />';
-    echo '<input type="hidden" name="sesskey" value="'.sesskey().'" />';
-    echo '<input type="submit" name="submit" value="'.get_string('save', 'quiz').'" />';
-    echo '</form>';
-
-    if ($usehtmleditor) {
-        use_html_editor();
-    }
-}
-
-/**
- * Process a manual grading action. That is, use $comment and $grade to update
- * $state and $attempt. The attempt and the comment text are stored in the
- * database. $state is only updated in memory, it is up to the call to store
- * that, if appropriate.
- *
- * @param object $question the question
- * @param object $state the state to be updated.
- * @param object $attempt the attempt the state belongs to, to be updated.
- * @param string $comment the new comment from the teacher.
- * @param mixed $grade the grade the teacher assigned, or '' to not change the grade.
- * @return mixed true on success, a string error message if a problem is detected
- *         (for example score out of range).
- */
-function question_process_comment($question, &$state, &$attempt, $comment, $grade) {
-    $grade = trim($grade);
-    if ($grade < 0 || $grade > $question->maxgrade) {
-        $a = new stdClass;
-        $a->grade = $grade;
-        $a->maxgrade = $question->maxgrade;
-        $a->name = $question->name;
-        return get_string('errormanualgradeoutofrange', 'question', $a);
-    }
-
-    // Update the comment and save it in the database
-    $comment = trim($comment);
-    $state->manualcomment = $comment;
-    if (!set_field('question_sessions', 'manualcomment', $comment, 'attemptid', $attempt->uniqueid, 'questionid', $question->id)) {
-        return get_string('errorsavingcomment', 'question', $question);
-    }
-
-    // Update the attempt if the score has changed.
-    if ($grade !== '' && (abs($state->last_graded->grade - $grade) > 0.002 || $state->last_graded->event != QUESTION_EVENTMANUALGRADE)) {
-        $attempt->sumgrades = $attempt->sumgrades - $state->last_graded->grade + $grade;
-        $attempt->timemodified = time();
-        if (!update_record('quiz_attempts', $attempt)) {
-            return get_string('errorupdatingattempt', 'question', $attempt);
-        }
-
-        // We want to update existing state (rather than creating new one) if it
-        // was itself created by a manual grading event.
-        $state->update = $state->event == QUESTION_EVENTMANUALGRADE;
-
-        // Update the other parts of the state object.
-        $state->raw_grade = $grade;
-        $state->grade = $grade;
-        $state->penalty = 0;
-        $state->timestamp = time();
-        $state->seq_number++;
-        $state->event = QUESTION_EVENTMANUALGRADE;
-
-        // Update the last graded state (don't simplify!)
-        unset($state->last_graded);
-        $state->last_graded = clone($state);
-
-        // We need to indicate that the state has changed in order for it to be saved.
-        $state->changed = 1;
-    }
-
-    return true;
-}
-
-/**
-* Construct name prefixes for question form element names
-*
-* Construct the name prefix that should be used for example in the
-* names of form elements created by questions.
-* This is called by {@link get_question_options()}
-* to set $question->name_prefix.
-* This name prefix includes the question id which can be
-* extracted from it with {@link question_get_id_from_name_prefix()}.
-*
-* @return string
-* @param integer $id  The question id
-*/
-function question_make_name_prefix($id) {
-    return 'resp' . $id . '_';
-}
-
-/**
-* Extract question id from the prefix of form element names
-*
-* @return integer      The question id
-* @param string $name  The name that contains a prefix that was
-*                      constructed with {@link question_make_name_prefix()}
-*/
-function question_get_id_from_name_prefix($name) {
-    if (!preg_match('/^resp([0-9]+)_/', $name, $matches))
-        return false;
-    return (integer) $matches[1];
-}
-
-/**
- * Returns the unique id for a new attempt
- *
- * Every module can keep their own attempts table with their own sequential ids but
- * the question code needs to also have a unique id by which to identify all these
- * attempts. Hence a module, when creating a new attempt, calls this function and
- * stores the return value in the 'uniqueid' field of its attempts table.
- */
-function question_new_attempt_uniqueid($modulename='quiz') {
-    global $CFG;
-    $attempt = new stdClass;
-    $attempt->modulename = $modulename;
-    if (!$id = insert_record('question_attempts', $attempt)) {
-        error('Could not create new entry in question_attempts table');
-    }
-    return $id;
 }
 
 /**
@@ -1762,20 +868,6 @@ function get_editing_head_contributions($question) {
 }
 
 /**
- * Prints a question
- *
- * Simply calls the question type specific print_question() method.
- * @param object $question The question to be rendered.
- * @param object $state    The state to render the question in.
- * @param integer $number  The number for this question.
- * @param object $cmoptions  The options specified by the course module
- * @param object $options  An object specifying the rendering options.
- */
-function print_question(&$question, &$state, $number, $cmoptions, $options=null) {
-    global $QTYPES;
-    $QTYPES[$question->qtype]->print_question($question, $state, $number, $cmoptions, $options);
-}
-/**
  * Saves question options
  *
  * Simply calls the question type specific save_question_options() method.
@@ -1785,31 +877,6 @@ function save_question_options($question) {
 
     $QTYPES[$question->qtype]->save_question_options($question);
 }
-
-/**
-* Gets the response given by the user in a particular state
-*
-* Simply calls the question type specific get_actual_response() method.
-*/
-// ULPGC ecastro
-function get_question_actual_response($question, $state) {
-    global $QTYPES;
-
-    $r = $QTYPES[$question->qtype]->get_actual_response($question, $state);
-    return $r;
-}
-
-/**
-* TODO: document this
-*/
-// ULPGc ecastro
-function get_question_fraction_grade($question, $state) {
-    global $QTYPES;
-
-    $r = $QTYPES[$question->qtype]->get_fractional_grade($question, $state);
-    return $r;
-}
-
 
 /// CATEGORY FUNCTIONS /////////////////////////////////////////////////////////////////
 
@@ -2056,6 +1123,7 @@ function question_add_context_in_key($categories){
     }
     return $newcatarray;
 }
+
 function question_add_tops($categories, $pcontexts){
     $topcats = array();
     foreach ($pcontexts as $context){
@@ -2083,8 +1151,6 @@ function question_categorylist($categoryid) {
     }
     return $categorylist;
 }
-
-
 
 
 //===========================
@@ -2135,7 +1201,6 @@ function get_import_export_formats( $type ) {
     return $fileformatnames;
 }
 
-
 /**
 * Create default export filename
 *
@@ -2181,6 +1246,7 @@ function default_export_filename($course,$category) {
 
     return $export_name;
 }
+
 class context_to_string_translator{
     /**
      * @var array used to translate between contextids and strings for this context.
@@ -2389,4 +1455,3 @@ function get_filesdir_from_context($context){
     }
     return $courseid;
 }
-?>

@@ -226,26 +226,6 @@ class qtype_multichoice extends question_type {
         }
     }
 
-    // ULPGC ecastro
-    public function get_actual_response($question, $state) {
-        $answers = $question->options->answers;
-        $responses = array();
-        if (!empty($state->responses)) {
-            foreach ($state->responses as $aid =>$rid){
-                if (!empty($answers[$rid])) {
-                    $responses[] = $this->format_text($answers[$rid]->answer, $question->questiontextformat);
-                }
-            }
-        } else {
-            $responses[] = '';
-        }
-        return $responses;
-    }
-
-    public function response_summary($question, $state, $length = 80) {
-        return implode(',', $this->get_actual_response($question, $state));
-    }
-
     function get_random_guess_score($questiondata) {
         $totalfraction = 0;
         foreach ($questiondata->options->answers as $answer) {
