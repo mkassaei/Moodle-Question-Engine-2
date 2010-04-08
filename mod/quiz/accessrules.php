@@ -15,6 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// ou-specific This whole file
+// until the new question engine is merged into Moodle core (probably 2.1).
+
 /**
  * Sets up the tabs used by the quiz pages based on the users capabilites.
  *
@@ -330,6 +333,11 @@ class quiz_access_manager {
             return get_string('confirmstartattempttimelimit','quiz', $quiz->attempts);
         } else if ($quiz->timelimit) {
             return get_string('confirmstarttimelimit','quiz');
+// ou-specific begins
+// bug 8090
+        } else if ($quiz->attempts == 1) {
+            $strconfirmstartattempt = get_string('confirmstartattemptlimitoustyle', 'quiz');
+// ou-specific ends
         } else if ($quiz->attempts) {
             return get_string('confirmstartattemptlimit','quiz', $quiz->attempts);
         }

@@ -15,6 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// ou-specific This whole file
+// until the new question engine is merged into Moodle core (probably 2.1).
+
 /**
  * This script deals with starting a new attempt at a quiz.
  *
@@ -28,6 +31,9 @@
  */
 
 require_once(dirname(__FILE__) . '/../../config.php');
+// ou-specific begins
+$DASHBOARD_COUNTER = DASHBOARD_QUIZ_VIEW;
+// ou-specific ends
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 
 // Get submitted parameters.
@@ -84,6 +90,9 @@ if ($lastattempt && !$lastattempt->timefinish) {
     redirect($quizobj->attempt_url($lastattempt->id));
 }
 
+// ou-specific begins
+$DASHBOARD_COUNTER = DASHBOARD_QUIZ_ATTEMPT;
+// ou-specific ends
 // Get number for the next or unfinished attempt
 if ($lastattempt && !$lastattempt->preview && !$quizobj->is_preview_user()) {
     $attemptnumber = $lastattempt->attempt + 1;

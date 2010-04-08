@@ -15,6 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// ou-specific This whole file
+// until the new question engine is merged into Moodle core (probably 2.1).
+
 /**
  * This script displays a particular page of a quiz attempt that is in progress.
  *
@@ -24,6 +27,9 @@
  */
 
 require_once(dirname(__FILE__) . '/../../config.php');
+// ou-specific begins
+$DASHBOARD_COUNTER = DASHBOARD_QUIZ_VIEW;
+// ou-specific ends
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 
 // Look for old-style URLs, such as may be in the logs, and redirect them to startattemtp.php 
@@ -120,11 +126,16 @@ if ($attemptobj->is_preview_user()) {
     }
 } else {
 // Just a heading.
+// ou-specific begins
+// PGB's issue1 25/09/2007 We don't want a heading for students.
+/* Comment out core code.
     if ($attemptobj->get_num_attempts_allowed() != 1) {
         print_heading(format_string($attemptobj->get_quiz_name()).' - '.$title);
     } else {
         print_heading(format_string($attemptobj->get_quiz_name()));
     }
+*/
+// ou-specific ends
 }
 
 // Start the form

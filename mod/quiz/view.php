@@ -15,6 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// ou-specific This whole file
+// until the new question engine is merged into Moodle core (probably 2.1).
+
 /**
  * This page is the entry page into the quiz UI. Displays information about the
  * quiz to students and teachers, and lets students see their previous attempts.
@@ -26,6 +29,9 @@
 
 
 require_once(dirname(__FILE__) . '/../../config.php');
+// ou-specific begins
+$DASHBOARD_COUNTER = DASHBOARD_QUIZ_VIEW;
+// ou-specific ends
 require_once($CFG->libdir.'/blocklib.php');
 require_once($CFG->libdir.'/gradelib.php');
 require_once($CFG->dirroot.'/mod/quiz/locallib.php');
@@ -71,10 +77,14 @@ $timenow = time();
 $accessmanager = new quiz_access_manager(quiz::create($quiz->id, $USER->id), $timenow,
         has_capability('mod/quiz:ignoretimelimits', $context, NULL, false));
 
+// ou-specific begins
+/* Comment out Moodle core code
 // If no questions have been set up yet redirect to edit.php
 if (!$quiz->questions && has_capability('mod/quiz:manage', $context)) {
     redirect($CFG->wwwroot . '/mod/quiz/edit.php?cmid=' . $cm->id);
 }
+*/
+// ou-specific ends
 
 // Log this request.
 add_to_log($course->id, "quiz", "view", "view.php?id=$cm->id", $quiz->id, $cm->id);
@@ -85,9 +95,23 @@ $pageblocks = blocks_setup($PAGE);
 $blocks_preferred_width = bounded_number(180, blocks_preferred_width($pageblocks[BLOCK_POS_LEFT]), 210);
 
 $edit = optional_param('edit', -1, PARAM_BOOL);
+// ou-specific begins
+/* Comment out Moodle core code
 if ($edit != -1 && $PAGE->user_allowed_editing()) {
     $USER->editing = $edit;
 }
+*/
+if ($PAGE->user_allowed_editing()) {
+
+    // Check for editing on/off or reset lock
+    $resetlock = optional_param('resetlock', 0, PARAM_BOOL);
+
+    if ($edit != -1 || $resetlock == 1) {
+        // Update user editing status
+        updateediting($edit, $resetlock, $course);
+    }
+}
+// ou-specific ends
 
 // Print the page header
 $bodytags = '';
@@ -412,6 +436,12 @@ print_box_end();
 // Should we not be seeing if we need to print right-hand-side blocks?
 // No, becuase page_generic_activity says that it there are only blocks on the left.
 
+// ou-specific begins (until 2.0)
+// Mark module as viewed (note, we do this here and not in finish_page,
+// otherwise the 'not enrolled' error conditions would result in marking
+// 'viewed', I think it's better if they don't.)
+completion_set_module_viewed($course,cm);
+// ou-specific ends (until 2.0)
 finish_page($course);
 
 // Mark module as viewed (note, we do this here and not in finish_page,

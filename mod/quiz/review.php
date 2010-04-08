@@ -15,6 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// ou-specific This whole file
+// until the new question engine is merged into Moodle core (probably 2.1).
+
 /**
  * This page prints a review of a particular quiz attempt
  *
@@ -111,11 +114,22 @@ if ($attemptobj->is_preview_user()) {
 }
 
 // Print heading.
+// ou-specific begins
+/* Comment out Moodle core code
 print_heading(format_string($attemptobj->get_quiz_name()));
+*/
+// ou-specific ends
 if ($attemptobj->is_preview_user() && $attemptobj->is_own_attempt()) {
+// ou-specific begins
+    print_heading($strreviewtitle);
+// ou-specific ends
     $attemptobj->print_restart_preview_button();
 }
+// ou-specific begins
+/* Comment out Moodle core code
 print_heading($strreviewtitle);
+*/
+// ou-specific ends
 
 // Print the navigation panel in a left column.
 print_container_start();
@@ -169,6 +183,9 @@ if ($attemptobj->has_capability('mod/quiz:viewreports')) {
     }
 }
 
+//ou-specific begins
+if ($page == 0) {
+//ou-specific ends
 // Timing information.
 $rows[] = '<tr><th scope="row" class="cell">' . get_string('startedon', 'quiz') .
         '</th><td class="cell">' . userdate($attempt->timestart) . '</td></tr>';
@@ -225,6 +242,9 @@ if ($options->overallfeedback && $feedback) {
     $rows[] = '<tr><th scope="row" class="cell">' . get_string('feedback', 'quiz') .
             '</th><td class="cell">' . $feedback . '</td></tr>';
 }
+//ou-specific begins
+} // End if ($page == 0)
+//ou-specific ends
 
 // Now output the summary table, if there are any rows to be shown.
 if (!empty($rows)) {

@@ -15,6 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// ou-specific This whole file
+// until the new question engine is merged into Moodle core (probably 2.1).
+
 /**
  * This page deals with processing responses during an attempt at a quiz.
  *
@@ -30,6 +33,9 @@
  */
 
 require_once(dirname(__FILE__) . '/../../config.php');
+// ou-specific begins
+$DASHBOARD_COUNTER = DASHBOARD_QUIZ_ATTEMPT;
+// ou-specific ends
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 
 /// Remember the current time as the time any responses were submitted
@@ -72,6 +78,13 @@ if ($nextpage == -1) {
 if ($timeup) {
     $finishattempt = 1;
 }
+// ou-specific begins
+    // Change from thinking it's an 'attempt' to a 'submit' if $finishattempt
+    // has been set (just now or originally)
+    if($finishattempt) {
+        $DASHBOARD_COUNTER = DASHBOARD_QUIZ_SUBMIT;
+    }
+// ou-specific ends
 
 /// Check login.
 require_login($attemptobj->get_courseid(), false, $attemptobj->get_cm());

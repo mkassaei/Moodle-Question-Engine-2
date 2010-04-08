@@ -1,18 +1,85 @@
 PHP files that have been so extensively hacked around with that there should be
 no attempt to merge them are marked with a
 
-// ou-specific until the new question engine is merged into Moodle core (probably 2.1).
+// ou-specific This whole file
+// until the new question engine is merged into Moodle core (probably 2.1).
 
 after the boiler-plate "This is part of Moodle" comment, and before the file-level
 PHP doc comment.
 
 
-Old lank files to delete (leave blank file with OU specific marker saying lang strings are now in the plugin):
-    lang/en_utf8/qtype_match.php
-    lang/en_utf8/quiz_overview.php
-    lang/en_utf8/quiz_responses.php
-    lang/en_utf8/quiz_statistics.php
-    actually, need to do this for all moved lang files, not just the ones that currently have ou-specific changes.
+QUESTIONS
 
+* Do we need $quiz->showpenalties and ->showscores?
+* Display of question history on the review page?
+
+
+TODO
+    mod/quiz/
+        backuplib.php
+        config.html
+        defaults.php
+        restorelib.php
+        restorelibpre15.php
+        reviewoptions.html
+
+Drop all references to DASHBOARD_QUIZ_SUBSYS_OPAQUE other than the constant defintion.
+
+
+Old files to delete:
+(that is, replace with a blank placeholder files saying OU-specific.)
+    lang/en_utf8/
+        qtype_match.php
+        quiz_overview.php
+        quiz_responses.php
+        quiz_statistics.php
+        (other lang files ... TODO)
+
+    mod/quiz/
+        attempt_close_js.php
+        jstimer.php
+        protect_js.php
+        quizclasses.php
+        quizsummary.php
+
+
+Files to replace from new qe ou branch:
+    lib/questionlib.php
+    mod/quiz/
+        accessrules.php
+        attempt.php
+        comment.php
+        pagelib.php
+        processattempt.php
+        quiz.js
+        report.php
+        review.php
+        reviewquestion.php
+        startattempt.php
+        styles.php
+        summary.php
+        tabs.php
+        view.php
+
+
+Files to leave alone:
+    mod/quiz/
+        grade.php
+        icon.gif
+
+
+Files that need merging:
+    local/upgrade.php
+    mod/quiz/db/
+        install.xml
+        upgrade.php
+    mod/quiz/
+        edit.php
+        editlib.php
+        index.php
+        lib.php
+        locallib.php
+        mod_form.php
+        version.php
 
 

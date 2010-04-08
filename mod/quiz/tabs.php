@@ -15,6 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// ou-specific This whole file
+// until the new question engine is merged into Moodle core (probably 2.1).
+
 /**
  * Sets up the tabs used by the quiz pages based on the users capabilites.
  *
@@ -107,7 +110,10 @@ if ($currenttab == 'edit' and isset($mode)) {
 }
 
 if (!$quiz->questions) {
-    $inactive += array('info', 'reports', 'preview');
+// ou-specific begins
+    // $inactive += array('info', 'reports', 'preview');
+    $inactive += array('preview');
+// ou-specific ends
 }
 
 print_tabs($tabs, $currenttab, $inactive, $activated);
