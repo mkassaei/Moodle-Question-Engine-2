@@ -49,6 +49,7 @@ Files to replace from new qe ou branch:
         accessrules.php
         attempt.php
         comment.php
+        edit.js
         pagelib.php
         processattempt.php
         quiz.js
