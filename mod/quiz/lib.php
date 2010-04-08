@@ -1253,16 +1253,16 @@ function quiz_get_extra_capabilities() {
     return array(
         'moodle/site:accessallgroups',
         'moodle/question:add',
-        'moodle/question:editmine',
         'moodle/question:editall',
-        'moodle/question:viewmine',
-        'moodle/question:viewall',
-        'moodle/question:usemine',
-        'moodle/question:useall',
-        'moodle/question:movemine',
-        'moodle/question:moveall',
-        'moodle/question:managecategory',
+        'moodle/question:editmine',
         'moodle/question:flag',
+        'moodle/question:managecategory',
+        'moodle/question:moveall',
+        'moodle/question:movemine',
+        'moodle/question:useall',
+        'moodle/question:usemine',
+        'moodle/question:viewall',
+        'moodle/question:viewmine',
     );
 }
 
