@@ -284,7 +284,6 @@ class qim_interactive_walkthrough_test extends qim_walkthrough_test_base {
         $this->check_current_mark(null);
         $this->check_current_output(
                 $this->get_contains_submit_button_expectation(false),
-                $this->get_contains_incorrect_expectation(),
                 $this->get_does_not_contain_validation_error_expectation(),
                 $this->get_contains_try_again_button_expectation(true),
                 $this->get_contains_hint_expectation('This is the first hint'));
