@@ -59,7 +59,7 @@ class qtype_missing_test extends UnitTestCase {
                 get_context_instance(CONTEXT_SYSTEM));
 
         $q = new qtype_missingtype_question();
-        $quba->set_preferred_interaction_model('deferredfeedback');
+        $quba->set_preferred_behaviour('deferredfeedback');
         $quba->add_question($q, 1);
         $this->expectException();
         $quba->start_all_questions();
@@ -96,7 +96,7 @@ class qtype_missing_test extends UnitTestCase {
         $step = new question_attempt_step(array('answer' => 'frog'));
         $step->set_state(question_state::$todo);
         $qa->add_step($step);
-        $qa->set_interaction_model(new qim_deferredfeedback($qa, 'deferredfeedback'));
+        $qa->set_behaviour(new qbehaviour_deferredfeedback($qa, 'deferredfeedback'));
 
         $output = $qa->render(new question_display_options(), '1');
 

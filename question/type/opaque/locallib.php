@@ -277,9 +277,9 @@ function start_question_session(&$engine, $remoteid, $remoteversion, $data, $cac
         $remoteid,
         $remoteversion,
         $questionbaseurl,
-        array('randomseed', 'userid', 'language', 'passKey', 'preferredmodel'),
+        array('randomseed', 'userid', 'language', 'passKey', 'preferredbehaviour'),
         array($data['-_randomseed'], $data['-_userid'], $data['-_language'],
-                generate_passkey($engine->passkey, $data['-_userid']), $data['-_preferredmodel']),
+                generate_passkey($engine->passkey, $data['-_userid']), $data['-_preferredbehaviour']),
         $cached_resources
     ));
 

@@ -128,7 +128,7 @@ abstract class question_state {
 
     /**
      * Is this state one of the ones that mean the question attempt is finished?
-     * That is, not furthre interaction possible, apart from manual grading.
+     * That is, no further interaction possible, apart from manual grading.
      * @return boolean
      */
     public function is_finished() {
@@ -258,8 +258,8 @@ abstract class question_state {
     /**
      * Return the name of an appropriate string to look up in the question
      * language pack for a state. This is used, for example, by
-     * {@link qim_renderer::get_state_string()}. However, some interaction
-     * models sometimes change this default string for soemthing more specific.
+     * {@link qbehaviour_renderer::get_state_string()}. However, behaviours
+     * sometimes change this default string for soemthing more specific.
      *
      * @return string the name of a string that can be looked up in the 'question'
      *      lang pack, or used as a CSS class name, etc.

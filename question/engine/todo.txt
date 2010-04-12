@@ -83,6 +83,7 @@ Miscellaneous code clean-up (1.5d)
 √   remove obsolete functions from questionlib.php
     test ungraded quizzes and ungraded questions
     Upgrade essay question type. Kill its use of an answer, and merge all feedback into generalfeedback.
+√   rename interaction model -> behaviour
 
 Port the code to Moodle 2.x (10d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8559)
@@ -128,11 +129,11 @@ SELECT
     quba.id AS qubaid,
     quba.contextid,
     quba.owningplugin,
-    quba.preferredmodel,
+    quba.preferredbehaviour,
     qa.id AS questionattemptid,
     qa.questionusageid,
     qa.numberinusage,
-    qa.interactionmodel,
+    qa.behaviour,
     qa.questionid,
     qa.maxmark,
     qa.minfraction,
@@ -180,7 +181,7 @@ CREATE TABLE git_question_usages (
     id BIGSERIAL,
     contextid BIGINT NOT NULL,
     owningplugin VARCHAR(255) NOT NULL DEFAULT '',
-    preferredmodel VARCHAR(32) NOT NULL DEFAULT '',
+    preferredbehaviour VARCHAR(32) NOT NULL DEFAULT '',
 CONSTRAINT git_quesusag_id2_pk PRIMARY KEY (id),
 CONSTRAINT git_quesusag_con_fk FOREIGN KEY (contextid) REFERENCES git_context (id)
 );
@@ -191,7 +192,7 @@ CREATE TABLE git_question_attempts_new (
     id BIGSERIAL,
     questionusageid BIGINT NOT NULL,
     numberinusage BIGINT NOT NULL,
-    interactionmodel VARCHAR(32) NOT NULL DEFAULT '',
+    behaviour VARCHAR(32) NOT NULL DEFAULT '',
     questionid BIGINT NOT NULL,
     maxmark NUMERIC(12,7) NOT NULL,
     minfraction NUMERIC(12,7) NOT NULL,
@@ -233,7 +234,7 @@ CONSTRAINT git_quesattestepdata_id2_pk PRIMARY KEY (id),
 CONSTRAINT git_quesattestepdata_att_fk FOREIGN KEY (attemptstepid) REFERENCES git_question_attempt_steps (id)
 );
 
-COMMENT ON TABLE git_question_attempt_step_data IS 'Each question_attempt_step has an associative array of the data that was submitted by the user in the POST request. It can also contain extra data from the question type or interaction model to avoid re-computation. The convention is that names belon';
+COMMENT ON TABLE git_question_attempt_step_data IS 'Each question_attempt_step has an associative array of the data that was submitted by the user in the POST request. It can also contain extra data from the question type or behaviour to avoid re-computation. The convention is that names belon';
 
 CREATE TABLE git_question_hints (
     id BIGSERIAL,
@@ -246,7 +247,7 @@ CONSTRAINT git_queshint_id_pk PRIMARY KEY (id),
 CONSTRAINT git_queshint_que_fk FOREIGN KEY (questionid) REFERENCES git_question (id)
 );
 
-COMMENT ON TABLE git_question_hints IS 'Stores the the part of the question definition that gives different feedback after each try in interactive and similar interaction models.';
+COMMENT ON TABLE git_question_hints IS 'Stores the the part of the question definition that gives different feedback after each try in interactive and similar behaviours.';
 
 CREATE INDEX git_queshint_que_ix ON git_question_hints (questionid);
 
@@ -257,7 +258,7 @@ CREATE TABLE question_usages (
     id BIGINT(10) unsigned NOT NULL auto_increment,
     contextid BIGINT(10) unsigned NOT NULL,
     owningplugin VARCHAR(255) NOT NULL DEFAULT '',
-    preferredmodel VARCHAR(32) NOT NULL DEFAULT '',
+    preferredbehaviour VARCHAR(32) NOT NULL DEFAULT '',
 CONSTRAINT  PRIMARY KEY (id)
 );
 
@@ -269,7 +270,7 @@ CREATE TABLE question_attempts_new (
     id BIGINT(10) unsigned NOT NULL auto_increment,
     questionusageid BIGINT(10) unsigned NOT NULL,
     numberinusage BIGINT(10) unsigned NOT NULL,
-    interactionmodel VARCHAR(32) NOT NULL DEFAULT '',
+    behaviour VARCHAR(32) NOT NULL DEFAULT '',
     questionid BIGINT(10) unsigned NOT NULL,
     maxmark NUMERIC(12,7) NOT NULL,
     minfraction NUMERIC(12,7) unsigned NOT NULL,
@@ -347,7 +348,7 @@ Convert existing question type code (3d)
 √       multichoice 0.5d
 √       match 1d
 
-More interaction models (2d)
+More behaviours (2d)
 √   Interactive model 2d
 
 Integrate new code into the quiz (3d)
@@ -385,12 +386,12 @@ Finish converting simple question types (6.5d)
 √       Import export 1d
 √       Use by interactive mode 1d
 
-Finish interaction models (2.5d)
+Finish behaviours (2.5d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9204)
 √   Opaque model 0.5d
 √   Each attempt builds on last (eachattemptonlast) model 1d
 √   New Adaptive mode without penalties (adaptivenopenalty) model. (0.5d)
-√   Minor refactoring of the different interaction models' process_action methods. 0d
+√   Minor refactoring of the different behaviours' process_action methods. 0d
 √   Fix manual grading of automatically graded question types.
 √   What happens when submit of a blank response is ignored - need verify failure state. 0.5d
 √   Issue with when the try-again button should be read-only. (Think teacher review of in-progress attempt.)

@@ -34,14 +34,14 @@ require_once(dirname(__FILE__) . '/bank.php');
 require_once(dirname(__FILE__) . '/../type/questiontype.php');
 require_once(dirname(__FILE__) . '/../type/questionbase.php');
 require_once(dirname(__FILE__) . '/../type/rendererbase.php');
-require_once(dirname(__FILE__) . '/../interaction/modelbase.php');
-require_once(dirname(__FILE__) . '/../interaction/rendererbase.php');
+require_once(dirname(__FILE__) . '/../behaviour/behaviourbase.php');
+require_once(dirname(__FILE__) . '/../behaviour/rendererbase.php');
 
 
 /**
  * This static class provides access to the other question engine classes.
  *
- * It provides functions for managing question interaction models), and for
+ * It provides functions for managing question behaviours), and for
  * creating, loading, saving and deleting {@link question_usage_by_activity}s,
  * which is the main class that is used by other code that wants to use questions.
  *
@@ -49,8 +49,8 @@ require_once(dirname(__FILE__) . '/../interaction/rendererbase.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class question_engine {
-    /** @var array interaction model name => 1. Records which interaction models have been loaded. */
-    private static $loadedmodels = array();
+    /** @var array behaviour name => 1. Records which behaviours have been loaded. */
+    private static $loadedbehaviours = array();
 
     /**
      * Create a new {@link question_usage_by_activity}. The usage is
@@ -136,82 +136,82 @@ abstract class question_engine {
     }
 
     /**
-     * Create an archetypal interaction model for a particular question attempt.
-     * Used by {@link question_definition::make_interaction_model()}.
+     * Create an archetypal behaviour for a particular question attempt.
+     * Used by {@link question_definition::make_behaviour()}.
      *
-     * @param string $preferredmodel the type of model required.
+     * @param string $preferredbehaviour the type of model required.
      * @param question_attempt $qa the question attempt the model will process.
-     * @return question_interaction_model an instance of appropriate interaction model class.
+     * @return question_behaviour an instance of appropriate behaviour class.
      */
-    public static function make_archetypal_interaction_model($preferredmodel, question_attempt $qa) {
-        question_engine::load_interaction_model_class($preferredmodel);
-        $class = 'qim_' . $preferredmodel;
+    public static function make_archetypal_behaviour($preferredbehaviour, question_attempt $qa) {
+        question_engine::load_behaviour_class($preferredbehaviour);
+        $class = 'qbehaviour_' . $preferredbehaviour;
         if (!constant($class . '::IS_ARCHETYPAL')) {
-            throw new Exception('The requested interaction model is not actually an archetypal one.');
+            throw new Exception('The requested behaviour is not actually an archetypal one.');
         }
-        return new $class($qa, $preferredmodel);
+        return new $class($qa, $preferredbehaviour);
     }
 
     /**
-     * Create an interaction model for a particular type. If that type cannot be
-     * found, return an instance of qim_missing.
+     * Create an behaviour for a particular type. If that type cannot be
+     * found, return an instance of qbehaviour_missing.
      *
-     * Normally you should use {@link make_archetypal_interaction_model()}, or
+     * Normally you should use {@link make_archetypal_behaviour()}, or
      * call the constructor of a particular model class directly. This method
      * is only intended for use by {@link question_attempt::load_from_records()}.
      *
-     * @param string $model the type of model to create.
+     * @param string $behaviour the type of model to create.
      * @param question_attempt $qa the question attempt the model will process.
-     * @param string $preferredmodel the preferred interaction model for the containing usage.
-     * @return question_interaction_model an instance of appropriate interaction model class.
+     * @param string $preferredbehaviour the preferred behaviour for the containing usage.
+     * @return question_behaviour an instance of appropriate behaviour class.
      */
-    public static function make_interaction_model($model, question_attempt $qa, $preferredmodel) {
+    public static function make_behaviour($behaviour, question_attempt $qa, $preferredbehaviour) {
         try {
-            question_engine::load_interaction_model_class($model);
+            question_engine::load_behaviour_class($behaviour);
         } catch (Exception $e) {
-            question_engine::load_interaction_model_class('missing');
-            return new qim_missing($qa, $preferredmodel);
+            question_engine::load_behaviour_class('missing');
+            return new qbehaviour_missing($qa, $preferredbehaviour);
         }
-        $class = 'qim_' . $model;
-        return new $class($qa, $preferredmodel);
+        $class = 'qbehaviour_' . $behaviour;
+        return new $class($qa, $preferredbehaviour);
     }
 
     /**
-     * Load the interaction model class(es) belonging to a particular model. That is,
-     * include_once('/question/interaction/' . $model . '/model.php'), with a bit
+     * Load the behaviour class(es) belonging to a particular model. That is,
+     * include_once('/question/behaviour/' . $behaviour . '/behaviour.php'), with a bit
      * of checking.
      * @param string $qtypename the question type name. For example 'multichoice' or 'shortanswer'.
      */
-    public static function load_interaction_model_class($model) {
+    public static function load_behaviour_class($behaviour) {
         global $CFG;
-        if (isset(self::$loadedmodels[$model])) {
+        if (isset(self::$loadedbehaviours[$behaviour])) {
             return;
         }
-        $file = $CFG->dirroot . '/question/interaction/' . $model . '/model.php';
+        $file = $CFG->dirroot . '/question/behaviour/' . $behaviour . '/behaviour.php';
         if (!is_readable($file)) {
-            throw new Exception('Unknown question interaction model ' . $model);
+            throw new Exception('Unknown question behaviour ' . $behaviour);
         }
         include_once($file);
-        self::$loadedmodels[$model] = 1;
+        self::$loadedbehaviours[$behaviour] = 1;
     }
 
     /**
      * Return an array where the keys are the internal names of the archetypal
-     * interaction models, and the values are a human-readable name. An
-     * archetypal interaction model is one that is suitable to pass the name of to
-     * {@link question_usage_by_activity::set_preferred_interaction_model()}.
+     * behaviours, and the values are a human-readable name. An
+     * archetypal behaviour is one that is suitable to pass the name of to
+     * {@link question_usage_by_activity::set_preferred_behaviour()}.
      *
      * @return array model name => lang string for this model name.
      */
-    public static function get_archetypal_interaction_models() {
+    public static function get_archetypal_behaviours() {
         $archetypes = array();
-        $models = get_list_of_plugins('question/interaction');
-        foreach ($models as $path) {
-            $model = basename($path);
-            self::load_interaction_model_class($model);
-            $plugin = 'qim_' . $model;
+        $behaviours = get_list_of_plugins('question/behaviour');
+        foreach ($behaviours as $path) {
+            $behaviour = basename($path);
+            self::load_behaviour_class($behaviour);
+            $plugin = 'qbehaviour_' . $behaviour;
             if (constant($plugin . '::IS_ARCHETYPAL')) {
-                $archetypes[$model] = self::get_interaction_model_name($model);
+                $archetypes[$behaviour] = self::get_behaviour_name($behaviour);
             }
         }
         asort($archetypes, SORT_LOCALE_STRING);
@@ -219,12 +219,12 @@ abstract class question_engine {
     }
 
     /**
-     * Get the translated name of an interaction model, for display in the UI.
-     * @param string $model the internal name of the model.
+     * Get the translated name of an behaviour, for display in the UI.
+     * @param string $behaviour the internal name of the model.
      * @return string name from the current language pack.
      */
-    public static function get_interaction_model_name($model) {
-        return get_string($model, 'qim_' . $model);
+    public static function get_behaviour_name($behaviour) {
+        return get_string($behaviour, 'qbehaviour_' . $behaviour);
     }
 
     /**
@@ -247,7 +247,7 @@ abstract class question_engine {
  *
  * Normally, what will happen is that the calling code will set up some display
  * options to indicate what sort of question display it wants, and then before the
- * question is rendered, the interaction model will be given a chance to modify the
+ * question is rendered, the behaviour will be given a chance to modify the
  * display options, so that, for example, A question that is finished will only
  * be shown read-only, and a question that has not been submitted will not have
  * any sort of feedback displayed.
@@ -548,10 +548,10 @@ class question_usage_by_activity {
     protected $id = null;
 
     /**
-     * @var string name of an archetypal interaction model, that should be used
+     * @var string name of an archetypal behaviour, that should be used
      * by questions in this usage if possible.
      */
-    protected $preferredmodel = null;
+    protected $preferredbehaviour = null;
 
     /** @var object the context this usage belongs to. */
     protected $context;
@@ -581,17 +581,17 @@ class question_usage_by_activity {
     }
 
     /**
-     * @param string $model the name of an archetypal interaction model, that should
+     * @param string $behaviour the name of an archetypal behaviour, that should
      * be used by questions in this usage if possible.
      */
-    public function set_preferred_interaction_model($model) {
-        $this->preferredmodel = $model;
+    public function set_preferred_behaviour($behaviour) {
+        $this->preferredbehaviour = $behaviour;
         $this->observer->notify_modified();
     }
 
-    /** @return string the name of the preferred interaction model. */
-    public function get_preferred_interaction_model() {
-        return $this->preferredmodel;
+    /** @return string the name of the preferred behaviour. */
+    public function get_preferred_behaviour() {
+        return $this->preferredbehaviour;
     }
 
     /** @return stdClass the context this usage belongs to. */
@@ -803,7 +803,7 @@ class question_usage_by_activity {
 
     /**
      * Get the {@link core_question_renderer}, in collaboration with appropriate
-     * {@link qim_renderer} and {@link qtype_renderer} subclasses, to generate the
+     * {@link qbehaviour_renderer} and {@link qtype_renderer} subclasses, to generate the
      * HTML to display this question.
      * @param integer $qnumber the number used to identify this question within this usage.
      * @param question_display_options $options controls how the question is rendered.
@@ -842,7 +842,7 @@ class question_usage_by_activity {
      */
     public function start_question($qnumber) {
         $qa = $this->get_question_attempt($qnumber);
-        $qa->start($this->preferredmodel);
+        $qa->start($this->preferredbehaviour);
         $this->observer->notify_attempt_modified($qa);
     }
 
@@ -851,7 +851,7 @@ class question_usage_by_activity {
      */
     public function start_all_questions() {
         foreach ($this->questionattempts as $qa) {
-            $qa->start($this->preferredmodel);
+            $qa->start($this->preferredbehaviour);
             $this->observer->notify_attempt_modified($qa);
         }
     }
@@ -969,7 +969,7 @@ class question_usage_by_activity {
      * Finish the active phase of an attempt at a question.
      *
      * This is an external act of finishing the attempt. Think, for example, of
-     * the 'Submit all and finish' button in the quiz. Some interaction models,
+     * the 'Submit all and finish' button in the quiz. Some behaviours,
      * (for example, immediatefeedback) give a way of finishing the active phase
      * of a question attempt as part of a {@link process_action()} call.
      *
@@ -1061,7 +1061,7 @@ class question_usage_by_activity {
         $quba = new question_usage_by_activity($record->owningplugin,
             get_context_instance_by_id($record->contextid));
         $quba->set_id_from_database($record->qubaid);
-        $quba->set_preferred_interaction_model($record->preferredmodel);
+        $quba->set_preferred_behaviour($record->preferredbehaviour);
 
         $quba->observer = new question_engine_unit_of_work($quba);
 
@@ -1069,7 +1069,7 @@ class question_usage_by_activity {
             $quba->questionattempts[$record->numberinusage] =
                     question_attempt::load_from_records($records,
                     $record->questionattemptid, $quba->observer,
-                    $quba->get_preferred_interaction_model());
+                    $quba->get_preferred_behaviour());
             $record = current($records);
         }
 
@@ -1186,10 +1186,10 @@ class question_attempt {
     protected $numberinusage = null;
 
     /**
-     * @var question_interaction_model the interaction model controlling this attempt.
+     * @var question_behaviour the behaviour controlling this attempt.
      * null until {@link start()} is called.
      */
-    protected $interactionmodel = null;
+    protected $behaviour = null;
 
     /** @var question_definition the question this is an attempt at. */
     protected $question;
@@ -1317,9 +1317,9 @@ class question_attempt {
         $this->usageid = $usageid;
     }
 
-    /** @return string the name of the interaction model that is controlling this attempt. */
-    public function get_interaction_model_name() {
-        return $this->interactionmodel->get_name();
+    /** @return string the name of the behaviour that is controlling this attempt. */
+    public function get_behaviour_name() {
+        return $this->behaviour->get_name();
     }
 
     /**
@@ -1351,7 +1351,7 @@ class question_attempt {
      * name) to use for a question_type variable belonging to this question_attempt.
      *
      * See the comment on {@link question_attempt_step} for an explanation of
-     * question type and interaction model variables.
+     * question type and behaviour variables.
      *
      * @param $varname The short form of the variable name.
      * @return string  The field name to use.
@@ -1365,7 +1365,7 @@ class question_attempt {
      * name) to use for a question_type variable belonging to this question_attempt.
      *
      * See the comment on {@link question_attempt_step} for an explanation of
-     * question type and interaction model variables.
+     * question type and behaviour variables.
      *
      * @param $varname The short form of the variable name.
      * @return string  The field name to use.
@@ -1477,7 +1477,7 @@ class question_attempt {
     }
 
     /**
-     * Get the latest value of a particular interaction model variable. That is,
+     * Get the latest value of a particular behaviour variable. That is,
      * get the value from the latest step that has it set. Return null if it is
      * not set in any step.
      *
@@ -1486,10 +1486,10 @@ class question_attempt {
      *      (Optional, defaults to null.)
      * @return mixed string value, or $default if it has never been set.
      */
-    public function get_last_im_var($name, $default = null) {
+    public function get_last_behaviour_var($name, $default = null) {
         foreach ($this->get_reverse_step_iterator() as $step) {
-            if ($step->has_im_var($name)) {
-                return $step->get_im_var($name);
+            if ($step->has_behaviour_var($name)) {
+                return $step->get_behaviour_var($name);
             }
         }
         return $default;
@@ -1508,7 +1508,7 @@ class question_attempt {
      * @return string A brief textual description of the current state.
      */
     public function get_state_string() {
-        return $this->interactionmodel->get_renderer()->get_state_string($this);
+        return $this->behaviour->get_renderer()->get_state_string($this);
     }
 
     public function get_last_action_time() {
@@ -1575,12 +1575,12 @@ class question_attempt {
      * @return question_hint|null
      */
     public function get_applicable_hint() {
-        return $this->interactionmodel->get_applicable_hint();
+        return $this->behaviour->get_applicable_hint();
     }
 
     /**
      * Get the {@link core_question_renderer}, in collaboration with appropriate
-     * {@link qim_renderer} and {@link qtype_renderer} subclasses, to generate the
+     * {@link qbehaviour_renderer} and {@link qtype_renderer} subclasses, to generate the
      * HTML to display this question attempt in its current state.
      * @param question_display_options $options controls how the question is rendered.
      * @param string|null $number The question number to display.
@@ -1589,7 +1589,7 @@ class question_attempt {
     public function render($options, $number) {
         $qoutput = renderer_factory::get_renderer('core', 'question');
         $qtoutput = $this->question->get_renderer();
-        return $this->interactionmodel->render($options, $number, $qoutput, $qtoutput);
+        return $this->behaviour->render($options, $number, $qoutput, $qtoutput);
     }
 
     /**
@@ -1599,7 +1599,7 @@ class question_attempt {
      */
     public function render_head_html() {
         return $this->question->get_renderer()->head_code($this) .
-                $this->interactionmodel->get_renderer()->head_code($this);
+                $this->behaviour->get_renderer()->head_code($this);
     }
 
     /**
@@ -1618,34 +1618,34 @@ class question_attempt {
      * You should not call this method directly. Call
      * {@link question_usage_by_activity::start_question()} instead.
      *
-     * @param string|question_interaction_model $preferredmodel the name of the
-     *      desired archetypal interaction model, or an actual model instance.
+     * @param string|question_behaviour $preferredbehaviour the name of the
+     *      desired archetypal behaviour, or an actual model instance.
      * @param $submitteddata optional, used when re-starting to keep the same initial state.
      * @param $timestamp optional, the timstamp to record for this action. Defaults to now.
      * @param $userid optional, the user to attribute this action to. Defaults to the current user.
      */
-    public function start($preferredmodel, $submitteddata = array(), $timestamp = null, $userid = null) {
-        // Initialise the interaction model.
-        if (is_string($preferredmodel)) {
-            $this->interactionmodel =
-                    $this->question->make_interaction_model($this, $preferredmodel);
+    public function start($preferredbehaviour, $submitteddata = array(), $timestamp = null, $userid = null) {
+        // Initialise the behaviour.
+        if (is_string($preferredbehaviour)) {
+            $this->behaviour =
+                    $this->question->make_behaviour($this, $preferredbehaviour);
         } else {
-            $class = get_class($preferredmodel);
-            $this->interactionmodel = new $class($this, $preferredmodel);
+            $class = get_class($preferredbehaviour);
+            $this->behaviour = new $class($this, $preferredbehaviour);
         }
 
         // Record the minimum fraction.
-        $this->minfraction = $this->interactionmodel->get_min_fraction();
+        $this->minfraction = $this->behaviour->get_min_fraction();
 
         // Initialise the first step.
         $firststep = new question_attempt_step($submitteddata, $timestamp, $userid);
         $firststep->set_state(question_state::$todo);
-        $this->interactionmodel->init_first_step($firststep);
+        $this->behaviour->init_first_step($firststep);
         $this->add_step($firststep);
 
         // Record questionline and correct answer.
-        $this->questionsummary = $this->interactionmodel->get_question_summary();
-        $this->rightanswer = $this->interactionmodel->get_right_answer_summary();
+        $this->questionsummary = $this->behaviour->get_question_summary();
+        $this->rightanswer = $this->behaviour->get_right_answer_summary();
     }
 
     /**
@@ -1659,7 +1659,7 @@ class question_attempt {
      *      defines the starting point.
      */
     public function start_based_on(question_attempt $oldqa) {
-        $this->start($oldqa->interactionmodel, $oldqa->get_resume_data());
+        $this->start($oldqa->behaviour, $oldqa->get_resume_data());
     }
 
     /**
@@ -1668,7 +1668,7 @@ class question_attempt {
      * @return array name => value pairs.
      */
     protected function get_resume_data() {
-        return $this->interactionmodel->get_resume_data();
+        return $this->behaviour->get_resume_data();
     }
 
     /**
@@ -1740,9 +1740,9 @@ class question_attempt {
      */
     public function get_submitted_data($postdata = null) {
         $submitteddata = $this->get_expected_data(
-                $this->interactionmodel->get_expected_data(), $postdata, '-');
+                $this->behaviour->get_expected_data(), $postdata, '-');
 
-        $expected = $this->interactionmodel->get_expected_qt_data();
+        $expected = $this->behaviour->get_expected_qt_data();
         if ($expected === self::USE_RAW_DATA) {
             $submitteddata += $this->get_all_submitted_qt_vars($postdata);
         } else {
@@ -1758,7 +1758,7 @@ class question_attempt {
      */
     public function get_correct_response() {
         $response = $this->question->get_correct_response();
-        $imvars = $this->interactionmodel->get_correct_response();
+        $imvars = $this->behaviour->get_correct_response();
         foreach ($imvars as $name => $value) {
             $response['-' . $name] = $value;
         }
@@ -1805,7 +1805,7 @@ class question_attempt {
      */
     public function process_action($submitteddata, $timestamp = null, $userid = null) {
         $pendingstep = new question_attempt_pending_step($submitteddata, $timestamp, $userid);
-        if ($this->interactionmodel->process_action($pendingstep) == self::KEEP) {
+        if ($this->behaviour->process_action($pendingstep) == self::KEEP) {
             $this->add_step($pendingstep);
             if ($pendingstep->response_summary_changed()) {
                 $this->responsesummary = $pendingstep->get_new_response_summary();
@@ -1836,7 +1836,7 @@ class question_attempt {
         foreach ($oldqa->get_step_iterator() as $step) {
             if ($first) {
                 $first = false;
-                $this->start($oldqa->interactionmodel, $step->get_all_data(),
+                $this->start($oldqa->behaviour, $step->get_all_data(),
                         $step->get_timecreated(), $step->get_user_id());
             } else {
                 $this->process_action($step->get_submitted_data(),
@@ -1865,7 +1865,7 @@ class question_attempt {
     /** @return boolean Whether this question attempt has had a manual comment added. */
     public function has_manual_comment() {
         foreach ($this->steps as $step) {
-            if ($step->has_im_var('comment')) {
+            if ($step->has_behaviour_var('comment')) {
                 return true;
             }
         }
@@ -1878,8 +1878,8 @@ class question_attempt {
      */
     public function get_manual_comment() {
         foreach ($this->get_reverse_step_iterator() as $step) {
-            if ($step->has_im_var('comment')) {
-                return $step->get_im_var('comment');
+            if ($step->has_behaviour_var('comment')) {
+                return $step->get_behaviour_var('comment');
             }
         }
         return null;
@@ -1905,7 +1905,7 @@ class question_attempt {
      * @return question_attempt The newly constructed question_attempt_step.
      */
     public static function load_from_records(&$records, $questionattemptid,
-            question_usage_observer $observer, $preferredmodel) {
+            question_usage_observer $observer, $preferredbehaviour) {
         $record = current($records);
         while ($record->questionattemptid != $questionattemptid) {
             $record = next($records);
@@ -1926,8 +1926,8 @@ class question_attempt {
         $qa->responsesummary = $record->responsesummary;
         $qa->timemodified = $record->timemodified;
 
-        $qa->interactionmodel = question_engine::make_interaction_model(
-                $record->interactionmodel, $qa, $preferredmodel);
+        $qa->behaviour = question_engine::make_behaviour(
+                $record->behaviour, $qa, $preferredbehaviour);
 
         $i = 0;
         while ($record && $record->questionattemptid == $questionattemptid && !is_null($record->attemptstepid)) {
@@ -2040,7 +2040,7 @@ class question_attempt_reverse_step_iterator extends question_attempt_step_itera
  * certain conventions about the to divide the variables into four = two times two
  * categories.
  *
- * Variables may either belong to the interaction model, in which case the
+ * Variables may either belong to the behaviour, in which case the
  * name starts with a '-', or they may belong to the question type in which case
  * they name does not start with a '-'.
  *
@@ -2051,12 +2051,12 @@ class question_attempt_reverse_step_iterator extends question_attempt_step_itera
  * That is, each name will start with one of '', '_'. '-' or '-_'. The remainder
  * of the name should match the regex [a-z][a-z0-9]*.
  *
- * These variables can be accessed with {@link get_im_var()} and {@link get_qt_var()},
- * - to be clear, ->get_im_var('x') gets the variable with name '-x' -
- * and values whose names start with '_' can be set using {@link set_im_var()}
- * and {@link set_qt_var()}. There are some other methods like {@link has_im_var()}
- * to check wether a varaible with a particular name is set, and {@link get_im_data()}
- * to get all the interaction model data as an associative array.
+ * These variables can be accessed with {@link get_behaviour_var()} and {@link get_qt_var()},
+ * - to be clear, ->get_behaviour_var('x') gets the variable with name '-x' -
+ * and values whose names start with '_' can be set using {@link set_behaviour_var()}
+ * and {@link set_qt_var()}. There are some other methods like {@link has_behaviour_var()}
+ * to check wether a varaible with a particular name is set, and {@link get_behaviour_data()}
+ * to get all the behaviour data as an associative array.
  *
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -2110,7 +2110,7 @@ class question_attempt_step {
     }
 
     /**
-     * Set the state. Normally only called by interaction models.
+     * Set the state. Normally only called by behaviours.
      * @param question_state $state one of the {@link question_state} constants.
      */
     public function set_state($state) {
@@ -2126,7 +2126,7 @@ class question_attempt_step {
     }
 
     /**
-     * Set the fraction. Normally only called by interaction models.
+     * Set the fraction. Normally only called by behaviours.
      * @param null|number $fraction the fraction to set.
      */
     public function set_fraction($fraction) {
@@ -2189,30 +2189,30 @@ class question_attempt_step {
     }
 
     /**
-     * @param string $name the name of an interaction model variable to look for in the submitted data.
+     * @param string $name the name of an behaviour variable to look for in the submitted data.
      * @return boolean whether a variable with this name exists in the question type data.
      */
-    public function has_im_var($name) {
+    public function has_behaviour_var($name) {
         return array_key_exists('-' . $name, $this->data);
     }
 
     /**
-     * @param string $name the name of an interaction model variable to look for in the submitted data.
+     * @param string $name the name of an behaviour variable to look for in the submitted data.
      * @return string the requested variable, or null if the variable is not set.
      */
-    public function get_im_var($name) {
-        if (!$this->has_im_var($name)) {
+    public function get_behaviour_var($name) {
+        if (!$this->has_behaviour_var($name)) {
             return null;
         }
         return $this->data['-' . $name];
     }
 
     /**
-     * Set a cached interaction model variable.
+     * Set a cached behaviour variable.
      * @param string $name the name of the variable to set. Must match _[a-z][a-z0-9]*.
      * @param string $value the value to set.
      */
-    public function set_im_var($name, $value) {
+    public function set_behaviour_var($name, $value) {
         if ($name[0] != '_') {
             throw new Exception('Cannot set question type data ' . $name . ' on an attempt step. You can only set variables with names begining with _.');
         }
@@ -2220,10 +2220,10 @@ class question_attempt_step {
     }
 
     /**
-     * Get all the interaction model variables.
+     * Get all the behaviour variables.
      * @param array name => value pairs.
      */
-    public function get_im_data() {
+    public function get_behaviour_data() {
         $result = array();
         foreach ($this->data as $name => $value) {
             if ($name[0] == '-') {
@@ -2234,7 +2234,7 @@ class question_attempt_step {
     }
 
     /**
-     * Get all the submitted data, but not the cached data. Interaction model
+     * Get all the submitted data, but not the cached data. behaviour
      * variables have the ! at the start of their name. This is only really
      * intended for use by {@link question_attempt::regrade()}, it should not
      * be considered part of the public API.
@@ -2252,7 +2252,7 @@ class question_attempt_step {
     }
 
     /**
-     * Get all the data. Interaction model variables have the ! at the start of
+     * Get all the data. behaviour variables have the ! at the start of
      * their name. This is only intended for internal use, for example by
      * {@link question_engine_data_mapper::insert_question_attempt_step()},
      * however, it can ocasionally be useful in test code. It should not be
@@ -2345,7 +2345,7 @@ class question_attempt_step_read_only extends question_attempt_step {
     public function set_qt_var($name, $value) {
         throw new Exception('Cannot modify a question_attempt_step_read_only.');
     }
-    public function set_im_var($name, $value) {
+    public function set_behaviour_var($name, $value) {
         throw new Exception('Cannot modify a question_attempt_step_read_only.');
     }
 }
@@ -2378,7 +2378,7 @@ class question_null_step {
  * Interface for things that want to be notified of signficant changes to a
  * {@link question_usage_by_activity}.
  *
- * A question interaction model controls the flow of actions a student can
+ * A question behaviour controls the flow of actions a student can
  * take as they work through a question, and later, as a teacher manually grades it.
  *
  * @copyright 2009 The Open University

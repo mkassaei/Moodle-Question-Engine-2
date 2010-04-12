@@ -28,7 +28,7 @@
 
 /**
  * This renderer controls the overall output of questions. It works with a
- * {@link qim_renderer} and a {@link qtype_renderer} to output the
+ * {@link qbehaviour_renderer} and a {@link qtype_renderer} to output the
  * type-specific bits. The main entry point is the {@link question()} method.
  *
  * @copyright © 2009 The Open University
@@ -43,7 +43,7 @@ class core_question_renderer extends moodle_renderer_base {
      * call this method with appropriate arguments.
      *
      * @param question_attempt $qa the question attempt to display.
-     * @param qim_renderer $qimoutput the renderer to output the interaction model
+     * @param qbehaviour_renderer $behaviouroutput the renderer to output the behaviour
      *      specific parts.
      * @param qtype_renderer $qtoutput the renderer to output the question type
      *      specific parts.
@@ -52,29 +52,29 @@ class core_question_renderer extends moodle_renderer_base {
      *      value that gets displayed as Information. Null means no number is displayed.
      * @return string HTML representation of the question.
      */
-    public function question(question_attempt $qa, qim_renderer $qimoutput,
+    public function question(question_attempt $qa, qbehaviour_renderer $behaviouroutput,
             qtype_renderer $qtoutput, question_display_options $options, $number) {
 
         $output = '';
         $output .= $this->output_start_tag('div', array(
             'id' => 'q' . $qa->get_number_in_usage(),
             'class' => 'que ' . $qa->get_question()->qtype->name() . ' ' .
-                    $qa->get_interaction_model_name(),
+                    $qa->get_behaviour_name(),
         ));
 
         $output .= $this->output_tag('div', array('class' => 'info'),
-                $this->info($qa, $qimoutput, $qtoutput, $options, $number));
+                $this->info($qa, $behaviouroutput, $qtoutput, $options, $number));
 
         $output .= $this->output_start_tag('div', array('class' => 'content'));
 
         $output .= $this->output_tag('div', array('class' => 'formulation'),
-                $this->formulation($qa, $qimoutput, $qtoutput, $options));
+                $this->formulation($qa, $behaviouroutput, $qtoutput, $options));
         $output .= $this->output_nonempty_tag('div', array('class' => 'outcome'),
-                $this->outcome($qa, $qimoutput, $qtoutput, $options));
+                $this->outcome($qa, $behaviouroutput, $qtoutput, $options));
         $output .= $this->output_nonempty_tag('div', array('class' => 'comment'),
-                $qimoutput->manual_comment($qa, $options));
+                $behaviouroutput->manual_comment($qa, $options));
         $output .= $this->output_nonempty_tag('div', array('class' => 'history'),
-                $this->response_history($qa, $qimoutput, $qtoutput, $options));
+                $this->response_history($qa, $behaviouroutput, $qtoutput, $options));
 
         $output .= $this->output_end_tag('div');
         $output .= $this->output_end_tag('div');
@@ -85,7 +85,7 @@ class core_question_renderer extends moodle_renderer_base {
      * Generate the information bit of the question display that contains the
      * metadata like the question number, current state, and mark.
      * @param question_attempt $qa the question attempt to display.
-     * @param qim_renderer $qimoutput the renderer to output the interaction model
+     * @param qbehaviour_renderer $behaviouroutput the renderer to output the behaviour
      *      specific parts.
      * @param qtype_renderer $qtoutput the renderer to output the question type
      *      specific parts.
@@ -94,11 +94,11 @@ class core_question_renderer extends moodle_renderer_base {
      *      value that gets displayed as Information. Null means no number is displayed.
      * @return HTML fragment.
      */
-    protected function info(question_attempt $qa, qim_renderer $qimoutput,
+    protected function info(question_attempt $qa, qbehaviour_renderer $behaviouroutput,
             qtype_renderer $qtoutput, question_display_options $options, $number) {
         $output = '';
         $output .= $this->number($number);
-        $output .= $this->status($qa, $qimoutput, $options);
+        $output .= $this->status($qa, $behaviouroutput, $options);
         $output .= $this->mark_summary($qa, $options);
         $output .= $this->question_flag($qa, $options->flags);
         return $output;
@@ -128,15 +128,15 @@ class core_question_renderer extends moodle_renderer_base {
      * Generate the display of the status line that gives the current state of
      * the question.
      * @param question_attempt $qa the question attempt to display.
-     * @param qim_renderer $qimoutput the renderer to output the interaction model
+     * @param qbehaviour_renderer $behaviouroutput the renderer to output the behaviour
      *      specific parts.
      * @param question_display_options $options controls what should and should not be displayed.
      * @return HTML fragment.
      */
-    protected function status(question_attempt $qa, qim_renderer $qimoutput, question_display_options $options) {
+    protected function status(question_attempt $qa, qbehaviour_renderer $behaviouroutput, question_display_options $options) {
         if ($options->correctness) {
             return $this->output_tag('div', array('class' => 'state'),
-                    $qimoutput->get_state_string($qa));
+                    $behaviouroutput->get_state_string($qa));
         } else {
             return '';
         }
@@ -232,14 +232,14 @@ class core_question_renderer extends moodle_renderer_base {
      * example ticks and crosses, in this area.
      *
      * @param question_attempt $qa the question attempt to display.
-     * @param qim_renderer $qimoutput the renderer to output the interaction model
+     * @param qbehaviour_renderer $behaviouroutput the renderer to output the behaviour
      *      specific parts.
      * @param qtype_renderer $qtoutput the renderer to output the question type
      *      specific parts.
      * @param question_display_options $options controls what should and should not be displayed.
      * @return HTML fragment.
      */
-    protected function formulation(question_attempt $qa, qim_renderer $qimoutput,
+    protected function formulation(question_attempt $qa, qbehaviour_renderer $behaviouroutput,
             qtype_renderer $qtoutput, question_display_options $options) {
         $output = '';
         $output .= $this->output_empty_tag('input', array(
@@ -251,7 +251,7 @@ class core_question_renderer extends moodle_renderer_base {
             $output .= $qtoutput->clear_wrong($qa);
         }
         $output .= $this->output_nonempty_tag('div', array('class' => 'im-controls'),
-                $qimoutput->controls($qa, $options));
+                $behaviouroutput->controls($qa, $options));
         return $output;
     }
 
@@ -260,20 +260,20 @@ class core_question_renderer extends moodle_renderer_base {
      * area that contains the various forms of feedback.
      *
      * @param question_attempt $qa the question attempt to display.
-     * @param qim_renderer $qimoutput the renderer to output the interaction model
+     * @param qbehaviour_renderer $behaviouroutput the renderer to output the behaviour
      *      specific parts.
      * @param qtype_renderer $qtoutput the renderer to output the question type
      *      specific parts.
      * @param question_display_options $options controls what should and should not be displayed.
      * @return HTML fragment.
      */
-    protected function outcome(question_attempt $qa, qim_renderer $qimoutput,
+    protected function outcome(question_attempt $qa, qbehaviour_renderer $behaviouroutput,
             qtype_renderer $qtoutput, question_display_options $options) {
         $output = '';
         $output .= $this->output_nonempty_tag('div', array('class' => 'feedback'),
                 $qtoutput->feedback($qa, $options));
         $output .= $this->output_nonempty_tag('div', array('class' => 'im-feedback'),
-                $qimoutput->feedback($qa, $options));
+                $behaviouroutput->feedback($qa, $options));
         return $output;
     }
 
@@ -282,14 +282,14 @@ class core_question_renderer extends moodle_renderer_base {
      * is the table showing all the steps the question has been through.
      *
      * @param question_attempt $qa the question attempt to display.
-     * @param qim_renderer $qimoutput the renderer to output the interaction model
+     * @param qbehaviour_renderer $behaviouroutput the renderer to output the behaviour
      *      specific parts.
      * @param qtype_renderer $qtoutput the renderer to output the question type
      *      specific parts.
      * @param question_display_options $options controls what should and should not be displayed.
      * @return HTML fragment.
      */
-    protected function response_history(question_attempt $qa, qim_renderer $qimoutput,
+    protected function response_history(question_attempt $qa, qbehaviour_renderer $behaviouroutput,
             qtype_renderer $qtoutput, question_display_options $options) {
         $output = '';
         // TODO

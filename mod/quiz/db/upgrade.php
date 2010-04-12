@@ -402,6 +402,60 @@ function xmldb_quiz_upgrade($oldversion=0) {
         upgrade_mod_savepoint($result, 2008000112, 'quiz');
     }
 
+    if ($result && $oldversion < 2008000113) {
+
+        // Rename field preferredmodel on table question_usages to preferredbehaviour.
+        $table = new XMLDBTable('question_usages');
+        $field = new XMLDBField('preferredmodel');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null, null, null, 'owningplugin');
+
+        // Launch rename field preferredbehaviour
+        $result = $result && rename_field($table, $field, 'preferredbehaviour');
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000113, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000114) {
+
+        // Rename field interactionmodel on table question_attempts to behaviour.
+        $table = new XMLDBTable('question_attempts_new');
+        $field = new XMLDBField('interactionmodel');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null, null, null, 'owningplugin');
+
+        // Launch rename field preferredbehaviour
+        $result = $result && rename_field($table, $field, 'behaviour');
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000114, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000115) {
+
+        // Rename field preferredmodel on table quiz to preferredbehaviour
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('preferredmodel');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null, null, null, 'owningplugin');
+
+        // Launch rename field preferredbehaviour
+        $result = $result && rename_field($table, $field, 'preferredbehaviour');
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000115, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000116) {
+
+        // Rename the corresponding config variable.
+        set_config('quiz_preferredbehaviour', $CFG->quiz_preferredmodel);
+        set_config('quiz_fix_preferredbehaviour', $CFG->quiz_fix_preferredmodel);
+        unset_config('quiz_preferredmodel');
+        unset_config('quiz_fix_preferredmodel');
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000116, 'quiz');
+    }
+
     commit_sql();
 
     return $result;

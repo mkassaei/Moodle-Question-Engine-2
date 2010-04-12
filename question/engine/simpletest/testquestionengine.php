@@ -38,17 +38,17 @@ class question_engine_test extends UnitTestCase {
 
     }
 
-    public function test_load_interaction_model_class() {
+    public function test_load_behaviour_class() {
         // Exercise SUT
-        question_engine::load_interaction_model_class('deferredfeedback');
+        question_engine::load_behaviour_class('deferredfeedback');
         // Verify
-        $this->assertTrue(class_exists('qim_deferredfeedback'));
+        $this->assertTrue(class_exists('qbehaviour_deferredfeedback'));
     }
 
-    public function test_load_interaction_model_class_missing() {
+    public function test_load_behaviour_class_missing() {
         // Set expectation.
         $this->expectException();
         // Exercise SUT
-        question_engine::load_interaction_model_class('nonexistantinteractionmodel');
+        question_engine::load_behaviour_class('nonexistantbehaviour');
     }
 }

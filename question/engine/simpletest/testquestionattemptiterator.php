@@ -36,7 +36,7 @@ class question_attempt_iterator_test extends UnitTestCase {
     public function setUp() {
         $this->quba = question_engine::make_questions_usage_by_activity('unit_test',
                 get_context_instance(CONTEXT_SYSTEM));
-        $this->quba->set_preferred_interaction_model('deferredfeedback');
+        $this->quba->set_preferred_behaviour('deferredfeedback');
 
         $qnumber = $this->quba->add_question(test_question_maker::make_a_description_question());
         $this->qas[$qnumber] = $this->quba->get_question_attempt($qnumber);

@@ -132,9 +132,9 @@ class renderer_factory {
         if (strpos($component, 'qtype_') === 0) {
             $pluginrenderer = $CFG->dirroot . '/question/type/' .
                     substr($component, 6) . '/renderer.php';
-        } else if (strpos($component, 'qim_') === 0) {
-            $pluginrenderer = $CFG->dirroot . '/question/interaction/' .
-                    substr($component, 4) . '/renderer.php';
+        } else if (strpos($component, 'qbehaviour_') === 0) {
+            $pluginrenderer = $CFG->dirroot . '/question/behaviour/' .
+                    substr($component, 11) . '/renderer.php';
         }
         if ($pluginrenderer && file_exists($pluginrenderer)) {
             include_once($pluginrenderer);

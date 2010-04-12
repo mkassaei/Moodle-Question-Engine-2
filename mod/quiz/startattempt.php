@@ -105,7 +105,7 @@ $accessmanager->do_password_check($quizobj->is_preview_user());
 quiz_delete_previews($quiz, $USER->id);
 
 $quba = question_engine::make_questions_usage_by_activity('mod_quiz', $quizobj->get_context());
-$quba->set_preferred_interaction_model($quiz->preferredmodel);
+$quba->set_preferred_behaviour($quiz->preferredbehaviour);
 
 // Create the new attempt and initialize the question sessions
 $attempt = quiz_create_attempt($quiz, $attemptnumber, $lastattempt, time(), $quizobj->is_preview_user());

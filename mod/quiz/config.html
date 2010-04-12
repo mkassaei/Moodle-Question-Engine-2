@@ -28,8 +28,8 @@
     if (!isset($form->questionsperpage)) {
         $form->questionsperpage = $CFG->quiz_questionsperpage;
     }
-    if (!isset($form->preferredmodel)) {
-        $form->preferredmodel = $CFG->quiz_preferredmodel;
+    if (!isset($form->preferredbehaviour)) {
+        $form->preferredbehaviour = $CFG->quiz_preferredbehaviour;
     }
     if (!isset($form->attemptonlast)) {
         $form->attemptonlast = $CFG->quiz_attemptonlast;
@@ -241,14 +241,14 @@
   <td align="right"><b><?php print_string("howquestionsbehave", "question") ?>:</b></td>
   <td>
     <?php
-        choose_from_menu(question_engine::get_archetypal_interaction_models(),
-                "preferredmodel", $form->preferredmodel, "");
+        choose_from_menu(question_engine::get_archetypal_behaviours(),
+                "preferredbehaviour", $form->preferredbehaviour, "");
         helpbutton("howquestionsbehave", get_string("howquestionsbehave","question"), "question");
     ?>
   </td>
   <td align="center">
-    <input type="hidden" name="fix_preferredmodel" value="0" />
-    <input type="checkbox" name="fix_preferredmodel" value="1" <?php echo $CFG->quiz_fix_preferredmodel ? 'checked="checked"' : ''; ?> />
+    <input type="hidden" name="fix_preferredbehaviour" value="0" />
+    <input type="checkbox" name="fix_preferredbehaviour" value="1" <?php echo $CFG->quiz_fix_preferredbehaviour ? 'checked="checked"' : ''; ?> />
   </td>
 </tr>
 

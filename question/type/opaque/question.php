@@ -39,9 +39,9 @@ class qtype_opaque_question extends question_definition {
     /** @var string the version number of this question to use. */
     public $remoteversion;
 
-    public function make_interaction_model(question_attempt $qa, $preferredmodel) {
-        question_engine::load_interaction_model_class('opaque');
-        return new qim_opaque($qa, $preferredmodel);
+    public function make_behaviour(question_attempt $qa, $preferredbehaviour) {
+        question_engine::load_behaviour_class('opaque');
+        return new qbehaviour_opaque($qa, $preferredbehaviour);
     }
 
     public function get_expected_data() {

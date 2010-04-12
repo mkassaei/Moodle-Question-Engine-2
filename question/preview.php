@@ -75,12 +75,12 @@ if ($previewid) {
     $question = $usedquestion;
 
 } else {
-    $model = optional_param('model', 'deferredfeedback', PARAM_FORMAT);
+    $behaviour = optional_param('behaviour', 'deferredfeedback', PARAM_FORMAT);
     $maxmark = optional_param('maxmark', $question->defaultmark, PARAM_NUMBER);
 
     $quba = question_engine::make_questions_usage_by_activity('core_question_preview',
             get_context_instance_by_id($category->contextid));
-    $quba->set_preferred_interaction_model($model);
+    $quba->set_preferred_behaviour($behaviour);
     $qnumber = $quba->add_question($question, $maxmark);
     $quba->start_all_questions();
     question_engine::save_questions_usage_by_activity($quba);
@@ -94,20 +94,20 @@ $actionurl = $CFG->wwwroot . '/question/preview.php?id=' . $question->id . '&amp
 // Create the settings form, and initialise the fields.
 $optionsform = new preview_options_form($actionurl);
 $currentoptions = clone($displayoptions);
-$currentoptions->model = $quba->get_preferred_interaction_model();
+$currentoptions->behaviour = $quba->get_preferred_behaviour();
 $currentoptions->maxmark = $quba->get_question_max_mark($qnumber);
 $optionsform->set_data($currentoptions);
 
 // Process change of settings, if that was requested.
 if ($newoptions = $optionsform->get_submitted_data()) {
-    restart_preview($previewid, $question->id, $newoptions->model,
+    restart_preview($previewid, $question->id, $newoptions->behaviour,
             $newoptions->maxmark, $newoptions);
 }
 
 // Process any actions from the buttons at the bottom of the form.
 if (data_submitted() && confirm_sesskey()) {
     if (optional_param('restart', false, PARAM_BOOL)) {
-        restart_preview($previewid, $question->id, $quba->get_preferred_interaction_model(),
+        restart_preview($previewid, $question->id, $quba->get_preferred_behaviour(),
                 $quba->get_question_max_mark($qnumber), $displayoptions);
 
     } else if (optional_param('fill', null, PARAM_BOOL)) {
@@ -159,9 +159,9 @@ echo '<input type="hidden" name="qnumbers" value="' . $qnumber . '" />', "\n";
 // Output the question.
 echo $quba->render_question($qnumber, $displayoptions, $displaynumber);
 
-echo '<p class="notifytiny">' . get_string('interactionmodelbeingused', 'question',
-        question_engine::get_interaction_model_name($quba->get_question_attempt($qnumber)->
-        get_interaction_model_name())) . '</p>';
+echo '<p class="notifytiny">' . get_string('behaviourbeingused', 'question',
+        question_engine::get_behaviour_name($quba->get_question_attempt($qnumber)->
+        get_behaviour_name())) . '</p>';
 // Finish the question form.
 echo '<div id="previewcontrols" class="controls">';
 echo '<input type="submit" name="restart"' . $restartdisabled .

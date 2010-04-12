@@ -133,11 +133,11 @@ class mod_quiz_mod_form extends moodleform_mod {
         $mform->setAdvanced('shuffleanswers', $CFG->quiz_fix_shuffleanswers);
         $mform->setDefault('shuffleanswers', $CFG->quiz_shuffleanswers);
 
-    /// How questions behave (question interaction model).
-        $mform->addElement('select', 'preferredmodel', get_string('howquestionsbehave', 'question'), question_engine::get_archetypal_interaction_models());
-        $mform->setHelpButton('preferredmodel', array('howquestionsbehave', get_string('howquestionsbehave','question'), 'question'));
-        $mform->setAdvanced('preferredmodel', $CFG->quiz_fix_preferredmodel);
-        $mform->setDefault('preferredmodel', $CFG->quiz_preferredmodel);
+    /// How questions behave (question behaviour).
+        $mform->addElement('select', 'preferredbehaviour', get_string('howquestionsbehave', 'question'), question_engine::get_archetypal_behaviours());
+        $mform->setHelpButton('preferredbehaviour', array('howquestionsbehave', get_string('howquestionsbehave','question'), 'question'));
+        $mform->setAdvanced('preferredbehaviour', $CFG->quiz_fix_preferredbehaviour);
+        $mform->setDefault('preferredbehaviour', $CFG->quiz_preferredbehaviour);
 
     /// Each attempt builds on last.
         $mform->addElement('selectyesno', 'attemptonlast', get_string('eachattemptbuildsonthelast', 'quiz'));

@@ -42,8 +42,8 @@ class testable_question_attempt extends question_attempt {
     public function set_min_fraction($fraction) {
         $this->minfraction = $fraction;
     }
-    public function set_interaction_model(question_interaction_model $qim) {
-        $this->interactionmodel = $qim;
+    public function set_behaviour(question_behaviour $behaviour) {
+        $this->behaviour = $behaviour;
     }
 }
 
@@ -285,7 +285,7 @@ class data_loading_method_test_base extends UnitTestCase {
     }
 }
 
-class qim_walkthrough_test_base extends UnitTestCase {
+class qbehaviour_walkthrough_test_base extends UnitTestCase {
     /** @var question_display_options */
     protected $displayoptions;
     /** @var question_usage_by_activity */
@@ -304,8 +304,8 @@ class qim_walkthrough_test_base extends UnitTestCase {
         $this->quba = null;
     }
 
-    protected function start_attempt_at_question($question, $preferredmodel, $maxmark = null) {
-        $this->quba->set_preferred_interaction_model($preferredmodel);
+    protected function start_attempt_at_question($question, $preferredbehaviour, $maxmark = null) {
+        $this->quba->set_preferred_behaviour($preferredbehaviour);
         $this->qnumber = $this->quba->add_question($question, $maxmark);
         $this->quba->start_all_questions();
     }

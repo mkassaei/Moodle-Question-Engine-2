@@ -43,7 +43,7 @@ class question_engine_data_mapper {
         $record = new stdClass;
         $record->contextid = $quba->get_owning_context()->id;
         $record->owningplugin = $quba->get_owning_plugin();
-        $record->preferredmodel = $quba->get_preferred_interaction_model();
+        $record->preferredbehaviour = $quba->get_preferred_behaviour();
 
         $newid = insert_record('question_usages', $record);
         if (!$newid) {
@@ -65,7 +65,7 @@ class question_engine_data_mapper {
         $record = new stdClass;
         $record->questionusageid = $qa->get_usage_id();
         $record->numberinusage = $qa->get_number_in_usage();
-        $record->interactionmodel = $qa->get_interaction_model_name();
+        $record->behaviour = $qa->get_behaviour_name();
         $record->questionid = $qa->get_question()->id;
         $record->maxmark = $qa->get_max_mark();
         $record->minfraction = $qa->get_min_fraction();
@@ -161,7 +161,7 @@ SELECT
     qa.id AS questionattemptid,
     qa.questionusageid,
     qa.numberinusage,
-    qa.interactionmodel,
+    qa.behaviour,
     qa.questionid,
     qa.maxmark,
     qa.minfraction,
@@ -211,11 +211,11 @@ SELECT
     quba.id AS qubaid,
     quba.contextid,
     quba.owningplugin,
-    quba.preferredmodel,
+    quba.preferredbehaviour,
     qa.id AS questionattemptid,
     qa.questionusageid,
     qa.numberinusage,
-    qa.interactionmodel,
+    qa.behaviour,
     qa.questionid,
     qa.maxmark,
     qa.minfraction,
@@ -268,7 +268,7 @@ SELECT
     qa.id AS questionattemptid,
     qa.questionusageid,
     qa.numberinusage,
-    qa.interactionmodel,
+    qa.behaviour,
     qa.questionid,
     qa.maxmark,
     qa.minfraction,
@@ -326,7 +326,7 @@ SELECT
     qa.id AS questionattemptid,
     qa.questionusageid,
     qa.numberinusage,
-    qa.interactionmodel,
+    qa.behaviour,
     qa.questionid,
     qa.maxmark,
     qa.minfraction,
@@ -585,7 +585,7 @@ ORDER BY qa.numberinusage
         $record->id = $quba->get_id();
         $record->contextid = $quba->get_owning_context()->id;
         $record->owningplugin = $quba->get_owning_plugin();
-        $record->preferredmodel = $quba->get_preferred_interaction_model();
+        $record->preferredbehaviour = $quba->get_preferred_behaviour();
 
         if (!update_record('question_usages', $record)) {
             throw new Exception('Failed to update question_usage_by_activity ' . $record->id);
@@ -741,7 +741,7 @@ ORDER BY qa.numberinusage
                     {$alias}qa.id AS questionattemptid,
                     {$alias}qa.questionusageid,
                     {$alias}qa.numberinusage,
-                    {$alias}qa.interactionmodel,
+                    {$alias}qa.behaviour,
                     {$alias}qa.questionid,
                     {$alias}qa.maxmark,
                     {$alias}qa.minfraction,

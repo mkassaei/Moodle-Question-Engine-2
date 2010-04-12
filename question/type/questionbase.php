@@ -114,28 +114,27 @@ abstract class question_definition {
     }
 
     /**
-     * Creat the appropriate interaction model for an attempt at this quetsion,
-     * given the desired (archetypal) interaction model.
+     * Creat the appropriate behaviour for an attempt at this quetsion,
+     * given the desired (archetypal) behaviour.
      *
      * This default implementation will suit most normal graded questions.
      *
      * If your question is of a patricular type, then it may need to do something
      * different. For example, if your question can only be graded manually, then
-     * it should probably return a manualgraded interaction model, irrespective of
+     * it should probably return a manualgraded behaviour, irrespective of
      * what is asked for.
      *
      * If your question wants to do somthing especially complicated is some situations,
-     * then you may wish to return a particular interaction model related to the
+     * then you may wish to return a particular behaviour related to the
      * one asked for. For example, you migth want to return a
-     * qim_interactive_adapted_for_myqtype.
+     * qbehaviour_interactive_adapted_for_myqtype.
      *
-     * @param question_attempt $qa the attempt we are creating an interaction
-     *      model for.
-     * @param string $preferredmodel the requested type of interaction.
-     * @return question_interaction_model the new interaction model object.
+     * @param question_attempt $qa the attempt we are creating an behaviour for.
+     * @param string $preferredbehaviour the requested type of behaviour.
+     * @return question_behaviour the new behaviour object.
      */
-    public function make_interaction_model(question_attempt $qa, $preferredmodel) {
-        return question_engine::make_archetypal_interaction_model($preferredmodel, $qa);
+    public function make_behaviour(question_attempt $qa, $preferredbehaviour) {
+        return question_engine::make_archetypal_behaviour($preferredbehaviour, $qa);
     }
 
     /**
@@ -267,9 +266,9 @@ class question_information_item extends question_definition {
         $this->length = 0;
     }
 
-    public function make_interaction_model(question_attempt $qa, $preferredmodel) {
-        question_engine::load_interaction_model_class('informationitem');
-        return new qim_informationitem($qa, $preferredmodel);
+    public function make_behaviour(question_attempt $qa, $preferredbehaviour) {
+        question_engine::load_behaviour_class('informationitem');
+        return new qbehaviour_informationitem($qa, $preferredbehaviour);
     }
 
     public function get_expected_data() {
@@ -288,14 +287,14 @@ class question_information_item extends question_definition {
 
 /**
  * Interface that a {@link question_definition} must implement to be usable by
- * the manual graded interaction model.
+ * the manual graded behaviour.
  *
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 interface question_manually_gradable {
     /**
-     * Used by many of the interaction models, to work out whether the student's
+     * Used by many of the behaviours, to work out whether the student's
      * response to the question is complete. That is, whether the question attempt
      * should move to the COMPLETE or INCOMPLETE state.
      *
@@ -305,7 +304,7 @@ interface question_manually_gradable {
     public function is_complete_response(array $response);
 
     /**
-     * Use by many of the interaction models to determine whether the student's
+     * Use by many of the behaviours to determine whether the student's
      * response has changed. This is normally used to determine that a new set
      * of responses can safely be discarded.
      *
@@ -328,14 +327,14 @@ interface question_manually_gradable {
 
 /**
  * Interface that a {@link question_definition} must implement to be usable by
- * the various automatic grading interaction models.
+ * the various automatic grading behaviours.
  *
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 interface question_automatically_gradable extends question_manually_gradable {
     /**
-     * Use by many of the interaction models to determine whether the student
+     * Use by many of the behaviours to determine whether the student
      * has provided enough of an answer for the question to be graded automatically,
      * or whether it must be considered aborted.
      *

@@ -32,9 +32,9 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_essay_question extends question_with_responses {
-    public function make_interaction_model(question_attempt $qa, $preferredmodel) {
-        question_engine::load_interaction_model_class('manualgraded');
-        return new qim_manualgraded($qa, $preferredmodel);
+    public function make_behaviour(question_attempt $qa, $preferredbehaviour) {
+        question_engine::load_behaviour_class('manualgraded');
+        return new qbehaviour_manualgraded($qa, $preferredbehaviour);
     }
 
     public function get_expected_data() {

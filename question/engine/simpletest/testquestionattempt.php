@@ -164,13 +164,13 @@ class question_attempt_with_steps_test extends UnitTestCase {
         $this->assertEqual('default', $this->qa->get_last_qt_var('notthere', 'default'));
     }
 
-    public function test_get_last_im_var_missing() {
+    public function test_get_last_behaviour_var_missing() {
         $this->assertNull($this->qa->get_last_qt_var('notthere'));
     }
 
-    public function test_get_last_im_var_there() {
-        $this->qa->get_step(1)->set_im_var('_x', 'a value');
-        $this->assertEqual('a value', '' . $this->qa->get_last_im_var('_x'));
+    public function test_get_last_behaviour_var_there() {
+        $this->qa->get_step(1)->set_behaviour_var('_x', 'a value');
+        $this->assertEqual('a value', '' . $this->qa->get_last_behaviour_var('_x'));
     }
 
     public function test_get_state_gets_state_of_last() {
@@ -222,7 +222,7 @@ class question_attempt_db_test extends data_loading_method_test_base {
     public function test_load() {
         $records = testing_db_record_builder::build_db_records(array(
             array('id', 'questionattemptid', 'questionusageid', 'numberinusage',
-                              'interactionmodel', 'questionid', 'maxmark', 'minfraction', 'flagged',
+                              'behaviour', 'questionid', 'maxmark', 'minfraction', 'flagged',
                                                                              'questionsummary', 'rightanswer', 'responsesummary', 'timemodified',
                                                                                                      'attemptstepid', 'sequencenumber', 'state', 'fraction',
                                                                                                                           'timecreated', 'userid', 'name', 'value'),

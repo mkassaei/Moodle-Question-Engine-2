@@ -8,8 +8,8 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="contextid"/>
         <FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="Every question usage must be associated with some context." PREVIOUS="id" NEXT="owningplugin"/>
-        <FIELD NAME="owningplugin" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="The plugin this attempt belongs to, e.g. 'mod_quiz', 'block_questionoftheday', 'filter_embedquestion'." PREVIOUS="contextid" NEXT="preferredmodel"/>
-        <FIELD NAME="preferredmodel" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="The archetypal interaction model that should be used for question attempts in this usage." PREVIOUS="owningplugin"/>
+        <FIELD NAME="owningplugin" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="The plugin this attempt belongs to, e.g. 'mod_quiz', 'block_questionoftheday', 'filter_embedquestion'." PREVIOUS="contextid" NEXT="preferredbehaviour"/>
+        <FIELD NAME="preferredbehaviour" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="The archetypal behaviour that should be used for question attempts in this usage." PREVIOUS="owningplugin"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="contextid"/>
@@ -20,9 +20,9 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="questionusageid"/>
         <FIELD NAME="questionusageid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="Foreign key, references question_usages.id" PREVIOUS="id" NEXT="numberinusage"/>
-        <FIELD NAME="numberinusage" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="Used to number the questions in one attempt sequentially." PREVIOUS="questionusageid" NEXT="interactionmodel"/>
-        <FIELD NAME="interactionmodel" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="The name of the question interaction model that is managing this question attempt." PREVIOUS="numberinusage" NEXT="questionid"/>
-        <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="The id of the question being attempted. Foreign key references question.id." PREVIOUS="interactionmodel" NEXT="maxmark"/>
+        <FIELD NAME="numberinusage" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="Used to number the questions in one attempt sequentially." PREVIOUS="questionusageid" NEXT="behaviour"/>
+        <FIELD NAME="behaviour" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="The name of the question behaviour that is managing this question attempt." PREVIOUS="numberinusage" NEXT="questionid"/>
+        <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="The id of the question being attempted. Foreign key references question.id." PREVIOUS="behaviour" NEXT="maxmark"/>
         <FIELD NAME="maxmark" TYPE="number" LENGTH="12" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" ENUM="false" DECIMALS="7" COMMENT="The grade this question is marked out of in this attempt." PREVIOUS="questionid" NEXT="minfraction"/>
         <FIELD NAME="minfraction" TYPE="number" LENGTH="12" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" DECIMALS="7" COMMENT="Some questions can award negative marks. This indicates the most negative mark that can be awarded, on the faction scale where the maximum positive mark is 1." PREVIOUS="maxmark" NEXT="flagged"/>
         <FIELD NAME="flagged" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" COMMENT="Whether this question has been flagged within the attempt." PREVIOUS="minfraction" NEXT="questionsummary"/>
@@ -59,7 +59,7 @@
         <INDEX NAME="questionattemptid-sequencenumber" UNIQUE="true" FIELDS="questionattemptid, sequencenumber"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="question_attempt_step_data" COMMENT="Each question_attempt_step has an associative array of the data that was submitted by the user in the POST request. It can also contain extra data from the question type or interaction model to avoid re-computation. The convention is that names belonging to the iteraction model start with !, and cached values added to the submitted data start with _, or _!" PREVIOUS="question_attempt_steps" NEXT="question_hints">
+    <TABLE NAME="question_attempt_step_data" COMMENT="Each question_attempt_step has an associative array of the data that was submitted by the user in the POST request. It can also contain extra data from the question type or behaviour to avoid re-computation. The convention is that names belonging to the iteraction model start with !, and cached values added to the submitted data start with _, or _!" PREVIOUS="question_attempt_steps" NEXT="question_hints">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="attemptstepid"/>
         <FIELD NAME="attemptstepid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="Foreign key, references question_attempt_steps.id" PREVIOUS="id" NEXT="name"/>
@@ -74,7 +74,7 @@
         <INDEX NAME="attemptstepid-name" UNIQUE="true" FIELDS="attemptstepid, name"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="question_hints" COMMENT="Stores the the part of the question definition that gives different feedback after each try in interactive and similar interaction models." PREVIOUS="question_attempt_step_data">
+    <TABLE NAME="question_hints" COMMENT="Stores the the part of the question definition that gives different feedback after each try in interactive and similar behaviours." PREVIOUS="question_attempt_step_data">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="questionid"/>
         <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="hint"/>

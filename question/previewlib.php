@@ -37,9 +37,9 @@ class preview_options_form extends moodleform {
 
         $mform->addElement('header', 'optionsheader', get_string('changeoptions', 'question'));
 
-        $mform->addElement('select', 'model', get_string('howquestionsbehave', 'question'),
-                question_engine::get_archetypal_interaction_models());
-        $mform->setHelpButton('model', array('howquestionsbehave', get_string('howquestionsbehave', 'question'), 'question'));
+        $mform->addElement('select', 'behaviour', get_string('howquestionsbehave', 'question'),
+                question_engine::get_archetypal_behaviours());
+        $mform->setHelpButton('behaviour', array('howquestionsbehave', get_string('howquestionsbehave', 'question'), 'question'));
 
         $mform->addElement('text', 'maxmark', get_string('markedoutof', 'question'), array('size' => '5'));
         $mform->setType('maxmark', PARAM_NUMBER);
@@ -69,15 +69,15 @@ class preview_options_form extends moodleform {
 /**
  * Generate the URL for starting a new preview of a given question with the given options.
  * @param integer $questionid
- * @param string $preferredmodel
+ * @param string $preferredbehaviour
  * @param fload $maxmark
  * @param integer $markdp
  * @return string the URL.
  */
-function restart_url($questionid, $preferredmodel, $maxmark, $displayoptions) {
+function restart_url($questionid, $preferredbehaviour, $maxmark, $displayoptions) {
     global $CFG;
     return $CFG->wwwroot . '/question/preview.php?id=' . $questionid .
-                '&model=' . $preferredmodel .
+                '&behaviour=' . $preferredbehaviour .
                 '&maxmark=' . $maxmark .
                 '&markdp=' . $displayoptions->markdp .
                 '&feedback=' . $displayoptions->feedback .
@@ -91,13 +91,13 @@ function restart_url($questionid, $preferredmodel, $maxmark, $displayoptions) {
  * Delete the current preview, if any, and redirect to start a new preview.
  * @param integer $previewid
  * @param integer $questionid
- * @param string $preferredmodel
+ * @param string $preferredbehaviour
  * @param float $maxmark
  * @param integer $markdp
  */
-function restart_preview($previewid, $questionid, $preferredmodel, $maxmark, $displayoptions) {
+function restart_preview($previewid, $questionid, $preferredbehaviour, $maxmark, $displayoptions) {
     if ($previewid) {
         question_engine::delete_questions_usage_by_activity($previewid);
     }
-    redirect(restart_url($questionid, $preferredmodel, $maxmark, $displayoptions));
+    redirect(restart_url($questionid, $preferredbehaviour, $maxmark, $displayoptions));
 }

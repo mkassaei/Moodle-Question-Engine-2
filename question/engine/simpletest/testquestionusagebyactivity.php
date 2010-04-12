@@ -36,8 +36,8 @@ class question_usage_by_activity_test extends UnitTestCase {
                 get_context_instance(CONTEXT_SYSTEM));
 
         // Exercise SUT and verify.
-        $quba->set_preferred_interaction_model('deferredfeedback');
-        $this->assertEqual('deferredfeedback', $quba->get_preferred_interaction_model());
+        $quba->set_preferred_behaviour('deferredfeedback');
+        $this->assertEqual('deferredfeedback', $quba->get_preferred_behaviour());
     }
 
     public function test_set_get_id() {
@@ -63,7 +63,7 @@ class question_usage_by_activity_test extends UnitTestCase {
         // Exercise SUT
         $context = get_context_instance(CONTEXT_SYSTEM);
         $quba = question_engine::make_questions_usage_by_activity('unit_test', $context);
-        $quba->set_preferred_interaction_model('deferredfeedback');
+        $quba->set_preferred_behaviour('deferredfeedback');
         $tf = test_question_maker::make_a_truefalse_question();
         $qnumber = $quba->add_question($tf);
 
@@ -79,7 +79,7 @@ class question_usage_by_activity_test extends UnitTestCase {
         // Set up.
         $quba = question_engine::make_questions_usage_by_activity('unit_test',
                 get_context_instance(CONTEXT_SYSTEM));
-        $quba->set_preferred_interaction_model('deferredfeedback');
+        $quba->set_preferred_behaviour('deferredfeedback');
         $tf = test_question_maker::make_a_truefalse_question();
         $qnumber = $quba->add_question($tf);
 
@@ -95,7 +95,7 @@ class question_usage_by_activity_test extends UnitTestCase {
         $tf = test_question_maker::make_a_truefalse_question();
         $quba = question_engine::make_questions_usage_by_activity('unit_test',
                 get_context_instance(CONTEXT_SYSTEM));
-        $quba->set_preferred_interaction_model('deferredcbm');
+        $quba->set_preferred_behaviour('deferredcbm');
         $qnumber = $quba->add_question($tf);
         $quba->start_all_questions();
 
@@ -121,7 +121,7 @@ class question_usage_by_activity_test extends UnitTestCase {
         $tf = test_question_maker::make_a_truefalse_question();
         $quba = question_engine::make_questions_usage_by_activity('unit_test',
                 get_context_instance(CONTEXT_SYSTEM));
-        $quba->set_preferred_interaction_model('deferredcbm');
+        $quba->set_preferred_behaviour('deferredcbm');
         $qnumber = $quba->add_question($tf);
         $quba->start_all_questions();
 
