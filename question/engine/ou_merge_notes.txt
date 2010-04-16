@@ -1,4 +1,4 @@
-PHP files that have been so extensively hacked around with that there should be
+﻿PHP files that have been so extensively hacked around with that there should be
 no attempt to merge them are marked with a
 
 // ou-specific This whole file
@@ -36,37 +36,34 @@ Old files to delete:
         (other lang files ... TODO)
 
     mod/quiz/
-        attempt_close_js.php
-        jstimer.php
-        protect_js.php
-        quizclasses.php
-        quizsummary.php
+    √   attempt_close_js.php
+    √   jstimer.php
+    √   protect_js.php
+    √   quizclasses.php
+    √   quizsummary.php
 
 
 Files to replace from new qe ou branch:
     lib/questionlib.php
     mod/quiz/
-        accessrules.php
-        attempt.php
-        comment.php
-        edit.js
-        pagelib.php
-        processattempt.php
-        quiz.js
-        report.php
-        review.php
-        reviewquestion.php
-        startattempt.php
-        styles.php
-        summary.php
-        tabs.php
-        view.php
-
-
-Files to leave alone:
-    mod/quiz/
-        grade.php
-        icon.gif
+    √   accessrules.php
+    √   attempt.php
+    √   attemptlib.php
+    √   comment.php
+    √   edit.js
+    √   grade.php
+    √   icon.gif
+    √   pagelib.php
+    √   processattempt.php
+    √   quiz.js
+    √   report.php
+    √   review.php
+    √   reviewquestion.php
+    √   startattempt.php
+    √   styles.php
+    √   summary.php
+    √   tabs.php
+    √   view.php
 
 
 Files that need merging:
