@@ -845,7 +845,7 @@ class qformat_xml extends qformat_default {
      * @return string xml segment
      */
     function writequestion( $question ) {
-    global $CFG,$QTYPES;
+        global $CFG,$QTYPES;
         // initial string;
         $expout = "";
 
