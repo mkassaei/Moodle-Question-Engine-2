@@ -176,6 +176,13 @@
             $counter = 0;
             //Iterate over each question
             foreach ($questions as $question) {
+// ou-specific begins
+                if (ou_backup_IsConvertingToStandard($preferences) &&
+                        !ou_backup_is_standard_qtype($question->qtype)) {
+                    continue;
+                }
+                $okbefore = $status;
+// ou-specific ends
                 // Deal with missing question types - they need to be included becuase
                 // user data or quizzes may refer to them.
                 if (!array_key_exists($question->qtype, $QTYPES)) {
@@ -205,6 +212,11 @@
                 fwrite ($bf,full_tag("MODIFIEDBY",$level + 2,false,$question->modifiedby));
                 // Backup question type specific data
                 $status = $status && $QTYPES[$question->qtype]->backup($bf,$preferences,$question->id, $level + 2);
+// ou-specific begins
+                if (!$status && $okbefore && !defined('BACKUP_SILENTLY')) {
+                    notify("Question backup failed for question $question->id in category $category");
+                }
+// ou-specific ends
                 //End question
                 $status = $status && fwrite ($bf,end_tag("QUESTION",$level + 1,true));
                 //Do some output

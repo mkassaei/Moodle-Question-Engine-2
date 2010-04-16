@@ -219,6 +219,12 @@ function question_category_checking($question_categories){
 
 function question_upgrade_context_etc(){
     global $CFG;
+
+// ou-specific begins
+    require_once($CFG->dirroot . '/local/transaction_wrapper.php');
+    $tw = new transaction_wrapper();
+// ou-specific ends
+
     $result = true;
     $result = $result && question_delete_unused_random();
 
@@ -342,6 +348,11 @@ function question_upgrade_context_etc(){
 
 /// Launch add key modifiedby
     $result = $result && add_key($table, $key);
+
+// ou-specific begins
+    $tw->complete($result);
+    if (!$result) die;
+// ou-specific ends
 
     return $result;
 }

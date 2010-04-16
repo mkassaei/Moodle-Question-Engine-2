@@ -240,6 +240,12 @@
 
         //Start mod
         fwrite ($bf,start_tag("MOD",3,true));
+// ou-specific begins
+        global $CFG;
+        $module = new stdClass;
+        require("$CFG->dirroot/mod/quiz/version.php");
+        fwrite ($bf,full_tag("QUIZVERSION",4,false,$module->version));
+// ou-specific ends
         //Print quiz data
         fwrite ($bf,full_tag("ID",4,false,$quiz->id));
         fwrite ($bf,full_tag("MODTYPE",4,false,"quiz"));

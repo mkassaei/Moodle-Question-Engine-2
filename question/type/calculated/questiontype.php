@@ -18,7 +18,13 @@ class qtype_calculated extends question_dataset_dependent_questiontype {
         return 'calculated';
     }
 
-    function get_question_options(&$question) {
+// ou-specific begins
+    function menu_name() {
+        return false;
+    }
+// ou-specific ends
+
+     function get_question_options(&$question) {
         // First get the datasets and default options
          global $CFG;
         if (!$question->options->answers = get_records_sql(

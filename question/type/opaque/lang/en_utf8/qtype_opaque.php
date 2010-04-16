@@ -1,6 +1,5 @@
 <?php // $Id$
 // qtype_opaque.php - created with Moodle 1.8 dev
-// ou-specific until checked into core.
 
 $string['accessoutofsequence'] = 'You have accessed this page out of sequence. Please do not use the Back button when attempting quizzes.';
 $string['addengine'] = 'Add another engine';

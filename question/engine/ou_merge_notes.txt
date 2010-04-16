@@ -1,26 +1,21 @@
-﻿PHP files that have been so extensively hacked around with that there should be
-no attempt to merge them are marked with a
-
-// ou-specific This whole file
-// until the new question engine is merged into Moodle core (probably 2.1).
-
-after the boiler-plate "This is part of Moodle" comment, and before the file-level
-PHP doc comment.
-
-
 QUESTIONS
 
 * Do we need $quiz->showpenalties and ->showscores?
 * Display of question history on the review page?
 
-* LANG FILES
+
+TODO
+
+* lang files
+* code changes outside quiz/question code.
+
 
 ALL FILES
 √ lib/questionlib.php
 √ mod/quiz/accessrules.php
 √ mod/quiz/attempt.php
 √ mod/quiz/attemptlib.php
-  mod/quiz/backuplib.php
+√ mod/quiz/backuplib.php
 √ mod/quiz/comment.php
   mod/quiz/config.html
   mod/quiz/db/access.php
@@ -83,7 +78,7 @@ ALL FILES
 √ mod/quiz/report/statistics/statistics_table.php
 √ mod/quiz/report/statistics/version.php
 √ mod/quiz/report.php
-  mod/quiz/restorelib.php
+√ mod/quiz/restorelib.php
 √ mod/quiz/restorelibpre15.php
 √ mod/quiz/review.php
   mod/quiz/reviewoptions.html
@@ -97,7 +92,7 @@ ALL FILES
 √ mod/quiz/tabs.php
   mod/quiz/version.php
 √ mod/quiz/view.php
-  question/backuplib.php
+√ question/backuplib.php
 √ question/behaviour/adaptive/behaviour.php
 √ question/behaviour/adaptive/lang/en_utf8/qbehaviour_adaptive.php
 √ question/behaviour/adaptive/renderer.php
@@ -173,9 +168,9 @@ ALL FILES
 √ question/engine/states.php
 √ question/engine/todo.txt
 √ question/export.php
-  question/exportfile.php
+√ question/exportfile.php
 √ question/export_form.php
-  question/file.php
+√ question/file.php
 √ question/format/aiken/format.php
 √ question/format/blackboard/format.php
 √ question/format/blackboard_6/format.php
@@ -213,27 +208,27 @@ ALL FILES
 √ question/format.php
 √ question/import.php
 √ question/import_form.php
-  question/move_form.php
+√ question/move_form.php
 √ question/preview.js
-  question/preview.php
+√ question/preview.php
 √ question/previewlib.php
 √ question/qengine.js
-  question/question.php
-  question/restorelib.php
+√ question/question.php
+√ question/restorelib.php
 √ question/tabs.php
 √ question/toggleflag.php
-  question/type/00-ou-specific.txt
-  question/type/calculated/db/install.xml
-  question/type/calculated/db/mysql.php
-  question/type/calculated/db/postgres7.php
-  question/type/calculated/db/upgrade.php
-  question/type/calculated/edit_calculated_form.php
-  question/type/calculated/icon.gif
-  question/type/calculated/questiontype.php
-  question/type/calculated/version.php
-  question/type/datasetdependent/abstractqtype.php
-  question/type/datasetdependent/datasetdefinitions_form.php
-  question/type/datasetdependent/datasetitems_form.php
+√ question/type/00-ou-specific.txt
+√ question/type/calculated/db/install.xml
+√ question/type/calculated/db/mysql.php
+√ question/type/calculated/db/postgres7.php
+√ question/type/calculated/db/upgrade.php
+√ question/type/calculated/edit_calculated_form.php
+√ question/type/calculated/icon.gif
+√ question/type/calculated/questiontype.php
+√ question/type/calculated/version.php
+√ question/type/datasetdependent/abstractqtype.php
+√ question/type/datasetdependent/datasetdefinitions_form.php
+√ question/type/datasetdependent/datasetitems_form.php
   question/type/ddlib/db/install.xml
   question/type/ddlib/db/upgrade.php
   question/type/ddlib/lang/en_utf8/qtype_ddlib.php
@@ -248,117 +243,117 @@ ALL FILES
   question/type/ddwtos/script.js
   question/type/ddwtos/styles.css
   question/type/ddwtos/version.php
-  question/type/description/edit_description_form.php
-  question/type/description/icon.gif
-  question/type/description/lang/en_utf8/qtype_description.php
-  question/type/description/question.html
-  question/type/description/question.php
-  question/type/description/questiontype.php
-  question/type/description/renderer.php
-  question/type/description/simpletest/testquestiontype.php
-  question/type/edit_question_form.php
-  question/type/essay/db/mysql.php
-  question/type/essay/db/postgres7.php
-  question/type/essay/db/upgrade.php
-  question/type/essay/display.html
-  question/type/essay/edit_essay_form.php
-  question/type/essay/icon.gif
-  question/type/essay/lang/en_utf8/qtype_essay.php
-  question/type/essay/question.php
-  question/type/essay/questiontype.php
-  question/type/essay/renderer.php
-  question/type/essay/simpletest/testquestion.php
-  question/type/essay/simpletest/testquestiontype.php
-  question/type/essay/version.php
-  question/type/match/db/install.xml
-  question/type/match/db/mysql.php
-  question/type/match/db/postgres7.php
-  question/type/match/db/upgrade.php
-  question/type/match/display.html
-  question/type/match/edit_match_form.php
-  question/type/match/icon.gif
-  question/type/match/lang/en_utf8/qtype_match.php
-  question/type/match/question.php
-  question/type/match/questiontype.php
-  question/type/match/renderer.php
-  question/type/match/simpletest/testquestion.php
-  question/type/match/simpletest/testquestiontype.php
-  question/type/match/version.php
-  question/type/missingtype/display.html
-  question/type/missingtype/edit_missingtype_form.php
-  question/type/missingtype/icon.gif
-  question/type/missingtype/lang/en_utf8/qtype_missingtype.php
-  question/type/missingtype/question.php
-  question/type/missingtype/questiontype.php
-  question/type/missingtype/renderer.php
-  question/type/missingtype/simpletest/testmissingtype.php
-  question/type/multianswer/db/install.xml
-  question/type/multianswer/db/mysql.php
-  question/type/multianswer/db/postgres7.php
-  question/type/multianswer/db/upgrade.php
-  question/type/multianswer/edit_multianswer_form.php
-  question/type/multianswer/icon.gif
-  question/type/multianswer/questiontype.php
-  question/type/multianswer/version.php
-  question/type/multichoice/db/install.xml
-  question/type/multichoice/db/mysql.php
-  question/type/multichoice/db/postgres7.php
-  question/type/multichoice/db/upgrade.php
-  question/type/multichoice/display.html
-  question/type/multichoice/edit_multichoice_form.php
-  question/type/multichoice/icon.gif
-  question/type/multichoice/lang/en_utf8/qtype_multichoice.php
-  question/type/multichoice/question.php
-  question/type/multichoice/questiontype.php
-  question/type/multichoice/renderer.php
-  question/type/multichoice/simpletest/testquestion.php
-  question/type/multichoice/simpletest/testquestiontype.php
-  question/type/multichoice/version.php
-  question/type/numerical/db/install.xml
-  question/type/numerical/db/mysql.php
-  question/type/numerical/db/postgres7.php
-  question/type/numerical/db/upgrade.php
-  question/type/numerical/edit_numerical_form.php
-  question/type/numerical/icon.gif
-  question/type/numerical/lang/en_utf8/qtype_numerical.php
-  question/type/numerical/question.php
-  question/type/numerical/questiontype.php
-  question/type/numerical/renderer.php
-  question/type/numerical/simpletest/testanswer.php
-  question/type/numerical/simpletest/testanswerprocessor.php
-  question/type/numerical/simpletest/testquestion.php
-  question/type/numerical/simpletest/testquestiontype.php
-  question/type/numerical/version.php
-  question/type/opaque/00-ou-specific.txt
-  question/type/opaque/db/00-ou-specific.txt
-  question/type/opaque/db/install.xml
-  question/type/opaque/db/upgrade.php
-  question/type/opaque/debug_openmark_connector.php
-  question/type/opaque/editengine.php
-  question/type/opaque/edit_opaque_form.php
-  question/type/opaque/engines.php
-  question/type/opaque/file.php
-  question/type/opaque/icon.gif
-  question/type/opaque/lang/00-ou-specific.txt
-  question/type/opaque/lang/en_utf8/00-ou-specific.txt
-  question/type/opaque/lang/en_utf8/help/00-ou-specific.txt
-  question/type/opaque/lang/en_utf8/help/opaque/00-ou-specific.txt
-  question/type/opaque/lang/en_utf8/help/opaque/configuredengines.html
-  question/type/opaque/lang/en_utf8/help/opaque/editengine.html
-  question/type/opaque/lang/en_utf8/help/opaque/opaque.html
-  question/type/opaque/lang/en_utf8/help/opaque/passkey.html
-  question/type/opaque/lang/en_utf8/help/opaque/questionengine.html
-  question/type/opaque/lang/en_utf8/help/opaque/questionid.html
-  question/type/opaque/lang/en_utf8/qtype_opaque.php
-  question/type/opaque/locallib.php
-  question/type/opaque/question.php
-  question/type/opaque/questiontype.php
-  question/type/opaque/renderer.php
-  question/type/opaque/simpletest/testlocallib.php
-  question/type/opaque/simpletest/testquestiontype.php
-  question/type/opaque/styles.css
-  question/type/opaque/testengine.php
-  question/type/opaque/version.php
+√ question/type/description/edit_description_form.php
+√ question/type/description/icon.gif
+√ question/type/description/lang/en_utf8/qtype_description.php
+√ question/type/description/question.html
+√ question/type/description/question.php
+√ question/type/description/questiontype.php
+√ question/type/description/renderer.php
+√ question/type/description/simpletest/testquestiontype.php
+√ question/type/edit_question_form.php
+√ question/type/essay/db/mysql.php
+√ question/type/essay/db/postgres7.php
+√ question/type/essay/db/upgrade.php
+√ question/type/essay/display.html
+√ question/type/essay/edit_essay_form.php
+√ question/type/essay/icon.gif
+√ question/type/essay/lang/en_utf8/qtype_essay.php
+√ question/type/essay/question.php
+√ question/type/essay/questiontype.php
+√ question/type/essay/renderer.php
+√ question/type/essay/simpletest/testquestion.php
+√ question/type/essay/simpletest/testquestiontype.php
+√ question/type/essay/version.php
+√ question/type/match/db/install.xml
+√ question/type/match/db/mysql.php
+√ question/type/match/db/postgres7.php
+√ question/type/match/db/upgrade.php
+√ question/type/match/display.html
+√ question/type/match/edit_match_form.php
+√ question/type/match/icon.gif
+√ question/type/match/lang/en_utf8/qtype_match.php
+√ question/type/match/question.php
+√ question/type/match/questiontype.php
+√ question/type/match/renderer.php
+√ question/type/match/simpletest/testquestion.php
+√ question/type/match/simpletest/testquestiontype.php
+√ question/type/match/version.php
+√ question/type/missingtype/display.html
+√ question/type/missingtype/edit_missingtype_form.php
+√ question/type/missingtype/icon.gif
+√ question/type/missingtype/lang/en_utf8/qtype_missingtype.php
+√ question/type/missingtype/question.php
+√ question/type/missingtype/questiontype.php
+√ question/type/missingtype/renderer.php
+√ question/type/missingtype/simpletest/testmissingtype.php
+√ question/type/multianswer/db/install.xml
+√ question/type/multianswer/db/mysql.php
+√ question/type/multianswer/db/postgres7.php
+√ question/type/multianswer/db/upgrade.php
+√ question/type/multianswer/edit_multianswer_form.php
+√ question/type/multianswer/icon.gif
+√ question/type/multianswer/questiontype.php
+√ question/type/multianswer/version.php
+√ question/type/multichoice/db/install.xml
+√ question/type/multichoice/db/mysql.php
+√ question/type/multichoice/db/postgres7.php
+√ question/type/multichoice/db/upgrade.php
+√ question/type/multichoice/display.html
+√ question/type/multichoice/edit_multichoice_form.php
+√ question/type/multichoice/icon.gif
+√ question/type/multichoice/lang/en_utf8/qtype_multichoice.php
+√ question/type/multichoice/question.php
+√ question/type/multichoice/questiontype.php
+√ question/type/multichoice/renderer.php
+√ question/type/multichoice/simpletest/testquestion.php
+√ question/type/multichoice/simpletest/testquestiontype.php
+√ question/type/multichoice/version.php
+√ question/type/numerical/db/install.xml
+√ question/type/numerical/db/mysql.php
+√ question/type/numerical/db/postgres7.php
+√ question/type/numerical/db/upgrade.php
+√ question/type/numerical/edit_numerical_form.php
+√ question/type/numerical/icon.gif
+√ question/type/numerical/lang/en_utf8/qtype_numerical.php
+√ question/type/numerical/question.php
+√ question/type/numerical/questiontype.php
+√ question/type/numerical/renderer.php
+√ question/type/numerical/simpletest/testanswer.php
+√ question/type/numerical/simpletest/testanswerprocessor.php
+√ question/type/numerical/simpletest/testquestion.php
+√ question/type/numerical/simpletest/testquestiontype.php
+√ question/type/numerical/version.php
+√ question/type/opaque/00-ou-specific.txt
+√ question/type/opaque/db/00-ou-specific.txt
+√ question/type/opaque/db/install.xml
+√ question/type/opaque/db/upgrade.php
+√ question/type/opaque/debug_openmark_connector.php
+√ question/type/opaque/editengine.php
+√ question/type/opaque/edit_opaque_form.php
+√ question/type/opaque/engines.php
+√ question/type/opaque/file.php
+√ question/type/opaque/icon.gif
+√ question/type/opaque/lang/00-ou-specific.txt
+√ question/type/opaque/lang/en_utf8/00-ou-specific.txt
+√ question/type/opaque/lang/en_utf8/help/00-ou-specific.txt
+√ question/type/opaque/lang/en_utf8/help/opaque/00-ou-specific.txt
+√ question/type/opaque/lang/en_utf8/help/opaque/configuredengines.html
+√ question/type/opaque/lang/en_utf8/help/opaque/editengine.html
+√ question/type/opaque/lang/en_utf8/help/opaque/opaque.html
+√ question/type/opaque/lang/en_utf8/help/opaque/passkey.html
+√ question/type/opaque/lang/en_utf8/help/opaque/questionengine.html
+√ question/type/opaque/lang/en_utf8/help/opaque/questionid.html
+√ question/type/opaque/lang/en_utf8/qtype_opaque.php
+√ question/type/opaque/locallib.php
+√ question/type/opaque/question.php
+√ question/type/opaque/questiontype.php
+√ question/type/opaque/renderer.php
+√ question/type/opaque/simpletest/testlocallib.php
+√ question/type/opaque/simpletest/testquestiontype.php
+√ question/type/opaque/styles.css
+√ question/type/opaque/testengine.php
+√ question/type/opaque/version.php
   question/type/oumultiresponse/db/install.xml
   question/type/oumultiresponse/db/upgrade.php
   question/type/oumultiresponse/edit_oumultiresponse_form.php
@@ -366,51 +361,51 @@ ALL FILES
   question/type/oumultiresponse/questiontype.php
   question/type/oumultiresponse/simpletest/testquestiontype.php
   question/type/oumultiresponse/version.php
-  question/type/question.html
-  question/type/questionbase.php
-  question/type/questiontype.php
-  question/type/random/edit_random_form.php
-  question/type/random/icon.gif
-  question/type/random/lang/en_utf8/qtype_random.php
-  question/type/random/questiontype.php
-  question/type/random/simpletest/testquestiontype.php
-  question/type/randomsamatch/db/install.xml
-  question/type/randomsamatch/db/mysql.php
-  question/type/randomsamatch/db/postgres7.php
-  question/type/randomsamatch/db/upgrade.php
-  question/type/randomsamatch/edit_randomsamatch_form.php
-  question/type/randomsamatch/icon.gif
-  question/type/randomsamatch/questiontype.php
-  question/type/randomsamatch/version.php
-  question/type/rendererbase.php
-  question/type/shortanswer/db/install.xml
-  question/type/shortanswer/db/mysql.php
-  question/type/shortanswer/db/postgres7.php
-  question/type/shortanswer/db/upgrade.php
-  question/type/shortanswer/display.html
-  question/type/shortanswer/edit_shortanswer_form.php
-  question/type/shortanswer/icon.gif
-  question/type/shortanswer/lang/en_utf8/qtype_shortanswer.php
-  question/type/shortanswer/question.php
-  question/type/shortanswer/questiontype.php
-  question/type/shortanswer/renderer.php
-  question/type/shortanswer/simpletest/testquestion.php
-  question/type/shortanswer/simpletest/testquestiontype.php
-  question/type/shortanswer/version.php
-  question/type/simpletest/testquestionbase.php
-  question/type/simpletest/testquestiontype.php
-  question/type/truefalse/db/install.xml
-  question/type/truefalse/db/mysql.php
-  question/type/truefalse/db/postgres7.php
-  question/type/truefalse/db/upgrade.php
-  question/type/truefalse/display.html
-  question/type/truefalse/edit_truefalse_form.php
-  question/type/truefalse/icon.gif
-  question/type/truefalse/lang/en_utf8/qtype_truefalse.php
-  question/type/truefalse/question.php
-  question/type/truefalse/questiontype.php
-  question/type/truefalse/renderer.php
-  question/type/truefalse/simpletest/testquestion.php
-  question/type/truefalse/simpletest/testquestiontype.php
-  question/type/truefalse/version.php
-  question/upgrade.php
+√ question/type/question.html
+√ question/type/questionbase.php
+√ question/type/questiontype.php
+√ question/type/random/edit_random_form.php
+√ question/type/random/icon.gif
+√ question/type/random/lang/en_utf8/qtype_random.php
+√ question/type/random/questiontype.php
+√ question/type/random/simpletest/testquestiontype.php
+√ question/type/randomsamatch/db/install.xml
+√ question/type/randomsamatch/db/mysql.php
+√ question/type/randomsamatch/db/postgres7.php
+√ question/type/randomsamatch/db/upgrade.php
+√ question/type/randomsamatch/edit_randomsamatch_form.php
+√ question/type/randomsamatch/icon.gif
+√ question/type/randomsamatch/questiontype.php
+√ question/type/randomsamatch/version.php
+√ question/type/rendererbase.php
+√ question/type/shortanswer/db/install.xml
+√ question/type/shortanswer/db/mysql.php
+√ question/type/shortanswer/db/postgres7.php
+√ question/type/shortanswer/db/upgrade.php
+√ question/type/shortanswer/display.html
+√ question/type/shortanswer/edit_shortanswer_form.php
+√ question/type/shortanswer/icon.gif
+√ question/type/shortanswer/lang/en_utf8/qtype_shortanswer.php
+√ question/type/shortanswer/question.php
+√ question/type/shortanswer/questiontype.php
+√ question/type/shortanswer/renderer.php
+√ question/type/shortanswer/simpletest/testquestion.php
+√ question/type/shortanswer/simpletest/testquestiontype.php
+√ question/type/shortanswer/version.php
+√ question/type/simpletest/testquestionbase.php
+√ question/type/simpletest/testquestiontype.php
+√ question/type/truefalse/db/install.xml
+√ question/type/truefalse/db/mysql.php
+√ question/type/truefalse/db/postgres7.php
+√ question/type/truefalse/db/upgrade.php
+√ question/type/truefalse/display.html
+√ question/type/truefalse/edit_truefalse_form.php
+√ question/type/truefalse/icon.gif
+√ question/type/truefalse/lang/en_utf8/qtype_truefalse.php
+√ question/type/truefalse/question.php
+√ question/type/truefalse/questiontype.php
+√ question/type/truefalse/renderer.php
+√ question/type/truefalse/simpletest/testquestion.php
+√ question/type/truefalse/simpletest/testquestiontype.php
+√ question/type/truefalse/version.php
+√ question/upgrade.php
