@@ -35,7 +35,7 @@
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class qbehaviour_renderer extends moodle_renderer_base {
+abstract class qbehaviour_renderer extends renderer_base {
     /**
      * Generate a brief textual description of the current state of the question,
      * normally displayed under the question number.

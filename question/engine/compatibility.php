@@ -106,7 +106,6 @@ class renderer_factory {
     /**
      * Implement the subclass method
      * @param string $module name such as 'core', 'mod_forum' or 'qtype_multichoice'.
-     * @param moodle_page $page the page the renderer is outputting content for.
      * @param string $subtype optional subtype such as 'news' resulting to 'mod_forum_news'
      * @return object an object implementing the requested renderer interface.
      */
@@ -159,27 +158,19 @@ class renderer_factory {
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since     Moodle 2.0
  */
-class moodle_renderer_base {
+class renderer_base {
     /** @var xhtml_container_stack the xhtml_container_stack to use. */
     protected $opencontainers;
-    /** @var moodle_page the page we are rendering for. */
+    /** @var object the page we are rendering for. Not used. */
     protected $page;
 
     /**
      * Constructor
-     * @param moodle_page $page the page we are doing output for.
+     * @param object $page the page we are doing output for. Not used.
      */
     public function __construct($page) {
         $this->opencontainers = new null_continer_stack();
         $this->page = $page;
-    }
-
-    /**
-     * Have we started output yet?
-     * @return boolean true if the header has been printed.
-     */
-    public function has_started() {
-        return $this->page->state >= moodle_page::STATE_IN_BODY;
     }
 }
 

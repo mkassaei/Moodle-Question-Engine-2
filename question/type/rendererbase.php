@@ -32,7 +32,7 @@
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class qtype_renderer extends moodle_renderer_base {
+abstract class qtype_renderer extends renderer_base {
     /**
      * Generate the display of the formulation part of the question. This is the
      * area that contains the quetsion text, and the controls for students to

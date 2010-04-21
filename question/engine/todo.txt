@@ -88,7 +88,8 @@ Miscellaneous code clean-up (1.5d)
 Port the code to Moodle 2.x (10d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8559)
     Convert question/engine/datalib.php 1d
-    Change all renderes to match recent core API changes 3d
+√   Change all renderers to use html_writer::tag, instead of $this->tag 1d
+    Use higher level html_writer methods in enderers as appropriate 2d
     Get rid of question/engine/compatibility 0d
     Change quiz settings.php to correspond to the changes in config.html.
     Update file handling 2.5d
