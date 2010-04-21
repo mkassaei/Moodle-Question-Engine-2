@@ -59,6 +59,6 @@ class qbehaviour_interactive_renderer extends qbehaviour_renderer {
         if ($options->readonly !== qbehaviour_interactive::READONLY_EXCEPT_TRY_AGAIN) {
             $attributes['disabled'] = 'disabled';
         }
-        return $this->output_empty_tag('input', $attributes);
+        return html_writer::empty_tag('input', $attributes);
     }
 }

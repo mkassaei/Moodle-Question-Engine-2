@@ -68,7 +68,7 @@ abstract class qtype_renderer extends moodle_renderer_base {
                 'name' => $qa->get_qt_field_name($name),
                 'value' => s($value),
             );
-            $output .= $this->output_empty_tag('input', $attr);
+            $output .= html_writer::empty_tag('input', $attr);
         }
         return $output;
     }
@@ -89,24 +89,24 @@ abstract class qtype_renderer extends moodle_renderer_base {
     public function feedback(question_attempt $qa, question_display_options $options) {
         $output = '';
         if ($options->feedback) {
-            $output .= $this->output_nonempty_tag('div', array('class' => 'specificfeedback'),
-                    $this->specific_feedback($qa));
+            $output .= html_writer::nonempty_tag('div', $this->specific_feedback($qa),
+                    array('class' => 'specificfeedback'));
             $hint = $qa->get_applicable_hint();
             if ($hint) {
                 $output .= $this->hint($qa->get_question(), $hint);
             }
         }
         if ($options->numpartscorrect) {
-            $output .= $this->output_nonempty_tag('div', array('class' => 'numpartscorrect'),
-                    $this->num_parts_correct($qa));
+            $output .= html_writer::nonempty_tag('div', $this->num_parts_correct($qa),
+                    array('class' => 'numpartscorrect'));
         }
         if ($options->generalfeedback) {
-            $output .= $this->output_nonempty_tag('div', array('class' => 'generalfeedback'),
-                    $this->general_feedback($qa));
+            $output .= html_writer::nonempty_tag('div', $this->general_feedback($qa),
+                    array('class' => 'generalfeedback'));
         }
         if ($options->correctresponse) {
-            $output .= $this->output_nonempty_tag('div', array('class' => 'correctresponse'),
-                    $this->correct_response($qa));
+            $output .= html_writer::nonempty_tag('div', $this->correct_response($qa),
+                    array('class' => 'correctresponse'));
         }
         return $output;
     }
@@ -145,8 +145,8 @@ abstract class qtype_renderer extends moodle_renderer_base {
      * @return string HTML fragment.
      */
     protected function hint(question_definition $question, question_hint $hint) {
-        return $this->output_nonempty_tag('div', array('class' => 'hint'),
-                $question->format_text($hint->hint));
+        return html_writer::nonempty_tag('div', $question->format_text($hint->hint),
+                array('class' => 'hint'));
     }
 
     /**

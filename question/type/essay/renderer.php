@@ -46,19 +46,19 @@ class qtype_essay_renderer extends qtype_renderer {
 
         } else {
             // it is read only, so just format the students answer and output it
-            $answer = $this->output_tag('div', array('class' => 'answerreview'),
-                    $question->format_text($response, true));
+            $answer = html_writer::tag('div', $question->format_text($response, true),
+                    array('class' => 'answerreview'));
         }
 
         $result = '';
-        $result .= $this->output_tag('div', array('class' => 'qtext'),
-                $question->format_questiontext());
+        $result .= html_writer::tag('div', $question->format_questiontext(),
+                array('class' => 'qtext'));
 
-        $result .= $this->output_start_tag('div', array('class' => 'ablock clearfix'));
-        $result .= $this->output_tag('div', array('class' => 'prompt'),
-                get_string('answer', 'question'));
-        $result .= $this->output_tag('div', array('class' => 'answer'), $answer);
-        $result .= $this->output_end_tag('div');
+        $result .= html_writer::start_tag('div', array('class' => 'ablock clearfix'));
+        $result .= html_writer::tag('div', get_string('answer', 'question'), 
+                array('class' => 'prompt'));
+        $result .= html_writer::tag('div', $answer, array('class' => 'answer'));
+        $result .= html_writer::end_tag('div');
 
         return $result;
     }

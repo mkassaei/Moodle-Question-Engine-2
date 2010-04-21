@@ -35,8 +35,8 @@
 class qtype_missingtype_renderer extends qtype_renderer {
     public function formulation_and_controls(question_attempt $qa,
             question_display_options $options) {
-        return $this->output_tag('div', array('class' => 'warning missingqtypewarning'),
-                get_string('missingqtypewarning', 'qtype_missingtype')) .
+        return html_writer::tag('div', get_string('missingqtypewarning', 'qtype_missingtype'),
+                array('class' => 'warning missingqtypewarning')) .
                 parent::formulation_and_controls($qa, $options);
     }
 }

@@ -181,31 +181,25 @@ class moodle_renderer_base {
     public function has_started() {
         return $this->page->state >= moodle_page::STATE_IN_BODY;
     }
+}
 
+
+// ==== HTML writer and helper classes, will be probably moved elsewhere ======
+
+/**
+ * Simple html output class
+ * @copyright 2009 Tim Hunt, 2010 Petr Skoda
+ */
+class html_writer {
     /**
      * Outputs a tag with attributes and contents
      * @param string $tagname The name of tag ('a', 'img', 'span' etc.)
-     * @param array $attributes The tag attributes (array('src' => $url, 'class' => 'class1') etc.)
      * @param string $contents What goes between the opening and closing tags
+     * @param array $attributes The tag attributes (array('src' => $url, 'class' => 'class1') etc.)
      * @return string HTML fragment
      */
-    protected function output_tag($tagname, $attributes, $contents) {
-        return $this->output_start_tag($tagname, $attributes) . $contents .
-                $this->output_end_tag($tagname);
-    }
-
-    /**
-     * Outputs a tag if the contents are not empty.
-     * @param string $tagname The name of tag ('a', 'img', 'span' etc.)
-     * @param array $attributes The tag attributes (array('src' => $url, 'class' => 'class1') etc.)
-     * @param string $contents What goes between the opening and closing tags
-     * @return string HTML fragment
-     */
-    protected function output_nonempty_tag($tagname, $attributes, $contents) {
-        if (empty($contents)) {
-            return '';
-        }
-        return $this->output_tag($tagname, $attributes, $contents);
+    public static function tag($tagname, $contents, array $attributes = null) {
+        return self::start_tag($tagname, $attributes) . $contents . self::end_tag($tagname);
     }
 
     /**
@@ -214,8 +208,8 @@ class moodle_renderer_base {
      * @param array $attributes The tag attributes (array('src' => $url, 'class' => 'class1') etc.)
      * @return string HTML fragment
      */
-    protected function output_start_tag($tagname, $attributes = array()) {
-        return '<' . $tagname . $this->output_attributes($attributes) . '>';
+    public static function start_tag($tagname, array $attributes = null) {
+        return '<' . $tagname . self::attributes($attributes) . '>';
     }
 
     /**
@@ -223,7 +217,7 @@ class moodle_renderer_base {
      * @param string $tagname The name of tag ('a', 'img', 'span' etc.)
      * @return string HTML fragment
      */
-    protected function output_end_tag($tagname) {
+    public static function end_tag($tagname) {
         return '</' . $tagname . '>';
     }
 
@@ -233,8 +227,22 @@ class moodle_renderer_base {
      * @param array $attributes The tag attributes (array('src' => $url, 'class' => 'class1') etc.)
      * @return string HTML fragment
      */
-    protected function output_empty_tag($tagname, $attributes = array()) {
-        return '<' . $tagname . $this->output_attributes($attributes) . ' />';
+    public static function empty_tag($tagname, array $attributes = null) {
+        return '<' . $tagname . self::attributes($attributes) . ' />';
+    }
+
+    /**
+     * Outputs a tag, but only if the contents are not empty
+     * @param string $tagname The name of tag ('a', 'img', 'span' etc.)
+     * @param string $contents What goes between the opening and closing tags
+     * @param array $attributes The tag attributes (array('src' => $url, 'class' => 'class1') etc.)
+     * @return string HTML fragment
+     */
+    public static function nonempty_tag($tagname, $contents, array $attributes = null) {
+        if (empty($contents)) {
+            return '';
+        }
+        return self::tag($tagname, $contents, $attributes);
     }
 
     /**
@@ -243,17 +251,21 @@ class moodle_renderer_base {
      * @param string $value The value of the attribute. The value will be escaped with {@link s()}
      * @return string HTML fragment
      */
-    protected function output_attribute($name, $value) {
+    public static function attribute($name, $value) {
         if (is_array($value)) {
             debugging("Passed an array for the HTML attribute $name", DEBUG_DEVELOPER);
         }
-
-        $value = trim($value);
-        if ($value == HTML_ATTR_EMPTY) {
-            return ' ' . $name . '=""';
-        } else if ($value || is_numeric($value)) { // We want 0 to be output.
-            return ' ' . $name . '="' . s($value) . '"';
+        if ($value instanceof moodle_url) {
+            return ' ' . $name . '="' . $value->out() . '"';
         }
+
+        // special case, we do not want these in output
+        if ($value === null) {
+            return '';
+        }
+
+        // no sloppy trimming here!
+        return ' ' . $name . '="' . s($value) . '"';
     }
 
     /**
@@ -262,56 +274,415 @@ class moodle_renderer_base {
      *       The values will be escaped with {@link s()}
      * @return string HTML fragment
      */
-    protected function output_attributes($attributes) {
-        if (empty($attributes)) {
-            $attributes = array();
-        }
+    public static function attributes(array $attributes = null) {
+        $attributes = (array)$attributes;
         $output = '';
         foreach ($attributes as $name => $value) {
-            $output .= $this->output_attribute($name, $value);
+            $output .= self::attribute($name, $value);
         }
         return $output;
     }
 
     /**
-     * Given an array or space-separated list of classes, prepares and returns the HTML class attribute value
-     * @param mixed $classes Space-separated string or array of classes
-     * @return string HTML class attribute value
+     * Generates random html element id.
+     * @param string $base
+     * @return string
      */
-    public static function prepare_classes($classes) {
-        if (is_array($classes)) {
-            return implode(' ', array_unique($classes));
+    public static function random_id($base='random') {
+        return uniqid($base);
+    }
+
+    /**
+     * Generates a simple html link
+     * @param string|moodle_url $url
+     * @param string $text link txt
+     * @param array $attributes extra html attributes
+     * @return string HTML fragment
+     */
+    public static function link($url, $text, array $attributes = null) {
+        $attributes = (array)$attributes;
+        $attributes['href']  = $url;
+        return self::tag('a', $text, $attributes);
+    }
+
+    /**
+     * generates a simple checkbox with optional label
+     * @param string $name
+     * @param string $value
+     * @param bool $checked
+     * @param string $label
+     * @param array $attributes
+     * @return string html fragment
+     */
+    public static function checkbox($name, $value, $checked = true, $label = '', array $attributes = null) {
+        $attributes = (array)$attributes;
+        $output = '';
+
+        if ($label !== '' and !is_null($label)) {
+            if (empty($attributes['id'])) {
+                $attributes['id'] = self::random_id('checkbox_');
+            }
         }
-        return $classes;
+        $attributes['type']    = 'checkbox';
+        $attributes['value']   = $value;
+        $attributes['name']    = $name;
+        $attributes['checked'] = $checked ? 'selected' : null;
+
+        $output .= self::empty_tag('input', $attributes);
+
+        if ($label !== '' and !is_null($label)) {
+            $output .= self::tag('label', $label, array('for'=>$attributes['id']));
+        }
+
+        return $output;
     }
 
     /**
-     * Return the URL for an icon identified as in pre-Moodle 2.0 code.
-     *
-     * Suppose you have old code like $url = "$CFG->pixpath/i/course.gif";
-     * then old_icon_url('i/course'); will return the equivalent URL that is correct now.
-     *
-     * @param string $iconname the name of the icon.
-     * @return string the URL for that icon.
+     * Generates a simple select yes/no form field
+     * @param string $name name of select element
+     * @param bool $selected
+     * @param array $attributes - html select element attributes
+     * @return string HRML fragment
      */
-    public function old_icon_url($iconname) {
-        global $CFG;
-        return $CFG->pixpath . '/' . $iconname . '.gif';
+    public static function select_yes_no($name, $selected=true, array $attributes = null) {
+        $options = array('1'=>get_string('yes'), '0'=>get_string('no'));
+        return self::select($options, $name, $selected, null, $attributes);
     }
 
     /**
-     * Return the URL for an icon identified as in pre-Moodle 2.0 code.
-     *
-     * Suppose you have old code like $url = "$CFG->modpixpath/$mod/icon.gif";
-     * then mod_icon_url('icon', $mod); will return the equivalent URL that is correct now.
-     *
-     * @param string $iconname the name of the icon.
-     * @param string $module the module the icon belongs to.
-     * @return string the URL for that icon.
+     * Generates a simple select form field
+     * @param array $options associative array value=>label ex.:
+     *                array(1=>'One, 2=>Two)
+     *              it is also possible to specify optgroup as complex label array ex.:
+     *                array(array('Odd'=>array(1=>'One', 3=>'Three)), array('Even'=>array(2=>'Two')))
+     *                array(1=>'One', '--1uniquekey'=>array('More'=>array(2=>'Two', 3=>'Three')))
+     * @param string $name name of select element
+     * @param string|array $selected value or arary of values depending on multiple attribute
+     * @param array|bool $nothing, add nothing selected option, or false of not added
+     * @param array $attributes - html select element attributes
+     * @return string HTML fragment
      */
-    public function mod_icon_url($iconname, $module) {
-        global $CFG;
-        return $CFG->modpixpath . '/' . $module . '/' . $iconname . '.gif';
+    public static function select(array $options, $name, $selected = '', $nothing = array(''=>'choosedots'), array $attributes = null) {
+        $attributes = (array)$attributes;
+        if (is_array($nothing)) {
+            foreach ($nothing as $k=>$v) {
+                if ($v === 'choose' or $v === 'choosedots') {
+                    $nothing[$k] = get_string('choosedots');
+                }
+            }
+            $options = $nothing + $options; // keep keys, do not override
+
+        } else if (is_string($nothing) and $nothing !== '') {
+            // BC
+            $options = array(''=>$nothing) + $options;
+        }
+
+        // we may accept more values if multiple attribute specified
+        $selected = (array)$selected;
+        foreach ($selected as $k=>$v) {
+            $selected[$k] = (string)$v;
+        }
+
+        if (!isset($attributes['id'])) {
+            $id = 'menu'.$name;
+            // name may contaion [], which would make an invalid id. e.g. numeric question type editing form, assignment quickgrading
+            $id = str_replace('[', '', $id);
+            $id = str_replace(']', '', $id);
+            $attributes['id'] = $id;
+        }
+
+        if (!isset($attributes['class'])) {
+            $class = 'menu'.$name;
+            // name may contaion [], which would make an invalid class. e.g. numeric question type editing form, assignment quickgrading
+            $class = str_replace('[', '', $class);
+            $class = str_replace(']', '', $class);
+            $attributes['class'] = $class;
+        }
+        $attributes['class'] = 'select ' . $attributes['class']; /// Add 'select' selector always
+
+        $attributes['name'] = $name;
+
+        $output = '';
+        foreach ($options as $value=>$label) {
+            if (is_array($label)) {
+                // ignore key, it just has to be unique
+                $output .= self::select_optgroup(key($label), current($label), $selected);
+            } else {
+                $output .= self::select_option($label, $value, $selected);
+            }
+        }
+        return self::tag('select', $output, $attributes);
+    }
+
+    private static function select_option($label, $value, array $selected) {
+        $attributes = array();
+        $value = (string)$value;
+        if (in_array($value, $selected, true)) {
+            $attributes['selected'] = 'selected';
+        }
+        $attributes['value'] = $value;
+        return self::tag('option', $label, $attributes);
+    }
+
+    private static function select_optgroup($groupname, $options, array $selected) {
+        if (empty($options)) {
+            return '';
+        }
+        $attributes = array('label'=>$groupname);
+        $output = '';
+        foreach ($options as $value=>$label) {
+            $output .= self::select_option($label, $value, $selected);
+        }
+        return self::tag('optgroup', $output, $attributes);
+    }
+
+    /**
+     * This is a shortcut for making an hour selector menu.
+     * @param string $type The type of selector (years, months, days, hours, minutes)
+     * @param string $name fieldname
+     * @param int $currenttime A default timestamp in GMT
+     * @param int $step minute spacing
+     * @param array $attributes - html select element attributes
+     * @return HTML fragment
+     */
+    public static function select_time($type, $name, $currenttime=0, $step=5, array $attributes=null) {
+        if (!$currenttime) {
+            $currenttime = time();
+        }
+        $currentdate = usergetdate($currenttime);
+        $userdatetype = $type;
+        $timeunits = array();
+
+        switch ($type) {
+            case 'years':
+                for ($i=1970; $i<=2020; $i++) {
+                    $timeunits[$i] = $i;
+                }
+                $userdatetype = 'year';
+                break;
+            case 'months':
+                for ($i=1; $i<=12; $i++) {
+                    $timeunits[$i] = userdate(gmmktime(12,0,0,$i,15,2000), "%B");
+                }
+                $userdatetype = 'month';
+                $currentdate['month'] = $currentdate['mon'];
+                break;
+            case 'days':
+                for ($i=1; $i<=31; $i++) {
+                    $timeunits[$i] = $i;
+                }
+                $userdatetype = 'mday';
+                break;
+            case 'hours':
+                for ($i=0; $i<=23; $i++) {
+                    $timeunits[$i] = sprintf("%02d",$i);
+                }
+                break;
+            case 'minutes':
+                if ($step != 1) {
+                    $currentdate['minutes'] = ceil($currentdate['minutes']/$step)*$step;
+                }
+
+                for ($i=0; $i<=59; $i+=$step) {
+                    $timeunits[$i] = sprintf("%02d",$i);
+                }
+                break;
+            default:
+                throw new coding_exception("Time type $type is not supported by html_writer::select_time().");
+        }
+
+        if (empty($attributes['id'])) {
+            $attributes['id'] = self::random_id('ts_');
+        }
+        $timerselector = self::select($timeunits, $name, $currentdate[$userdatetype], null, array('id'=>$attributes['id']));
+        $label = self::tag('label', get_string(substr($type, 0, -1), 'form'), array('for'=>$attributes['id'], 'class'=>'accesshide'));
+
+        return $label.$timerselector;
+    }
+
+    /**
+     * Shortcut for quick making of lists
+     * @param array $items
+     * @param string $tag ul or ol
+     * @param array $attributes
+     * @return string
+     */
+    public static function alist(array $items, array $attributes = null, $tag = 'ul') {
+        //note: 'list' is a reserved keyword ;-)
+
+        $output = '';
+
+        foreach ($items as $item) {
+            $output .= html_writer::start_tag('li') . "\n";
+            $output .= $item . "\n";
+            $output .= html_writer::end_tag('li') . "\n";
+        }
+
+        return html_writer::tag($tag, $output, $attributes);
+    }
+
+    /**
+     * Returns hidden input fields created from url parameters.
+     * @param moodle_url $url
+     * @param array $exclude list of excluded parameters
+     * @return string HTML fragment
+     */
+    public static function input_hidden_params(moodle_url $url, array $exclude = null) {
+        $exclude = (array)$exclude;
+        $params = $url->params();
+        foreach ($exclude as $key) {
+            unset($params[$key]);
+        }
+
+        $output = '';
+        foreach ($params as $key => $value) {
+            $attributes = array('type'=>'hidden', 'name'=>$key, 'value'=>$value);
+            $output .= self::empty_tag('input', $attributes)."\n";
+        }
+        return $output;
+    }
+
+    /**
+     * Generate a script tag containing the the specified code.
+     *
+     * @param string $js the JavaScript code
+     * @param moodle_url|string optional url of the external script, $code ignored if specified
+     * @return string HTML, the code wrapped in <script> tags.
+     */
+    public static function script($jscode, $url=null) {
+        if ($jscode) {
+            $attributes = array('type'=>'text/javascript');
+            return self::tag('script', "\n//<![CDATA[\n$jscode\n//]]>\n", $attributes) . "\n";
+
+        } else if ($url) {
+            $attributes = array('type'=>'text/javascript', 'src'=>$url);
+            return self::tag('script', '', $attributes) . "\n";
+
+        } else {
+            return '';
+        }
+    }
+}
+
+// ==== JS writer and helper classes, will be probably moved elsewhere ======
+
+/**
+ * Simple javascript output class
+ * @copyright 2010 Petr Skoda
+ */
+class js_writer {
+    /**
+     * Returns javascript code calling the function
+     * @param string $function function name, can be complex lin Y.Event.purgeElement
+     * @param array $arguments parameters
+     * @param int $delay execution delay in seconds
+     * @return string JS code fragment
+     */
+    public function function_call($function, array $arguments = null, $delay=0) {
+        if ($arguments) {
+            $arguments = array_map('json_encode', $arguments);
+            $arguments = implode(', ', $arguments);
+        } else {
+            $arguments = '';
+        }
+        $js = "$function($arguments);";
+
+        if ($delay) {
+            $delay = $delay * 1000; // in miliseconds
+            $js = "setTimeout(function() { $js }, $delay);";
+        }
+        return $js . "\n";
+    }
+
+    /**
+     * Special function which adds Y as first argument of fucntion call.
+     * @param string $function
+     * @param array $extraarguments
+     * @return string
+     */
+    public function function_call_with_Y($function, array $extraarguments = null) {
+        if ($extraarguments) {
+            $extraarguments = array_map('json_encode', $extraarguments);
+            $arguments = 'Y, ' . implode(', ', $extraarguments);
+        } else {
+            $arguments = 'Y';
+        }
+        return "$function($arguments);\n";
+    }
+
+    /**
+     * Returns JavaScript code to initialise a new object
+     * @param string|null $var If it is null then no var is assigned the new object
+     * @param string $class
+     * @param array $arguments
+     * @param array $requirements
+     * @param int $delay
+     * @return string
+     */
+    public function object_init($var, $class, array $arguments = null, array $requirements = null, $delay=0) {
+        if (is_array($arguments)) {
+            $arguments = array_map('json_encode', $arguments);
+            $arguments = implode(', ', $arguments);
+        }
+
+        if ($var === null) {
+            $js = "new $class(Y, $arguments);";
+        } else if (strpos($var, '.')!==false) {
+            $js = "$var = new $class(Y, $arguments);";
+        } else {
+            $js = "var $var = new $class(Y, $arguments);";
+        }
+
+        if ($delay) {
+            $delay = $delay * 1000; // in miliseconds
+            $js = "setTimeout(function() { $js }, $delay);";
+        }
+
+        if (count($requirements) > 0) {
+            $requirements = implode("', '", $requirements);
+            $js = "Y.use('$requirements', function(Y){ $js });";
+        }
+        return $js."\n";
+    }
+
+    /**
+     * Returns code setting value to variable
+     * @param string $name
+     * @param mixed $value json serialised value
+     * @param bool $usevar add var definition, ignored for nested properties
+     * @return string JS code fragment
+     */
+    public function set_variable($name, $value, $usevar=true) {
+        $output = '';
+
+        if ($usevar) {
+            if (strpos($name, '.')) {
+                $output .= '';
+            } else {
+                $output .= 'var ';
+            }
+        }
+
+        $output .= "$name = ".json_encode($value).";";
+
+        return $output;
+    }
+
+    /**
+     * Writes event handler attaching code
+     * @param mixed $selector standard YUI selector for elemnts, may be array or string, element id is in the form "#idvalue"
+     * @param string $event A valid DOM event (click, mousedown, change etc.)
+     * @param string $function The name of the function to call
+     * @param array  $arguments An optional array of argument parameters to pass to the function
+     * @return string JS code fragment
+     */
+    public function event_handler($selector, $event, $function, array $arguments = null) {
+        $selector = json_encode($selector);
+        $output = "Y.on('$event', $function, $selector, null";
+        if (!empty($arguments)) {
+            $output .= ', ' . json_encode($arguments);
+        }
+        return $output . ");\n";
     }
 }
 

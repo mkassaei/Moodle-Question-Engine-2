@@ -28,6 +28,8 @@
 
 class qbehaviour_missing_renderer extends qbehaviour_renderer {
     public function controls(question_attempt $qa, question_display_options $options) {
-        return $this->output_tag('div', array('class' => 'warning'), get_string('questionusedunknownmodel', 'qbehaviour_missing'));
+        return html_writer::tag('div',
+                get_string('questionusedunknownmodel', 'qbehaviour_missing'),
+                array('class' => 'warning'));
     }
 }

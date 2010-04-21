@@ -43,21 +43,21 @@ class qtype_match_renderer extends qtype_renderer {
         $choices = $this->format_choices($question);
 
         $result = '';
-        $result .= $this->output_tag('div', array('class' => 'qtext'),
-                $question->format_questiontext());
+        $result .= html_writer::tag('div', $question->format_questiontext(),
+                array('class' => 'qtext'));
 
-        $result .= $this->output_start_tag('div', array('class' => 'ablock'));
-        $result .= $this->output_start_tag('table', array('class' => 'answer'));
-        $result .= $this->output_start_tag('tbody');
+        $result .= html_writer::start_tag('div', array('class' => 'ablock'));
+        $result .= html_writer::start_tag('table', array('class' => 'answer'));
+        $result .= html_writer::start_tag('tbody');
 
         $parity = 0;
         foreach ($stemorder as $key => $stemid) {
 
-            $result .= $this->output_start_tag('tr', array('class' => 'r' . $parity));
+            $result .= html_writer::start_tag('tr', array('class' => 'r' . $parity));
             $fieldname = 'sub' . $key;
 
-            $result .= $this->output_tag('td', array('class' => 'text'),
-                    $question->format_text($question->stems[$stemid]));
+            $result .= html_writer::tag('td', $question->format_text($question->stems[$stemid]),
+                    array('class' => 'text'));
 
             $classes = 'control';
             $feedbackimage = '';
@@ -75,21 +75,22 @@ class qtype_match_renderer extends qtype_renderer {
                 $feedbackimage = question_get_feedback_image($fraction);
             }
 
-            $result .= $this->output_tag('td', array('class' => $classes),
+            $result .= html_writer::tag('td',
                     choose_from_menu($choices, $qa->get_qt_field_name('sub' . $key), $selected,
-                            'choose', '', '0', true, $options->readonly) . $feedbackimage);
+                            'choose', '', '0', true, $options->readonly) . $feedbackimage,
+                    array('class' => $classes));
 
-            $result .= $this->output_end_tag('tr');
+            $result .= html_writer::end_tag('tr');
             $parity = 1 - $parity;
         }
-        $result .= $this->output_end_tag('tbody');
-        $result .= $this->output_end_tag('table');
+        $result .= html_writer::end_tag('tbody');
+        $result .= html_writer::end_tag('table');
 
-        $result .= $this->output_end_tag('div'); // ablock
+        $result .= html_writer::end_tag('div'); // ablock
 
         if ($qa->get_state() == question_state::$invalid) {
-            $result .= $this->output_nonempty_tag('div', array('class' => 'validationerror'),
-                    $question->get_validation_error($response));
+            $result .= html_writer::nonempty_tag('div', $question->get_validation_error($response),
+                    array('class' => 'validationerror'));
         }
 
         return $result;

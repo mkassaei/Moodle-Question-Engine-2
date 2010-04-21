@@ -85,33 +85,34 @@ class qtype_truefalse_renderer extends qtype_renderer {
             $falsefeedbackimg = question_get_feedback_image(!$response, $falsechecked && $options->feedback);
         }
 
-        $radiotrue = $this->output_empty_tag('input', $trueattributes) .
-                $this->output_tag('label', array('for' => $trueattributes['id']),
-                get_string('true', 'qtype_truefalse'));
-        $radiofalse = $this->output_empty_tag('input', $falseattributes) .
-                $this->output_tag('label', array('for' => $falseattributes['id']),
-                get_string('false', 'qtype_truefalse'));
+        $radiotrue = html_writer::empty_tag('input', $trueattributes) .
+                html_writer::tag('label', get_string('true', 'qtype_truefalse'),
+                array('for' => $trueattributes['id']));
+        $radiofalse = html_writer::empty_tag('input', $falseattributes) .
+                html_writer::tag('label', get_string('false', 'qtype_truefalse'),
+                array('for' => $falseattributes['id']));
 
         $result = '';
-        $result .= $this->output_tag('div', array('class' => 'qtext'),
-                $question->format_questiontext());
+        $result .= html_writer::tag('div', $question->format_questiontext(),
+                array('class' => 'qtext'));
 
-        $result .= $this->output_start_tag('div', array('class' => 'ablock'));
-        $result .= $this->output_tag('div', array('class' => 'prompt'),
-                get_string('selectone', 'qtype_truefalse'));
+        $result .= html_writer::start_tag('div', array('class' => 'ablock'));
+        $result .= html_writer::tag('div', get_string('selectone', 'qtype_truefalse'),
+                array('class' => 'prompt'));
 
-        $result .= $this->output_start_tag('div', array('class' => 'answer'));
-        $result .= $this->output_tag('span', array('class' => 'r0' . $trueclass),
-                $radiotrue . $truefeedbackimg);
-        $result .= $this->output_tag('span', array('class' => 'r1' . $falseclass),
-                $radiofalse . $falsefeedbackimg);
-        $result .= $this->output_end_tag('div'); // answer
+        $result .= html_writer::start_tag('div', array('class' => 'answer'));
+        $result .= html_writer::tag('span', $radiotrue . $truefeedbackimg,
+                array('class' => 'r0' . $trueclass));
+        $result .= html_writer::tag('span', $radiofalse . $falsefeedbackimg,
+                array('class' => 'r1' . $falseclass));
+        $result .= html_writer::end_tag('div'); // answer
 
-        $result .= $this->output_end_tag('div'); // ablock
+        $result .= html_writer::end_tag('div'); // ablock
 
         if ($qa->get_state() == question_state::$invalid) {
-            $result .= $this->output_nonempty_tag('div', array('class' => 'validationerror'),
-                    $question->get_validation_error(array('answer' => $currentanswer)));
+            $result .= html_writer::nonempty_tag('div',
+                    $question->get_validation_error(array('answer' => $currentanswer)),
+                    array('class' => 'validationerror'));
         }
 
         return $result;

@@ -56,28 +56,32 @@ class core_question_renderer extends moodle_renderer_base {
             qtype_renderer $qtoutput, question_display_options $options, $number) {
 
         $output = '';
-        $output .= $this->output_start_tag('div', array(
+        $output .= html_writer::start_tag('div', array(
             'id' => 'q' . $qa->get_number_in_usage(),
             'class' => 'que ' . $qa->get_question()->qtype->name() . ' ' .
                     $qa->get_behaviour_name(),
         ));
 
-        $output .= $this->output_tag('div', array('class' => 'info'),
-                $this->info($qa, $behaviouroutput, $qtoutput, $options, $number));
+        $output .= html_writer::tag('div',
+                $this->info($qa, $behaviouroutput, $qtoutput, $options, $number),
+                array('class' => 'info'));
 
-        $output .= $this->output_start_tag('div', array('class' => 'content'));
+        $output .= html_writer::start_tag('div', array('class' => 'content'));
 
-        $output .= $this->output_tag('div', array('class' => 'formulation'),
-                $this->formulation($qa, $behaviouroutput, $qtoutput, $options));
-        $output .= $this->output_nonempty_tag('div', array('class' => 'outcome'),
-                $this->outcome($qa, $behaviouroutput, $qtoutput, $options));
-        $output .= $this->output_nonempty_tag('div', array('class' => 'comment'),
-                $behaviouroutput->manual_comment($qa, $options));
-        $output .= $this->output_nonempty_tag('div', array('class' => 'history'),
-                $this->response_history($qa, $behaviouroutput, $qtoutput, $options));
+        $output .= html_writer::tag('div',
+                $this->formulation($qa, $behaviouroutput, $qtoutput, $options),
+                array('class' => 'formulation'));
+        $output .= html_writer::nonempty_tag('div',
+                $this->outcome($qa, $behaviouroutput, $qtoutput, $options),
+                array('class' => 'outcome'));
+        $output .= html_writer::nonempty_tag('div',
+                $behaviouroutput->manual_comment($qa, $options), array('class' => 'comment'));
+        $output .= html_writer::nonempty_tag('div',
+                $this->response_history($qa, $behaviouroutput, $qtoutput, $options),
+                array('class' => 'history'));
 
-        $output .= $this->output_end_tag('div');
-        $output .= $this->output_end_tag('div');
+        $output .= html_writer::end_tag('div');
+        $output .= html_writer::end_tag('div');
         return $output;
     }
 
@@ -114,14 +118,14 @@ class core_question_renderer extends moodle_renderer_base {
         $numbertext = '';
         if (is_numeric($number)) {
             $numbertext = get_string('questionx', 'question',
-                    $this->output_tag('span', array('class' => 'qno'), $number));
+                    html_writer::tag('span', $number, array('class' => 'qno')));
         } else if ($number == 'i') {
             $numbertext = get_string('information', 'question');
         }
         if (!$numbertext) {
             return '';
         }
-        return $this->output_tag('h2', array('class' => 'no'), $numbertext);
+        return html_writer::tag('h2', $numbertext, array('class' => 'no'));
     }
 
     /**
@@ -135,8 +139,8 @@ class core_question_renderer extends moodle_renderer_base {
      */
     protected function status(question_attempt $qa, qbehaviour_renderer $behaviouroutput, question_display_options $options) {
         if ($options->correctness) {
-            return $this->output_tag('div', array('class' => 'state'),
-                    $behaviouroutput->get_state_string($qa));
+            return html_writer::tag('div', $behaviouroutput->get_state_string($qa),
+                    array('class' => 'state'));
         } else {
             return '';
         }
@@ -167,7 +171,7 @@ class core_question_renderer extends moodle_renderer_base {
             $summary = get_string('markoutofmax', 'question', $a);
         }
 
-        return $this->output_tag('div', array('class' => 'grade'), $summary);
+        return html_writer::tag('div', $summary, array('class' => 'grade'));
     }
 
     /**
@@ -242,7 +246,7 @@ class core_question_renderer extends moodle_renderer_base {
     protected function formulation(question_attempt $qa, qbehaviour_renderer $behaviouroutput,
             qtype_renderer $qtoutput, question_display_options $options) {
         $output = '';
-        $output .= $this->output_empty_tag('input', array(
+        $output .= html_writer::empty_tag('input', array(
                 'type' => 'hidden',
                 'name' => $qa->get_field_prefix() . ':sequencecheck',
                 'value' => $qa->get_num_steps()));
@@ -250,8 +254,8 @@ class core_question_renderer extends moodle_renderer_base {
         if ($options->clearwrong) {
             $output .= $qtoutput->clear_wrong($qa);
         }
-        $output .= $this->output_nonempty_tag('div', array('class' => 'im-controls'),
-                $behaviouroutput->controls($qa, $options));
+        $output .= html_writer::nonempty_tag('div',
+                $behaviouroutput->controls($qa, $options), array('class' => 'im-controls'));
         return $output;
     }
 
@@ -270,10 +274,10 @@ class core_question_renderer extends moodle_renderer_base {
     protected function outcome(question_attempt $qa, qbehaviour_renderer $behaviouroutput,
             qtype_renderer $qtoutput, question_display_options $options) {
         $output = '';
-        $output .= $this->output_nonempty_tag('div', array('class' => 'feedback'),
-                $qtoutput->feedback($qa, $options));
-        $output .= $this->output_nonempty_tag('div', array('class' => 'im-feedback'),
-                $behaviouroutput->feedback($qa, $options));
+        $output .= html_writer::nonempty_tag('div',
+                $qtoutput->feedback($qa, $options), array('class' => 'feedback'));
+        $output .= html_writer::nonempty_tag('div',
+                $behaviouroutput->feedback($qa, $options), array('class' => 'im-feedback'));
         return $output;
     }
 

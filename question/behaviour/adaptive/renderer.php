@@ -80,10 +80,10 @@ class qbehaviour_adaptive_renderer extends qbehaviour_renderer {
         $gradingdetails .= $this->penalty_info($qa, $mark);
 
         $output = '';
-        $output .= $this->output_tag('div', array('class' => 'correctness ' . $class),
-                get_string($class, 'question'));
-        $output .= $this->output_tag('div', array('class' => 'gradingdetails'),
-                $gradingdetails);
+        $output .= html_writer::tag('div', get_string($class, 'question'),
+                array('class' => 'correctness ' . $class));
+        $output .= html_writer::tag('div', $gradingdetails,
+                array('class' => 'gradingdetails'));
         return $output;
     }
 

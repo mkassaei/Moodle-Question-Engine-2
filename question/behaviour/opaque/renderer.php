@@ -41,8 +41,8 @@ class qbehaviour_opaque_renderer extends qbehaviour_renderer {
 
     public function controls(question_attempt $qa, question_display_options $options) {
         if ($qa->get_state()->is_gave_up()) {
-            return $this->output_tag('div', array('class' => 'question_aborted'),
-                    get_string('notcompletedmessage', 'qtype_opaque'));
+            return html_writer::tag('div', get_string('notcompletedmessage', 'qtype_opaque'),
+                    array('class' => 'question_aborted'));
         }
 
         $opaquestate =& update_opaque_state($qa);
@@ -51,7 +51,8 @@ class qbehaviour_opaque_renderer extends qbehaviour_renderer {
             // TODO
         }
 
-        return $this->output_tag('div', array('class' => opaque_browser_type()), $opaquestate->xhtml);
+        return html_writer::tag('div', $opaquestate->xhtml,
+                array('class' => opaque_browser_type()));
     }
 
     public function head_code(question_attempt $qa) {

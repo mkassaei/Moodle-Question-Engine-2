@@ -74,25 +74,26 @@ class qtype_shortanswer_renderer extends qtype_renderer {
             $inputattributes['size'] = round(strlen($placeholder) * 1.1);
         }
 
-        $input = $this->output_empty_tag('input', $inputattributes) . $feedbackimg;
+        $input = html_writer::empty_tag('input', $inputattributes) . $feedbackimg;
 
         if ($placeholder) {
             $questiontext = substr_replace($questiontext, $input,
                     strpos($questiontext, $placeholder), strlen($placeholder));
         }
 
-        $result = $this->output_tag('div', array('class' => 'qtext'), $questiontext);
+        $result = html_writer::tag('div', $questiontext, array('class' => 'qtext'));
 
         if (!$placeholder) {
-            $result .= $this->output_start_tag('div', array('class' => 'ablock'));
+            $result .= html_writer::start_tag('div', array('class' => 'ablock'));
             $result .= get_string('answer', 'qtype_shortanswer',
-                    $this->output_tag('div', array('class' => 'answer'), $input));
-            $result .= $this->output_end_tag('div');
+                    html_writer::tag('div', $input, array('class' => 'answer')));
+            $result .= html_writer::end_tag('div');
         }
 
         if ($qa->get_state() == question_state::$invalid) {
-            $result .= $this->output_nonempty_tag('div', array('class' => 'validationerror'),
-                    $question->get_validation_error(array('answer' => $currentanswer)));
+            $result .= html_writer::nonempty_tag('div',
+                    $question->get_validation_error(array('answer' => $currentanswer)),
+                    array('class' => 'validationerror'));
         }
 
         return $result;

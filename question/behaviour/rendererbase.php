@@ -85,12 +85,11 @@ abstract class qbehaviour_renderer extends moodle_renderer_base {
         $commentfield = $qa->get_im_field_name('comment');
 
         $comment = print_textarea(can_use_html_editor(), 10, 80, null, null, $commentfield, $qa->get_manual_comment(), 0, true);
-        $comment = $this->output_tag('div', array('class' => 'fitem'),
-                $this->output_tag('div', array('class' => 'fitemtitle'),
-                    $this->output_tag('label', array('for' => $commentfield), get_string('comment', 'question'))
-                ) . $this->output_tag('div', array('class' => 'felement fhtmleditor'),
-                    $comment
-                ));
+        $comment = html_writer::tag('div', html_writer::tag('div',
+                html_writer::tag('label', get_string('comment', 'question'), array('for' => $commentfield)),
+                array('class' => 'fitemtitle')) .
+                html_writer::tag('div', $comment, array('class' => 'felement fhtmleditor')),
+                array('class' => 'fitem'));
 
         $mark = '';
         if ($qa->get_max_mark()) {
@@ -105,26 +104,25 @@ abstract class qbehaviour_renderer extends moodle_renderer_base {
             );
             $a = new stdClass;
             $a->max = $qa->format_max_mark($options->markdp);
-            $a->mark = $this->output_empty_tag('input', $attributes);
+            $a->mark = html_writer::empty_tag('input', $attributes);
 
-            $maxmark = $this->output_empty_tag('input', array(
+            $maxmark = html_writer::empty_tag('input', array(
                 'type' => 'hidden',
                 'name' => $qa->get_im_field_name('maxmark'),
                 'value' => $qa->get_max_mark(),
             ));
 
-            $mark = $this->output_tag('div', array('class' => 'fitem'),
-                    $this->output_tag('div', array('class' => 'fitemtitle'),
-                        $this->output_tag('label', array('for' => $markfield), get_string('mark', 'question'))
-                    ) . $this->output_tag('div', array('class' => 'felement ftext'),
-                        get_string('xoutofmax', 'question', $a) . $maxmark
-                    ));
+            $mark = html_writer::tag('div', html_writer::tag('div',
+                    html_writer::tag('label', get_string('mark', 'question'), array('for' => $markfield)),
+                    array('class' => 'fitemtitle')) .
+                    html_writer::tag('div', get_string('xoutofmax', 'question', $a) .
+                        $maxmark, array('class' => 'felement ftext')
+                    ), array('class' => 'fitem'));
             
         }
 
-        return $this->output_tag('fieldset', array('class' => 'hidden'),
-                $this->output_tag('div', array('class' => 'fcontainer clearfix'),
-                    $comment . $mark));
+        return html_writer::tag('fieldset', html_writer::tag('div', $comment . $mark,
+                array('class' => 'fcontainer clearfix')), array('class' => 'hidden'));
     }
 
     public function manual_comment_view(question_attempt $qa, question_display_options $options) {
@@ -137,7 +135,7 @@ abstract class qbehaviour_renderer extends moodle_renderer_base {
             $link = link_to_popup_window($options->manualcommentlink .
                     '&amp;qnumber=' . $qa->get_number_in_usage(),
                     'commentquestion', $strcomment, 600, 800, $strcomment, 'none', true);
-            $output .= $this->output_tag('div', array('class' => 'commentlink'), $link);
+            $output .= html_writer::tag('div', $link, array('class' => 'commentlink'));
         }
         return $output;
     }
@@ -178,7 +176,7 @@ abstract class qbehaviour_renderer extends moodle_renderer_base {
         if ($options->readonly) {
             $attributes['disabled'] = 'disabled';
         }
-        $output = $this->output_empty_tag('input', $attributes);
+        $output = html_writer::empty_tag('input', $attributes);
         if (!$options->readonly) {
             $output .= print_js_call('question_init_submit_button',
                     array($attributes['id'], $qa->get_number_in_usage()), true);

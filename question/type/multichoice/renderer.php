@@ -81,10 +81,9 @@ abstract class qtype_multichoice_renderer_base extends qtype_renderer {
             } else {
                 unset($inputattributes['checked']);
             }
-            $radiobuttons[] = $this->output_empty_tag('input', $inputattributes) .
-                    $this->output_tag('label', array('for' => $inputattributes['id']),
-                    $this->number_in_style($value, $question->answernumbering) .
-                    $question->format_text($ans->answer));
+            $radiobuttons[] = html_writer::empty_tag('input', $inputattributes) .
+                    html_writer::tag('label', $this->number_in_style($value, $question->answernumbering) .
+                        $question->format_text($ans->answer), array('for' => $inputattributes['id']));
 
             if (($options->feedback || $options->correctresponse) && $response !== -1) {
                 $feedbackimg[] = question_get_feedback_image($this->is_right($ans), $isselected && $options->feedback);
@@ -104,24 +103,25 @@ abstract class qtype_multichoice_renderer_base extends qtype_renderer {
         }
 
         $result = '';
-        $result .= $this->output_tag('div', array('class' => 'qtext'),
-                $question->format_questiontext());
+        $result .= html_writer::tag('div', $question->format_questiontext(),
+                array('class' => 'qtext'));
 
-        $result .= $this->output_start_tag('div', array('class' => 'ablock'));
-        $result .= $this->output_tag('div', array('class' => 'prompt'), $this->prompt());
+        $result .= html_writer::start_tag('div', array('class' => 'ablock'));
+        $result .= html_writer::tag('div', $this->prompt(), array('class' => 'prompt'));
 
-        $result .= $this->output_start_tag('div', array('class' => 'answer'));
+        $result .= html_writer::start_tag('div', array('class' => 'answer'));
         foreach ($radiobuttons as $key => $radio) {
-            $result .= $this->output_tag('span', array('class' => $classes[$key]),
-                    $radio . $feedbackimg[$key] . $feedback[$key]) . "\n";
+            $result .= html_writer::tag('span', $radio . $feedbackimg[$key] . $feedback[$key],
+                    array('class' => $classes[$key])) . "\n";
         }
-        $result .= $this->output_end_tag('div'); // answer
+        $result .= html_writer::end_tag('div'); // answer
 
-        $result .= $this->output_end_tag('div'); // ablock
+        $result .= html_writer::end_tag('div'); // ablock
 
         if ($qa->get_state() == question_state::$invalid) {
-            $result .= $this->output_nonempty_tag('div', array('class' => 'validationerror'),
-                    $question->get_validation_error($qa->get_last_qt_data()));
+            $result .= html_writer::nonempty_tag('div',
+                    $question->get_validation_error($qa->get_last_qt_data()),
+                    array('class' => 'validationerror'));
         }
 
         return $result;

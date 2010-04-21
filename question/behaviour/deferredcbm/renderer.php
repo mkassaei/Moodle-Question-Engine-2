@@ -46,18 +46,18 @@ class qbehaviour_deferredcbm_renderer extends qbehaviour_renderer {
             } else {
                 unset($attributes['checked']);
             }
-            $choices .= ' ' . $this->output_empty_tag('input', $attributes) . ' ' .
-                    $this->output_tag('label', array('for' => $id),
-                    question_cbm::get_string($certainty));
+            $choices .= ' ' . html_writer::empty_tag('input', $attributes) . ' ' .
+                    html_writer::tag('label', question_cbm::get_string($certainty),
+                            array('for' => $id));
         }
         return $choices;
     }
 
     public function controls(question_attempt $qa, question_display_options $options) {
-        return $this->output_tag('div', array('class' => 'certaintychoices'),
-                get_string('howcertainareyou', 'qbehaviour_deferredcbm',
+        return html_writer::tag('div', get_string('howcertainareyou', 'qbehaviour_deferredcbm',
                 $this->certainly_choices($qa->get_im_field_name('certainty'),
-                $qa->get_last_behaviour_var('certainty'), $options->readonly)));
+                $qa->get_last_behaviour_var('certainty'), $options->readonly)),
+                array('class' => 'certaintychoices'));
     }
 
     public function feedback(question_attempt $qa, question_display_options $options) {
@@ -71,8 +71,7 @@ class qbehaviour_deferredcbm_renderer extends qbehaviour_renderer {
 
         $feedback = '';
         if (!$qa->get_last_behaviour_var('certainty')) {
-            $feedback .= $this->output_tag('p', array(),
-                    get_string('assumingcertainty', 'qbehaviour_deferredcbm',
+            $feedback .= html_writer::tag('p', get_string('assumingcertainty', 'qbehaviour_deferredcbm',
                     question_cbm::get_string($qa->get_last_behaviour_var('_assumedcertainty'))));
         }
 
@@ -80,7 +79,7 @@ class qbehaviour_deferredcbm_renderer extends qbehaviour_renderer {
             $a->rawmark = format_float(
                     $qa->get_last_behaviour_var('_rawfraction') * $qa->get_max_mark(), $options->markdp);
             $a->mark = $qa->format_mark($options->markdp);
-            $feedback .= $this->output_tag('p', array(), get_string('markadjustment', 'qbehaviour_deferredcbm', $a));
+            $feedback .= html_writer::tag('p', get_string('markadjustment', 'qbehaviour_deferredcbm', $a));
         }
 
         return $feedback;
