@@ -1673,7 +1673,8 @@ class question_attempt {
 
     /**
      * Get a particular parameter from the current request. A wrapper round
-     * {@link optional_param()}.
+     * {@link optional_param()}, except that the results is returned without
+     * slashes.
      * @param string $name the paramter name.
      * @param integer $type one of the PARAM_... constants.
      * @param array $postdata (optional, only inteded for testing use) take the
@@ -1682,12 +1683,16 @@ class question_attempt {
      */
     public static function get_submitted_var($name, $type, $postdata = null) {
         if (is_null($postdata)) {
-            return optional_param($name, null, $type);
+            $var = optional_param($name, null, $type);
         } else if (array_key_exists($name, $postdata)) {
-            return clean_param($postdata[$name], $type);
+            $var = clean_param($postdata[$name], $type);
         } else {
-            return null;
+            $var = null;
         }
+        if (is_string($var)) {
+            $var = stripslashes($var);
+        }
+        return $var;
     }
 
     /**

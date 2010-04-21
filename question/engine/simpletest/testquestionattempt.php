@@ -93,6 +93,11 @@ class question_attempt_test extends UnitTestCase {
         $this->assertPattern('/' . preg_quote($this->usageid) . '/', $name);
         $this->assertPattern('/' . preg_quote($this->qa->get_number_in_usage()) . '/', $name);
     }
+
+    public function test_get_submitted_var_not_present_var_returns_null() {
+        $this->assertNull(question_attempt::get_submitted_var(
+                'reallyunlikelyvariablename', PARAM_BOOL));
+    }
 }
 
 
