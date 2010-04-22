@@ -55,16 +55,16 @@ ALL FILES
 √ mod/quiz/attemptlib.php
 √ mod/quiz/backuplib.php
 √ mod/quiz/comment.php
-  mod/quiz/config.html
-  mod/quiz/db/access.php
+√ mod/quiz/config.html
+√ mod/quiz/db/access.php
   mod/quiz/db/install.xml
 √ mod/quiz/db/mysql.php
 √ mod/quiz/db/postgres7.php
   mod/quiz/db/upgrade.php
-  mod/quiz/defaults.php
+√ mod/quiz/defaults.php
 √ mod/quiz/edit.js
-  mod/quiz/edit.php
-  mod/quiz/editlib.php
+√ mod/quiz/edit.php
+√ mod/quiz/editlib.php
 √ mod/quiz/grade.php
 √ mod/quiz/icon.gif
 √ mod/quiz/index.php
