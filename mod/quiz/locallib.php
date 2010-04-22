@@ -890,7 +890,7 @@ function quiz_question_edit_button($cmid, $question, $returnurl, $contentbeforei
 /**
  * @param object $quiz the quiz
  * @param object $question the question
- * @param boolean $label if true, show the previewquestion label after the icon
+ * @param boolean $label if true, show the preview question label after the icon
  * @return the HTML for a preview question icon.
  */
 function quiz_question_preview_button($quiz, $question, $label = false) {

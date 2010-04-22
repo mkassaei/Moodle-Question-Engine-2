@@ -1085,6 +1085,8 @@ function quiz_reset_gradebook($courseid, $type='') {
  * @return array status array
  */
 function quiz_reset_userdata($data) {
+    global $CFG;
+
     $componentstr = get_string('modulenameplural', 'quiz');
     $status = array();
 
