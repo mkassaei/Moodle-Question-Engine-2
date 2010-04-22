@@ -2,10 +2,10 @@
     require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 
     if (!isset($form->timeopen)) {
-        $form->timeopen = "";
+        $form->timeopen = '';
     }
     if (!isset($form->timeclose)) {
-        $form->timeclose = "";
+        $form->timeclose = '';
     }
     if (!isset($form->timelimit)) {
         $form->timelimit = $CFG->quiz_timelimit;
@@ -50,7 +50,7 @@
         $form->questiondecimalpoints = $CFG->quiz_questiondecimalpoints;
     }
     if (!isset($form->questions)) {
-        $form->questions = "";
+        $form->questions = '';
     }
     if (!isset($form->password)) {
         $form->quizpassword = $CFG->quiz_password;
@@ -100,14 +100,14 @@
     // the following are used for drop-down menus
 
     $yesnooptions = array();
-    $yesnooptions[0] = get_string("no");
-    $yesnooptions[1] = get_string("yes");
+    $yesnooptions[0] = get_string('no');
+    $yesnooptions[1] = get_string('yes');
 
     $attemptoptions = array();
-    $attemptoptions[0] = get_string("attemptsunlimited", "quiz");
-    $attemptoptions[1] = "1 ".moodle_strtolower(get_string("attempt", "quiz"));
+    $attemptoptions[0] = get_string('attemptsunlimited', 'quiz');
+    $attemptoptions[1] = "1 ".moodle_strtolower(get_string('attempt', 'quiz'));
     for ($i = 2; $i <= QUIZ_MAX_ATTEMPT_OPTION; $i++) {
-        $attemptoptions[$i] = "$i ".moodle_strtolower(get_string("attempts", "quiz"));
+        $attemptoptions[$i] = "$i ".moodle_strtolower(get_string('attempts', 'quiz'));
     }
 
 ?>
@@ -144,13 +144,7 @@
   <td align="right"><b><?php print_string("attemptsallowed", "quiz") ?>:</b></td>
   <td>
     <?php
-        unset($options);
-        $options[0] = get_string("attemptsunlimited", "quiz");
-        $options[1] = "1 ".strtolower(get_string("attempt", "quiz"));
-        for ($i=2;$i<=6;$i++) {
-            $options[$i] = "$i ".strtolower(get_string("attempts", "quiz"));
-        }
-        choose_from_menu ($options, "attempts", $form->attempts, "", "", "");
+        choose_from_menu($attemptoptions, "attempts", $form->attempts, '', '', '');
         helpbutton("attempts", get_string("attemptsallowed","quiz"), "quiz");
     ?>
   </td>
@@ -164,13 +158,13 @@
   <td align="right"><b><?php print_string("maximumgrade") ?>:</b></td>
   <td>
     <?php
-       unset($grades);
-        for ($i=100; $i>=1; $i--) {
+        unset($grades);
+        for ($i = 100; $i >= 1; $i--) {
             $grades[$i] = $i;
         }
         $grades[0] = get_string("nograde");
-       choose_from_menu ($grades, "maximumgrade", $form->maximumgrade, "", "", "");
-       helpbutton("maxgrade", get_string("maximumgrade"), "quiz");
+        choose_from_menu($grades, "maximumgrade", $form->maximumgrade, '', '', '');
+        helpbutton("maxgrade", get_string("maximumgrade"), "quiz");
     ?>
   </td>
 </tr>
@@ -179,7 +173,7 @@
   <td align="right"><b><?php print_string("grademethod", "quiz") ?>:</b></td>
   <td>
     <?php
-       choose_from_menu (quiz_get_grading_options(), "grademethod", $form->grademethod, "", "", "");
+       choose_from_menu(quiz_get_grading_options(), "grademethod", $form->grademethod, '', '', '');
        helpbutton("grademethod", get_string("grademethod","quiz"), "quiz");
     ?>
   </td>
@@ -193,8 +187,8 @@
   <td align="right"><b><?php print_string("shufflequestions", "quiz") ?>:</b></td>
   <td>
     <?php
-       choose_from_menu ($yesnooptions, "shufflequestions", $form->shufflequestions, "", "", "");
-       helpbutton("shufflequestions", get_string("shufflequestions","quiz"), "quiz");
+        choose_from_menu($yesnooptions, "shufflequestions", $form->shufflequestions, '', '', '');
+        helpbutton("shufflequestions", get_string("shufflequestions","quiz"), "quiz");
     ?>
   </td>
   <td align="center">
@@ -207,15 +201,15 @@
     <td align="right"><b><?php print_string('questionsperpage', 'quiz') ?>:</b></td>
     <td>
     <?php
-        $perpage= array();
-        for ($i=0; $i<=50; ++$i) {
+        $perpage = array();
+        for ($i = 0; $i <= QUIZ_MAX_QPP_OPTION; ++$i) {
             $perpage[$i] = $i;
         }
         $perpage[0] = get_string('allinone', 'quiz');
 
         choose_from_menu($perpage, 'questionsperpage', $form->questionsperpage, '');
         helpbutton('questionsperpage', get_string('questionsperpage', 'quiz'), 'quiz');
-     ?>
+    ?>
     </td>
   <td align="center">
     <input type="hidden" name="fix_questionsperpage" value="0" />
@@ -227,7 +221,7 @@
   <td align="right"><b><?php print_string("shufflewithin", "quiz") ?>:</b></td>
   <td>
     <?php
-       choose_from_menu ($yesnooptions, "shuffleanswers", $form->shuffleanswers, "", "", "");
+       choose_from_menu($yesnooptions, "shuffleanswers", $form->shuffleanswers, '', '', '');
        helpbutton("shufflewithin", get_string("shufflewithin","quiz"), "quiz");
     ?>
   </td>
@@ -242,7 +236,7 @@
   <td>
     <?php
         choose_from_menu(question_engine::get_archetypal_behaviours(),
-                "preferredbehaviour", $form->preferredbehaviour, "");
+                "preferredbehaviour", $form->preferredbehaviour, '');
         helpbutton("howquestionsbehave", get_string("howquestionsbehave","question"), "question");
     ?>
   </td>
@@ -256,7 +250,7 @@
   <td align="right"><b><?php print_string("eachattemptbuildsonthelast", "quiz") ?>:</b></td>
   <td>
     <?php
-       choose_from_menu ($yesnooptions, "attemptonlast", $form->attemptonlast, "", "", "");
+       choose_from_menu($yesnooptions, "attemptonlast", $form->attemptonlast, '', '', '');
        helpbutton("repeatattempts", get_string("eachattemptbuildsonthelast", "quiz"), "quiz");
     ?>
   </td>
@@ -278,7 +272,7 @@
   <td align="right"><b><?php print_string("showuserpicture", "quiz") ?>:</b></td>
   <td>
     <?php
-       choose_from_menu ($yesnooptions, "showuserpicture", $form->showuserpicture, "", "", "");
+       choose_from_menu($yesnooptions, "showuserpicture", $form->showuserpicture, '', '', '');
        helpbutton("showuserpicture", get_string("showuserpicture","quiz"), "quiz");
     ?>
   </td>
@@ -296,7 +290,7 @@
        for ($i = 0; $i <= QUIZ_MAX_DECIMAL_OPTION; $i += 1) {
            $options[$i] = $i;
        }
-       choose_from_menu ($options, "decimalpoints", $form->decimalpoints, "", "", "");
+       choose_from_menu($options, "decimalpoints", $form->decimalpoints, '', '', '');
        helpbutton("decimalpoints", get_string("decimalpoints","quiz"), "quiz");
     ?>
   </td>
@@ -314,7 +308,7 @@
        for ($i = 0; $i <= QUIZ_MAX_Q_DECIMAL_OPTION; $i += 1) {
            $options[$i] = $i;
        }
-       choose_from_menu ($options, "questiondecimalpoints", $form->questiondecimalpoints, "", "", "");
+       choose_from_menu($options, "questiondecimalpoints", $form->questiondecimalpoints, '', '', '');
        helpbutton("decimalplacesquestion", get_string("decimalplacesquestion","quiz"), "quiz");
     ?>
   </td>
@@ -352,7 +346,7 @@
     <td align="right"><b><?php print_string('delay1', 'quiz') ?>:</b></td>
     <td align="left">
     <?php
-         choose_from_menu($timedelayoptions, 'delay1', $form->delay1, "", "", "" );
+         choose_from_menu($timedelayoptions, 'delay1', $form->delay1, '', '', '' );
          helpbutton('timedelay1', get_string('delay1','quiz'), 'quiz');
     ?>
     </td>
@@ -366,7 +360,7 @@
     <td align="right"><b><?php print_string('delay2', 'quiz') ?>:</b></td>
     <td align="left">
     <?php
-        choose_from_menu($timedelayoptions, 'delay2', $form->delay2, "", "", "");
+        choose_from_menu($timedelayoptions, 'delay2', $form->delay2, '', '', '');
         helpbutton('timedelay2', get_string('delay2','quiz'), 'quiz');
     ?>
     </td>
@@ -386,7 +380,7 @@
         if ($CFG->enablesafebrowserintegration) { 
             $browseroptions[2] = get_string('requiresafeexambrowser', 'quiz');
         }
-        choose_from_menu ($browseroptions, 'popup', $form->popup, '', '', '');
+        choose_from_menu($browseroptions, 'popup', $form->popup, '', '', '');
         helpbutton('browsersecurity', get_string('browsersecurity', 'quiz'), 'quiz');
     ?>
   </td>
