@@ -134,9 +134,21 @@ function quiz_update_instance($quiz) {
 
     // Update the database.
     $quiz->id = $quiz->instance;
+// ou-specific begins
+    global $CFG, $USER;
+    if (has_capability('local/course:revisioneditor', get_context_instance(CONTEXT_COURSE, $quiz->course), null, false)) {
+        //  jecb5 insitu begins
+        include_once($CFG->dirroot.'/local/insitulib.php');
+        oci_mod_make_backup_and_save_instance($quiz);
+        //  jecb5 insitu ends
+    } else {
+// ou-specific ends
     if (!update_record('quiz', $quiz)) {
         return false;  // some error occurred
     }
+// ou-specific begins
+    }
+// ou-specific ends
 
     // Do the processing required after an add or an update.
     quiz_after_add_or_update($quiz);
@@ -1267,3 +1279,13 @@ function quiz_get_extra_capabilities() {
         'moodle/question:viewmine',
     );
 }
+
+// ou-specific begins (until 2.0)
+function quiz_supports($feature) {
+    switch($feature) {
+        case FEATURE_GRADE_HAS_GRADE: return true;
+        case FEATURE_COMPLETION_TRACKS_VIEWS: return true;
+        default: return false;
+    }
+}
+// ou-specific ends (until 2.0)

@@ -6,45 +6,45 @@ QUESTIONS
 
 FILES OUTSIDE lib/questionlib.php, mod/quiz AND question
 
-M	admin/index.php
-M	admin/report/unittest/ex_reporter.php
-A	lang/en_utf8/help/question/howquestionsbehave.html
-A	lang/en_utf8/help/question/penalty.html
-A	lang/en_utf8/help/quiz/decimalplacesquestion.html
-A	lang/en_utf8/help/quiz/showuserpicture.html
-D	lang/en_utf8/qtype_multichoice.php
-D	lang/en_utf8/qtype_numerical.php
-D	lang/en_utf8/qtype_random.php
-D	lang/en_utf8/qtype_shortanswer.php
-D	lang/en_utf8/qtype_truefalse.php
-M	lang/en_utf8/question.php
-M	lang/en_utf8/quiz.php
-D	lang/en_utf8/quiz_grading.php
-D	lang/en_utf8/quiz_overview.php
-D	lang/en_utf8/quiz_regrade.php
-D	lang/en_utf8/quiz_responses.php
-M	lang/en_utf8/role.php
-A	lang/en_utf8/table.php
-M	lib/accesslib.php
-M	lib/db/access.php
-M	lib/ddllib.php
-A	lib/form/duration.php
-M	lib/moodlelib.php
-A	lib/simpletest/testsimpletestlib.php
-M	lib/simpletestlib.php
-M	lib/simpletestlib/dumper.php
-M	lib/simpletestlib/errors.php
-M	lib/simpletestlib/reporter.php
-M	lib/tablelib.php
-A	local/db/install.xml
-A	local/version.php
-M	mod/assignment/lib.php
-A	pix/i/flagged.png
-A	pix/i/ne_red_mark.png
-A	pix/i/unflagged.png
-M	theme/standard/styles_color.css
-M	theme/standard/styles_fonts.css
-M	theme/standard/styles_layout.css
+M   admin/index.php
+M   admin/report/unittest/ex_reporter.php
+A   lang/en_utf8/help/question/howquestionsbehave.html
+A   lang/en_utf8/help/question/penalty.html
+A   lang/en_utf8/help/quiz/decimalplacesquestion.html
+A   lang/en_utf8/help/quiz/showuserpicture.html
+D   lang/en_utf8/qtype_multichoice.php
+D   lang/en_utf8/qtype_numerical.php
+D   lang/en_utf8/qtype_random.php
+D   lang/en_utf8/qtype_shortanswer.php
+D   lang/en_utf8/qtype_truefalse.php
+M   lang/en_utf8/question.php
+M   lang/en_utf8/quiz.php
+D   lang/en_utf8/quiz_grading.php
+D   lang/en_utf8/quiz_overview.php
+D   lang/en_utf8/quiz_regrade.php
+D   lang/en_utf8/quiz_responses.php
+M   lang/en_utf8/role.php
+A   lang/en_utf8/table.php
+M   lib/accesslib.php
+M   lib/db/access.php
+M   lib/ddllib.php
+A   lib/form/duration.php
+M   lib/moodlelib.php
+A   lib/simpletest/testsimpletestlib.php
+M   lib/simpletestlib.php
+M   lib/simpletestlib/dumper.php
+M   lib/simpletestlib/errors.php
+M   lib/simpletestlib/reporter.php
+M   lib/tablelib.php
+A   local/db/install.xml
+A   local/version.php
+M   mod/assignment/lib.php
+A   pix/i/flagged.png
+A   pix/i/ne_red_mark.png
+A   pix/i/unflagged.png
+M   theme/standard/styles_color.css
+M   theme/standard/styles_fonts.css
+M   theme/standard/styles_layout.css
 
 
 
@@ -67,9 +67,9 @@ ALL FILES
   mod/quiz/editlib.php
 √ mod/quiz/grade.php
 √ mod/quiz/icon.gif
-  mod/quiz/index.php
-  mod/quiz/lib.php
-  mod/quiz/locallib.php
+√ mod/quiz/index.php
+√ mod/quiz/lib.php
+√ mod/quiz/locallib.php
   mod/quiz/mod_form.php
 √ mod/quiz/pagelib.php
 √ mod/quiz/processattempt.php
@@ -119,7 +119,7 @@ ALL FILES
 √ mod/quiz/restorelib.php
 √ mod/quiz/restorelibpre15.php
 √ mod/quiz/review.php
-  mod/quiz/reviewoptions.html
+√ mod/quiz/reviewoptions.html
 √ mod/quiz/reviewquestion.php
 √ mod/quiz/simpletest/testaccessrules.php
 √ mod/quiz/simpletest/testlib.php
