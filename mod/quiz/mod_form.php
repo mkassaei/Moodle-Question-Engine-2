@@ -65,7 +65,11 @@ class mod_quiz_mod_form extends moodleform_mod {
         $mform->addElement('date_time_selector', 'timeopen', get_string('quizopen', 'quiz'), array('optional' => true));
         $mform->setHelpButton('timeopen', array('timeopen', get_string('quizopen', 'quiz'), 'quiz'));
 
+// ou-specific begins
+/* Comment out core code.
         $mform->addElement('date_time_selector', 'timeclose', get_string('quizclose', 'quiz'), array('optional' => true));
+*/
+        $mform->addElement('date_time_selector', 'timeclose', get_string('quizclose', 'quiz'), array('optional' => true, 'step' => 1));
         $mform->setHelpButton('timeclose', array('timeopen', get_string('quizclose', 'quiz'), 'quiz'));
 
     /// Time limit.
@@ -319,6 +323,19 @@ class mod_quiz_mod_form extends moodleform_mod {
         $features->groupmembersonly = true;
         $this->standard_coursemodule_elements($features);
 
+// ou-specific begins
+// Bug 9289 - set default group mode and grouping for quizzes.
+        $mform->setDefault('groupmode', SEPARATEGROUPS);
+
+        foreach ($mform->getElement('groupingid')->_options as $option) {
+            $groupingid = $option['attr']['value'];
+            $name = $option['text'];
+            if ($name == $COURSE->shortname . ' Tutor Groups') {
+                $mform->setDefault('groupingid', $groupingid);
+                break;
+            }
+        }
+// ou-specific ends
 //-------------------------------------------------------------------------------
         // buttons
         $this->add_action_buttons();

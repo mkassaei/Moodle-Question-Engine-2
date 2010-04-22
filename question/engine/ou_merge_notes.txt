@@ -47,7 +47,6 @@ M   theme/standard/styles_fonts.css
 M   theme/standard/styles_layout.css
 
 
-
 ALL FILES
 √ lib/questionlib.php
 √ mod/quiz/accessrules.php
@@ -70,7 +69,7 @@ ALL FILES
 √ mod/quiz/index.php
 √ mod/quiz/lib.php
 √ mod/quiz/locallib.php
-  mod/quiz/mod_form.php
+√ mod/quiz/mod_form.php
 √ mod/quiz/pagelib.php
 √ mod/quiz/processattempt.php
 √ mod/quiz/quiz.js
