@@ -15,8 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// ou-specific This whole file
-// until the new question engine is merged into Moodle core (probably 2.1).
 
 /**
  * Sets up the tabs used by the quiz pages based on the users capabilites.

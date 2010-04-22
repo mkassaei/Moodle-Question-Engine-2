@@ -15,8 +15,6 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* ou-specific This whole file
-// until the new question engine is merged into Moodle core (probably 2.1). */
 
 /**
  * Specific styles for the quiz module.
