@@ -1267,5 +1267,3 @@ function quiz_get_extra_capabilities() {
         'moodle/question:viewmine',
     );
 }
-
-?>

@@ -403,5 +403,3 @@ function quiz_print_question_list($quiz, $pageurl, $allowdelete=true, $showbreak
 
     return $sumgrade;
 }
-
-?>

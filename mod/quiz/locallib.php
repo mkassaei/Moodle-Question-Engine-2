@@ -283,27 +283,6 @@ function quiz_number_of_pages($layout) {
 }
 
 /**
- * Returns the first question number for the current quiz page
- *
- * @return integer  The number of the first question
- * @param string $quizlayout The string representing the layout for the whole quiz
- * @param string $pagelayout The string representing the layout for the current page
- */
-function quiz_first_questionnumber($quizlayout, $pagelayout) {
-    // this works by finding all the questions from the quizlayout that
-    // come before the current page and then adding up their lengths.
-    global $CFG;
-    $start = strpos($quizlayout, ','.$pagelayout.',')-2;
-    if ($start > 0) {
-        $prevlist = substr($quizlayout, 0, $start);
-        return get_field_sql("SELECT sum(length)+1 FROM {$CFG->prefix}question
-         WHERE id IN ($prevlist)");
-    } else {
-        return 1;
-    }
-}
-
-/**
  * Re-paginates the quiz layout
  *
  * @return string         The new layout string
@@ -329,39 +308,6 @@ function quiz_repaginate($layout, $perpage, $shuffle=false) {
         $i++;
     }
     return $layout.'0';
-}
-
-/**
- * Print navigation panel for quiz attempt and review pages
- *
- * @param integer $page     The number of the current page (counting from 0).
- * @param integer $pages    The total number of pages.
- */
-function quiz_print_navigation_panel($page, $pages) {
-    //$page++;
-    echo '<div class="paging pagingbar">';
-    echo '<span class="title">' . get_string('page') . ':</span>&nbsp;';
-    if ($page > 0) {
-        // Print previous link
-        $strprev = get_string('previous');
-        echo '&nbsp;<a class="previous" href="javascript:navigate(' . ($page - 1) . ');" title="'
-         . $strprev . '">(' . $strprev . ')</a>&nbsp;';
-    }
-    for ($i = 0; $i < $pages; $i++) {
-        if ($i == $page) {
-            echo '&nbsp;<span class="thispage">'.($i+1).'</span>&nbsp;';
-        } else {
-            echo '&nbsp;<a href="javascript:navigate(' . ($i) . ');">'.($i+1).'</a>&nbsp;';
-        }
-    }
-
-    if ($page < $pages - 1) {
-        // Print next link
-        $strnext = get_string('next');
-        echo '&nbsp;<a class="next" href="javascript:navigate(' . ($page + 1) . ');" title="'
-         . $strnext . '">(' . $strnext . ')</a>&nbsp;';
-    }
-    echo '</div>';
 }
 
 /// Functions to do with quiz grades //////////////////////////////////////////
@@ -788,18 +734,6 @@ function quiz_get_grading_option_name($option) {
 /// Other quiz functions ////////////////////////////////////////////////////
 
 /**
- * Parse field names used for the replace options on question edit forms
- */
-function quiz_parse_fieldname($name, $nameprefix='question') {
-    $reg = array();
-    if (preg_match("/$nameprefix(\\d+)(\w+)/", $name, $reg)) {
-        return array('mode' => $reg[2], 'id' => (int)$reg[1]);
-    } else {
-        return false;
-    }
-}
-
-/**
  * Upgrade states for an attempt to Moodle 1.5 model
  *
  * Any state that does not yet have its timestamp set to nonzero has not yet been upgraded from Moodle 1.4
@@ -833,6 +767,7 @@ function quiz_upgrade_states($attempt) {
         }
     }
 }
+
 /**
  * @param object $quiz the quiz.
  * @param integer $cmid the course_module object for this quiz.
@@ -1330,7 +1265,7 @@ function quiz_check_safe_browser() {
  * A {@link qubaid_condition} for finding all the question usages belonging to
  * a particular quiz.
  *
- * @copyright © 2010 The Open University
+ * @copyright 2010 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class quibaid_for_quiz extends qubaid_join {

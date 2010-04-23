@@ -1,4 +1,21 @@
-<?php // $Id$
+<?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+
 /**
  * Page to edit quizzes
  *
@@ -19,14 +36,15 @@
  * delete       Removes a question from the quiz
  * savechanges  Saves the order and grades for questions in the quiz
  *
- * @author Martin Dougiamas and many others. This has recently been extensively
- *         rewritten by Gustav Delius and other members of the Serving Mathematics project
- *         {@link http://maths.york.ac.uk/serving_maths}
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package quiz
+ * @package mod_quiz
+ * @copyright 1999 onwards Martin Dougiamas and others {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+
     require_once("../../config.php");
     require_once($CFG->dirroot.'/mod/quiz/editlib.php');
+
 
     /**
      * Callback function called from question_list() function (which is called from showbank())
@@ -122,7 +140,7 @@
     //you need mod/quiz:manage in addition to question capabilities to access this page.
     require_capability('mod/quiz:manage', $contexts->lowest());
 
-    if (isset($quiz->instance)
+    if (isset($quiz->id)
         && empty($quiz->grades)){  // Construct an array to hold all the grades.
         $quiz->grades = quiz_get_all_question_grades($quiz);
     }
@@ -145,7 +163,7 @@
             $quiz->questions = $quiz->questions . ',0';
             // Avoid duplicate page breaks
             $quiz->questions = str_replace(',0,0', ',0', $quiz->questions);
-            if (!set_field('quiz', 'questions', $quiz->questions, 'id', $quiz->instance)) {
+            if (!set_field('quiz', 'questions', $quiz->questions, 'id', $quiz->id)) {
                 error('Could not save question list');
             }
             $significantchangemade = true;
@@ -162,7 +180,7 @@
             $quiz->questions = implode(",", $questions);
             // Avoid duplicate page breaks
             $quiz->questions = str_replace(',0,0', ',0', $quiz->questions);
-            if (!set_field('quiz', 'questions', $quiz->questions, 'id', $quiz->instance)) {
+            if (!set_field('quiz', 'questions', $quiz->questions, 'id', $quiz->id)) {
                 error('Could not save question list');
             }
             $significantchangemade = true;
@@ -293,7 +311,7 @@
             while (strpos($quiz->questions, ',0,0')) {
                 $quiz->questions = str_replace(',0,0', ',0', $quiz->questions);
             }
-            if (!set_field('quiz', 'questions', $quiz->questions, 'id', $quiz->instance)) {
+            if (!set_field('quiz', 'questions', $quiz->questions, 'id', $quiz->id)) {
                 error('Could not save question list');
             }
         }
@@ -329,7 +347,7 @@
 /// all commands have been dealt with, now print the page
 
     // Print basic page layout.
-    if (isset($quiz->instance) and record_exists_select('quiz_attempts', "quiz = '$quiz->instance' AND preview = '0'")){
+    if (isset($quiz->id) and quiz_has_attempts($quiz->id)) {
         // one column layout with table of questions used in this quiz
         $strupdatemodule = has_capability('moodle/course:manageactivities', $contexts->lowest())
                     ? update_module_button($cm->id, $course->id, get_string('modulename', 'quiz'))
@@ -376,7 +394,7 @@
     print_heading(get_string('questionsinthisquiz', 'quiz'), '', 2);
 
     $sumgrades = quiz_print_question_list($quiz, $thispageurl, true, $quiz_showbreaks, $quiz_reordertool);
-    if (!set_field('quiz', 'sumgrades', $sumgrades, 'id', $quiz->instance)) {
+    if (!set_field('quiz', 'sumgrades', $sumgrades, 'id', $quiz->id)) {
         error('Failed to set sumgrades');
     }
 
@@ -391,4 +409,3 @@
     echo '</table>';
 
     print_footer($course);
-?>
