@@ -2520,8 +2520,10 @@ function print_header ($title='', $heading='', $navigation='', $focus='',
         $meta .= '<script type="text/javascript"  src="'.$CFG->httpswwwroot.'/lib/swfobject/swfobject.js"></script>';
         $meta .= 
            "<script type=\"text/javascript\">\n".
+           "//<![CDATA[\n".
            "  var flashversion = swfobject.getFlashPlayerVersion();\n".
-           "  YAHOO.util.Connect.asyncRequest('GET','".$CFG->httpswwwroot."/login/environment.php?sesskey=".sesskey()."&amp;flashversion='+flashversion.major+'.'+flashversion.minor+'.'+flashversion.release);\n".
+           "  YAHOO.util.Connect.asyncRequest('GET','".$CFG->httpswwwroot."/login/environment.php?sesskey=".sesskey()."&flashversion='+flashversion.major+'.'+flashversion.minor+'.'+flashversion.release);\n".
+           "//]]>\n".
            "</script>";
     }
 
@@ -4693,6 +4695,12 @@ function print_group_picture($group, $courseid, $large=false, $return=false, $li
 
     $context = get_context_instance(CONTEXT_COURSE, $courseid);
 
+    // If there is no picture, do nothing
+    if (!$group->picture) {
+        return '';
+    }
+
+    // If picture is hidden, only show to those with course:managegroups
     if ($group->hidepicture and !has_capability('moodle/course:managegroups', $context)) {
         return '';
     }
@@ -4707,12 +4715,13 @@ function print_group_picture($group, $courseid, $large=false, $return=false, $li
     } else {
         $file = 'f2';
     }
-    if ($group->picture) {  // Print custom group picture
-        require_once($CFG->libdir.'/filelib.php');
-        $grouppictureurl = get_file_url($group->id.'/'.$file.'.jpg', null, 'usergroup');
-        $output .= '<img class="grouppicture" src="'.$grouppictureurl.'"'.
-            ' alt="'.s(get_string('group').' '.$group->name).'" title="'.s($group->name).'"/>';
-    }
+    
+    // Print custom group picture
+    require_once($CFG->libdir.'/filelib.php');
+    $grouppictureurl = get_file_url($group->id.'/'.$file.'.jpg', null, 'usergroup');
+    $output .= '<img class="grouppicture" src="'.$grouppictureurl.'"'.
+        ' alt="'.s(get_string('group').' '.$group->name).'" title="'.s($group->name).'"/>';
+
     if ($link or has_capability('moodle/site:accessallgroups', $context)) {
         $output .= '</a>';
     }
