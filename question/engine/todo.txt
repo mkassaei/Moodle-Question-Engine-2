@@ -31,6 +31,7 @@ Incorporate other OU-specific quiz customisations into this code (8d)
     Changes to preserve
         adaptive mode / overall feedback import-export refactoring 1d
         new correctness review option on the editing form/db/backup and restore/config/defaults 0.5d
+            display of question history on the review page?
         new 'during the attempt' review option period 0.5d
         matching question, add overall feedback fields (check lang file) 1d
 √       ou_backup_IsConvertingToStandard 0.5d
