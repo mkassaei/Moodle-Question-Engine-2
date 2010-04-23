@@ -230,7 +230,7 @@ class html_writer {
      * @return string HTML fragment
      */
     public static function nonempty_tag($tagname, $contents, array $attributes = null) {
-        if (empty($contents)) {
+        if ($contents === '' || is_null($contents)) {
             return '';
         }
         return self::tag($tagname, $contents, $attributes);
