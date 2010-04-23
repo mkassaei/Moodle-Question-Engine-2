@@ -102,18 +102,22 @@ class ExHtmlReporter extends HtmlReporter {
         echo $this->strseparator, '<br />', $this->_htmlEntities($message), "\n\n";
         if ($stacktrace) {
             $dotsadded = false;
+            $interestinglines = 0;
             $filteredstacktrace = array();
             foreach ($stacktrace as $frame) {
                 if (empty($frame['file']) || (strpos($frame['file'], 'simpletestlib') === false
                         && strpos($frame['file'], 'report/unittest') === false)) {
                     $filteredstacktrace[] = $frame;
+                    $interestinglines += 1;
                     $dotsadded = false;
                 } else if (!$dotsadded) {
                     $filteredstacktrace[] = array('line' => '...', 'file' => '...');
                     $dotsadded = true;
                 }
             }
-            echo '<div class="notifytiny">' . format_backtrace($filteredstacktrace) . "</div>\n\n";
+            if ($interestinglines > 1) {
+                echo '<div class="notifytiny">' . format_backtrace($filteredstacktrace) . "</div>\n\n";
+            }
         }
         print_simple_box_end();
         flush();
