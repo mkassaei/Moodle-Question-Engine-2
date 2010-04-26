@@ -3299,7 +3299,6 @@ function update_capabilities($component='moodle') {
 
     $filecaps = load_capability_def($component);
     $cachedcaps = get_cached_capabilities($component);
-
     if ($cachedcaps) {
         foreach ($cachedcaps as $cachedcap) {
             array_push($storedcaps, $cachedcap->name);

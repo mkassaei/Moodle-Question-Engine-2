@@ -115,7 +115,6 @@
             array_shift($breadcrumb);
             print implode(" -&gt; ", $breadcrumb);
             print " -&gt; " . $this->_htmlEntities($message) . "<br />\n";
-            echo format_backtrace(debug_backtrace()); // DONOTCOMMIT
         }
 
         /**
@@ -147,8 +146,8 @@
                     '] with message ['. $exception->getMessage() .
                     '] in ['. $exception->getFile() .
                     ' line ' . $exception->getLine() . ']';
-            print " -&gt; <strong>" . $this->_htmlEntities($message) . "</strong><br />\n" .
-                    '<small>' . format_backtrace($exception->getTrace()) . '</small>';
+            print " -&gt; <strong>" . $this->_htmlEntities($message) . "</strong><br />\n";
+            print '<small>' . format_backtrace($exception->getTrace()) . '</small>';
         }
 		
 		/**

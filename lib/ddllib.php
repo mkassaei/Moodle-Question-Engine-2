@@ -780,13 +780,6 @@ function get_db_directories() {
         }
     }
 
-/// Now, quiz reports (mod/quiz/report/xxx/db)
-    if ($plugins = get_list_of_plugins('mod/quiz/report')) {
-        foreach ($plugins as $plugin) {
-            $dbdirs[] = $CFG->dirroot.'/mod/quiz/report/'.$plugin.'/db';
-        }
-    }
-
 /// Now, question types (question/type/xxx/db)
     if ($plugins = get_list_of_plugins('question/type')) {
         foreach ($plugins as $plugin) {
@@ -825,6 +818,13 @@ function get_db_directories() {
     if ($plugins = get_list_of_plugins($CFG->admin.'/report', 'db')) {
         foreach ($plugins as $plugin) {
             $dbdirs[] = $CFG->dirroot.'/'.$CFG->admin.'/report/'.$plugin.'/db';
+        }
+    }
+
+/// Now quiz report plugins (mod/quiz/report/xxx/db)
+    if ($plugins = get_list_of_plugins('mod/quiz/report', 'db')) {
+        foreach ($plugins as $plugin) {
+            $dbdirs[] = $CFG->dirroot.'/mod/quiz/report/'.$plugin.'/db';
         }
     }
 

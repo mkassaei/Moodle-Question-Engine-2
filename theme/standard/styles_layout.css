@@ -4064,8 +4064,8 @@ table.quizreviewsummary td.cell {
   font-size: small;
 }
 .quizattemptcounts {
-  clear : left;
   text-align: center;
+  clear : left;
   margin: 6px 0;
 }
 #mod-quiz-attempt #left-column,

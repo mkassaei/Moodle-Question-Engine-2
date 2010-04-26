@@ -846,8 +846,9 @@ table.message_search_results td {
 .que .feedback {
   border-color: #DDD;
 }
-.que .incorrect,
-.que .notanswered {
+
+.que .notanswered,
+.que .incorrect {
     background-color: #faa;
 }
 

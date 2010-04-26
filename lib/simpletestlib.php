@@ -439,7 +439,6 @@ class DoesNotContainTagWithAttributes extends ContainsTagWithAttributes {
     }
 }
 
-
 /**
  * Given a table name, a two-dimensional array of data, and a database connection,
  * creates a table in the database. The array of data should look something like this.
