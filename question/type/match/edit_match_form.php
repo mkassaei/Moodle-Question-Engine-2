@@ -40,6 +40,7 @@ class question_edit_match_form extends question_edit_form {
 
         $this->add_per_answer_fields($mform, get_string('questionno', 'quiz', '{no}'), 0);
 
+        $this->add_overall_feedback_fields(true);
         $this->add_interactive_settings(true, true);
     }
 
@@ -55,6 +56,10 @@ class question_edit_match_form extends question_edit_form {
                 }
             }
             $default_values['shuffleanswers'] =  $question->options->shuffleanswers;
+            $default_values['correctfeedback'] =  $question->options->correctfeedback;
+            $default_values['partiallycorrectfeedback'] =  $question->options->partiallycorrectfeedback;
+            $default_values['incorrectfeedback'] =  $question->options->incorrectfeedback;
+            $default_values['shownumcorrect'] = $question->options->shownumcorrect;
             $question = (object)((array)$question + $default_values);
         }
         parent::set_data($question);

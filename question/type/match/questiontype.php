@@ -93,20 +93,30 @@ class qtype_match extends question_type {
             }
         }
 
-        if ($options = get_record("question_match", "question", $question->id)) {
-            $options->subquestions = implode(",",$subquestions);
-            $options->shuffleanswers = $question->shuffleanswers;
-            if (!update_record("question_match", $options)) {
+        $update = true;
+        $options = get_record('question_match', 'question', $question->id);
+        if (!$options) {
+            $update = false;
+            $options = new stdClass;
+            $options->question = $question->id;
+        }
+
+        $options->subquestions = implode(',', $subquestions);
+        $options->shuffleanswers = $question->shuffleanswers;
+        $options->correctfeedback = trim($question->correctfeedback);
+        $options->partiallycorrectfeedback = trim($question->partiallycorrectfeedback);
+        $options->shownumcorrect = !empty($question->shownumcorrect);
+        $options->incorrectfeedback = trim($question->incorrectfeedback);
+
+        if ($update) {
+            if (!update_record('question_match', $options)) {
                 $result->error = "Could not update match options! (id=$options->id)";
                 return $result;
             }
+
         } else {
-            unset($options);
-            $options->question = $question->id;
-            $options->subquestions = implode(",",$subquestions);
-            $options->shuffleanswers = $question->shuffleanswers;
-            if (!insert_record("question_match", $options)) {
-                $result->error = "Could not insert match options!";
+            if (!insert_record('question_match', $options)) {
+                $result->error = 'Could not insert match options!';
                 return $result;
             }
         }

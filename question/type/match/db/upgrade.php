@@ -32,6 +32,50 @@ function xmldb_qtype_match_upgrade($oldversion=0) {
 ///     $result = result of "/lib/ddllib.php" function calls
 /// }
 
+    if ($result && $oldversion < 2010042800) {
+
+    /// Define field correctfeedback to be added to question_match
+        $table = new XMLDBTable('question_match');
+        $field = new XMLDBField('correctfeedback');
+        $field->setAttributes(XMLDB_TYPE_TEXT, 'small', null, XMLDB_NOTNULL, null, null, null, '', 'shuffleanswers');
+
+    /// Launch add field correctfeedback
+        $result = $result && add_field($table, $field);
+    }
+
+    if ($result && $oldversion < 2010042801) {
+
+    /// Define field partiallycorrectfeedback to be added to question_match
+        $table = new XMLDBTable('question_match');
+        $field = new XMLDBField('partiallycorrectfeedback');
+        $field->setAttributes(XMLDB_TYPE_TEXT, 'small', null, XMLDB_NOTNULL, null, null, null, '', 'correctfeedback');
+
+    /// Launch add field partiallycorrectfeedback
+        $result = $result && add_field($table, $field);
+    }
+
+    if ($result && $oldversion < 2010042802) {
+
+    /// Define field incorrectfeedback to be added to question_match
+        $table = new XMLDBTable('question_match');
+        $field = new XMLDBField('incorrectfeedback');
+        $field->setAttributes(XMLDB_TYPE_TEXT, 'small', null, XMLDB_NOTNULL, null, null, null, '', 'partiallycorrectfeedback');
+
+    /// Launch add field incorrectfeedback
+        $result = $result && add_field($table, $field);
+    }
+
+    if ($result && $oldversion < 2010042803) {
+
+    /// Define field shownumcorrect to be added to question_match
+        $table = new XMLDBTable('question_match');
+        $field = new XMLDBField('shownumcorrect');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, null, null, '0', 'incorrectfeedback');
+
+    /// Launch add field shownumcorrect
+        $result = $result && add_field($table, $field);
+    }
+
     return $result;
 }
 
