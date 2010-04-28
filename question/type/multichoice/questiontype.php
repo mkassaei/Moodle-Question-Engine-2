@@ -108,14 +108,21 @@ class qtype_multichoice extends question_type {
             }
         }
 
+        // delete old answer records
+        if (!empty($oldanswers)) {
+            foreach($oldanswers as $oa) {
+                delete_records('question_answers', 'id', $oa->id);
+            }
+        }
+
         $update = true;
-        $options = get_record("question_multichoice", "question", $question->id);
+        $options = get_record('question_multichoice', 'question', $question->id);
         if (!$options) {
             $update = false;
             $options = new stdClass;
             $options->question = $question->id;
-
         }
+
         $options->answers = implode(",",$answers);
         $options->single = $question->single;
         if(isset($question->layout)){
@@ -125,6 +132,7 @@ class qtype_multichoice extends question_type {
         $options->shuffleanswers = $question->shuffleanswers;
         $options->correctfeedback = trim($question->correctfeedback);
         $options->partiallycorrectfeedback = trim($question->partiallycorrectfeedback);
+        $options->shownumcorrect = !empty($question->shownumcorrect);
         $options->incorrectfeedback = trim($question->incorrectfeedback);
         if ($update) {
             if (!update_record("question_multichoice", $options)) {
@@ -135,13 +143,6 @@ class qtype_multichoice extends question_type {
             if (!insert_record("question_multichoice", $options)) {
                 $result->error = "Could not insert quiz multichoice options!";
                 return $result;
-            }
-        }
-
-        // delete old answer records
-        if (!empty($oldanswers)) {
-            foreach($oldanswers as $oa) {
-                delete_records('question_answers', 'id', $oa->id);
             }
         }
 

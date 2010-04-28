@@ -68,5 +68,19 @@ function xmldb_qtype_multichoice_upgrade($oldversion=0) {
         $result = $result && set_field('question_multichoice', 'answernumbering', 'ABCD', 'answernumbering', 'ABC');
     }
 
+    // Add new shownumcorrect field. If this is true, then when the user gets a
+    // multiple-response question partially correct, tell them how many choices
+    // they got correct alongside the feedback.
+    if ($result && $oldversion < 2010042800) {
+
+    /// Define field shownumcorrect to be added to question_multichoice
+        $table = new XMLDBTable('question_multichoice');
+        $field = new XMLDBField('shownumcorrect');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, null, null, '0', 'answernumbering');
+
+    /// Launch add field shownumcorrect
+        $result = $result && add_field($table, $field);
+    }
+
     return $result;
 }
