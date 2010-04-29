@@ -27,13 +27,14 @@
 require_once($CFG->dirroot . '/question/type/match/questiontype.php');
 
 /**
- * Unit tests for the multiple choice question definition class.
+ * Unit tests for the matching question definition class.
  *
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_match_test extends UnitTestCase {
-    var $qtype;
+    /** @var qtype_match instance of the question type class to test. */
+    protected $qtype;
 
     public function setUp() {
         $this->qtype = new qtype_match();

@@ -70,7 +70,7 @@ class test_question_maker {
         $q->category = 0;
         $q->parent = 0;
         $q->questiontextformat = FORMAT_HTML;
-        $q->defaultgrade = 1;
+        $q->defaultmark = 1;
         $q->penalty = 0.3333333;
         $q->length = 1;
         $q->stamp = make_unique_id_code();
@@ -171,7 +171,6 @@ class test_question_maker {
         $match->name = 'Matching question';
         $match->questiontext = 'Classify the animals.';
         $match->generalfeedback = 'Frogs and toads are amphibians, the others are mammals.';
-        $match->defaultgrade = 1;
         $match->qtype = question_bank::get_qtype('match');
 
         $match->shufflestems = 1;
