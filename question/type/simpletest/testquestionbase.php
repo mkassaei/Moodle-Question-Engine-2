@@ -91,7 +91,7 @@ class question_first_matching_answer_grading_strategy_test extends UnitTestCase 
 /**
  * Test for question_hint and subclasses.
  *
- * @copyright © 2010 The Open University
+ * @copyright 2010 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_hint_test extends UnitTestCase {

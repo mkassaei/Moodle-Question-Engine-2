@@ -352,7 +352,7 @@ abstract class question_behaviour {
  * action that is suitable for most questions that implement the
  * {@link question_manually_gradable} interface.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class question_behaviour_with_save extends question_behaviour {
@@ -416,7 +416,7 @@ abstract class question_behaviour_with_save extends question_behaviour {
  * This helper class contains the constants and methods required for
  * manipulating scores for certainly based marking.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class question_cbm {

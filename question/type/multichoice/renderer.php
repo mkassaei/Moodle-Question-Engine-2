@@ -29,7 +29,7 @@
  * Base class for generating the bits of output common to multiple choice
  * single and multiple questions.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class qtype_multichoice_renderer_base extends qtype_with_overall_feedback_renderer {
@@ -161,7 +161,7 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_overall_feedba
  * Subclass for generating the bits of output specific to multiple choice
  * single questions.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_multichoice_single_renderer extends qtype_multichoice_renderer_base {
@@ -215,7 +215,7 @@ class qtype_multichoice_single_renderer extends qtype_multichoice_renderer_base 
  * Subclass for generating the bits of output specific to multiple choice
  * multi=select questions.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_multichoice_multi_renderer extends qtype_multichoice_renderer_base {

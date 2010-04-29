@@ -24,7 +24,7 @@
  *
  * @package moodlecore
  * @subpackage questionengine
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -104,7 +104,7 @@ class question_attempt_test extends UnitTestCase {
 /**
  * These tests use a standard fixture of a question_attempt with three steps.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt_with_steps_test extends UnitTestCase {

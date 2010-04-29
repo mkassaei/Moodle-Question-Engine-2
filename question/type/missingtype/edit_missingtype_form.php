@@ -20,7 +20,7 @@
  * Defines the editing form for the 'missingtype' question type.
  *
  * @package qtype_missingtype
- * @copyright © 2007 Jamie Pratt
+ * @copyright 2007 Jamie Pratt
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -29,7 +29,7 @@
  * This question renderer class is used when the actual question type of this
  * question cannot be found.
  *
- * @copyright © 2007 Jamie Pratt
+ * @copyright 2007 Jamie Pratt
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_edit_missingtype_form extends question_edit_form {

@@ -37,7 +37,7 @@ require_once(dirname(__FILE__) . '/../immediatefeedback/behaviour.php');
  * Once the qustion is submitted, it is not possible for the student to change
  * their answer any more. The student's degree of certainly affects their score.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qbehaviour_immediatecbm extends qbehaviour_immediatefeedback {

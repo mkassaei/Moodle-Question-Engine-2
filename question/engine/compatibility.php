@@ -681,7 +681,7 @@ class js_writer {
 /**
  * Dummy implementation of the xhtml_container_stack API from Moodle 2.0.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class null_continer_stack {

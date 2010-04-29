@@ -39,7 +39,7 @@
  * possible. A warning is shown that behaviour specific bits may be missing.
  * Any attempt to process anything causes an exception to be thrown.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qbehaviour_missing extends question_behaviour {

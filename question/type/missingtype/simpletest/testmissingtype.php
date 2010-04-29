@@ -20,7 +20,7 @@
  * This file contains tests for the 'missing' question type.
  *
  * @package qtype_missing
- * @copyright © 2010 The Open University
+ * @copyright 2010 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

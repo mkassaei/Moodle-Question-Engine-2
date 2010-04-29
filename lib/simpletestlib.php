@@ -415,7 +415,7 @@ class ContainsSelectExpectation extends XMLStructureExpectation {
  * The opposite of {@link ContainsTagWithAttributes}. The test passes only if
  * the HTML does not contain a tag with the given attributes.
  *
- * @copyright © 2010 The Open University
+ * @copyright 2010 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class DoesNotContainTagWithAttributes extends ContainsTagWithAttributes {

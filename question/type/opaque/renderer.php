@@ -30,7 +30,7 @@
  *
  * // TODO if we delete this class, does it cause any errors?
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_opaque_renderer extends qtype_renderer {

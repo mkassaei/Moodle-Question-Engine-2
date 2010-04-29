@@ -21,7 +21,7 @@
  *
  * @package moodlecore
  * @subpackage questionengine
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -32,7 +32,7 @@ require_once(dirname(__FILE__) . '/../lib.php');
 /**
  * Makes some protected methods of question_attempt public to facilitate testing.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class testable_question_attempt extends question_attempt {
@@ -52,7 +52,7 @@ class testable_question_attempt extends question_attempt {
  * This class creates questions of various types, which can then be used when
  * testing.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class test_question_maker {

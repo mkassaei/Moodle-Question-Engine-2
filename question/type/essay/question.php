@@ -28,7 +28,7 @@
 /**
  * Represents an essay question.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_essay_question extends question_with_responses {
