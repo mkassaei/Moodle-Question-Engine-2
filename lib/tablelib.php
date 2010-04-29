@@ -149,6 +149,7 @@ class flexible_table {
     }
 
     /**
+<<<<<<< HEAD
      * Where to show download buttons.
      * @param array $showat array of postions in which to show download buttons.
      * Containing TABLE_P_TOP and/or TABLE_P_BOTTOM
@@ -159,6 +160,8 @@ class flexible_table {
 
 
     /**
+=======
+>>>>>>> s19
      * Sets the is_sortable variable to the given boolean, sort_default_column to
      * the given string, and the sort_default_order to the given integer.
      * @param bool $bool
