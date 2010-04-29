@@ -15,13 +15,12 @@ Integrate new code into the quiz reports (7d)
 √   delete obsolete get_all_responses method.
 √   re-impliment regrading functionality 1d
 √   sorting on question grade/summary columns 1d
-√   if you change the quiz Grading method setting, overall grades are not re-computed
-        nor when changing question weights. 1d
+√   if you change the quiz Grading method setting, overall grades are not re-computed nor when changing question weights. 1d
 √   refactor to eliminate some duplicated code 1d
 
 Incorporate other OU-specific quiz customisations into this code (8d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8558)
-    Basic merge 0.5d
+√   Basic merge 0.5d
 √   Check with Phil there are no changes the reports compared to what went into 2.0.
     Plugins to convert
         oumultiresponse 1d
@@ -33,16 +32,16 @@ Incorporate other OU-specific quiz customisations into this code (8d)
         new correctness review option on the editing form/db/backup and restore/config/defaults 0.5d
             display of question history on the review page?
         new 'during the attempt' review option period 0.5d
-        matching question, add overall feedback fields (check lang file) 1d
+√       matching question, add overall feedback fields (check lang file) 1d
 √       ou_backup_IsConvertingToStandard 0.5d
 √       $DASHBOARD_COUNTER crap 0.5d
 √       quiz backup version 0d
 √       OCI revisioneditor stuff 0.5d
 √   Changes to eliminate (with permission)
 √       nasty hack in report.php and tabs.php to prevent tutors accessing the responses report (check separate groups works). 0.5d
-    Review lang files as a double-check that nothing was missed. 0.5d
-    Don't auto redirect to edit.php for empty quizzes. 0d
-    Activity completion changes. 0d
+√   Review lang files as a double-check that nothing was missed. 0.5d
+√   Don't auto redirect to edit.php for empty quizzes. 0d
+√   Activity completion changes. 0d
 √   Files to delete 0d
 √       attempt_close_js.php
 √       jstimer.php
