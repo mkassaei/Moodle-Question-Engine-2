@@ -93,20 +93,30 @@ class qtype_match extends question_type {
             }
         }
 
-        if ($options = get_record("question_match", "question", $question->id)) {
-            $options->subquestions = implode(",",$subquestions);
-            $options->shuffleanswers = $question->shuffleanswers;
-            if (!update_record("question_match", $options)) {
+        $update = true;
+        $options = get_record('question_match', 'question', $question->id);
+        if (!$options) {
+            $update = false;
+            $options = new stdClass;
+            $options->question = $question->id;
+        }
+
+        $options->subquestions = implode(',', $subquestions);
+        $options->shuffleanswers = $question->shuffleanswers;
+        $options->correctfeedback = trim($question->correctfeedback);
+        $options->partiallycorrectfeedback = trim($question->partiallycorrectfeedback);
+        $options->shownumcorrect = !empty($question->shownumcorrect);
+        $options->incorrectfeedback = trim($question->incorrectfeedback);
+
+        if ($update) {
+            if (!update_record('question_match', $options)) {
                 $result->error = "Could not update match options! (id=$options->id)";
                 return $result;
             }
+
         } else {
-            unset($options);
-            $options->question = $question->id;
-            $options->subquestions = implode(",",$subquestions);
-            $options->shuffleanswers = $question->shuffleanswers;
-            if (!insert_record("question_match", $options)) {
-                $result->error = "Could not insert match options!";
+            if (!insert_record('question_match', $options)) {
+                $result->error = 'Could not insert match options!';
                 return $result;
             }
         }
@@ -129,6 +139,12 @@ class qtype_match extends question_type {
         parent::initialise_question_instance($question, $questiondata);
 
         $question->shufflestems = $questiondata->options->shuffleanswers;
+        $question->shownumcorrect = $questiondata->options->shownumcorrect;
+
+        $question->correctfeedback = $questiondata->options->correctfeedback;
+        $question->partiallycorrectfeedback = $questiondata->options->partiallycorrectfeedback;
+        $question->incorrectfeedback = $questiondata->options->incorrectfeedback;
+        $question->shownumcorrect = $questiondata->options->shownumcorrect;
 
         $question->stems = array();
         $question->choices = array();

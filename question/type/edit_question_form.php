@@ -274,6 +274,22 @@ class question_edit_form extends moodleform {
         $this->repeat_elements($repeated, $repeatsatstart, $repeatedoptions, 'noanswers', 'addanswers', $addoptions, get_string('addmorechoiceblanks', 'qtype_multichoice'));
     }
 
+    protected function add_overall_feedback_fields($withshownumpartscorrect = false) {
+        $mform = $this->_form;
+
+        $mform->addElement('header', 'overallfeedbackhdr', get_string('overallfeedback', 'qtype_multichoice'));
+
+        foreach (array('correctfeedback', 'partiallycorrectfeedback', 'incorrectfeedback') as $feedbackname) {
+            $mform->addElement('htmleditor', $feedbackname, get_string($feedbackname, 'question'),
+                                array('course' => $this->coursefilesid));
+            $mform->setType($feedbackname, PARAM_RAW);
+
+            if ($withshownumpartscorrect && $feedbackname == 'partiallycorrectfeedback') {
+                $mform->addElement('checkbox', 'shownumcorrect', get_string('options', 'question'), get_string('shownumpartscorrect', 'question'));
+            }
+        }
+    }
+
     protected function get_hint_fields($withclearwrong = false, $withshownumpartscorrect = false) {
         $mform = $this->_form;
 

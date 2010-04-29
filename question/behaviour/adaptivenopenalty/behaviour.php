@@ -31,7 +31,7 @@ require_once(dirname(__FILE__) . '/../adaptive/behaviour.php');
  *
  * This is the old version of interactive mode, without penalties.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qbehaviour_adaptivenopenalty extends qbehaviour_adaptive {

@@ -147,7 +147,6 @@
                     '] in ['. $exception->getFile() .
                     ' line ' . $exception->getLine() . ']';
             print " -&gt; <strong>" . $this->_htmlEntities($message) . "</strong><br />\n";
-            print '<small>' . format_backtrace($exception->getTrace()) . '</small>';
         }
 		
 		/**

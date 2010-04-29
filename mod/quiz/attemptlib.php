@@ -1007,7 +1007,7 @@ class quiz_attempt {
 /**
  * Base class for the navigation panel that appears on the attempt and review pages.
  *
- * @copyright © 2009 Tim Hunt
+ * @copyright 2009 Tim Hunt
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class quiz_nav_panel_base {

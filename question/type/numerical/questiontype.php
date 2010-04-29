@@ -450,7 +450,7 @@ question_register_questiontype(question_bank::get_qtype('numerical'));
 /**
  * This class processes numbers with units.
  *
- * @copyright © 2010 The Open University
+ * @copyright 2010 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_numerical_answer_processor {

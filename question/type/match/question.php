@@ -28,12 +28,17 @@
 /**
  * Represents a matching question.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_match_question extends question_graded_automatically {
     /** @var boolean Whether the question stems should be shuffled. */
     public $shufflestems;
+
+    public $correctfeedback;
+    public $partiallycorrectfeedback;
+    public $incorrectfeedback;
+
     /** @var array of question stems. */
     public $stems;
     /** @var array of choices that can be matched to each stem. */
@@ -85,7 +90,8 @@ class qtype_match_question extends question_graded_automatically {
         foreach ($this->stemorder as $key => $stemid) {
             if (array_key_exists($this->field($key), $response)) {
                 $matches[] = strip_tags($this->format_text($this->stems[$stemid])) . ' -> ' .
-                        strip_tags($this->format_text($this->choices[$this->right[$stemid]]));
+                        strip_tags($this->format_text(
+                        $this->choices[$this->choiceorder[$response[$this->field($key)]]]));
             }
         }
         if (empty($matches)) {
@@ -172,7 +178,7 @@ class qtype_match_question extends question_graded_automatically {
         if ($this->is_gradable_response($response)) {
             return '';
         }
-        return get_string('youmustselectananswer', 'qtype_multichoice');
+        return get_string('youmustselectananswer', 'qtype_match');
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {

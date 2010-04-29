@@ -30,7 +30,7 @@
  * This class controls the loading and saving of question engine data to and from
  * the database.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_engine_data_mapper {

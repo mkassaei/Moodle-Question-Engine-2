@@ -20,7 +20,7 @@
  * Question type class for the essay question type.
  *
  * @package qtype_essay
- * @copyright © 2005 Mark Nielsen
+ * @copyright 2005 Mark Nielsen
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,7 +28,7 @@
 /**
  * The essay question type.
  *
- * @copyright © 2005 Mark Nielsen
+ * @copyright 2005 Mark Nielsen
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_essay extends question_type {

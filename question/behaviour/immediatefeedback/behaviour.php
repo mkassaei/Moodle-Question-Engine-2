@@ -34,7 +34,7 @@
  * student to change their answer any more, but the student gets full feedback
  * straight away.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qbehaviour_immediatefeedback extends question_behaviour_with_save {

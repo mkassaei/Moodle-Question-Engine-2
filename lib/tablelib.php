@@ -116,7 +116,7 @@ class flexible_table {
         }
         return $this->download;
     }
-    
+
     function export_class_instance(&$exportclass=null){
         if (!is_null($exportclass)){
             $this->started_output = true;
@@ -131,9 +131,8 @@ class flexible_table {
         }
         return $this->exportclass;
     }
-    
-    
-    /**
+
+    /** 
      * Probably don't need to call this directly. Calling is_downloading with a
      * param automatically sets table as downloadable.
      *
@@ -150,6 +149,7 @@ class flexible_table {
     }
 
     /**
+<<<<<<< HEAD
      * Where to show download buttons.
      * @param array $showat array of postions in which to show download buttons.
      * Containing TABLE_P_TOP and/or TABLE_P_BOTTOM
@@ -160,6 +160,8 @@ class flexible_table {
 
 
     /**
+=======
+>>>>>>> s19
      * Sets the is_sortable variable to the given boolean, sort_default_column to
      * the given string, and the sort_default_order to the given integer.
      * @param bool $bool
@@ -195,6 +197,7 @@ class flexible_table {
         }
         return !in_array($column, $this->column_nosort);
     }
+
     /**
      * Sets the is_collapsible variable to the given boolean.
      * @param bool $bool
@@ -607,6 +610,16 @@ class flexible_table {
     }
 
     /**
+     * Add a seperator line to table.
+     */
+    function add_separator() {
+        if(!$this->setup) {
+            return false;
+        }
+        $this->add_data(NULL);
+    }
+
+    /**
      * Add a row of data to the table. This function takes an array with
      * column names as keys.
      * It ignores any elements with keys that are not defined as columns. It
@@ -618,16 +631,6 @@ class flexible_table {
      */
     function add_data_keyed($rowwithkeys, $classname = ''){
         $this->add_data($this->get_row_from_keyed($rowwithkeys), $classname);
-    }
-
-    /**
-     * Add a seperator line to table.
-     */
-    function add_separator() {
-        if(!$this->setup) {
-            return false;
-        }
-        $this->add_data(NULL);
     }
 
     /**
@@ -815,8 +818,8 @@ class flexible_table {
      * This function is not part of the public api.
      */
     function print_initials_bar(){
-        if ((!empty($this->sess->i_last) || !empty($this->sess->i_first) || $this->use_initials) 
-                    && isset($this->columns['fullname'])) {
+        if ((!empty($this->sess->i_last) || !empty($this->sess->i_first) || $this->use_initials)
+                  && isset($this->columns['fullname'])) {
 
             $strall = get_string('all');
             $alpha  = explode(',', get_string('alphabet'));

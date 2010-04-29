@@ -32,7 +32,7 @@ require_once($CFG->libdir . '/xmlize.php');
 /**
  * The Moodle XML import/export format.
  *
- * @copyright © 2010 The Open University
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qformat_xml extends qformat_default {

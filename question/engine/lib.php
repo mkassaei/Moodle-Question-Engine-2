@@ -252,7 +252,7 @@ abstract class question_engine {
  * be shown read-only, and a question that has not been submitted will not have
  * any sort of feedback displayed.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_display_options {
@@ -429,7 +429,7 @@ class question_display_options {
 /**
  * Contains the logic for handling question flags.
  *
- * @copyright © 2010 The Open University
+ * @copyright 2010 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class question_flags {
@@ -1104,7 +1104,7 @@ class question_usage_by_activity {
  * To create an instance of this class, use
  * {@link question_usage_by_activity::get_attempt_iterator()}
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt_iterator implements Iterator, ArrayAccess {
@@ -1957,7 +1957,7 @@ class question_attempt {
  * This is actively linked to question_attempt. If you add an new step
  * mid-iteration, then it will be included.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt_step_iterator implements Iterator, ArrayAccess {
@@ -2016,7 +2016,7 @@ class question_attempt_step_iterator implements Iterator, ArrayAccess {
  * A variant of {@link question_attempt_step_iterator} that iterates through the
  * steps in reverse order.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt_reverse_step_iterator extends question_attempt_step_iterator {
@@ -2063,7 +2063,7 @@ class question_attempt_reverse_step_iterator extends question_attempt_step_itera
  * to check wether a varaible with a particular name is set, and {@link get_behaviour_data()}
  * to get all the behaviour data as an associative array.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt_step {
@@ -2305,7 +2305,7 @@ class question_attempt_step {
 /**
  * A subclass with a bit of additional funcitonality, for pending steps.
  *
- * @copyright © 2010 The Open University
+ * @copyright 2010 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt_pending_step extends question_attempt_step {

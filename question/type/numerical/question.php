@@ -30,7 +30,7 @@ require_once($CFG->dirroot . '/question/type/numerical/questiontype.php');
 /**
  * Represents a numerical question.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_numerical_question extends question_graded_by_strategy
@@ -99,7 +99,7 @@ class qtype_numerical_question extends question_graded_by_strategy
  * Subclass of {@link question_answer} with the extra information required by
  * the numerical question type.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_numerical_answer extends question_answer {

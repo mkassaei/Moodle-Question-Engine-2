@@ -31,7 +31,7 @@
  * {@link qbehaviour_renderer} and a {@link qtype_renderer} to output the
  * type-specific bits. The main entry point is the {@link question()} method.
  *
- * @copyright © 2009 The Open University
+ * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class core_question_renderer extends renderer_base {

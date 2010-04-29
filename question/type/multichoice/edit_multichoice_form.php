@@ -62,13 +62,8 @@ class question_edit_multichoice_form extends question_edit_form {
         $this->add_per_answer_fields($mform, get_string('choiceno', 'qtype_multichoice', '{no}'),
                 $creategrades->gradeoptionsfull, max(5, QUESTION_NUMANS_START));
 
-        $mform->addElement('header', 'overallfeedbackhdr', get_string('overallfeedback', 'qtype_multichoice'));
-
-        foreach (array('correctfeedback', 'partiallycorrectfeedback', 'incorrectfeedback') as $feedbackname) {
-            $mform->addElement('htmleditor', $feedbackname, get_string($feedbackname, 'qtype_multichoice'),
-                                array('course' => $this->coursefilesid));
-            $mform->setType($feedbackname, PARAM_RAW);
-        }
+        $this->add_overall_feedback_fields(true);
+        $mform->disabledIf('shownumcorrect', 'single', 'eq', 1);
 
         $this->add_interactive_settings(true, true);
     }
@@ -91,6 +86,7 @@ class question_edit_multichoice_form extends question_edit_form {
             $default_values['correctfeedback'] =  $question->options->correctfeedback;
             $default_values['partiallycorrectfeedback'] =  $question->options->partiallycorrectfeedback;
             $default_values['incorrectfeedback'] =  $question->options->incorrectfeedback;
+            $default_values['shownumcorrect'] = $question->options->shownumcorrect;
             $question = (object)((array)$question + $default_values);
         }
         parent::set_data($question);
