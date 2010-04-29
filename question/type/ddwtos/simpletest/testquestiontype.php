@@ -25,7 +25,6 @@
  */
 
 
-require_once($CFG->dirroot . '/question/type/ddwtos/questiontype.php');
 require_once($CFG->dirroot . '/question/engine/simpletest/helpers.php');
 require_once($CFG->dirroot . '/question/type/ddwtos/simpletest/helper.php');
 
@@ -41,7 +40,7 @@ class qtype_ddwtos_test extends UnitTestCase {
     protected $qtype;
 
     public function setUp() {
-        $this->qtype = new qtype_ddwtos();
+        $this->qtype = question_bank::get_qtype('ddwtos');;
     }
 
     public function tearDown() {
@@ -74,7 +73,7 @@ class qtype_ddwtos_test extends UnitTestCase {
         $dd->name = 'Drag-and-drop words into sentences question';
         $dd->questiontext = 'The [[1]] brown [[2]] jumped over the [[3]] dog.';
         $dd->generalfeedback = 'This sentence uses each letter of the alphabet.';
-        $dd->qtype = question_bank::get_qtype('ddwtos');
+        $dd->qtype = 'ddwtos';
 
         $dd->options->shuffleanswers = true;
 

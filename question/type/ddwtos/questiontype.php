@@ -37,17 +37,14 @@ require_once($CFG->dirroot . '/question/engine/lib.php');
  */
 class qtype_ddwtos extends question_type {
 
-    /** @var string regex to select content like [[cat]] (including the square brackets). */
-    private $squareBracketsRegex = "/\[\[[^]]*?\\]]/";
-
-    private function serialize_draggroup_infinite($draggroup, $infinite){
+    protected function serialize_draggroup_infinite($draggroup, $infinite){
         $output = new stdClass;
         $output->draggroup = $draggroup;
         $output->infinite = $infinite;
         return serialize($output);
     }
 
-    function save_question_options($question) {
+    public function save_question_options($question) {
         $result = new stdClass;
 
         if (!$oldanswers = get_records('question_answers', 'question', $question->id, 'id ASC')) {
@@ -124,7 +121,7 @@ class qtype_ddwtos extends question_type {
         return true;
     }
 
-    function get_question_options($question) {
+    public function get_question_options($question) {
         // Get additional information from database and attach it to the question object
         if (!$question->options = get_record('question_ddwtos', 'questionid', $question->id)) {
             notify('Error: Missing question options for ou drag and drop wordsintosentences question'.$question->id.'!');
@@ -135,7 +132,7 @@ class qtype_ddwtos extends question_type {
         return true;
     }
 
-    function delete_question($questionid) {
+    public function delete_question($questionid) {
         delete_records('question_ddwtos', 'questionid', $questionid);
         return true;
     }
@@ -197,7 +194,7 @@ class qtype_ddwtos extends question_type {
         return question_hint_with_parts::load_from_record($hint);
     }
 
-    function get_random_guess_score($questiondata) {
+    public function get_random_guess_score($questiondata) {
         $question = $this->make_question($questiondata);
         return $question->get_random_guess_score();
     }
@@ -208,7 +205,7 @@ class qtype_ddwtos extends question_type {
      * @param object $question
      * @return array of groups
      */
-    private function get_array_of_choices($question) {
+    protected function get_array_of_choices($question) {
         $subquestions = $question->options->answers;
         $count = 0;
         foreach ($subquestions as $key=>$subquestion){
@@ -230,7 +227,7 @@ class qtype_ddwtos extends question_type {
      * @param object $question
      * @return array of groups
      */
-    private function get_array_of_groups($question, $state) {
+    protected function get_array_of_groups($question, $state) {
         $answers = $this->get_array_of_choices($question);
         $arr = array();
         for($group=1;$group<count($answers);$group++){
@@ -247,7 +244,7 @@ class qtype_ddwtos extends question_type {
      * @param object $question
      * @return array of groups
      */
-    private function get_correct_answers($question){
+    protected function get_correct_answers($question){
         $arrayofchoices = $this->get_array_of_choices($question);
         $arrayofplaceholdeers = $this->get_array_of_placeholders($question);
 
@@ -262,7 +259,7 @@ class qtype_ddwtos extends question_type {
         return $correctplayeers;
     }
 
-    private function get_array_of_placeholders($question) {
+    protected function get_array_of_placeholders($question) {
         $qtext = $question->questiontext;
         $error = '<b> ERROR</b>: Please check the form for this question. ';
         if(!$qtext){
@@ -285,7 +282,7 @@ class qtype_ddwtos extends question_type {
         return $output;
      }
 
-    private function get_group_of_players ($question, $state, $subquestions, $group){
+    protected function get_group_of_players ($question, $state, $subquestions, $group){
         $goupofanswers=array();
         foreach($subquestions as $key=>$subquestion) {
             if($subquestion['draggroup'] == $group){
@@ -301,7 +298,7 @@ class qtype_ddwtos extends question_type {
         return $goupofanswers;
     }
 
-    private function get_possible_responses_for_each_dropbox($question) {
+    protected function get_possible_responses_for_each_dropbox($question) {
         $dropboxes = $this->get_array_of_placeholders($question);
         $correctanswers = $this->get_correct_answers($question);
 
@@ -342,7 +339,7 @@ class qtype_ddwtos extends question_type {
         return $results;
     }
 
-    function get_possible_responses($question) {
+    public function get_possible_responses($question) {
         $responsesforeachdropbox = $this->get_possible_responses_for_each_dropbox($question);
         $answers = array();
         foreach ($responsesforeachdropbox as $key=>$dropbox){
@@ -360,7 +357,7 @@ class qtype_ddwtos extends question_type {
         return $answers;
     }
 
-    function get_actual_response($question, $state) {
+    public function get_actual_response($question, $state) {
         $thistry = $this->get_responses_for_this_try($question, $state);
         $dropboxes = $this->get_array_of_placeholders($question);
         $choices = $this->get_array_of_choices($question);
@@ -387,7 +384,7 @@ class qtype_ddwtos extends question_type {
         return $results;
    }
 
-    function get_actual_response_details($question, $state) {
+    public function get_actual_response_details($question, $state) {
         $responses = $this->get_actual_response($question, $state);
         $teacherresponses = $this->get_possible_responses($question, $state);
 
@@ -447,7 +444,7 @@ class qtype_ddwtos extends question_type {
      * Restores the data in the question (This is used in question/restorelib.php)
      *
      */
-    function restore($old_question_id,$new_question_id,$info,$restore) {
+    public function restore($old_question_id,$new_question_id,$info,$restore) {
         $status = true;
 
         //Get the ddwtos array
@@ -499,4 +496,3 @@ class qtype_ddwtos extends question_type {
     }
 
 }
-question_register_questiontype(new qtype_ddwtos());

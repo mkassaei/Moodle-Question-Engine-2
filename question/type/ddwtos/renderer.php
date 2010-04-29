@@ -66,13 +66,13 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
      * @return string the box contents modified.
      */
     protected function dodgy_ie_fix($string) {
-        return '<sub>&nbsp;</sub>' . $string . '<sup>&nbsp;</sup>';
+        return '<sub>&#160;</sub>' . $string . '<sup>&#160;</sup>';
     }
 
     protected function drop_box(question_attempt $qa, $place, question_display_options $options) {
         $question = $qa->get_question();
         $group = $question->places[$place];
-        $boxcontents = $this->dodgy_ie_fix('&nbsp;');
+        $boxcontents = $this->dodgy_ie_fix('&#160;');
 
         $value = $qa->get_last_qt_var($question->field($place));
 
@@ -89,7 +89,7 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
                 'type' => 'hidden',
                 'id' => $this->css_id($qa, $place, $group) . '_hidden',
                 'class' => 'group' . $group . $readonly,
-                'name' => $qa->get_question()->field($place),
+                'name' => $qa->get_qt_field_name($qa->get_question()->field($place)),
                 'value' => $value));
     }
 
@@ -98,7 +98,7 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
         foreach ($choices as $choice) {
             //Bug 8632 -  long text entry causes bug in drag and drop field in IE
             $content = str_replace('-', '&#x2011;', $choice->text);
-            $content = $this->dodgy_ie_fix(str_replace(' ', '&nbsp;', $content));
+            $content = $this->dodgy_ie_fix(str_replace(' ', '&#160;', $content));
 
             $boxes .= html_writer::tag('span', $content, array(
                     'id' => $this->css_id($qa, 0, $choice->draggroup),
@@ -114,32 +114,6 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
 
     public function specific_feedback(question_attempt $qa) {
         return $this->overall_feedback($qa);
-    }
-
-    /**
-     * This method returns an arry of all incorrect answes from the question_answers table
-     * @param $question object
-     * @param $correctanswer int
-     * @return array (an arry of answers the question_answers table)
-     */
-    private function state_number_of_correct_responses($question, $state, $statenumberofcorrectresponses = 0){
-        $responses = $this->get_number_of_responses($question, &$state);
-        if(!$responses){
-            return null;
-        }
-        $numberofcorrectanswers = $responses['nca'];
-        $numberofcorrectresponses = $responses['ncr'];
-        if ($statenumberofcorrectresponses == 1){
-            if($numberofcorrectresponses <= $numberofcorrectanswers){
-                $ncr = strtolower($this->digit_to_alpha($numberofcorrectresponses, 'middle'));
-                if($numberofcorrectresponses == 1){
-                    return get_string('statecorrectoption', 'qtype_ddwtos', $ncr);
-                }else {
-                    return get_string('statecorrectoptions', 'qtype_ddwtos', $ncr);
-                }
-            }
-        }
-        return null;
     }
 
     public function head_code(question_attempt $qa) {

@@ -66,18 +66,20 @@ class qtype_ddwtos_question extends question_graded_automatically {
             $varname = '_choiceorder' . $group;
 
             if ($step->has_qt_var($varname)) {
-                $this->choiceorder[$group] =
-                        explode(',', $step->get_qt_var($varname));
+                $choiceorder = explode(',', $step->get_qt_var($varname));
 
             } else {
                 $choiceorder = array_keys($choices);
                 if ($this->shufflechoices) {
                     shuffle($choiceorder);
                 }
-                foreach ($choiceorder as $key => $value) {
-                    $this->choiceorder[$group][$key + 1] = $value;
-                }
+            }
 
+            foreach ($choiceorder as $key => $value) {
+                $this->choiceorder[$group][$key + 1] = $value;
+            }
+
+            if (!$step->has_qt_var($varname)) {
                 $step->set_qt_var($varname, implode(',', $this->choiceorder[$group]));
             }
         }
@@ -97,7 +99,8 @@ class qtype_ddwtos_question extends question_graded_automatically {
     }
 
     protected function get_selected_choice($group, $shuffledchoicenumber) {
-        return $this->choices[$group][$this->choiceorder[$group][$shuffledchoicenumber]];
+        $choiceno = $this->choiceorder[$group][$shuffledchoicenumber];
+        return $this->choices[$group][$choiceno];
     }
 
     public function summarise_response(array $response) {
