@@ -538,6 +538,3 @@ class qtype_multichoice extends question_type {
         return $this->save_question($question, $form, $course);
     }
 }
-
-// Register this question type with the question bank.
-question_register_questiontype(question_bank::get_qtype('multichoice'));

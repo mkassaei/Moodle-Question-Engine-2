@@ -219,4 +219,3 @@ class qtype_random extends question_type {
         return null;
     }
 }
-question_register_questiontype(question_bank::get_qtype('random'));

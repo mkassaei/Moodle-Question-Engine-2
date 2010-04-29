@@ -32,7 +32,10 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+
 require_once($CFG->dirroot . '/question/engine/lib.php');
+require_once($CFG->dirroot . '/question/type/questiontype.php');
+
 
 /// CONSTANTS ///////////////////////////////////
 
@@ -88,42 +91,13 @@ define('QUESTION_FILEMOVELINKSONLY', 4);
 
 /**#@-*/
 
-/// QTYPES INITIATION //////////////////
-// These variables get initialised via calls to question_register_questiontype
-// as the question type classes are included.
+/**
+ * @global array holding question type objects
+ * @deprecated
+ */
 global $QTYPES;
-/**
- * Array holding question type objects
- */
-$QTYPES = array();
+$QTYPES = question_bank::get_all_qtypes();
 
-/**
- * Add a new question type to the various global arrays above.
- *
- * @param object $qtype An instance of the new question type class.
- */
-function question_register_questiontype($qtype) {
-    global $QTYPES;
-
-    $name = $qtype->name();
-    $QTYPES[$name] = $qtype;
-}
-
-require_once("$CFG->dirroot/question/type/questiontype.php");
-
-// Load the questiontype.php file for each question type
-// These files in turn call question_register_questiontype()
-// with a new instance of each qtype class.
-$qtypenames= get_list_of_plugins('question/type');
-foreach($qtypenames as $qtypename) {
-    // Instanciates all plug-in question types
-    $qtypefilepath= "$CFG->dirroot/question/type/$qtypename/questiontype.php";
-
-    // echo "Loading $qtypename<br/>"; // Uncomment for debugging
-    if (is_readable($qtypefilepath)) {
-        require_once($qtypefilepath);
-    }
-}
 
 /**
  * An array of question type names translated to the user's language, suitable for use when
@@ -136,11 +110,10 @@ foreach($qtypenames as $qtypename) {
  * @return array an array of question type names translated to the user's language.
  */
 function question_type_menu() {
-    global $QTYPES;
     static $menu_options = null;
     if (is_null($menu_options)) {
         $menu_options = array();
-        foreach ($QTYPES as $name => $qtype) {
+        foreach (question_bank::get_all_qtypes() as $name => $qtype) {
             $menuname = $qtype->menu_name();
             if ($menuname) {
                 $menu_options[$name] = $menuname;
