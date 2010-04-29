@@ -139,6 +139,12 @@ class qtype_match extends question_type {
         parent::initialise_question_instance($question, $questiondata);
 
         $question->shufflestems = $questiondata->options->shuffleanswers;
+        $question->shownumcorrect = $questiondata->options->shownumcorrect;
+
+        $question->correctfeedback = $questiondata->options->correctfeedback;
+        $question->partiallycorrectfeedback = $questiondata->options->partiallycorrectfeedback;
+        $question->incorrectfeedback = $questiondata->options->incorrectfeedback;
+        $question->shownumcorrect = $questiondata->options->shownumcorrect;
 
         $question->stems = array();
         $question->choices = array();

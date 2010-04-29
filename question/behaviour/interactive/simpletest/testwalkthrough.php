@@ -378,6 +378,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
                 $this->get_tries_remaining_expectation(2),
                 $this->get_contains_hint_expectation('This is the first hint'),
                 $this->get_contains_num_parts_correct(1),
+                $this->get_contains_standard_partiallycorrect_overall_feedback_expectation(),
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . $right[0], '1'),
                 $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . $right[1]),
                 $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . $wrong[0]),
@@ -453,6 +454,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
                 $this->get_tries_remaining_expectation(2),
                 $this->get_contains_hint_expectation('This is the first hint'),
                 $this->get_contains_num_parts_correct(2),
+                $this->get_contains_standard_partiallycorrect_overall_feedback_expectation(),
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'sub0', $orderforchoice[1]),
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'sub3', $orderforchoice[1]),
                 $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'sub1'),
@@ -480,7 +482,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
                 $this->get_tries_remaining_expectation(2),
                 $this->get_no_hint_visible_expectation());
 
-        // Submit an answer with one right, and one wrong.
+        // Submit the right answer.
         $this->process_submission(array('sub0' => $orderforchoice[1],
                 'sub1' => $orderforchoice[2], 'sub2' => $orderforchoice[2],
                 'sub3' => $orderforchoice[1], '-submit' => 1));
@@ -495,6 +497,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
                 $this->get_contains_select_expectation('sub3', $choices, $orderforchoice[1], false),
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_does_not_contain_try_again_button_expectation(),
-                $this->get_contains_correct_expectation());
+                $this->get_contains_correct_expectation(),
+                $this->get_contains_standard_correct_overall_feedback_expectation());
     }
 }

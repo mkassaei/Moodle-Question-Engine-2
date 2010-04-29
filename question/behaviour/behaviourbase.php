@@ -130,6 +130,8 @@ abstract class question_behaviour {
     public function adjust_display_options(question_display_options $options) {
         if ($this->qa->get_state()->is_finished()) {
             $options->readonly = true;
+            $options->numpartscorrect = $this->qa->get_state()->is_partially_correct() &&
+                    !empty($this->question->shownumcorrect);
         } else {
             $options->hide_all_feedback();
         }

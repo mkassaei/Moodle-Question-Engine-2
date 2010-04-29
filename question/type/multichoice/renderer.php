@@ -32,7 +32,7 @@
  * @copyright © 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class qtype_multichoice_renderer_base extends qtype_renderer {
+abstract class qtype_multichoice_renderer_base extends qtype_with_overall_feedback_renderer {
     abstract protected function get_input_type();
 
     abstract protected function get_input_name(question_attempt $qa, $value);
@@ -152,22 +152,7 @@ abstract class qtype_multichoice_renderer_base extends qtype_renderer {
     }
 
     public function specific_feedback(question_attempt $qa) {
-        $question = $qa->get_question();
-
-        $feedback = '';
-        if ($qa->get_state()->is_correct()) {
-            $feedback = $question->correctfeedback;
-        } else if ($qa->get_state()->is_partially_correct()) {
-            $feedback = $question->partiallycorrectfeedback;
-        } else if ($qa->get_state()->is_incorrect()) {
-            $feedback = $question->incorrectfeedback;
-        }
-
-        if ($feedback) {
-            $feedback = $question->format_text($feedback);
-        }
-
-        return $feedback;
+        return $this->overall_feedback($qa);
     }
 }
 

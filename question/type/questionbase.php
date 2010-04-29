@@ -373,6 +373,9 @@ abstract class question_with_responses extends question_definition
  */
 abstract class question_graded_automatically extends question_with_responses
         implements question_automatically_gradable {
+    /** @var Some question types have the option to show the number of sub-parts correct. */
+    public $shownumcorrect = false;
+
     public function is_gradable_response(array $response) {
         return $this->is_complete_response($response);
     }

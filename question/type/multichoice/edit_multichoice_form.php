@@ -63,6 +63,8 @@ class question_edit_multichoice_form extends question_edit_form {
                 $creategrades->gradeoptionsfull, max(5, QUESTION_NUMANS_START));
 
         $this->add_overall_feedback_fields(true);
+        $mform->disabledIf('shownumcorrect', 'single', 'eq', 1);
+
         $this->add_interactive_settings(true, true);
     }
 

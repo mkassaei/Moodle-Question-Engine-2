@@ -181,3 +181,43 @@ abstract class qtype_renderer extends renderer_base {
         return implode("\n", $qa->get_question()->qtype->find_standard_scripts_and_css());
     }
 }
+
+
+/**
+ * Renderer base classes for question types.
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+abstract class qtype_with_overall_feedback_renderer extends qtype_renderer {
+    protected function overall_feedback(question_attempt $qa) {
+        $question = $qa->get_question();
+
+        $state = $qa->get_state();
+
+        if (!$state->is_finished()) {
+            list($num, $outof) = $qa->get_question()->get_num_parts_right(
+                    $qa->get_last_qt_data());
+            if (is_null($outof)) {
+                return '';
+            }
+
+            $state = question_state::graded_state_for_fraction($num / $outof);
+        }
+
+        $feedback = '';
+        if ($state->is_correct()) {
+            $feedback = $question->correctfeedback;
+        } else if ($state->is_partially_correct()) {
+            $feedback = $question->partiallycorrectfeedback;
+        } else if ($state->is_incorrect()) {
+            $feedback = $question->incorrectfeedback;
+        }
+
+        if ($feedback) {
+            $feedback = $question->format_text($feedback);
+        }
+
+        return $feedback;
+    }
+}

@@ -56,6 +56,10 @@ class testable_question_attempt extends question_attempt {
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class test_question_maker {
+    const STANDARD_OVERALL_CORRECT_FEEDBACK = 'Well done!';
+    const STANDARD_OVERALL_PARTIALLYCORRECT_FEEDBACK = 'Parts, but only parts, of your response are correct.';
+    const STANDARD_OVERALL_INCORRECT_FEEDBACK = 'That is not right at all.';
+
     /**
      * Initialise the common fields of a question of any type.
      */
@@ -142,6 +146,8 @@ class test_question_maker {
         $mc->shuffleanswers = 1;
         $mc->answernumbering = 'abc';
 
+        self::set_standard_overall_feedback_fields($mc);
+
         $mc->answers = array(
             13 => new question_answer('A', 0.5, 'A is part of the right answer'),
             14 => new question_answer('B', -1, 'B is wrong'),
@@ -169,6 +175,8 @@ class test_question_maker {
         $match->qtype = question_bank::get_qtype('match');
 
         $match->shufflestems = 1;
+
+        self::set_standard_overall_feedback_fields($match);
 
         $match->stems = array('', 'Dog', 'Frog', 'Toad', 'Cat');
         $match->choices = array('', 'Mammal', 'Amphibian', 'Insect');
@@ -260,7 +268,21 @@ class test_question_maker {
 
         return $description;
     }
+
+    /**
+     * Add some standard overall feedback to a question. You need to use these
+     * specific feedback strings for the corresponding contains_..._feedback
+     * methods in {@link qbehaviour_walkthrough_test_base} to works.
+     * @param question_definition $q the question to add the feedback to.
+     */
+    public static function set_standard_overall_feedback_fields($q) {
+        $q->correctfeedback = self::STANDARD_OVERALL_CORRECT_FEEDBACK;
+        $q->partiallycorrectfeedback = self::STANDARD_OVERALL_PARTIALLYCORRECT_FEEDBACK;
+        $q->shownumcorrect = true;
+        $q->incorrectfeedback = self::STANDARD_OVERALL_INCORRECT_FEEDBACK;
+    }
 }
+
 
 abstract class testing_db_record_builder {
     public static function build_db_records(array $table) {
@@ -279,11 +301,14 @@ abstract class testing_db_record_builder {
         return $records;
     }
 }
+
+
 class data_loading_method_test_base extends UnitTestCase {
     public function build_db_records(array $table) {
         return testing_db_record_builder::build_db_records($table);
     }
 }
+
 
 class qbehaviour_walkthrough_test_base extends UnitTestCase {
     /** @var question_display_options */
@@ -383,6 +408,18 @@ class qbehaviour_walkthrough_test_base extends UnitTestCase {
 
     protected function get_contains_incorrect_expectation() {
         return new PatternExpectation('/' . preg_quote(get_string('incorrect', 'question')) . '/');
+    }
+
+    protected function get_contains_standard_correct_overall_feedback_expectation() {
+        return new PatternExpectation('/' . preg_quote(test_question_maker::STANDARD_OVERALL_CORRECT_FEEDBACK) . '/');
+    }
+
+    protected function get_contains_standard_partiallycorrect_overall_feedback_expectation() {
+        return new PatternExpectation('/' . preg_quote(test_question_maker::STANDARD_OVERALL_PARTIALLYCORRECT_FEEDBACK) . '/');
+    }
+
+    protected function get_contains_standard_incorrect_overall_feedback_expectation() {
+        return new PatternExpectation('/' . preg_quote(test_question_maker::STANDARD_OVERALL_INCORRECT_FEEDBACK) . '/');
     }
 
     protected function get_does_not_contain_feedback_expectation() {

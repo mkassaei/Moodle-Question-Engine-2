@@ -130,10 +130,12 @@ class qtype_multichoice extends question_type {
         }
         $options->answernumbering = $question->answernumbering;
         $options->shuffleanswers = $question->shuffleanswers;
+
         $options->correctfeedback = trim($question->correctfeedback);
         $options->partiallycorrectfeedback = trim($question->partiallycorrectfeedback);
         $options->shownumcorrect = !empty($question->shownumcorrect);
         $options->incorrectfeedback = trim($question->incorrectfeedback);
+
         if ($update) {
             if (!update_record("question_multichoice", $options)) {
                 $result->error = "Could not update quiz multichoice options! (id=$options->id)";
@@ -190,9 +192,12 @@ class qtype_multichoice extends question_type {
         } else {
             $question->layout = qtype_multichoice_single_question::LAYOUT_VERTICAL;
         }
+
         $question->correctfeedback = $questiondata->options->correctfeedback;
         $question->partiallycorrectfeedback = $questiondata->options->partiallycorrectfeedback;
         $question->incorrectfeedback = $questiondata->options->incorrectfeedback;
+        $question->shownumcorrect = !$questiondata->options->single && $questiondata->options->shownumcorrect;
+
         $this->initialise_question_answers($question, $questiondata);
     }
 

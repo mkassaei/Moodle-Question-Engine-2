@@ -34,6 +34,11 @@
 class qtype_match_question extends question_graded_automatically {
     /** @var boolean Whether the question stems should be shuffled. */
     public $shufflestems;
+
+    public $correctfeedback;
+    public $partiallycorrectfeedback;
+    public $incorrectfeedback;
+
     /** @var array of question stems. */
     public $stems;
     /** @var array of choices that can be matched to each stem. */
