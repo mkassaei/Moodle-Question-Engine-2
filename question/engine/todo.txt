@@ -86,6 +86,7 @@ Miscellaneous code clean-up (1.5d)
     test ungraded quizzes and ungraded questions
     Upgrade essay question type. Kill its use of an answer, and merge all feedback into generalfeedback.
 √   rename interaction model -> behaviour
+    eliminate global $QTYPES.
 
 Port the code to Moodle 2.x (10d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8559)

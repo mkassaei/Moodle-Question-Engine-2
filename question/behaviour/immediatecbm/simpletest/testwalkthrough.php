@@ -34,7 +34,6 @@ class qbehaviour_immediatecbm_walkthrough_test extends qbehaviour_walkthrough_te
 
         // Create a true-false question with correct answer true.
         $mc = test_question_maker::make_a_multichoice_single_question();
-        $mc->maxmark = 1;
         $this->start_attempt_at_question($mc, 'immediatecbm');
 
         $rightindex = $this->get_mc_right_answer_index($mc);
@@ -128,7 +127,6 @@ class qbehaviour_immediatecbm_walkthrough_test extends qbehaviour_walkthrough_te
 
         // Create a true-false question with correct answer true.
         $mc = test_question_maker::make_a_multichoice_single_question();
-        $mc->maxmark = 1;
         $this->start_attempt_at_question($mc, 'immediatecbm');
 
         // Check the initial state.
@@ -216,7 +214,6 @@ class qbehaviour_immediatecbm_walkthrough_test extends qbehaviour_walkthrough_te
 
         // Create a true-false question with correct answer true.
         $mc = test_question_maker::make_a_multichoice_single_question();
-        $mc->maxmark = 1;
         $this->start_attempt_at_question($mc, 'immediatecbm');
 
         // Check the initial state.

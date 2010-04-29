@@ -555,6 +555,29 @@ class qbehaviour_walkthrough_test_base extends UnitTestCase {
                 $this->quba->get_field_prefix($this->qnumber) . '-submit', null, $enabled);
     }
 
+    protected function get_tries_remaining_expectation($n) {
+        return new PatternExpectation('/' . preg_quote(get_string('triesremaining', 'qbehaviour_interactive', $n)) . '/');
+    }
+
+    protected function get_contains_try_again_button_expectation($enabled = null) {
+        $expectedattributes = array(
+            'type' => 'submit',
+            'name' => $this->quba->get_field_prefix($this->qnumber) . '-tryagain',
+        );
+        $forbiddenattributes = array();
+        if ($enabled === true) {
+            $forbiddenattributes['disabled'] = 'disabled';
+        } else if ($enabled === false) {
+            $expectedattributes['disabled'] = 'disabled';
+        }
+        return new ContainsTagWithAttributes('input', $expectedattributes, $forbiddenattributes);
+    }
+
+    protected function get_does_not_contain_try_again_button_expectation() {
+        return new NoPatternExpectation('/name="' .
+                $this->quba->get_field_prefix($this->qnumber) . '-tryagain"/');
+    }
+
     protected function get_contains_select_expectation($name, $choices,
             $selected = null, $enabled = null) {
         $fullname = $this->quba->get_field_prefix($this->qnumber) . $name;
