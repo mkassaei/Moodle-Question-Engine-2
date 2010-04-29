@@ -301,4 +301,3 @@ class qtype_truefalse extends question_type {
         return $this->save_question($question, $form, $course);
     }
 }
-question_register_questiontype(question_bank::get_qtype('truefalse'));

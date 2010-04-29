@@ -88,7 +88,7 @@ abstract class question_definition {
     public $timemodified;
 
     /** @var integer userid of the use who created this question. */
-    public $createdb;
+    public $createdby;
 
     /** @var integer userid of the use who modified this question. */
     public $modifiedby;
@@ -261,7 +261,7 @@ abstract class question_definition {
 class question_information_item extends question_definition {
     public function __construct() {
         parent::__construct();
-        $this->defaultgrade = 0;
+        $this->defaultmark = 0;
         $this->penalty = 0;
         $this->length = 0;
     }

@@ -203,6 +203,3 @@ class qtype_opaque extends question_type {
     }
 
 }
-
-// Register this question type with the system.
-question_register_questiontype(question_bank::get_qtype('opaque'));

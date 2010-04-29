@@ -70,7 +70,7 @@ class test_question_maker {
         $q->category = 0;
         $q->parent = 0;
         $q->questiontextformat = FORMAT_HTML;
-        $q->defaultgrade = 1;
+        $q->defaultmark = 1;
         $q->penalty = 0.3333333;
         $q->length = 1;
         $q->stamp = make_unique_id_code();
@@ -171,7 +171,6 @@ class test_question_maker {
         $match->name = 'Matching question';
         $match->questiontext = 'Classify the animals.';
         $match->generalfeedback = 'Frogs and toads are amphibians, the others are mammals.';
-        $match->defaultgrade = 1;
         $match->qtype = question_bank::get_qtype('match');
 
         $match->shufflestems = 1;
@@ -554,6 +553,29 @@ class qbehaviour_walkthrough_test_base extends UnitTestCase {
     protected function get_contains_submit_button_expectation($enabled = null) {
         return $this->get_contains_button_expectation(
                 $this->quba->get_field_prefix($this->qnumber) . '-submit', null, $enabled);
+    }
+
+    protected function get_tries_remaining_expectation($n) {
+        return new PatternExpectation('/' . preg_quote(get_string('triesremaining', 'qbehaviour_interactive', $n)) . '/');
+    }
+
+    protected function get_contains_try_again_button_expectation($enabled = null) {
+        $expectedattributes = array(
+            'type' => 'submit',
+            'name' => $this->quba->get_field_prefix($this->qnumber) . '-tryagain',
+        );
+        $forbiddenattributes = array();
+        if ($enabled === true) {
+            $forbiddenattributes['disabled'] = 'disabled';
+        } else if ($enabled === false) {
+            $expectedattributes['disabled'] = 'disabled';
+        }
+        return new ContainsTagWithAttributes('input', $expectedattributes, $forbiddenattributes);
+    }
+
+    protected function get_does_not_contain_try_again_button_expectation() {
+        return new NoPatternExpectation('/name="' .
+                $this->quba->get_field_prefix($this->qnumber) . '-tryagain"/');
     }
 
     protected function get_contains_select_expectation($name, $choices,

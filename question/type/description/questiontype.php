@@ -71,4 +71,3 @@ class qtype_description extends question_type {
         return null;
     }
 }
-question_register_questiontype(question_bank::get_qtype('description'));

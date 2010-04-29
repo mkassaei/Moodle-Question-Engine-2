@@ -47,7 +47,7 @@ class qbehaviour_opaque_test extends qbehaviour_walkthrough_test_base {
 
         $q->name = 'samples.mu120.module5.question01';
         $q->qtype = question_bank::get_qtype('opaque');
-        $q->defaultgrade = 3;
+        $q->defaultmark = 3;
 
         $q->engineid = $engineid;
         $q->remoteid = 'samples.mu120.module5.question01';
@@ -139,8 +139,8 @@ class qbehaviour_opaque_test extends qbehaviour_walkthrough_test_base {
 
         // Work out right answer (yuck!)
         $html = $this->quba->render_question($this->qnumber, $this->displayoptions);
-        preg_match('/0.5|2.0|3.0/', $html, $matches);
-        $scale = $matches[0];
+        preg_match('/(0\.5|2\.0|3\.0) metres/', $html, $matches);
+        $scale = $matches[1];
         preg_match('/Patio|Summer House|Flowerbed|Vegetable Plot|Pond/', $html, $matches);
         $feature = $matches[0];
         $sizes = array(

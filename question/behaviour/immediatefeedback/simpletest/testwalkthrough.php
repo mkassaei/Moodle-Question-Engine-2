@@ -34,7 +34,6 @@ class qbehaviour_immediatefeedback_walkthrough_test extends qbehaviour_walkthrou
 
         // Create a true-false question with correct answer true.
         $mc = test_question_maker::make_a_multichoice_single_question();
-        $mc->maxmark = 1;
         $this->start_attempt_at_question($mc, 'immediatefeedback');
 
         $rightindex = $this->get_mc_right_answer_index($mc);
@@ -136,7 +135,6 @@ class qbehaviour_immediatefeedback_walkthrough_test extends qbehaviour_walkthrou
 
         // Create a true-false question with correct answer true.
         $mc = test_question_maker::make_a_multichoice_single_question();
-        $mc->maxmark = 1;
         $this->start_attempt_at_question($mc, 'immediatefeedback');
 
         // Check the initial state.
@@ -192,7 +190,6 @@ class qbehaviour_immediatefeedback_walkthrough_test extends qbehaviour_walkthrou
 
         // Create a true-false question with correct answer true.
         $mc = test_question_maker::make_a_multichoice_single_question();
-        $mc->maxmark = 1;
         $this->start_attempt_at_question($mc, 'immediatefeedback');
 
         // Check the initial state.

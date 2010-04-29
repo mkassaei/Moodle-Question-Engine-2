@@ -1149,11 +1149,6 @@ class qtype_calculated extends question_dataset_dependent_questiontype {
 }
 //// END OF CLASS ////
 
-//////////////////////////////////////////////////////////////////////////
-//// INITIATION - Without this line the question type is not in use... ///
-//////////////////////////////////////////////////////////////////////////
-question_register_questiontype(new qtype_calculated());
-
 function qtype_calculated_calculate_answer($formula, $individualdata,
         $tolerance, $tolerancetype, $answerlength, $answerformat='1', $unit='') {
 /// The return value has these properties:

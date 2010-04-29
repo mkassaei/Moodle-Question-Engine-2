@@ -30,34 +30,11 @@ require_once(dirname(__FILE__) . '/../../../engine/lib.php');
 require_once(dirname(__FILE__) . '/../../../engine/simpletest/helpers.php');
 
 class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_test_base {
-    protected function get_tries_remaining_expectation($n) {
-        return new PatternExpectation('/' . preg_quote(get_string('triesremaining', 'qbehaviour_interactive', $n)) . '/');
-    }
-
-    protected function get_contains_try_again_button_expectation($enabled = null) {
-        $expectedattributes = array(
-            'type' => 'submit',
-            'name' => $this->quba->get_field_prefix($this->qnumber) . '-tryagain',
-        );
-        $forbiddenattributes = array();
-        if ($enabled === true) {
-            $forbiddenattributes['disabled'] = 'disabled';
-        } else if ($enabled === false) {
-            $expectedattributes['disabled'] = 'disabled';
-        }
-        return new ContainsTagWithAttributes('input', $expectedattributes, $forbiddenattributes);
-    }
-
-    protected function get_does_not_contain_try_again_button_expectation() {
-        return new NoPatternExpectation('/name="' .
-                $this->quba->get_field_prefix($this->qnumber) . '-tryagain"/');
-    }
 
     public function test_interactive_feedback_multichoice_right() {
 
         // Create a multichoice single question.
         $mc = test_question_maker::make_a_multichoice_single_question();
-        $mc->maxmark = 1;
         $mc->hints = array(
             new question_hint_with_parts('This is the first hint.', false, false),
             new question_hint_with_parts('This is the second hint.', true, true),
@@ -190,7 +167,6 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
 
         // Create a multichoice single question.
         $mc = test_question_maker::make_a_multichoice_single_question();
-        $mc->maxmark = 1;
         $mc->hints = array(
             new question_hint_with_parts('This is the first hint.', false, false),
         );

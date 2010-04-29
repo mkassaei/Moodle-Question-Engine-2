@@ -57,4 +57,3 @@ class qtype_missingtype extends question_type {
         $mform->display();
     }
 }
-question_register_questiontype(question_bank::get_qtype('missingtype'));

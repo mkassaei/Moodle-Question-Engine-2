@@ -9,7 +9,7 @@ function quiz_upgrade($oldversion) {
 // This function does anything necessary to upgrade
 // older versions to match current functionality
 
-    global $CFG, $QTYPES, $db;
+    global $CFG, $db;
     $success = true;
 
     require_once("$CFG->dirroot/mod/quiz/locallib.php");
