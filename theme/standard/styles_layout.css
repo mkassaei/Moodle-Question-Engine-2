@@ -3840,8 +3840,9 @@ body#mod-quiz-view .generalbox#feedback .overriddennotice {
 }
 #mod-quiz-attempt .submitbtns,
 #mod-quiz-review .submitbtns {
+  clear: left;
   text-align: left;
-  margin-top: 1.5em;
+  padding-top: 1.5em;
 }
 #mod-quiz-summary .submitbtns {
   margin-top: 1.5em;
