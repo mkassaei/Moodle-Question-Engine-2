@@ -419,11 +419,11 @@ function quiz_has_feedback($quiz) {
 function quiz_update_sumgrades($quiz) {
     global $CFG;
     $sql = "UPDATE {$CFG->prefix}quiz
-            SET sumgrades = (
+            SET sumgrades = COALESCE((
                 SELECT SUM(grade)
                 FROM {$CFG->prefix}quiz_question_instances
                 WHERE quiz = {$CFG->prefix}quiz.id
-            )
+            ), 0)
             WHERE id = $quiz->id";
     execute_sql($sql, false);
 }

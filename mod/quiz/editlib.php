@@ -117,8 +117,8 @@ function quiz_add_quiz_question($id, &$quiz) {
 
     $instance = new stdClass;
     $instance->quiz = $quiz->id;
-    $instance->question = $questionid;
-    $instance->grade = $grade;
+    $instance->question = $id;
+    $instance->grade = $questionrecord->defaultgrade;
     insert_record("quiz_question_instances", $instance);
 
     return true;
