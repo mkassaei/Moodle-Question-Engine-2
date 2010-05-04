@@ -438,7 +438,7 @@ print_box_end();
 // Mark module as viewed (note, we do this here and not in finish_page,
 // otherwise the 'not enrolled' error conditions would result in marking
 // 'viewed', I think it's better if they don't.)
-completion_set_module_viewed($course,cm);
+completion_set_module_viewed($course, $cm);
 // ou-specific ends (until 2.0)
 finish_page($course);
 
