@@ -79,7 +79,7 @@ abstract class quiz_attempt_report extends quiz_default_report {
 
         if (!$students = get_users_by_capability($this->context,
                 array('mod/quiz:reviewmyattempts', 'mod/quiz:attempt'),
-                '', '', '', '', '', '', false)) {
+                'id,1', '', '', '', '', '', false)) {
             $students = array();
         } else {
             $students = array_keys($students);
@@ -92,7 +92,7 @@ abstract class quiz_attempt_report extends quiz_default_report {
         // We have a currently selected group.
         if (!$groupstudents = get_users_by_capability($this->context,
                 array('mod/quiz:reviewmyattempts', 'mod/quiz:attempt'),
-                '', '', '', '', $currentgroup, '', false)) {
+                'id,1', '', '', '', $currentgroup, '', false)) {
             $groupstudents = array();
         } else {
             $groupstudents = array_keys($groupstudents);
