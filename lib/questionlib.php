@@ -78,7 +78,7 @@ define("QUESTION_NUMANS_ADD", 3);
 /**
  * The options used when popping up a question preview window in Javascript.
  */
-define('QUESTION_PREVIEW_POPUP_OPTIONS', 'scrollbars=yes,resizable=yes,width=700,height=540');
+define('QUESTION_PREVIEW_POPUP_OPTIONS', 'scrollbars=yes,resizable=yes,width=800,height=600');
 
 /**#@+
  * options used in forms that move files.
