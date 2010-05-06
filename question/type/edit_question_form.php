@@ -341,9 +341,6 @@ class question_edit_form extends moodleform {
     public function set_data($question) {
         global $QTYPES;
         $QTYPES[$question->qtype]->set_default_options($question);
-        if (empty($question->image)) {
-            unset($question->image);
-        }
 
         // Set any options.
         $extra_question_fields = $QTYPES[$question->qtype]->extra_question_fields();

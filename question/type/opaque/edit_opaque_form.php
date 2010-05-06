@@ -24,10 +24,8 @@ class question_edit_opaque_form extends question_edit_form {
         $mform =& $this->_form;
         $mform->removeElement('questiontext');
         $mform->removeElement('questiontextformat');
-        $mform->removeElement('image');
         $mform->removeElement('generalfeedback');
         $mform->removeElement('defaultgrade');
-        $mform->removeElement('penalty');
         $mform->addElement('hidden', 'defaultgrade');
         $mform->setType('defaultgrade', PARAM_INT);
         $mform->setDefault('defaultgrade', 1);
