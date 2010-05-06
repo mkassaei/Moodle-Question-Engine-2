@@ -47,18 +47,22 @@ if (!$category = get_record("question_categories", "id", $question->category)) {
     print_error('unknownquestioncategory', 'question', $question->category);
 }
 
+$displaysettings = array(
+    'markdp' => $CFG->quiz_decimalpoints,
+    'feedback' => question_display_options::VISIBLE,
+    'generalfeedback' => question_display_options::VISIBLE,
+    'correctresponse' => question_display_options::VISIBLE,
+    'marks' => question_display_options::MARK_AND_MAX,
+    'history' => question_display_options::HIDDEN
+);
+
 // Get and validate display options.
 $displayoptions = new question_display_options();
-$displayoptions->set_review_options($CFG->quiz_review); // Quiz-specific, but a sensible source of defaults.
-$displayoptions->markdp = optional_param('markdp', $CFG->quiz_decimalpoints, PARAM_INT);
-$displayoptions->feedback = optional_param('feedback', question_display_options::VISIBLE, PARAM_INT);
-$displayoptions->generalfeedback = optional_param('generalfeedback', question_display_options::VISIBLE, PARAM_INT);
-$displayoptions->correctresponse = optional_param('correctresponse', question_display_options::VISIBLE, PARAM_INT);
-$displayoptions->marks = optional_param('marks', question_display_options::MARK_AND_MAX, PARAM_INT);
-$displayoptions->history = optional_param('history', question_display_options::HIDDEN, PARAM_INT);
 $displayoptions->flags = question_display_options::HIDDEN;
-$displayoptions->manualcomment = question_display_options::VISIBLE;
-
+$displayoptions->manualcomment = question_display_options::HIDDEN;
+foreach ($displaysettings as $setting => $default) {
+    $displayoptions->$setting = optional_param($setting, $default, PARAM_INT);
+}
 
 // Get and validate exitsing preview, or start a new one.
 $previewid = optional_param('previewid', 0, PARAM_ALPHANUM);
@@ -89,7 +93,12 @@ if ($previewid) {
 }
 
 // Prepare a URL that is used in various places.
-$actionurl = $CFG->wwwroot . '/question/preview.php?id=' . $question->id . '&amp;previewid=' . $quba->get_id();
+$actionurl = $CFG->wwwroot . '/question/preview.php?id=' . $question->id . '&previewid=' . $quba->get_id();
+foreach ($displaysettings as $setting => $default) {
+    if ($displayoptions->$setting != $default) {
+        $actionurl .= '&' . $setting . '=' . $displayoptions->$setting;
+    }
+}
 
 // Create the settings form, and initialise the fields.
 $optionsform = new preview_options_form($actionurl);
@@ -151,7 +160,7 @@ print_header($title, '', '', '', $headtags);
 print_heading($title);
 
 // Start the question form.
-echo '<form method="post" action="' . $actionurl .
+echo '<form method="post" action="' . s($actionurl) .
         '" enctype="multipart/form-data" id="responseform">', "\n";
 echo '<input type="hidden" name="sesskey" value="' . sesskey() . '" />', "\n";
 echo '<input type="hidden" name="qnumbers" value="' . $qnumber . '" />', "\n";
@@ -160,8 +169,8 @@ echo '<input type="hidden" name="qnumbers" value="' . $qnumber . '" />', "\n";
 echo $quba->render_question($qnumber, $displayoptions, $displaynumber);
 
 echo '<p class="notifytiny">' . get_string('behaviourbeingused', 'question',
-        question_engine::get_behaviour_name($quba->get_question_attempt($qnumber)->
-        get_behaviour_name())) . '</p>';
+        question_engine::get_behaviour_name(
+        $quba->get_question_attempt($qnumber)->get_behaviour_name())) . '</p>';
 // Finish the question form.
 echo '<div id="previewcontrols" class="controls">';
 echo '<input type="submit" name="restart"' . $restartdisabled .
