@@ -2595,6 +2595,13 @@ body.notes .notesgroup {
   margin-top: 0;
 }
 
+#overallfeedbackhdr div.fhtmleditor {
+    padding: 0;
+}
+#overallfeedbackhdr div.fcheckbox {
+    margin-bottom: 1em;
+}
+
 .que {
   text-align: left;
   margin: 0 auto 1.8em auto;
