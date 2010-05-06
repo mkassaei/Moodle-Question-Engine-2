@@ -19,6 +19,14 @@ class qtype_randomsamatch extends qtype_match {
         return 'randomsamatch';
     }
 
+// ou-specific begins
+    function menu_name() {
+        // Prevent this question appearing in the 'Create question' menu,
+        // because we don't want people using it. 
+        return false;
+    }
+// ou-specific ends
+
     function is_usable_by_random() {
         return false;
     }
