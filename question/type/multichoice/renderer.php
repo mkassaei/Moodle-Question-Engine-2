@@ -43,6 +43,11 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_overall_feedba
 
     abstract protected function is_choice_selected($response, $value);
 
+    /**
+     * Whether a choice should be considered right, wrong or partially right.
+     * @param question_answer $ans representing one of the choices.
+     * @return fload 1.0, 0.0 or something in between, respectively.
+     */
     abstract protected function is_right(question_answer $ans);
 
     abstract protected function get_response(question_attempt $qa);
@@ -97,7 +102,7 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_overall_feedba
             }
             $class = 'r' . ($value % 2);
             if ($options->correctresponse && $ans->fraction > 0) {
-                $class .= ' ' . question_get_feedback_class($ans->fraction);
+                $class .= ' ' . question_get_feedback_class($this->is_right($ans));
             }
             $classes[] = $class;
         }
@@ -190,7 +195,7 @@ class qtype_multichoice_single_renderer extends qtype_multichoice_renderer_base 
     }
 
     protected function is_right(question_answer $ans) {
-        return $ans->fraction > 0.9999999;
+        return $ans->fraction;
     }
 
     protected function prompt() {
@@ -244,7 +249,11 @@ class qtype_multichoice_multi_renderer extends qtype_multichoice_renderer_base {
     }
 
     protected function is_right(question_answer $ans) {
-        return $ans->fraction > 0;
+        if ($ans->fraction > 0) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 
     protected function prompt() {

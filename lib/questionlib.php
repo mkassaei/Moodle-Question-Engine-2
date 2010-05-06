@@ -739,7 +739,7 @@ function question_get_feedback_image($fraction, $selected=true) {
 
     global $CFG;
 
-    if ($fraction >= 1.0) {
+    if ($fraction > 0.9999999) {
         if ($selected) {
             $feedbackimg = '<img src="'.$CFG->pixpath.'/i/tick_green_big.gif" '.
                             'alt="'.get_string('correct', 'quiz').'" class="icon" />';
@@ -747,7 +747,7 @@ function question_get_feedback_image($fraction, $selected=true) {
             $feedbackimg = '<img src="'.$CFG->pixpath.'/i/tick_green_small.gif" '.
                             'alt="'.get_string('correct', 'quiz').'" class="icon" />';
         }
-    } else if ($fraction > 0.0 && $fraction < 1.0) {
+    } else if ($fraction >= 0.0000001) {
         if ($selected) {
             $feedbackimg = '<img src="'.$CFG->pixpath.'/i/tick_amber_big.gif" '.
                             'alt="'.get_string('partiallycorrect', 'quiz').'" class="icon" />';
@@ -778,9 +778,9 @@ function question_get_feedback_class($fraction) {
 
     global $CFG;
 
-    if ($fraction >= 1.0) {
+    if ($fraction > 0.9999999) {
         $class = 'correct';
-    } else if ($fraction > 0.0 && $fraction < 1.0) {
+    } else if ($fraction >= 0.0000001) {
         $class = 'partiallycorrect';
     } else {
         $class = 'incorrect';
