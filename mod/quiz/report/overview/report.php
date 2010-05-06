@@ -168,14 +168,16 @@ class quiz_overview_report extends quiz_attempt_report {
                 echo '<div class="quizattemptcounts">' . $strattemptnum . '</div>';
             }
         }
+
         $nostudents = false;
         if (!$students) {
             notify(get_string('nostudentsyet'));
             $nostudents = true;
-        }else if ($currentgroup && !$groupstudents) {
+        } else if ($currentgroup && !$groupstudents) {
             notify(get_string('nostudentsingroup'));
             $nostudents = true;
         }
+
         if (!$table->is_downloading()) {
             // Print display options
             $mform->set_data($displayoptions + compact('detailedmarks', 'pagesize'));

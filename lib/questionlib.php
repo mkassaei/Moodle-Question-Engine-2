@@ -80,7 +80,7 @@ define("QUESTION_NUMANS_ADD", 3);
 /**
  * The options used when popping up a question preview window in Javascript.
  */
-define('QUESTION_PREVIEW_POPUP_OPTIONS', 'scrollbars=yes,resizable=yes,width=700,height=540');
+define('QUESTION_PREVIEW_POPUP_OPTIONS', 'scrollbars=yes,resizable=yes,width=800,height=600');
 
 /**#@+
  * options used in forms that move files.
@@ -744,7 +744,7 @@ function question_get_feedback_image($fraction, $selected=true) {
 // ou-specific ends
     global $CFG;
 
-    if ($fraction >= 1.0) {
+    if ($fraction > 0.9999999) {
         if ($selected) {
             $feedbackimg = '<img src="'.$CFG->pixpath.'/i/tick_green_big.gif" '.
                             'alt="'.get_string('correct', 'quiz').'" class="icon" />';
@@ -752,7 +752,7 @@ function question_get_feedback_image($fraction, $selected=true) {
             $feedbackimg = '<img src="'.$CFG->pixpath.'/i/tick_green_small.gif" '.
                             'alt="'.get_string('correct', 'quiz').'" class="icon" />';
         }
-    } else if ($fraction > 0.0 && $fraction < 1.0) {
+    } else if ($fraction >= 0.0000001) {
         if ($selected) {
             $feedbackimg = '<img src="'.$CFG->pixpath.'/i/tick_amber_big.gif" '.
                             'alt="'.get_string('partiallycorrect', 'quiz').'" class="icon" />';
@@ -783,9 +783,9 @@ function question_get_feedback_class($fraction) {
 
     global $CFG;
 
-    if ($fraction >= 1.0) {
+    if ($fraction > 0.9999999) {
         $class = 'correct';
-    } else if ($fraction > 0.0 && $fraction < 1.0) {
+    } else if ($fraction >= 0.0000001) {
         $class = 'partiallycorrect';
     } else {
         $class = 'incorrect';

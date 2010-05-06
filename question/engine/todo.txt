@@ -59,8 +59,9 @@ Backup and restore code (7d)
     Restore old backup code ? 5d
     Decide what to do about pre-Moodle 1.5 backups ? 0d?
 
-Performance testing 5d
+Performance and other testing 5d
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9209)
+√   Set up test environment for Phil and Paul. 1d
     Load test the entire quiz (count DB queries and time)
     Profile some key parts of the question processing.
 
