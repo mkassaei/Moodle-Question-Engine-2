@@ -52,7 +52,7 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
 
         $result = '';
         $result .= html_writer::tag('div', $question->format_text($questiontext),
-                array('class' => 'qtext ddwtos_questionid_for_javascript', 'id' => $qa->get_qt_field_name('id')));
+                array('class' => 'qtext ddwtos_questionid_for_javascript', 'id' => $qa->get_qt_field_name('')));
         $result .= html_writer::tag('div', $dragboxs,
                 array('class' => 'answercontainer'));
 
@@ -82,33 +82,38 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
         }
 
         return html_writer::tag('span', $boxcontents, array(
-                'id' => $this->css_id($qa, $place, $group),
+                'id' => $this->box_id($qa, 'p' . $place, $group),
                 'class' => 'slot group' . $group . $readonly,
                 'tabindex' => '0')) .
                 html_writer::empty_tag('input', array(
                 'type' => 'hidden',
-                'id' => $this->css_id($qa, $place, $group) . '_hidden',
+                'id' => $this->box_id($qa, 'p' . $place, $group) . '_hidden',
                 'class' => 'group' . $group . $readonly,
                 'name' => $qa->get_qt_field_name($qa->get_question()->field($place)),
                 'value' => $value));
     }
 
     protected function drag_boxes($qa, $group, $choices, question_display_options $options) {
+        $readonly = '';
+        if ($options->readonly) {
+            $readonly = ' readonly';
+        }
+
         $boxes = '';
-        foreach ($choices as $choice) {
+        foreach ($choices as $key => $choice) {
             //Bug 8632 -  long text entry causes bug in drag and drop field in IE
             $content = str_replace('-', '&#x2011;', $choice->text);
             $content = $this->dodgy_ie_fix(str_replace(' ', '&#160;', $content));
 
             $boxes .= html_writer::tag('span', $content, array(
-                    'id' => $this->css_id($qa, 0, $choice->draggroup),
+                    'id' => $this->box_id($qa, $key, $choice->draggroup),
                     'class' => 'player group' . $choice->draggroup));
         }
 
         return html_writer::nonempty_tag('div', $boxes, array('class' => 'answertext'));
     }
 
-    protected function css_id(question_attempt $qa, $place, $group) {
+    protected function box_id(question_attempt $qa, $place, $group) {
         return $qa->get_qt_field_name($place) . '_' . $group;
     }
 
@@ -118,6 +123,6 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
 
     public function head_code(question_attempt $qa) {
         require_js(array('yui_dom-event', 'yui_dragdrop'));
-        parent::head_code($qa);
+        return parent::head_code($qa);
     }
 }
