@@ -170,7 +170,7 @@ abstract class qbehaviour_renderer extends renderer_base {
             'type' => 'submit',
             'id' => $qa->get_im_field_name('submit'),
             'name' => $qa->get_im_field_name('submit'),
-            'value' => get_string('submit', 'question'),
+            'value' => get_string('check', 'question'),
             'class' => 'submit btn',
         );
         if ($options->readonly) {

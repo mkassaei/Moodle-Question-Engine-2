@@ -117,6 +117,7 @@ $string['yourfileshoulddownload'] = 'Your export file should start to download s
 $string['addanotherhint'] = 'Add another hint';
 $string['answersaved'] = 'Answer saved';
 $string['changeoptions'] = 'Change options';
+$string['check'] = 'Check';
 $string['clearwrongparts'] = 'Clear incorrect responses';
 $string['clicktoflag'] = 'Click to flag this question';
 $string['clicktounflag'] = 'Click to un-flag this question';
