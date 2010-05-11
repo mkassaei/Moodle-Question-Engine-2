@@ -105,7 +105,7 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_contains_try_again_button_expectation(true),
                 $this->get_does_not_contain_correctness_expectation(),
-                $this->get_tries_remaining_expectation(2),
+                new PatternExpectation('/' . preg_quote(get_string('notcomplete', 'qbehaviour_interactive')) . '/'),
                 $this->get_contains_hint_expectation('This is the first hint'));
 
         // Do try again.

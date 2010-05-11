@@ -35,7 +35,7 @@ class qbehaviour_opaque_renderer extends qbehaviour_renderer {
         } else if ($omstate) {
             return $omstate;
         } else {
-            return get_string('submissionnotcorrect', 'qbehaviour_opaque');
+            return get_string('notcomplete', 'qbehaviour_opaque');
         }
     }
 
