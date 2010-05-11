@@ -82,7 +82,7 @@ class qbehaviour_opaque_test extends qbehaviour_walkthrough_test_base {
         $this->check_current_output(
                 new PatternExpectation('/Below is a plan of a proposed garden/'),
                 new PatternExpectation('/incorrect/'),
-                new PatternExpectation('/' . preg_quote(get_string('submissionnotcorrect', 'qbehaviour_opaque')) . '/'),
+                new PatternExpectation('/' . preg_quote(get_string('notcomplete', 'qbehaviour_opaque')) . '/'),
                 $this->get_contains_button_expectation($qa->get_qt_field_name('omact_ok'), 'Try again'));
 
         // Try again.
@@ -104,7 +104,7 @@ class qbehaviour_opaque_test extends qbehaviour_walkthrough_test_base {
         $this->check_current_output(
                 new PatternExpectation('/Below is a plan of a proposed garden/'),
                 new PatternExpectation('/still incorrect/'),
-                new PatternExpectation('/' . preg_quote(get_string('submissionnotcorrect', 'qbehaviour_opaque')) . '/'));
+                new PatternExpectation('/' . preg_quote(get_string('notcomplete', 'qbehaviour_opaque')) . '/'));
 
         // Try again.
         $this->process_submission(array('omact_ok' => 'Try again'));

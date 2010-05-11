@@ -132,6 +132,13 @@ function quiz_update_instance($quiz) {
 
     $oldquiz = get_record('quiz', 'id', $quiz->instance);
 
+    // Repaginate, if asked to.
+    if (!$quiz->shufflequestions && !empty($quiz->repaginatenow)) {
+        require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+        $quiz->questions = quiz_repaginate($oldquiz->questions, $quiz->questionsperpage);
+    }
+    unset($quiz->repaginatenow);
+
     // Update the database.
     $quiz->id = $quiz->instance;
 // ou-specific begins
@@ -694,10 +701,9 @@ function quiz_get_recent_mod_activity(&$activities, &$index, $timestart,
     }
 
     $context         = get_context_instance(CONTEXT_MODULE, $cm->id);
-    $grader          = has_capability('moodle/grade:viewall', $context);
     $accessallgroups = has_capability('moodle/site:accessallgroups', $context);
     $viewfullnames   = has_capability('moodle/site:viewfullnames', $context);
-    $grader          = has_capability('mod/quiz:grade', $context);
+    $grader          = has_capability('mod/quiz:viewreports', $context);
     $groupmode       = groups_get_activity_groupmode($cm, $course);
 
     if (is_null($modinfo->groups)) {
