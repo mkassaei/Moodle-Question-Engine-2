@@ -132,6 +132,13 @@ function quiz_update_instance($quiz) {
 
     $oldquiz = get_record('quiz', 'id', $quiz->instance);
 
+    // Repaginate, if asked to.
+    if (!$quiz->shufflequestions && !empty($quiz->repaginatenow)) {
+        require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+        $quiz->questions = quiz_repaginate($oldquiz->questions, $quiz->questionsperpage);
+    }
+    unset($quiz->repaginatenow);
+
     // Update the database.
     $quiz->id = $quiz->instance;
     if (!update_record('quiz', $quiz)) {
