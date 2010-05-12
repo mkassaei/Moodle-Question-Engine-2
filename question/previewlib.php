@@ -67,27 +67,6 @@ class preview_options_form extends moodleform {
 }
 
 /**
- * Generate the URL for starting a new preview of a given question with the given options.
- * @param integer $questionid
- * @param string $preferredbehaviour
- * @param fload $maxmark
- * @param integer $markdp
- * @return string the URL.
- */
-function restart_url($questionid, $preferredbehaviour, $maxmark, $displayoptions) {
-    global $CFG;
-    return $CFG->wwwroot . '/question/preview.php?id=' . $questionid .
-                '&behaviour=' . $preferredbehaviour .
-                '&maxmark=' . $maxmark .
-                '&markdp=' . $displayoptions->markdp .
-                '&feedback=' . $displayoptions->feedback .
-                '&generalfeedback=' . $displayoptions->generalfeedback .
-                '&correctresponse=' . $displayoptions->correctresponse .
-                '&marks=' . $displayoptions->marks .
-                '&history=' . $displayoptions->history;
-}
-
-/**
  * Delete the current preview, if any, and redirect to start a new preview.
  * @param integer $previewid
  * @param integer $questionid
@@ -99,5 +78,5 @@ function restart_preview($previewid, $questionid, $preferredbehaviour, $maxmark,
     if ($previewid) {
         question_engine::delete_questions_usage_by_activity($previewid);
     }
-    redirect(restart_url($questionid, $preferredbehaviour, $maxmark, $displayoptions));
+    redirect(question_preview_url($questionid, $preferredbehaviour, $maxmark, $displayoptions));
 }

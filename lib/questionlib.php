@@ -609,6 +609,27 @@ function questionbank_navigation_tabs(&$row, $contexts, $querystring) {
 }
 
 /**
+ * Generate the URL for starting a new preview of a given question with the given options.
+ * @param integer $questionid the question to preview.
+ * @param string $preferredbehaviour the behaviour to use for the preview.
+ * @param float $maxmark the maximum to mark the question out of.
+ * @param question_display_options $displayoptions the display options to use.
+ * @return string the URL.
+ */
+function question_preview_url($questionid, $preferredbehaviour, $maxmark, $displayoptions) {
+    global $CFG;
+    return $CFG->wwwroot . '/question/preview.php?id=' . $questionid .
+                '&behaviour=' . $preferredbehaviour .
+                '&maxmark=' . $maxmark .
+                '&markdp=' . $displayoptions->markdp .
+                '&feedback=' . (bool) $displayoptions->feedback .
+                '&generalfeedback=' . (bool) $displayoptions->generalfeedback .
+                '&correctresponse=' . (bool) $displayoptions->correctresponse .
+                '&marks=' . $displayoptions->marks .
+                '&history=' . (bool) $displayoptions->history;
+}
+
+/**
  * Given a list of ids, load the basic information about a set of questions from the questions table.
  * The $join and $extrafields arguments can be used together to pull in extra data.
  * See, for example, the usage in mod/quiz/attemptlib.php, and

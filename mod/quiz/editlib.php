@@ -317,7 +317,8 @@ function quiz_print_question_list($quiz, $pageurl, $allowdelete=true, $showbreak
         }
         echo '</td><td align="center">';
 
-        if (($question->qtype != 'random')){
+        if (($question->qtype != 'random')) {
+            $question->maxmark = $quiz->grades[$qnum];
             echo quiz_question_preview_button($quiz, $question);
         }
         $returnurl = $pageurl->out();
