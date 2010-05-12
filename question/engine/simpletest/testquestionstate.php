@@ -108,8 +108,8 @@ class question_state_test extends UnitTestCase {
     public function test_graded_state_for_fraction() {
         $this->assertEqual(question_state::$gradedwrong, question_state::graded_state_for_fraction(-1));
         $this->assertEqual(question_state::$gradedwrong, question_state::graded_state_for_fraction(0));
-        $this->assertEqual(question_state::$gradedpartial, question_state::graded_state_for_fraction(0.0000001));
-        $this->assertEqual(question_state::$gradedpartial, question_state::graded_state_for_fraction(0.9999999));
+        $this->assertEqual(question_state::$gradedpartial, question_state::graded_state_for_fraction(0.000001));
+        $this->assertEqual(question_state::$gradedpartial, question_state::graded_state_for_fraction(0.999999));
         $this->assertEqual(question_state::$gradedright, question_state::graded_state_for_fraction(1));
     }
 

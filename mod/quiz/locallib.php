@@ -829,29 +829,36 @@ function quiz_question_edit_button($cmid, $question, $returnurl, $contentbeforei
  * @return the HTML for a preview question icon.
  */
 function quiz_question_preview_button($quiz, $question, $label = false) {
-    global $CFG, $COURSE;
+    global $CFG, $COURSE, $USER;
     if (!question_has_capability_on($question, 'use', $question->category)) {
         return '';
     }
 
-    // Minor efficiency saving. Only get strings once, even if there are a lot of icons on one page.
-    static $strpreview = null;
-    static $strpreviewquestion = null;
-    if ($strpreview === null){
-        $strpreview = get_string('preview', 'quiz');
-        $strpreviewquestion = get_string('previewquestion', 'quiz');
-    }
+    // Get the appropriate display options.
+    $fakeattempt = new stdClass;
+    $fakeattempt->userid = $USER->id;
+    // CONTEXT_SYSTEM here is a hack. It is only used to work out whether to display
+    // the flags, and the flags are never shown in question preview anyway.
+    $displayoptions = quiz_get_renderoptions($quiz, $fakeattempt,
+            get_context_instance(CONTEXT_SYSTEM));
+
+    // Work out the correcte preview URL.
+    $url = question_preview_url($question->id, $quiz->preferredbehaviour,
+            $question->maxmark, $displayoptions);
+    $url = str_replace($CFG->wwwroot, '', $url);
 
     // Do we want a label?
-    $strpreviewlabel="";
+    $strpreviewlabel = '';
     if ($label) {
-        $strpreviewlabel = $strpreview;
+        $strpreviewlabel = get_string('preview', 'quiz');
     }
 
     // Build the icon.
-    return link_to_popup_window('/question/preview.php?id=' . $question->id . '&amp;quizid=' . $quiz->id, 'questionpreview',
-            "<img src=\"$CFG->pixpath/t/preview.gif\" class=\"iconsmall\" alt=\"$strpreviewquestion\" /> $strpreviewlabel",
-            0, 0, $strpreviewquestion, QUESTION_PREVIEW_POPUP_OPTIONS, true);
+    $strpreviewquestion = get_string('previewquestion', 'quiz');
+    return link_to_popup_window($url, 'questionpreview',
+            '<img src="' . $CFG->pixpath . '/t/preview.gif" class="iconsmall" alt="' .
+            $strpreviewquestion . '" /> ' . $strpreviewlabel, 0, 0, $strpreviewquestion,
+            QUESTION_PREVIEW_POPUP_OPTIONS, true);
 }
 
 /**

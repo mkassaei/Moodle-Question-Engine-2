@@ -190,6 +190,7 @@ echo '</div>';
 echo "</form>\n";
 
 echo '<div class="clearer"></div>';
+use_html_editor();
 
 // Finish the page
 $accessmanager->show_attempt_timer_if_needed($attemptobj->get_attempt(), time());

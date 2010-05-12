@@ -128,7 +128,7 @@ if (!($quiz->attemptonlast && $lastattempt)) {
     $idstonumbers = array();
     foreach ($quizobj->get_questions() as $i => $questiondata) {
         $question = question_bank::make_question($questiondata);
-        $idstonumbers[$i] = $quba->add_question($question, $questiondata->maxgrade);
+        $idstonumbers[$i] = $quba->add_question($question, $questiondata->maxmark);
     }
 
     // Start all the quetsions.
