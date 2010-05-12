@@ -638,7 +638,8 @@ class question_first_matching_answer_grading_strategy implements question_gradin
 
     public function get_correct_answer() {
         foreach ($this->question->get_answers() as $answer) {
-            if ($answer->fraction > 0.9999999) {
+            $state = question_state::graded_state_for_fraction($answer->fraction);
+            if ($state == question_state::$gradedright) {
                 return $answer;
             }
         }

@@ -69,6 +69,37 @@ class qtype_multichoice_single_question_test extends UnitTestCase {
                 $question->grade_response(array('answer' => 2)));
     }
 
+    public function test_grading_rounding_three_right() {
+        question_bank::load_question_definition_classes('multichoice');
+        $mc = new qtype_multichoice_multi_question();
+        test_question_maker::initialise_a_question($mc);
+        $mc->name = 'Odd numbers';
+        $mc->questiontext = 'Which are the odd numbers?';
+        $mc->generalfeedback = '1, 3 and 5 are the odd numbers.';
+        $mc->qtype = question_bank::get_qtype('multichoice');
+
+        $mc->shuffleanswers = 0;
+        $mc->answernumbering = 'abc';
+
+        test_question_maker::set_standard_overall_feedback_fields($mc);
+
+        $mc->answers = array(
+            11 => new question_answer('1', 0.3333333, ''),
+            12 => new question_answer('2', -1, ''),
+            13 => new question_answer('3', 0.3333333, ''),
+            14 => new question_answer('4', -1, ''),
+            15 => new question_answer('5', 0.3333333, ''),
+            16 => new question_answer('6', -1, ''),
+        );
+
+        $mc->init_first_step(new question_attempt_step());
+
+        list($grade, $state) = $mc->grade_response(
+                array('choice0' => 1, 'choice2' => 1, 'choice4' => 1));
+        $this->assertWithinMargin(1, $grade, 0.000001);
+        $this->assertEqual(question_state::$gradedright, $state);
+    }
+
     public function test_get_correct_response() {
         $question = test_question_maker::make_a_multichoice_single_question();
         $question->shuffleanswers = false;

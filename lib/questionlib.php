@@ -764,7 +764,8 @@ function question_get_feedback_image($fraction, $selected=true) {
 
     global $CFG;
 
-    if ($fraction > 0.9999999) {
+    $state = question_state::graded_state_for_fraction($fraction);
+    if ($state == question_state::$gradedright) {
         if ($selected) {
             $feedbackimg = '<img src="'.$CFG->pixpath.'/i/tick_green_big.gif" '.
                             'alt="'.get_string('correct', 'quiz').'" class="icon" />';
@@ -772,7 +773,7 @@ function question_get_feedback_image($fraction, $selected=true) {
             $feedbackimg = '<img src="'.$CFG->pixpath.'/i/tick_green_small.gif" '.
                             'alt="'.get_string('correct', 'quiz').'" class="icon" />';
         }
-    } else if ($fraction >= 0.0000001) {
+    } else if ($state == question_state::$gradedpartial) {
         if ($selected) {
             $feedbackimg = '<img src="'.$CFG->pixpath.'/i/tick_amber_big.gif" '.
                             'alt="'.get_string('partiallycorrect', 'quiz').'" class="icon" />';
@@ -803,9 +804,10 @@ function question_get_feedback_class($fraction) {
 
     global $CFG;
 
-    if ($fraction > 0.9999999) {
+    $state = question_state::graded_state_for_fraction($fraction);
+    if ($state == question_state::$gradedright) {
         $class = 'correct';
-    } else if ($fraction >= 0.0000001) {
+    } else if ($state == question_state::$gradedpartial) {
         $class = 'partiallycorrect';
     } else {
         $class = 'incorrect';

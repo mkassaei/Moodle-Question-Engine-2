@@ -206,7 +206,8 @@ class qtype_multichoice_single_renderer extends qtype_multichoice_renderer_base 
         $question = $qa->get_question();
 
         foreach ($question->answers as $ans) {
-            if ($ans->fraction > 0.9999999) {
+            if (question_state::graded_state_for_fraction($ans->fraction) ==
+                    question_state::$gradedright) {
                 return get_string('correctansweris', 'qtype_multichoice',
                         $question->format_text($ans->answer));
             }
