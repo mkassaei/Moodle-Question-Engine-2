@@ -155,7 +155,7 @@ if (!$previewid) {
 }
 // Output
 $title = get_string('previewquestion', 'question', format_string($question->name));
-$headtags = $quba->render_question_head_html($qnumber);
+$headtags = question_engine::initialise_js() . $quba->render_question_head_html($qnumber);
 print_header($title, '', '', '', $headtags);
 print_heading($title);
 
