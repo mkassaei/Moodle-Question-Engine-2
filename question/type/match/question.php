@@ -184,8 +184,7 @@ class qtype_match_question extends question_graded_automatically {
     public function is_same_response(array $prevresponse, array $newresponse) {
         foreach ($this->stemorder as $key => $notused) {
             $fieldname = $this->field($key);
-            if (!array_key_exists($fieldname, $newresponse) == array_key_exists($fieldname, $prevresponse) &&
-                    (!array_key_exists($fieldname, $prevresponse) || $newresponse[$fieldname] == $prevresponse[$fieldname])) {
+            if (!question_utils::arrays_same_at_key($prevresponse, $newresponse, $fieldname)) {
                 return false;
             }
         }

@@ -204,8 +204,7 @@ class qtype_ddwtos_question extends question_graded_automatically {
     public function is_same_response(array $prevresponse, array $newresponse) {
         foreach ($this->places as $place => $notused) {
             $fieldname = $this->field($place);
-            if (!array_key_exists($fieldname, $newresponse) == array_key_exists($fieldname, $prevresponse) &&
-                    (!array_key_exists($fieldname, $prevresponse) || $newresponse[$fieldname] == $prevresponse[$fieldname])) {
+            if (!question_utils::arrays_same_at_key($prevresponse, $newresponse, $fieldname)) {
                 return false;
             }
         }

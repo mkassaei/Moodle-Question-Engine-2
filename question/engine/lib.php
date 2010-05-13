@@ -2441,3 +2441,85 @@ class question_usage_null_observer implements question_usage_observer {
     public function notify_step_added(question_attempt_step $step, question_attempt $qa, $seq) {
     }
 }
+
+
+/**
+ * Useful functions for writing question types and behaviours.
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+abstract class question_utils {
+    /**
+     * Tests to see whether two arrays have the same keys, with the same values
+     * (as compared by ===) for each key. However, the order of the arrays does
+     * not have to be the same.
+     * @param array $array1 the first array.
+     * @param array $array2 the second array.
+     * @return boolean whether the two arrays have the same keys with the same
+     *      corresponding values.
+     */
+    public static function arrays_have_same_keys_and_values(array $array1, array $array2) {
+        if (count($array1) != count($array2)) {
+            return false;
+        }
+        foreach ($array1 as $key => $value1) {
+            if (!array_key_exists($key, $array2)) {
+                return false;
+            }
+            if (((string) $value1) !== ((string) $array2[$key])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Tests to see whether two arrays have the same value at a particular key.
+     * This method will return true if:
+     * 1. Neither array contains the key; or
+     * 2. Both arrays conatain the key, and the corresponding values compare
+     *      identical when cast to strings and compared with ===.
+     * @param array $array1 the first array.
+     * @param array $array2 the second array.
+     * @param string $key an array key.
+     * @return boolean whether the two arrays have the same value (or lack of
+     *      one) for a given key.
+     */
+    public static function arrays_same_at_key(array $array1, array $array2, $key) {
+        if (array_key_exists($key, $array1) && array_key_exists($key, $array2)) {
+            return ((string) $array1[$key]) === ((string) $array2[$key]);
+        }
+        if (!array_key_exists($key, $array1) && !array_key_exists($key, $array2)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Tests to see whether two arrays have the same value at a particular key.
+     * This method will return true if:
+     * 1. Neither array contains the key; or
+     * 2. Both arrays conatain the key, and the corresponding values compare
+     *      identical when cast to strings and compared with ===.
+     * @param array $array1 the first array.
+     * @param array $array2 the second array.
+     * @param string $key an array key.
+     * @return boolean whether the two arrays have the same value (or lack of
+     *      one) for a given key.
+     */
+    public static function arrays_same_at_key_missing_is_blank(
+            array $array1, array $array2, $key) {
+        if (array_key_exists($key, $array1)) {
+            $value1 = $array1[$key];
+        } else {
+            $value1 = '';
+        }
+        if (array_key_exists($key, $array2)) {
+            $value2 = $array2[$key];
+        } else {
+            $value2 = '';
+        }
+        return ((string) $value1) === ((string) $value2);
+    }
+}
