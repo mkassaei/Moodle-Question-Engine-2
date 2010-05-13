@@ -138,8 +138,7 @@ class qtype_multichoice_single_question extends qtype_multichoice_base {
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {
-        return array_key_exists('answer', $newresponse) == array_key_exists('answer', $prevresponse) &&
-            (!array_key_exists('answer', $prevresponse) || $newresponse['answer'] == $prevresponse['answer']);
+        return question_utils::arrays_same_at_key($prevresponse, $newresponse, 'answer');
     }
 
     public function is_complete_response(array $response) {
@@ -241,13 +240,13 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {
-        $same = true;
         foreach ($this->order as $key => $notused) {
             $fieldname = $this->field($key);
-            $same = $same && array_key_exists($fieldname, $newresponse) == array_key_exists($fieldname, $prevresponse) &&
-                    (!array_key_exists($fieldname, $prevresponse) || $newresponse[$fieldname] == $prevresponse[$fieldname]);
+            if (!question_utils::arrays_same_at_key($prevresponse, $newresponse, $fieldname)) {
+                return false;
+            }
         }
-        return $same;
+        return true;
     }
 
     public function is_complete_response(array $response) {

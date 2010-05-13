@@ -58,8 +58,7 @@ class qtype_essay_question extends question_with_responses {
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {
-        return (empty($prevresponse['answer']) && empty($newresponse['answer'])) ||
-                (!empty($prevresponse['answer']) && !empty($newresponse['answer']) &&
-                $prevresponse['answer'] == $newresponse['answer']);
+        return question_utils::arrays_same_at_key_missing_is_blank(
+                $prevresponse, $newresponse, 'answer');
     }
 }

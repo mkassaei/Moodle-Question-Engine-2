@@ -69,6 +69,31 @@ class qtype_match_question_test extends UnitTestCase {
                 array('sub0' => '1', 'sub1' => '1', 'sub2' => '3', 'sub3' => '1')));
     }
 
+    public function test_is_same_response() {
+        $question = test_question_maker::make_a_matching_question();
+        $question->init_first_step(new question_attempt_step());
+
+        $this->assertFalse($question->is_same_response(
+                array(),
+                array('sub0' => '0', 'sub1' => '0', 'sub2' => '0', 'sub3' => '0')));
+
+        $this->assertTrue($question->is_same_response(
+                array('sub0' => '0', 'sub1' => '0', 'sub2' => '0', 'sub3' => '0'),
+                array('sub0' => '0', 'sub1' => '0', 'sub2' => '0', 'sub3' => '0')));
+
+        $this->assertFalse($question->is_same_response(
+                array('sub0' => '0', 'sub1' => '0', 'sub2' => '0', 'sub3' => '0'),
+                array('sub0' => '1', 'sub1' => '2', 'sub2' => '3', 'sub3' => '1')));
+
+        $this->assertTrue($question->is_same_response(
+                array('sub0' => '1', 'sub1' => '2', 'sub2' => '3', 'sub3' => '1'),
+                array('sub0' => '1', 'sub1' => '2', 'sub2' => '3', 'sub3' => '1')));
+
+        $this->assertFalse($question->is_same_response(
+                array('sub0' => '2', 'sub1' => '2', 'sub2' => '3', 'sub3' => '1'),
+                array('sub0' => '1', 'sub1' => '2', 'sub2' => '3', 'sub3' => '1')));
+    }
+
     public function test_grading() {
         $question = test_question_maker::make_a_matching_question();
         $question->shufflestems = false;

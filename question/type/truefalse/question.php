@@ -66,9 +66,8 @@ class qtype_truefalse_question extends question_graded_automatically {
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {
-        return (!array_key_exists('answer', $prevresponse) && !array_key_exists('answer', $newresponse)) ||
-                (array_key_exists('answer', $prevresponse) && array_key_exists('answer', $newresponse) &&
-                $prevresponse['answer'] === $newresponse['answer']);
+        return question_utils::arrays_same_at_key_missing_is_blank(
+                $prevresponse, $newresponse, 'answer');
     }
 
     public function grade_response(array $response) {

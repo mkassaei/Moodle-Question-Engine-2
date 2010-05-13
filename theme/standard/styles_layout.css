@@ -2611,6 +2611,7 @@ body.notes .notesgroup {
   float: left;
   width: 6em;
   padding: 0.5em;
+  margin-bottom: 1.8em;
 }
 .que .info .questionflag {
   margin-top: 1em;
@@ -3839,6 +3840,11 @@ body#mod-quiz-view .generalbox#feedback .overriddennotice {
 #mod-quiz-review #middle-column {
   text-align: center;
   margin: 0 0 0 12.5em;
+}
+#mod-quiz-attempt #middle-column-inner,
+#mod-quiz-review #middle-column-inner {
+  float: left;
+  width: 100%
 }
 #mod-quiz-attempt #left-column,
 #mod-quiz-review #left-column {

@@ -143,14 +143,14 @@ echo '<div>';
 print_js_call('init_quiz_form');
 
 // Print the navigation panel in a left column.
-print_container_start();
 echo '<div id="left-column">';
+print_container_start();
 $attemptobj->print_navigation_panel('quiz_attempt_nav_panel', $page);
-echo '</div>';
 print_container_end();
+echo '</div>';
 
 // Start the main column.
-echo '<div id="middle-column">';
+echo '<div id="middle-column"><div id="middle-column-inner">';
 print_container_start();
 echo skip_main_destination();
 
@@ -182,10 +182,10 @@ echo '<input type="hidden" name="qnumbers" value="' .
         implode(',', $qnumbers) . "\" />\n";
 
 // End middle column.
+echo '</div></div>';
 print_container_end();
 
 // Finish the form
-echo '</div>';
 echo '</div>';
 echo "</form>\n";
 

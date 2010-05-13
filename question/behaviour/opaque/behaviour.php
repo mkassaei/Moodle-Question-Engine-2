@@ -75,20 +75,16 @@ class qbehaviour_opaque extends question_behaviour {
 
     protected function is_same_response(question_attempt_step $pendingstep) {
         $newdata = $pendingstep->get_submitted_data();
-        $olddata = $this->qa->get_last_step()->get_submitted_data();
 
         foreach ($newdata as $key => $ignored) {
-            if (!array_key_exists($key, $olddata) || $olddata[$key] !== $newdata[$key]) {
-                return false;
-            }
-
             // If an omact_ button has been clicked, never treat this as a duplicate submission.
             if (strpos($key, 'omact_') === 0) {
                 return false;
             }
         }
 
-        return count($olddata) == count($newdata);
+        $olddata = $this->qa->get_last_step()->get_submitted_data();
+        return question_utils::arrays_have_same_keys_and_values($newdata, $olddata);
     }
 
     public function process_action(question_attempt_pending_step $pendingstep) {
