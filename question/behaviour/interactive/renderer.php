@@ -58,6 +58,7 @@ class qbehaviour_interactive_renderer extends qbehaviour_renderer {
 
         $attributes = array(
             'type' => 'submit',
+            'id' => $qa->get_im_field_name('tryagain'),
             'name' => $qa->get_im_field_name('tryagain'),
             'value' => get_string('tryagain', 'qbehaviour_interactive'),
             'class' => 'submit btn',
@@ -65,6 +66,11 @@ class qbehaviour_interactive_renderer extends qbehaviour_renderer {
         if ($options->readonly !== qbehaviour_interactive::READONLY_EXCEPT_TRY_AGAIN) {
             $attributes['disabled'] = 'disabled';
         }
-        return html_writer::empty_tag('input', $attributes);
+        $output = html_writer::empty_tag('input', $attributes);
+        if (empty($attributes['disabled'])) {
+            $output .= print_js_call('question_init_submit_button',
+                    array($attributes['id'], $qa->get_number_in_usage()), true);
+        }
+        return $output;
     }
 }

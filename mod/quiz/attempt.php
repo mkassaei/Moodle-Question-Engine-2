@@ -182,8 +182,8 @@ echo '<input type="hidden" name="qnumbers" value="' .
         implode(',', $qnumbers) . "\" />\n";
 
 // End middle column.
-echo '</div></div>';
 print_container_end();
+echo '</div></div>';
 
 // Finish the form
 echo '</div>';

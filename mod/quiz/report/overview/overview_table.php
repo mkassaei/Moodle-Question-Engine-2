@@ -71,7 +71,7 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
                         $namekey => get_string('groupavg', 'grades'),
                         'sumgrades' => $this->format_average($record),
                         'feedbacktext'=> strip_tags(quiz_report_feedback_for_grade($record->grade, $this->quiz->id)));
-                if($this->detailedmarks && $this->qmsubselect) {
+                if($this->detailedmarks && ($this->quiz->attempts == 1 || $this->qmsubselect)) {
                     $avggradebyq = $this->load_average_question_grades($this->groupstudents);
                     $groupaveragerow += $this->format_average_grade_for_questions($avggradebyq);
                 }
@@ -84,7 +84,7 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
                     $namekey => get_string('overallaverage', 'grades'),
                     'sumgrades' => $this->format_average($record),
                     'feedbacktext'=> strip_tags(quiz_report_feedback_for_grade($record->grade, $this->quiz->id)));
-            if ($this->detailedmarks && $this->qmsubselect) {
+            if ($this->detailedmarks && ($this->quiz->attempts == 1 || $this->qmsubselect)) {
                 $avggradebyq = $this->load_average_question_grades($this->students);
                 $overallaveragerow += $this->format_average_grade_for_questions($avggradebyq);
             }
@@ -309,18 +309,19 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
      * Load the average grade for each question, averaged over particular users.
      * @param array $userids the user ids to average over.
      */
-    function load_average_question_grades($userids) {
+    protected function load_average_question_grades($userids) {
         global $CFG;
 
-        $qmfilter = quiz_report_qm_filter_select($this->quiz, 'quiza');
+        $qmfilter = '';
+        if ($this->quiz->attempts != 1) {
+            $qmfilter = '(' . quiz_report_qm_filter_select($this->quiz, 'quiza') . ') AND ';
+        }
         list($usql, $params) = get_in_or_equal($userids);
 
         $qubaids = new qubaid_join(
                 "{$CFG->prefix}quiz_attempts quiza",
                 'quiza.uniqueid',
-                "($qmfilter) AND
-                    quiza.userid $usql AND
-                    quiza.quiz = {$this->quiz->id}");
+                "{$qmfilter}quiza.userid $usql AND quiza.quiz = {$this->quiz->id}");
 
         $dm = new question_engine_data_mapper();
         return $dm->load_average_marks($qubaids, array_keys($this->questions));

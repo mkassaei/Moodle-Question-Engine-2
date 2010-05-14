@@ -35,7 +35,7 @@ class question_edit_match_form extends question_edit_form {
         $mform->setHelpButton('shuffleanswers', array('matchshuffle', get_string('shuffle','quiz'), 'quiz'));
         $mform->setDefault('shuffleanswers', 1);
 
-        $mform->addElement('static', 'answersinstruct', get_string('choices', 'quiz'), get_string('filloutthreeqsandtwoas', 'qtype_match'));
+        $mform->addElement('static', 'answersinstruct', get_string('availablechoices', 'qtype_match'), get_string('filloutthreeqsandtwoas', 'qtype_match'));
         $mform->closeHeaderBefore('answersinstruct');
 
         $this->add_per_answer_fields($mform, get_string('questionno', 'quiz', '{no}'), 0);

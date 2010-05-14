@@ -4087,6 +4087,8 @@ table.quizreviewsummary td.cell {
   padding-top: 1px;
 }
 #quiznavigation .qnbutton {
+  -moz-appearance: none;
+  -moz-box-sizing: content-box;
   display: block;
   float: left;
   width: 1.5em;
@@ -4111,6 +4113,7 @@ table.quizreviewsummary td.cell {
 }
 #quiznavigation .othernav {
   clear: both;
+  margin: 0.5em 0;
 }
 #quiznavigation .othernav a,
 #quiznavigation .othernav input {

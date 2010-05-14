@@ -130,14 +130,15 @@ print_heading($strreviewtitle);
 // ou-specific ends
 
 // Print the navigation panel in a left column.
-print_container_start();
 echo '<div id="left-column">';
+print_container_start();
 $attemptobj->print_navigation_panel('quiz_review_nav_panel', $page);
-echo '</div>';
 print_container_end();
+echo '</div>';
 
 // Start the main column.
-echo '<div id="middle-column">';
+echo '<div id="middle-column"><div id="middle-column-inner">';
+print_container_start();
 echo skip_main_destination();
 
 // Summary table start ============================================================================
@@ -289,7 +290,9 @@ if ($lastpage) {
 } else {
     echo link_arrow_right(get_string('next'), $attemptobj->review_url(0, $page + 1));
 }
-echo "</div>";
+// End middle column.
+print_container_end();
+echo '</div></div>';
 
 // End middle column.
 echo '</div>';

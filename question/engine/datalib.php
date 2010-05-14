@@ -949,6 +949,9 @@ class qubaid_list extends qubaid_condition {
     }
 
     public function usage_id_in() {
+        if (empty($this->qubaids)) {
+            return '= 0';
+        }
         list($where, $params) = get_in_or_equal($this->qubaids, SQL_PARAMS_NAMED, 'qubaid0000');
         return $where;
     }

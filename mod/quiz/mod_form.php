@@ -62,14 +62,12 @@ class mod_quiz_mod_form extends moodleform_mod {
         $mform->addElement('format', 'introformat', get_string('format'));
 
     /// Open and close dates.
-        $mform->addElement('date_time_selector', 'timeopen', get_string('quizopen', 'quiz'), array('optional' => true));
+        $mform->addElement('date_time_selector', 'timeopen', get_string('quizopen', 'quiz'),
+                array('optional' => true, 'step' => 1));
         $mform->setHelpButton('timeopen', array('timeopen', get_string('quizopen', 'quiz'), 'quiz'));
 
-// ou-specific begins
-/* Comment out core code.
-        $mform->addElement('date_time_selector', 'timeclose', get_string('quizclose', 'quiz'), array('optional' => true));
-*/
-        $mform->addElement('date_time_selector', 'timeclose', get_string('quizclose', 'quiz'), array('optional' => true, 'step' => 1));
+        $mform->addElement('date_time_selector', 'timeclose', get_string('quizclose', 'quiz'),
+                array('optional' => true, 'step' => 1));
         $mform->setHelpButton('timeclose', array('timeopen', get_string('quizclose', 'quiz'), 'quiz'));
 
     /// Time limit.
