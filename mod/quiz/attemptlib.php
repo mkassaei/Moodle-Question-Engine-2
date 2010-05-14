@@ -660,7 +660,11 @@ class quiz_attempt {
      */
     public function get_question_numbers($page = 'all') {
         if ($page === 'all') {
-            return $this->quba->get_question_numbers();
+            $numbers = array();
+            foreach ($this->pagelayout as $numbersonpage) {
+                $numbers = array_merge($numbers, $numbersonpage);
+            }
+            return $numbers;
         } else {
             return $this->pagelayout[$page];
         }
