@@ -978,9 +978,11 @@ body#mod-forum-index .generalbox .cell {
  ***/
 
 #quiznavigation .qnbutton {
-  font: inherit;
-  line-height: 1.5em;
+  font-family: inherit;
+  font-size: 1em;
+  line-height: 1.5em !important;
   font-weight: bold;
+  text-decoration: none;
 }
 #quiznavigation .qnbutton:hover {
   text-decoration: underline;
