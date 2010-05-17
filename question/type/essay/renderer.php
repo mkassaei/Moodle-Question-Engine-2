@@ -42,7 +42,7 @@ class qtype_essay_renderer extends qtype_renderer {
         $response = $qa->get_last_qt_var('answer', '');
         if (empty($options->readonly)) {
             // the student needs to type in their answer so print out a text editor
-            $answer = print_textarea(can_use_html_editor(), 18, 80, 630, 400, $inputname, $response, 0, true);
+            $answer = print_textarea(can_use_html_editor(), 18, 65, 630, 400, $inputname, $response, 0, true);
 
         } else {
             // it is read only, so just format the students answer and output it
