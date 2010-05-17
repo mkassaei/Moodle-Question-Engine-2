@@ -7,7 +7,7 @@ question_flag_changer = {
     init_flag: function(checkboxid, postdata, qnumber) {
         // Create a hidden input - you can't just repurpose the old checkbox, IE
         // does not cope - and put it in place of the checkbox.
-        var checkbox = document.getElementById(checkboxid);
+        var checkbox = document.getElementById(checkboxid + 'checkbox');
         var input = document.createElement('input');
         input.type = 'hidden';
         checkbox.parentNode.appendChild(input);
