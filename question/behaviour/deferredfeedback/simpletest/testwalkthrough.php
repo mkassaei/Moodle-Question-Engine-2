@@ -77,7 +77,8 @@ class qbehaviour_deferredfeedback_walkthrough_test extends qbehaviour_walkthroug
         $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(2);
         $this->check_current_output($this->get_contains_correct_expectation(),
-                $this->get_contains_tf_true_radio_expectation(false, true));
+                $this->get_contains_tf_true_radio_expectation(false, true),
+                new PatternExpectation('/class="r0 correct"/'));
         $this->assertEqual(get_string('true', 'qtype_truefalse'),
                 $this->quba->get_response_summary($this->qnumber));
 
