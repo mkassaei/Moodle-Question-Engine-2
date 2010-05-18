@@ -475,6 +475,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_does_not_contain_try_again_button_expectation(),
                 $this->get_contains_correct_expectation(),
-                $this->get_contains_standard_correct_overall_feedback_expectation());
+                $this->get_contains_standard_correct_overall_feedback_expectation(),
+                new NoPatternExpectation('/class="control\b[^"]*\bpartiallycorrect"/'));
     }
 }

@@ -23,21 +23,8 @@
  */
 
 function init_quiz_form() {
-    var responseform = document.getElementById('responseform');
-    responseform.setAttribute('autocomplete', 'off');
-    YAHOO.util.Event.addListener(responseform, 'keypress', check_enter);
-    YAHOO.util.Event.addListener(responseform, 'submit', quiz_timer.stop);
-}
-
-/* Use this in an onkeypress handler, to stop enter submitting the forum unless you
-are actually on the submit button. Don't stop the user typing things in text areas. */
-function check_enter(e) {
-    var target = e.target ? e.target : e.srcElement;
-    var keyCode = e.keyCode ? e.keyCode : e.which;
-    if (keyCode==13 && target.nodeName.toLowerCase()!='a' &&
-            (!target.type || !(target.type=='submit' || target.type=='textarea'))) {
-        YAHOO.util.Event.preventDefault(e);
-    }
+    question_init_form('responseform');
+    YAHOO.util.Event.addListener('responseform', 'submit', quiz_timer.stop);
 }
 
 // Code for updating the countdown timer that is used on timed quizzes.

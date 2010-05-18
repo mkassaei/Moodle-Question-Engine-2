@@ -68,7 +68,7 @@ class qtype_match_renderer extends qtype_with_overall_feedback_renderer {
                 $selected = 0;
             }
 
-            $fraction = $selected && $selected == $question->get_right_choice_for($stemid);
+            $fraction = (int) ($selected && $selected == $question->get_right_choice_for($stemid));
 
             if ($options->feedback && $selected) {
                 $classes .= ' ' . question_get_feedback_class($fraction);

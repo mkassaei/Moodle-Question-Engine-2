@@ -45,6 +45,7 @@ $attemptid = required_param('attempt', PARAM_INT);
 $thispage = optional_param('thispage', 0, PARAM_INT);
 $finishattempt = optional_param('finishattempt', 0, PARAM_BOOL);
 $timeup = optional_param('timeup', 0, PARAM_BOOL); // True if form was submitted by timer.
+$scrollpos = optional_param('scrollpos', '', PARAM_RAW);
 
 $attemptobj = quiz_attempt::create($attemptid);
 
@@ -70,6 +71,9 @@ if ($nextpage == -1) {
     $nexturl = $attemptobj->summary_url();
 } else {
     $nexturl = $attemptobj->attempt_url(0, $nextpage);
+    if ($scrollpos !== '') {
+        $nexturl .= '&scrollpos=' . ((int) $scrollpos);
+    }
 }
 
 /// We treat automatically closed attempts just like normally closed attempts
@@ -100,7 +104,7 @@ if (!$attemptobj->is_preview_user()) {
 
 /// If the attempt is already closed, send them to the review page.
 if ($attemptobj->is_finished()) {
-    throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'attemptalreadyclosed');
+    throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'attemptalreadyclosed', null, $attemptobj->review_url());
 }
 
 /// Don't log - we will end with a redirect to a page that is logged.
