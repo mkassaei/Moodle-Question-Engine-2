@@ -86,6 +86,133 @@ class coding_exception extends moodle_exception {
 
 
 /**
+ * Formats a backtrace ready for output.
+ *
+ * @param array $callers backtrace array, as returned by debug_backtrace().
+ * @param boolean $plaintext if false, generates HTML, if true generates plain text.
+ * @return string formatted backtrace, ready for output.
+ */
+function nice_backtrace($callers) {
+    // do not use $CFG->dirroot because it might not be available in destructors
+    $dirroot = dirname(dirname(__FILE__));
+
+    if (empty($callers)) {
+        return '';
+    }
+
+    $from = '<ul style="text-align: left">';
+    foreach ($callers as $caller) {
+        if (!isset($caller['line'])) {
+            $caller['line'] = '?'; // probably call_user_func()
+        }
+        if (!isset($caller['file'])) {
+            $caller['file'] = 'unknownfile'; // probably call_user_func()
+        }
+        $from .= '<li>';
+        $from .= 'line ' . $caller['line'] . ' of ' . str_replace($dirroot, '', $caller['file']);
+        if (isset($caller['function'])) {
+            $from .= ': call to ';
+            if (isset($caller['class'])) {
+                $from .= $caller['class'] . $caller['type'];
+            }
+            $from .= $caller['function'] . '()';
+        } else if (isset($caller['exception'])) {
+            $from .= ': '.$caller['exception'].' thrown';
+        }
+        $from .= '</li>';
+    }
+    $from .= '</ul>';
+
+    return $from;
+}
+
+/**
+ * Display exceptions nicely.
+ * @param Exception $e the exception.
+ */
+function display_exception($e) {
+    global $CFG;
+    $debuginfo = '';
+
+    if ($e instanceof moodle_exception) {
+        $errorcode = $e->errorcode;
+        $module = $e->module;
+        $link = $e->link;
+        $a = $e->a;
+        if (!empty($e->debuginfo)) {
+            $debuginfo = $e->debuginfo;
+        }
+    } else {
+        $errorcode = 'unexpectedexception';
+        $module = 'question';
+        $link = '';
+        $a = $e->getMessage();
+        $debuginfo = $e;
+    }
+
+    if (empty($module) || $module === 'moodle' || $module === 'core') {
+        $module = 'error';
+    }
+
+    $message = get_string($errorcode, $module, $a);
+
+    if (empty($link) and !defined('ADMIN_EXT_HEADER_PRINTED')) {
+        if (!empty($SESSION->fromurl) ) {
+            $link = $SESSION->fromurl;
+            unset($SESSION->fromurl);
+        } else {
+            $link = $CFG->wwwroot .'/';
+        }
+    }
+
+    if (defined('FULLME') && FULLME == 'cron') {
+        // Errors in cron should be mtrace'd.
+        mtrace($message);
+        die;
+    }
+
+    if ($module === 'error') {
+        $modulelink = 'moodle';
+    } else {
+        $modulelink = $module;
+    }
+
+    $message = clean_text('<p class="errormessage">'.$message.'</p>');
+
+    if (! defined('HEADER_PRINTED')) {
+        //header not yet printed
+        @header('HTTP/1.0 404 Not Found');
+        print_header(get_string('error'));
+    } else {
+        print_container_end_all(false, $THEME->open_header_containers);
+    }
+
+    echo '<br />';
+
+    print_simple_box($message, '', '', '', '', 'errorbox');
+
+    if (debugging('', DEBUG_DEVELOPER)) {
+        echo nice_backtrace($e->getTrace());
+        if (!empty($debuginfo)) {
+            print_object($debuginfo);
+        }
+    }
+
+    if (!empty($link)) {
+        print_continue($link);
+    }
+
+    print_footer();
+
+    for ($i=0;$i<512;$i++) {  // Padding to help IE work with 404
+        echo ' ';
+    }
+    die;
+}
+set_exception_handler('display_exception');
+
+
+/**
  * This constant is used for html attributes which need to have an empty
  * value and still be output by the renderers (e.g. alt="");
  *

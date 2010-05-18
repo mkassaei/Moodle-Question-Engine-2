@@ -89,7 +89,7 @@ if (!$attemptobj->is_preview_user()) {
 
 /// If the attempt is already closed, send them to the review page.
 if ($attemptobj->is_finished()) {
-    throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'attemptalreadyclosed');
+    throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'attemptalreadyclosed', null, $attemptobj->review_url());
 }
 
 /// Don't log - we will end with a redirect to a page that is logged.

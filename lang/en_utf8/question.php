@@ -165,3 +165,5 @@ $string['submit'] = 'Submit';
 $string['submitandfinish'] = 'Submit and finish';
 $string['xoutofmax'] = '$a->mark out of $a->max';
 $string['yougotnright'] = 'You got $a->num correct.';
+
+$string['unexpectedexception'] = 'Unexpected exception: $a';
