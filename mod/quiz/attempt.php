@@ -165,6 +165,7 @@ echo '<input type="hidden" name="attempt" value="' . $attemptobj->get_attemptid(
 echo '<input type="hidden" name="thispage" value="' . $page . '" />';
 echo '<input type="hidden" name="timeup" id="timeup" value="0" />';
 echo '<input type="hidden" name="sesskey" value="' . sesskey() . '" />';
+echo '<input type="hidden" name="scrollpos" id="scrollpos" value="" />';
 
 // Add a hidden field with questionids. Do this at the end of the form, so
 // if you navigate before the form has finished loading, it does not wipe all

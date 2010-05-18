@@ -91,6 +91,37 @@ question_flag_changer = {
 function question_init_submit_button(id, qnumber) {
     var button = document.getElementById(id);
     YAHOO.util.Event.addListener(button, 'click', function(e) {
+        var scrollpos = document.getElementById('scrollpos');
+        if (scrollpos) {
+            scrollpos.value = YAHOO.util.Dom.getDocumentScrollTop();
+        }
         button.form.action = button.form.action + '#q' + qnumber;
     });
+}
+
+function question_init_form(id) {
+    var responseform = document.getElementById(id);
+    responseform.setAttribute('autocomplete', 'off');
+    YAHOO.util.Event.addListener(responseform, 'keypress', question_filter_key_events);
+    var matches = window.location.href.match(/^.*[?&]scrollpos=(\d*)(?:&|$|#).*$/, '$1');
+    if (matches) {
+        // onDOMReady is the effective one here. I am leaving the immediate call to
+        // window.scrollTo in case it reduces flicker.
+        window.scrollTo(0, matches[1]);
+        YAHOO.util.Event.onDOMReady(function() { window.scrollTo(0, matches[1]); });
+    }
+}
+
+/**
+ * Used as an onkeypress handler to stop enter submitting the forum unless you
+ * are actually on the submit button. Does not stop the user typing things in
+ * text areas, etc.
+ */
+function question_filter_key_events(e) {
+    var target = e.target ? e.target : e.srcElement;
+    var keyCode = e.keyCode ? e.keyCode : e.which;
+    if (keyCode==13 && target.nodeName.toLowerCase()!='a' &&
+            (!target.type || !(target.type=='submit' || target.type=='textarea'))) {
+        YAHOO.util.Event.preventDefault(e);
+    }
 }

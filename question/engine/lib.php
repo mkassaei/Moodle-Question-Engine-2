@@ -489,7 +489,7 @@ abstract class question_flags {
     public static function initialise_js() {
         global $CFG;
 
-        require_js(array('yui_yahoo','yui_event', 'yui_connection'));
+        require_js(array('yui_yahoo','yui_dom','yui_event','yui_connection'));
         require_js($CFG->wwwroot . '/question/qengine.js');
 
         $config = array(

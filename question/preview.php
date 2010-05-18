@@ -134,6 +134,10 @@ if (data_submitted() && confirm_sesskey()) {
     } else {
         $quba->process_all_actions();
         question_engine::save_questions_usage_by_activity($quba);
+        $scrollpos = optional_param('scrollpos', '', PARAM_RAW);
+        if ($scrollpos !== '') {
+            $actionurl .= '&scrollpos=' . ((int) $scrollpos);
+        }
         redirect($actionurl);
     }
 }
@@ -162,6 +166,7 @@ print_heading($title);
 // Start the question form.
 echo '<form method="post" action="' . s($actionurl) .
         '" enctype="multipart/form-data" id="responseform">', "\n";
+print_js_call('question_init_form', array('responseform'));
 echo '<input type="hidden" name="sesskey" value="' . sesskey() . '" />', "\n";
 echo '<input type="hidden" name="qnumbers" value="' . $qnumber . '" />', "\n";
 
@@ -179,6 +184,7 @@ echo '<input type="submit" name="fill"' . $filldisabled .
         ' value="' . get_string('fillincorrect', 'question') . '" />', "\n";
 echo '<input type="submit" name="finish"' . $finishdisabled .
         ' value="' . get_string('submitandfinish', 'question') . '" />', "\n";
+echo '<input type="hidden" name="scrollpos" id="scrollpos" value="" />';
 echo '</div>';
 echo '<script type="text/javascript">question_preview_close_button("' .
         get_string('closepreview', 'question') . '", "previewcontrols");</script>', "\n";
