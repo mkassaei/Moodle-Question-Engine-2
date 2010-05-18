@@ -73,7 +73,7 @@ class qformat_xml_test extends UnitTestCase {
         $exporter = new qformat_xml();
         $xml = $exporter->writequestion($q);
 
-        $this->assertPattern('|<hints>\s*<hint>\s*<text>\s*This is the first hint\.\s*</text>\s*</hint>\s*</hints>|', $xml);
+        $this->assertPattern('|<hint>\s*<text>\s*This is the first hint\.\s*</text>\s*</hint>|', $xml);
         $this->assertNoPattern('|<shownumcorrect/>|', $xml);
         $this->assertNoPattern('|<clearwrong/>|', $xml);
         $this->assertNoPattern('|<options>|', $xml);
@@ -98,7 +98,7 @@ class qformat_xml_test extends UnitTestCase {
         $exporter = new qformat_xml();
         $xml = $exporter->writequestion($q);
 
-        $this->assertPattern('|<hints>\s*<hint>\s*<text>\s*This is the first hint\.\s*</text>|', $xml);
+        $this->assertPattern('|<hint>\s*<text>\s*This is the first hint\.\s*</text>|', $xml);
         $this->assertPattern('|<hint>\s*<text>\s*This is the second hint\.\s*</text>|', $xml);
         list($ignored, $hint1, $hint2) = explode('<hint>', $xml);
         $this->assertNoPattern('|<shownumcorrect/>|', $hint1);
@@ -111,16 +111,14 @@ class qformat_xml_test extends UnitTestCase {
     public function test_import_hints_no_parts() {
         $xml = <<<END
 <question>
-    <hints>
-        <hint>
-            <text>This is the first hint</text>
-            <clearwrong/>
-        </hint>
-        <hint>
-            <text>This is the second hint</text>
-            <shownumcorrect/>
-        </hint>
-    </hints>
+    <hint>
+        <text>This is the first hint</text>
+        <clearwrong/>
+    </hint>
+    <hint>
+        <text>This is the second hint</text>
+        <shownumcorrect/>
+    </hint>
 </question>
 END;
 
@@ -139,16 +137,14 @@ END;
     public function test_import_hints_with_parts() {
         $xml = <<<END
 <question>
-    <hints>
-        <hint>
-            <text>This is the first hint</text>
-            <clearwrong/>
-        </hint>
-        <hint>
-            <text>This is the second hint</text>
-            <shownumcorrect/>
-        </hint>
-    </hints>
+    <hint>
+        <text>This is the first hint</text>
+        <clearwrong/>
+    </hint>
+    <hint>
+        <text>This is the second hint</text>
+        <shownumcorrect/>
+    </hint>
 </question>
 END;
 

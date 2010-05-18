@@ -206,11 +206,11 @@ class qformat_xml extends qformat_default {
      * @param array $hintsxml hints xml fragment.
      */
     public function import_hints($qo, $questionxml, $withparts = false, $withoptions = false) {
-        if (!isset($questionxml['#']['hints'][0]['#']['hint'])) {
+        if (!isset($questionxml['#']['hint'])) {
             return;
         }
 
-        foreach ($questionxml['#']['hints'][0]['#']['hint'] as $hintxml) {
+        foreach ($questionxml['#']['hint'] as $hintxml) {
             $hint = $this->import_hint($hintxml);
             $qo->hint[] = $hint->hint;
 
@@ -1087,11 +1087,9 @@ class qformat_xml extends qformat_default {
 
         // Output any hints.
         if (!empty($question->hints)) {
-            $expout .= '<hints>' . "\n";
             foreach ($question->hints as $hint) {
                 $expout .= $this->write_hint($hint);
             }
-            $expout .= '</hints>' . "\n";
         }
 
         // close the question tag
@@ -1103,15 +1101,15 @@ class qformat_xml extends qformat_default {
     public function write_hint($hint) {
         $output = '';
         $output .= '    <hint>' . "\n";
-        $output .= '        ' . $this->writetext($hint->hint);
+        $output .= '      ' . $this->writetext($hint->hint);
         if (!empty($hint->shownumcorrect)) {
-            $output .= '        <shownumcorrect/>' . "\n";
+            $output .= '      <shownumcorrect/>' . "\n";
         }
         if (!empty($hint->clearwrong)) {
-            $output .= '        <clearwrong/>' . "\n";
+            $output .= '      <clearwrong/>' . "\n";
         }
         if (!empty($hint->options)) {
-            $output .= '        <options>' . htmlspecialchars($hint->options) . '</options>' . "\n";
+            $output .= '      <options>' . htmlspecialchars($hint->options) . '</options>' . "\n";
         }
         $output .= '    </hint>' . "\n";
         return $output;
