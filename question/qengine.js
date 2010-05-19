@@ -44,11 +44,11 @@ question_flag_changer = {
         var input = image.statestore;
         input.value = 1 - input.value;
         question_flag_changer.update_image(image);
-        var postdata = input.ajaxpostdata
+        var postdata = input.ajaxpostdata;
         if (input.value == 1) {
-            postdata += '&newstate=1'
+            postdata += '&newstate=1';
         } else {
-            postdata += '&newstate=0'
+            postdata += '&newstate=0';
         }
         YAHOO.util.Connect.asyncRequest('POST', qengine_config.actionurl, null, postdata);
         question_flag_changer.fire_state_changed(input);
@@ -109,6 +109,17 @@ function question_init_form(id) {
         // window.scrollTo in case it reduces flicker.
         window.scrollTo(0, matches[1]);
         YAHOO.util.Event.onDOMReady(function() { window.scrollTo(0, matches[1]); });
+        // And the following horror is necessary to make it work in IE 8.
+        // Note that the class ie8 on body is only there in Moodle 2.0 and OU Moodle.
+        if (YAHOO.util.Dom.hasClass(document.body, 'ie8')) {
+            YAHOO.util.Event.addListener(window, 'load', function() {
+                setTimeout(function() {
+                    setTimeout(function() {
+                        window.scrollTo(0, matches[1]);
+                    }, 12);
+                }, 12);
+            });
+        }
     }
 }
 
