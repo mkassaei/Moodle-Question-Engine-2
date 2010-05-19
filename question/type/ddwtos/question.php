@@ -143,7 +143,6 @@ class qtype_ddwtos_question extends question_graded_automatically {
             if (!array_key_exists($this->field($place), $response)) {
                 continue;
             }
-
             if ($response[$this->field($place)] == $this->get_right_choice_for($place)) {
                 $numright += 1;
             }
@@ -184,6 +183,14 @@ class qtype_ddwtos_question extends question_graded_automatically {
         }
     }
 
+    public function get_ordered_choices($group) {
+        $choices = array();
+        foreach ($this->choiceorder[$group] as $choicekey => $choiceid) {
+            $choices[$choicekey] = $this->choices[$group][$choiceid];
+        }
+        return $choices;
+    }
+
     public function is_complete_response(array $response) {
         $complete = true;
         foreach ($this->places as $place => $notused) {
@@ -212,10 +219,10 @@ class qtype_ddwtos_question extends question_graded_automatically {
     }
 
     public function get_validation_error(array $response) {
-        if ($this->is_gradable_response($response)) {
+        if ($this->is_complete_response($response)) {
             return '';
         }
-        return get_string('youmustselectananswer', 'qtype_match');
+        return get_string('youmustdragananswertoeachbox', 'qtype_ddwtos');
     }
 
     public function grade_response(array $response) {
