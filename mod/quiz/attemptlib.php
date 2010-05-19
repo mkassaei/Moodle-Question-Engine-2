@@ -822,7 +822,10 @@ class quiz_attempt {
         return $this->quizobj->navigation($title);
     }
 
-    public function get_html_head_contributions($page = 'all') {
+    public function get_html_head_contributions($page = 'all', $showall = false) {
+        if ($showall) {
+            $page = 'all';
+        }
         $result = '';
         foreach ($this->get_question_numbers($page) as $qnumber) {
             $result .= $this->quba->render_question_head_html($qnumber);
