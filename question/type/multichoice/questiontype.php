@@ -519,7 +519,7 @@ class qtype_multichoice extends question_type {
         $question->category = $form->category;
         $form->questiontext = "How old is the sun?";
         $form->generalfeedback = "General feedback";
-        $form->penalty = 0.1;
+        $form->penalty = 0.3333333;
         $form->single = 1;
         $form->shuffleanswers = 1;
         $form->answernumbering = 'abc';

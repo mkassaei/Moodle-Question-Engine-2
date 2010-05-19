@@ -824,7 +824,7 @@ Good luck!
         $form->feedback = "feedback";
         $form->generalfeedback = "General feedback";
         $form->fraction = 0;
-        $form->penalty = 0.1;
+        $form->penalty = 0.3333333;
         $form->versioning = 0;
 
         if ($courseid) {

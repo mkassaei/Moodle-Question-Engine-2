@@ -13,3 +13,4 @@ $string['nomatchinganswerforq'] = 'You must specify an answer for this question.
 $string['notenoughquestions'] = 'You must supply at least $a question and answer pairs.';
 $string['statecorrectoption'] = 'Your answer has $a correct choice.';
 $string['statecorrectoptions'] = 'Your answer has $a correct choices.';
+$string['youmustdragananswertoeachbox'] = 'You must put an answer in each box.';

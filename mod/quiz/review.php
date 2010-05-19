@@ -91,7 +91,7 @@ if ($attemptobj->is_preview_user() && $attemptobj->is_own_attempt()) {
 
 // Print the page header
 require_js($CFG->httpswwwroot . '/mod/quiz/quiz.js');
-$headtags = $attemptobj->get_html_head_contributions($page);
+$headtags = $attemptobj->get_html_head_contributions($page, $showall);
 if ($accessmanager->securewindow_required($attemptobj->is_preview_user())) {
     $accessmanager->setup_secure_page($attemptobj->get_course()->shortname.': '.format_string($attemptobj->get_quiz_name()), $headtags);
 } else {

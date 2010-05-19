@@ -47,7 +47,8 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
 
         $dragboxs = '';
         foreach ($question->choices as $group => $choices) {
-            $dragboxs .= $this->drag_boxes($qa, $group, $choices, $options);
+            $dragboxs .= $this->drag_boxes($qa, $group,
+                    $question->get_ordered_choices($group), $options);
         }
 
         $result = '';
@@ -55,6 +56,12 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
                 array('class' => 'qtext ddwtos_questionid_for_javascript', 'id' => $qa->get_qt_field_name('')));
         $result .= html_writer::tag('div', $dragboxs,
                 array('class' => 'answercontainer'));
+
+        if ($qa->get_state() == question_state::$invalid) {
+            $result .= html_writer::nonempty_tag('div',
+                    $question->get_validation_error($qa->get_last_qt_data()),
+                    array('class' => 'validationerror'));
+        }
 
         return $result;
     }
@@ -107,7 +114,7 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
 
             $boxes .= html_writer::tag('span', $content, array(
                     'id' => $this->box_id($qa, $key, $choice->draggroup),
-                    'class' => 'player group' . $choice->draggroup));
+                    'class' => 'player group' . $choice->draggroup . $readonly)) . ' ';
         }
 
         return html_writer::nonempty_tag('div', $boxes, array('class' => 'answertext'));

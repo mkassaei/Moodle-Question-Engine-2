@@ -509,7 +509,7 @@ class qformat_default {
         $question->partiallycorrectfeedback = '';
         $question->incorrectfeedback = '';
         $question->answernumbering = 'abc';
-        $question->penalty = 0.1;
+        $question->penalty = 0.3333333;
         $question->length = 1;
 
         // this option in case the questiontypes class wants

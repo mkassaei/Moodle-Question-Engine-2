@@ -262,7 +262,7 @@ var ddwtos_currentzindex = 10;
         var slots = slotsandplayerobj.slots;
         var players = slotsandplayerobj.players;
         for (var i = 0; i < players.length; i++) {
-            var original = YAHOO.util.DragDropMgr.getDDById(players[p].id);
+            var original = YAHOO.util.DragDropMgr.getDDById(players[i].id);
             for (var index in original.clones) {
                 var c = original.clones[index];
                 if (c.slot) {
@@ -291,7 +291,7 @@ var ddwtos_currentzindex = 10;
             // get array of values
             var values = getValuesForThisSlot(slot.id, players);
 
-            var currentvalue = hiddenElement.value ? hiddenElement.value : 0;
+            var currentvalue = parseInt(hiddenElement.value);
             // if slot is occupied
             if (currentvalue) {
                 // Find player
