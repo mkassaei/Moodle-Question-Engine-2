@@ -8,28 +8,29 @@
     line-height:2em;
     margin-top: 1px;
     margin-bottom: 0.5em;
-    display:block;
+    display: block;
 }
 
 .ie7 .qtext {
     line-height:2.3em;
     margin-top: 1px;
     margin-bottom: 0.5em;
-    display:block;
+    display: block;
 }
 
 .answercontainer {
     margin-bottom:1em;
-    display:block;
+    display: block;
 }
 
 .answertext {
     padding-bottom: 0.5em;
-    line-height:2em;
+    line-height: 2em;
 }
-.ie7 .answertext {
+.ie7 .answertext,
+.ie8 .answertext {
     padding-bottom: 0.5em;
-    line-height:2.3em;
+    line-height: 2.3em;
 }
 
 .linebreak {
@@ -37,14 +38,14 @@
 }
 
 .slot {
-    text-align:center;
-    border: thin solid #000000;
+    text-align: center;
+    border: 1px solid #000000;
 }
 .player {
-    text-align:center;
-    cursor:move;
+    text-align: center;
+    cursor: move;
     margin: 0em 0em 0.2em 0.3em;
-    border: thin solid #000000;
+    border: 1px solid #000000;
 }
 
 .ie7 .slot {
@@ -57,8 +58,8 @@
     padding-bottom: 0.4em;
 }
 
-.disabled {
-    cursor:default;
+.readonly {
+    cursor: default;
 }
 
 .group1 {
