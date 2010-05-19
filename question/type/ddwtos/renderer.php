@@ -107,7 +107,7 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
 
             $boxes .= html_writer::tag('span', $content, array(
                     'id' => $this->box_id($qa, $key, $choice->draggroup),
-                    'class' => 'player group' . $choice->draggroup . $readonly));
+                    'class' => 'player group' . $choice->draggroup . $readonly)) . ' ';
         }
 
         return html_writer::nonempty_tag('div', $boxes, array('class' => 'answertext'));
