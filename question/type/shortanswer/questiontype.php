@@ -203,7 +203,7 @@ class qtype_shortanswer extends question_type {
 
         $form->questiontext = "What is the purpose of life, the universe, and everything";
         $form->generalfeedback = "Congratulations, you may have solved my biggest problem!";
-        $form->penalty = 0.1;
+        $form->penalty = 0.3333333;
         $form->usecase = false;
         $form->defaultgrade = 1;
         $form->noanswers = 3;

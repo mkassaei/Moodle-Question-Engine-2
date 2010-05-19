@@ -456,6 +456,20 @@ function xmldb_quiz_upgrade($oldversion=0) {
         upgrade_mod_savepoint($result, 2008000116, 'quiz');
     }
 
+    if ($result && $oldversion < 2008000117) {
+
+        // Changing the default of field penalty on table question to 0.3333333
+        $table = new XMLDBTable('question');
+        $field = new XMLDBField('penalty');
+        $field->setAttributes(XMLDB_TYPE_FLOAT, null, null, XMLDB_NOTNULL, null, null, null, '0.3333333', 'defaultgrade');
+
+        // Launch change of default for field penalty
+        $result = $result && change_field_default($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000117, 'quiz');
+    }
+
     commit_sql();
 
     return $result;

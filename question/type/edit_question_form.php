@@ -318,7 +318,7 @@ class question_edit_form extends moodleform {
         $mform->setType('penalty', PARAM_NUMBER);
         $mform->addRule('penalty', null, 'required', null, 'client');
         $mform->setHelpButton('penalty', array('penalty', get_string('penalty', 'question'), 'question'));
-        $mform->setDefault('penalty', 0.1);
+        $mform->setDefault('penalty', 0.3333333);
 
         if (isset($this->question->hints)) {
             $counthints = count($this->question->hints);

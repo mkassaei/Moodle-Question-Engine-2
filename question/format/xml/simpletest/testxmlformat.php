@@ -42,7 +42,7 @@ class qformat_xml_test extends UnitTestCase {
         $q->parent = 0;
         $q->questiontextformat = FORMAT_HTML;
         $q->defaultgrade = 1;
-        $q->penalty = 0.1;
+        $q->penalty = 0.3333333;
         $q->length = 1;
         $q->stamp = make_unique_id_code();
         $q->version = make_unique_id_code();

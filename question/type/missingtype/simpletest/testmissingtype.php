@@ -40,7 +40,7 @@ class qtype_missing_test extends UnitTestCase {
         $questiondata->questiontextformat = FORMAT_HTML;
         $questiondata->generalfeedback = 'This is the general feedback.';
         $questiondata->defaultgrade = 1;
-        $questiondata->penalty = 0.1;
+        $questiondata->penalty = 0.3333333;
         $questiondata->qtype = 'strange_unknown';
         $questiondata->length = 1;
         $questiondata->stamp = make_unique_id_code();
