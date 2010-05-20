@@ -130,7 +130,7 @@ class qtype_multichoice_single_question extends qtype_multichoice_base {
     public function get_correct_response() {
         foreach ($this->order as $key => $answerid) {
             if (question_state::graded_state_for_fraction(
-                    $this->answers[$answerid]->fraction) == question_state::$gradedright) {
+                    $this->answers[$answerid]->fraction)->is_correct()) {
                 return array('answer' => $key);
             }
         }
@@ -173,8 +173,8 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
 
     public function clear_wrong_from_response(array $response) {
         foreach ($this->order as $key => $ans) {
-            if (question_state::graded_state_for_fraction($this->answers[$ans]->fraction) ==
-                    question_state::$gradedwrong) {
+            if (question_state::graded_state_for_fraction(
+                    $this->answers[$ans]->fraction)->is_incorrect()) {
                 unset($response[$this->field($key)]);
             }
         }
@@ -189,8 +189,8 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
                 continue;
             }
 
-            if (question_state::graded_state_for_fraction($this->answers[$ans]->fraction) !=
-                    question_state::$gradedwrong) {
+            if (!question_state::graded_state_for_fraction(
+                    $this->answers[$ans]->fraction)->is_incorrect()) {
                 $numright += 1;
             }
         }
@@ -231,8 +231,8 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
     public function get_correct_response() {
         $response = array();
         foreach ($this->order as $key => $ans) {
-            if (question_state::graded_state_for_fraction($this->answers[$ans]->fraction) !=
-                    question_state::$gradedwrong) {
+            if (!question_state::graded_state_for_fraction(
+                    $this->answers[$ans]->fraction)->is_incorrect()) {
                 $response[$this->field($key)] = 1;
             }
         }
@@ -250,11 +250,12 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
     }
 
     public function is_complete_response(array $response) {
-        $isresponse = false;
         foreach ($this->order as $key => $notused) {
-            $isresponse = $isresponse || !empty($response[$this->field($key)]);
+            if (!empty($response[$this->field($key)])) {
+                return true;
+            }
         }
-        return $isresponse;
+        return false;
     }
 
     public function is_gradable_response(array $response) {
