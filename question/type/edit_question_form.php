@@ -238,7 +238,7 @@ class question_edit_form extends moodleform {
         $repeated[] =& $mform->createElement('header', 'answerhdr', $label);
         $repeated[] =& $mform->createElement('text', 'answer', get_string('answer', 'quiz'), array('size' => 50));
         $repeated[] =& $mform->createElement('select', 'fraction', get_string('grade'), $gradeoptions);
-        $repeated[] =& $mform->createElement('htmleditor', 'feedback', get_string('feedback', 'quiz'),
+        $repeated[] =& $mform->createElement('htmleditor', 'feedback', get_string('feedback', 'question'),
                                 array('course' => $this->coursefilesid));
         $repeatedoptions['answer']['type'] = PARAM_RAW;
         $repeatedoptions['fraction']['default'] = 0;
