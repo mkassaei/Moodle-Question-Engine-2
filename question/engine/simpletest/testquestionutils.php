@@ -119,4 +119,33 @@ class question_utils_test extends UnitTestCase {
                 array('key' => ''),
                 'key'));
     }
+
+    public function test_int_to_roman() {
+        $this->assertIdentical('i', question_utils::int_to_roman(1));
+        $this->assertIdentical('iv', question_utils::int_to_roman(4));
+        $this->assertIdentical('v', question_utils::int_to_roman(5));
+        $this->assertIdentical('vi', question_utils::int_to_roman(6));
+        $this->assertIdentical('ix', question_utils::int_to_roman(9));
+        $this->assertIdentical('xi', question_utils::int_to_roman(11));
+        $this->assertIdentical('xlviii', question_utils::int_to_roman(48));
+        $this->assertIdentical('lxxxvii', question_utils::int_to_roman(87));
+        $this->assertIdentical('c', question_utils::int_to_roman(100));
+        $this->assertIdentical('mccxxxiv', question_utils::int_to_roman(1234));
+        $this->assertIdentical('mmmcmxcix', question_utils::int_to_roman(3999));
+    }
+
+    public function test_int_to_roman_too_small() {
+        $this->expectException();
+        question_utils::int_to_roman(0);
+    }
+
+    public function test_int_to_roman_too_big() {
+        $this->expectException();
+        question_utils::int_to_roman(4000);
+    }
+
+    public function test_int_to_roman_not_int() {
+        $this->expectException();
+        question_utils::int_to_roman(1.5);
+    }
 }

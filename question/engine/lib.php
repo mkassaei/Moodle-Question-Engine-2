@@ -2522,4 +2522,24 @@ abstract class question_utils {
         }
         return ((string) $value1) === ((string) $value2);
     }
+
+    private static $units = array('', 'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix');
+    private static $tens = array('', 'x', 'xx', 'xxx', 'xl', 'l', 'lx', 'lxx', 'lxxx', 'xc');
+    private static $hundreds = array('', 'c', 'cc', 'ccc', 'cd', 'd', 'dc', 'dcc', 'dccc', 'cm');
+    private static $thousands = array('', 'm', 'mm', 'mmm');
+
+    /**
+     * Convert an integer to roman numerals.
+     * @param integer $number an integer between 1 and 3999 inclusive. Anything else will throw an exception.
+     * @return string the number converted to lower case roman numerals.
+     */
+    public static function int_to_roman($number) {
+        if (!is_integer($number) || $number < 1 || $number > 3999) {
+            throw new coding_exception('Only integers between 0 and 3999 can be ' .
+                    'converted to roman numerals.', $number);
+        }
+
+        return self::$thousands[$number / 1000 % 10] . self::$hundreds[$number / 100 % 10] .
+                self::$tens[$number / 10 % 10] . self::$units[$number % 10];
+    }
 }
