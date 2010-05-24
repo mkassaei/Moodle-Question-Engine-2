@@ -23,8 +23,8 @@ Incorporate other OU-specific quiz customisations into this code (8d)
 √   Basic merge 0.5d
 √   Check with Phil there are no changes the reports compared to what went into 2.0.
 √   Plugins to convert
-        oumultiresponse 1d
-            fix import/export hack
+√       oumultiresponse 1d
+√           fix import/export hack
 √       ddwtos 1d
 √           fix import/export hack
     Changes to preserve
