@@ -223,27 +223,32 @@ class qtype_match extends question_type {
         // Output the shuffleanswers setting.
         $matchoptions = get_record('question_match', 'question', $question);
         if ($matchoptions) {
-            $status = fwrite ($bf,start_tag("MATCHOPTIONS",6,true));
-            fwrite ($bf,full_tag("SHUFFLEANSWERS",7,false,$matchoptions->shuffleanswers));
-            $status = fwrite ($bf,end_tag("MATCHOPTIONS",6,true));
+            fwrite ($bf,start_tag("MATCHOPTIONS",$level,true));
+            fwrite ($bf,full_tag("SHUFFLEANSWERS",$level+1,false,$matchoptions->shuffleanswers));
+            fwrite ($bf,full_tag("CORRECTFEEDBACK",$level+1,false,$matchoptions->correctfeedback));
+            fwrite ($bf,full_tag("PARTIALLYCORRECTFEEDBACK",$level+1,false,$matchoptions->partiallycorrectfeedback));
+            fwrite ($bf,full_tag("INCORRECTFEEDBACK",$level+1,false,$matchoptions->incorrectfeedback));
+            fwrite ($bf,full_tag("ANSWERNUMBERING",$level+1,false,$matchoptions->answernumbering));
+            fwrite ($bf,full_tag("SHOWNUMCORRECT",$level+1,false,$matchoptions->shownumcorrect));
+            fwrite ($bf,end_tag("MATCHOPTIONS",$level,true));
         }
 
         $matchs = get_records('question_match_sub', 'question', $question, 'id ASC');
         //If there are matchs
         if ($matchs) {
             //Print match contents
-            $status = fwrite ($bf,start_tag("MATCHS",6,true));
+            fwrite ($bf,start_tag("MATCHS",$level,true));
             //Iterate over each match
             foreach ($matchs as $match) {
-                $status = fwrite ($bf,start_tag("MATCH",7,true));
+                fwrite ($bf,start_tag("MATCH",$level+1,true));
                 //Print match contents
-                fwrite ($bf,full_tag("ID",8,false,$match->id));
-                fwrite ($bf,full_tag("CODE",8,false,$match->code));
-                fwrite ($bf,full_tag("QUESTIONTEXT",8,false,$match->questiontext));
-                fwrite ($bf,full_tag("ANSWERTEXT",8,false,$match->answertext));
-                $status = fwrite ($bf,end_tag("MATCH",7,true));
+                fwrite ($bf,full_tag("ID",$level+2,false,$match->id));
+                fwrite ($bf,full_tag("CODE",$level+2,false,$match->code));
+                fwrite ($bf,full_tag("QUESTIONTEXT",$level+2,false,$match->questiontext));
+                fwrite ($bf,full_tag("ANSWERTEXT",$level+2,false,$match->answertext));
+                fwrite ($bf,end_tag("MATCH",$level+1,true));
             }
-            $status = fwrite ($bf,end_tag("MATCHS",6,true));
+            fwrite ($bf,end_tag("MATCHS",$level,true));
         }
         return $status;
     }
@@ -317,15 +322,33 @@ class qtype_match extends question_type {
         $match->question = $new_question_id;
         $match->subquestions = $subquestions_field;
 
-        // Get the shuffleanswers option, if it is there.
-        if (!empty($info['#']['MATCHOPTIONS']['0']['#']['SHUFFLEANSWERS'])) {
-            $match->shuffleanswers = backup_todb($info['#']['MATCHOPTIONS']['0']['#']['SHUFFLEANSWERS']['0']['#']);
+        if (isset($info['#']['MATCHOPTIONS']['0'])) {
+            $mat_opt = $info['#']['MATCHOPTIONS']['0'];
         } else {
-            $match->shuffleanswers = 1;
+            $mat_opt = array('#' => array());
         }
 
+        // Get the shuffleanswers option, if it is there.
+        $match->shuffleanswers = isset($mat_opt['#']['SHUFFLEANSWERS']['0']['#'])?backup_todb($mat_opt['#']['SHUFFLEANSWERS']['0']['#']):1;
+        if (array_key_exists("CORRECTFEEDBACK", $mat_opt['#'])) {
+            $match->correctfeedback = backup_todb($mat_opt['#']['CORRECTFEEDBACK']['0']['#']);
+        } else {
+            $match->correctfeedback = '';
+        }
+        if (array_key_exists("PARTIALLYCORRECTFEEDBACK", $mat_opt['#'])) {
+            $match->partiallycorrectfeedback = backup_todb($mat_opt['#']['PARTIALLYCORRECTFEEDBACK']['0']['#']);
+        } else {
+            $match->partiallycorrectfeedback = '';
+        }
+        if (array_key_exists("INCORRECTFEEDBACK", $mat_opt['#'])) {
+            $match->incorrectfeedback = backup_todb($mat_opt['#']['INCORRECTFEEDBACK']['0']['#']);
+        } else {
+            $match->incorrectfeedback = '';
+        }
+        $match->shownumcorrect = isset($mat_opt['#']['SHOWNUMCORRECT']['0']['#'])?backup_todb($mat_opt['#']['SHOWNUMCORRECT']['0']['#']):0;
+
         //The structure is equal to the db, so insert the question_match_sub
-        $newid = insert_record ("question_match",$match);
+        $newid = insert_record('question_match', $match);
 
         if (!$newid) {
             $status = false;

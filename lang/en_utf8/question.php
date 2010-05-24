@@ -127,6 +127,7 @@ $string['correct'] = 'Correct';
 $string['correctfeedback'] = 'For any correct response';
 $string['correctresponsevisible'] = 'Correct response visible';
 $string['decimalplacesingrades'] = 'Decimal places in grades';
+$string['feedback'] = 'Feedback';
 $string['flagged'] = 'Flagged';
 $string['flagthisquestion'] = 'Flag this question';
 $string['generalfeedbackvisible'] = 'General feedback visible';

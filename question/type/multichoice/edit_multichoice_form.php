@@ -47,17 +47,10 @@ class question_edit_multichoice_form extends question_edit_form {
         $mform->setHelpButton('shuffleanswers', array('multichoiceshuffle', get_string('shuffleanswers','qtype_multichoice'), 'quiz'));
         $mform->setDefault('shuffleanswers', 1);
 
-        $numberingoptions = $QTYPES[$this->qtype()]->get_numbering_styles();
-        $menu = array();
-        foreach ($numberingoptions as $numberingoption) {
-            $menu[$numberingoption] = get_string('answernumbering' . $numberingoption, 'qtype_multichoice');
-        }
-        $mform->addElement('select', 'answernumbering', get_string('answernumbering', 'qtype_multichoice'), $menu);
+        $mform->addElement('select', 'answernumbering', get_string('answernumbering', 'qtype_multichoice'),
+                qtype_multichoice::get_numbering_styles());
         $mform->setDefault('answernumbering', 'abc');
 
-/*        $mform->addElement('static', 'answersinstruct', get_string('choices', 'qtype_multichoice'), get_string('fillouttwochoices', 'qtype_multichoice'));
-        $mform->closeHeaderBefore('answersinstruct');
-*/
         $creategrades = get_grade_options();
         $this->add_per_answer_fields($mform, get_string('choiceno', 'qtype_multichoice', '{no}'),
                 $creategrades->gradeoptionsfull, max(5, QUESTION_NUMANS_START));
@@ -104,27 +97,28 @@ class question_edit_multichoice_form extends question_edit_form {
         $totalfraction = 0;
         $maxfraction = -1;
 
-        foreach ($answers as $key => $answer){
+        foreach ($answers as $key => $answer) {
             //check no of choices
             $trimmedanswer = trim($answer);
-            if (!empty($trimmedanswer)){
-                $answercount++;
+            if (empty($trimmedanswer)) {
+                continue;
             }
+
+            $answercount++;
+
             //check grades
-            if ($answer != '') {
-                if ($data['fraction'][$key] > 0) {
-                    $totalfraction += $data['fraction'][$key];
-                }
-                if ($data['fraction'][$key] > $maxfraction) {
-                    $maxfraction = $data['fraction'][$key];
-                }
+            if ($data['fraction'][$key] > 0) {
+                $totalfraction += $data['fraction'][$key];
+            }
+            if ($data['fraction'][$key] > $maxfraction) {
+                $maxfraction = $data['fraction'][$key];
             }
         }
 
-        if ($answercount==0){
+        if ($answercount == 0) {
             $errors['answer[0]'] = get_string('notenoughanswers', 'qtype_multichoice', 2);
             $errors['answer[1]'] = get_string('notenoughanswers', 'qtype_multichoice', 2);
-        } elseif ($answercount==1){
+        } elseif ($answercount == 1) {
             $errors['answer[1]'] = get_string('notenoughanswers', 'qtype_multichoice', 2);
 
         }

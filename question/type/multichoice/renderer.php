@@ -138,22 +138,33 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_overall_feedba
 
     /**
      * @param int $num The number, starting at 0.
-     * @param string $style The style to render the number in. One of the ones returned by $numberingoptions.
+     * @param string $style The style to render the number in. One of the
+     * options returned by {@link qtype_multichoice:;get_numbering_styles()}.
      * @return string the number $num in the requested style.
      */
     protected function number_in_style($num, $style) {
         switch($style) {
             case 'abc':
-                return $this->number_html(chr(ord('a') + $num));
+                $number = chr(ord('a') + $num);
+                break;
             case 'ABCD':
-                return $this->number_html(chr(ord('A') + $num));
+                $number = chr(ord('A') + $num);
+                break;
             case '123':
-                return $this->number_html(($num + 1));
+                $number = $num + 1;
+                break;
+            case 'iii':
+                $number = question_utils::int_to_roman($num + 1);
+                break;
+            case 'IIII':
+                $number = strtoupper(question_utils::int_to_roman($num + 1));
+                break;
             case 'none':
                 return '';
             default:
                 return 'ERR';
         }
+        return $this->number_html($number);
     }
 
     public function specific_feedback(question_attempt $qa) {

@@ -204,8 +204,8 @@ class qtype_multichoice extends question_type {
     /**
      * Deletes question from the question-type specific tables
      *
-     * @return boolean Success/Failure
      * @param object $question  The question being deleted
+     * @return boolean Success/Failure
      */
     public function delete_question($questionid) {
         parent::delete_question($questionid);
@@ -279,6 +279,7 @@ class qtype_multichoice extends question_type {
                 fwrite ($bf,full_tag("PARTIALLYCORRECTFEEDBACK",$level+1,false,$multichoice->partiallycorrectfeedback));
                 fwrite ($bf,full_tag("INCORRECTFEEDBACK",$level+1,false,$multichoice->incorrectfeedback));
                 fwrite ($bf,full_tag("ANSWERNUMBERING",$level+1,false,$multichoice->answernumbering));
+                fwrite ($bf,full_tag("SHOWNUMCORRECT",$level+1,false,$multichoice->shownumcorrect));
                 $status = fwrite ($bf,end_tag("MULTICHOICE",$level,true));
             }
 
@@ -312,7 +313,7 @@ class qtype_multichoice extends question_type {
             $multichoice->layout = backup_todb($mul_info['#']['LAYOUT']['0']['#']);
             $multichoice->answers = backup_todb($mul_info['#']['ANSWERS']['0']['#']);
             $multichoice->single = backup_todb($mul_info['#']['SINGLE']['0']['#']);
-            $multichoice->shuffleanswers = isset($mul_info['#']['SHUFFLEANSWERS']['0']['#'])?backup_todb($mul_info['#']['SHUFFLEANSWERS']['0']['#']):'';
+            $multichoice->shuffleanswers = isset($mul_info['#']['SHUFFLEANSWERS']['0']['#'])?backup_todb($mul_info['#']['SHUFFLEANSWERS']['0']['#']):1;
             if (array_key_exists("CORRECTFEEDBACK", $mul_info['#'])) {
                 $multichoice->correctfeedback = backup_todb($mul_info['#']['CORRECTFEEDBACK']['0']['#']);
             } else {
@@ -333,6 +334,7 @@ class qtype_multichoice extends question_type {
             } else {
                 $multichoice->answernumbering = 'abc';
             }
+            $multichoice->shownumcorrect = isset($mul_info['#']['SHOWNUMCORRECT']['0']['#'])?backup_todb($mul_info['#']['SHOWNUMCORRECT']['0']['#']):0;
 
             //We have to recode the answers field (a list of answers id)
             //Extracts answer id from sequence
@@ -461,8 +463,12 @@ class qtype_multichoice extends question_type {
      *      language file, and a case in the switch statement in number_in_style,
      *      and it should be listed in the definition of this column in install.xml.
      */
-    public function get_numbering_styles() {
-        return array('abc', 'ABCD', '123', 'none');
+    public static function get_numbering_styles() {
+        $styles = array();
+        foreach (array('abc', 'ABCD', '123', 'iii', 'IIII', 'none') as $numberingoption) {
+            $styles[$numberingoption] = get_string('answernumbering' . $numberingoption, 'qtype_multichoice');
+        }
+        return $styles;
     }
 
     public function find_file_links($question, $courseid){
