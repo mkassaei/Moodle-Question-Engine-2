@@ -184,8 +184,8 @@ class qformat_default {
      * @param qtypehint hint about a question type from format
      * @return object question object suitable for save_options() or false if cannot handle
      */
-    function try_importing_using_qtypes( $data, $question=null, $extra=null, $qtypehint='') {
-        global $QTYPES;
+    function try_importing_using_qtypes($data, $question = null, $extra = null,
+            $qtypehint = '') {
 
         // work out what format we are using
         $formatname = substr(get_class($this), strlen('qformat_'));
@@ -193,7 +193,7 @@ class qformat_default {
 
         //first try importing using a hint from format
         if (!empty($qtypehint)) {
-            $qtype = $QTYPES[$qtypehint];
+            $qtype = question_bank::get_qtype($qtypehint, false);
             if (is_object($qtype) && method_exists($qtype, $methodname)) {
                 $question = $qtype->$methodname($data, $question, $this, $extra);
                 if ($question) {
@@ -204,7 +204,7 @@ class qformat_default {
 
         // loop through installed questiontypes checking for
         // function to handle this question
-        foreach ($QTYPES as $qtype) {
+        foreach (question_bank::get_all_qtypes() as $qtype) {
             if (method_exists( $qtype, $methodname)) {
                 if ($question = $qtype->$methodname( $data, $question, $this, $extra )) {
                     return $question;
