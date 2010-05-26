@@ -42,6 +42,170 @@ function format_soap_fault($fault) {
     return get_string('soapfault', 'qtype_opaque', $fault);
 }
 
+
+/**
+ * Manages loading and saving question engine definitions to and from the database.
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class qtype_opaque_engine_manager {
+    /**
+     * Load the definition of an engine from the database.
+     * @param integer $engineid the id of the engine to load.
+     * @return mixed On success, and object with fields id, name, questionengines and questionbanks.
+     * The last two fields are arrays of URLs. On an error, returns a string to look up in the
+     * qtype_opaque language file as an error message.
+     */
+    public function load_engine_def($engineid) {
+        $engine = get_record('question_opaque_engines', 'id', $engineid);
+        if (!$engine) {
+            return format_opaque_error('couldnotloadenginename', $engineid);
+        }
+        $engine->questionengines = array();
+        $engine->questionbanks = array();
+        $servers = get_records('question_opaque_servers', 'engineid', $engineid, 'id ASC');
+        if (!$servers) {
+            return format_opaque_error('couldnotloadengineservers', $engineid);
+        }
+        foreach ($servers as $server) {
+            if ($server->type == 'qe') {
+                $engine->questionengines[] = $server->url;
+            } else if ($server->type == 'qb') {
+                $engine->questionbanks[] = $server->url;
+            } else {
+                return format_opaque_error('unrecognisedservertype', $engineid);
+            }
+        }
+        return $engine;
+    }
+
+    /**
+     * Save or update an engine definition in the database, and returm the engine id. The definition
+     * will be created if $engine->id is not set, and updated if it is.
+     *
+     * @param object $engine the definition to save.
+     * @return integer the id of the saved definition.
+     */
+    public function save_engine_def($engine) {
+        global $db;
+        $db->StartTrans();
+
+        if (!empty($engine->id)) {
+            update_record('question_opaque_engines', $engine);
+        } else {
+            $engine->id = insert_record('question_opaque_engines', $engine);
+        }
+        delete_records('question_opaque_servers', 'engineid', $engine->id);
+        $this->store_opaque_servers($engine->questionengines, 'qe', $engine->id);
+        $this->store_opaque_servers($engine->questionbanks, 'qb', $engine->id);
+
+        if ($db->CompleteTrans()) {
+            return $engine->id;
+        } else {
+            print_error('couldnotsaveengineinfo', 'qtype_opaque', 'engines.php');
+        }
+    }
+
+    /**
+     * Save a list of servers of a given type in the question_opaque_servers table.
+     *
+     * @param array $urls an array of URLs.
+     * @param string $type 'qe' or 'qb'.
+     * @param int $engineid
+     */
+    protected function store_opaque_servers($urls, $type, $engineid) {
+        foreach ($urls as $url) {
+            $server = new stdClass;
+            $server->engineid = $engineid;
+            $server->type = $type;
+            $server->url = $url;
+            insert_record('question_opaque_servers', $server, false);
+        }
+    }
+
+    /**
+     * Delete the definition of an engine from the database.
+     * @param integer $engineid the id of the engine to delete.
+     * @return boolean whether the delete succeeded.
+     */
+    public function delete_engine_def($engineid) {
+        global $db;
+        $db->StartTrans();
+        delete_records('question_opaque_servers', 'engineid', $engineid);
+        delete_records('question_opaque_engines', 'id', $engineid);
+        return $db->CompleteTrans();
+    }
+
+    protected function get_possibly_matching_engines($engine) {
+        global $CFG;
+
+        // First we try to get a reasonably accurate guess with SQL - we load the id of all
+        // engines with the same passkey and which use the first questionengine and questionbank
+        // (if any).
+        $where = "WHERE e.passkey = '$engine->passkey'";
+        $sql = "SELECT e.id,1 FROM {$CFG->prefix}question_opaque_engines e ";
+        if (!empty($engine->questionengines)) {
+            $qeurl = reset($engine->questionengines);
+            $sql .= "JOIN {$CFG->prefix}question_opaque_servers qe ON
+                    qe.engineid = e.id AND qe.type = 'qe'";
+            $where .= " AND qe.url = '$qeurl'";
+        }
+        if (!empty($engine->questionbanks)) {
+            $qburl = reset($engine->questionbanks);
+            $sql .= "JOIN {$CFG->prefix}question_opaque_servers qb ON
+                    qb.engineid = e.id AND qb.type = 'qb'";
+            $where .= " AND qb.url = '$qburl'";
+        }
+        $sql .= $where;
+        return get_records_sql_menu($sql);
+    }
+
+    /**
+     * If an engine definition like this one (same passkey and server lists) already exists
+     * in the database, then return its id, otherwise save this one to the database and
+     * return the new engine id.
+     *
+     * @param object $engine the engine to ensure is in the databse.
+     * @return integer its id.
+     */
+    public function find_or_create_engineid($engine) {
+        $possibleengineids = $this->get_possibly_matching_engines($engine);
+
+        // Then we loop through the possibilities loading the full definition and comparing it.
+        if ($possibleengineids) {
+            foreach ($possibleengineids as $engineid => $ignored) {
+                $testengine = $this->load_engine_def($engineid);
+                $testengine->passkey = addslashes($testengine->passkey);
+                if ($this->is_same_engine($engine, $testengine)) {
+                    return $engineid;
+                }
+            }
+        }
+
+        return $this->save_engine_def($engine);
+    }
+
+    /**
+     * Are these two engine definitions essentially the same (same passkey and server lists)?
+     *
+     * @param object $engine1 one engine definition.
+     * @param object $engine2 another engine definition.
+     * @return boolean whether they are the same.
+     */
+    public function is_same_engine($engine1, $engine2) {
+        // Same passkey.
+        $ans = $engine1->passkey == $engine2->passkey &&
+        // Same question engines.
+                !array_diff($engine1->questionengines, $engine2->questionengines) &&
+                !array_diff($engine2->questionengines, $engine1->questionengines) &&
+        // Same question banks.
+                !array_diff($engine1->questionbanks, $engine2->questionbanks) &&
+                !array_diff($engine2->questionbanks, $engine1->questionbanks);
+        return $ans;
+    }
+}
+
 /**
  * Load the definition of an engine from the database.
  * @param integer $engineid the id of the engine to load.
@@ -50,26 +214,8 @@ function format_soap_fault($fault) {
  * qtype_opaque language file as an error message.
  */
 function load_engine_def($engineid) {
-    $engine = get_record('question_opaque_engines', 'id', $engineid);
-    if (!$engine) {
-        return format_opaque_error('couldnotloadenginename', $engineid);
-    }
-    $engine->questionengines = array();
-    $engine->questionbanks = array();
-    $servers = get_records('question_opaque_servers', 'engineid', $engineid, 'id ASC');
-    if (!$servers) {
-        return format_opaque_error('couldnotloadengineservers', $engineid);
-    }
-    foreach ($servers as $server) {
-        if ($server->type == 'qe') {
-            $engine->questionengines[] = $server->url;
-        } else if ($server->type == 'qb') {
-            $engine->questionbanks[] = $server->url;
-        } else {
-            return format_opaque_error('unrecognisedservertype', $engineid);
-        }
-    }
-    return $engine;
+    $manager = new qtype_opaque_engine_manager();
+    return $manager->load_engine_def($engineid);
 }
 
 /**
@@ -80,40 +226,8 @@ function load_engine_def($engineid) {
  * @return integer the id of the saved definition.
  */
 function save_engine_def($engine) {
-    global $db;
-    $db->StartTrans();
-
-    if (!empty($engine->id)) {
-        update_record('question_opaque_engines', $engine);
-    } else {
-        $engine->id = insert_record('question_opaque_engines', $engine);
-    }
-    delete_records('question_opaque_servers', 'engineid', $engine->id);
-    store_opaque_servers($engine->questionengines, 'qe', $engine->id);
-    store_opaque_servers($engine->questionbanks, 'qb', $engine->id);
-
-    if ($db->CompleteTrans()) {
-        return $engine->id;
-    } else {
-        print_error('couldnotsaveengineinfo', 'qtype_opaque', 'engines.php');
-    }
-}
-
-/**
- * Save a list of servers of a given type in the question_opaque_servers table.
- *
- * @param array $urls an array of URLs.
- * @param string $type 'qe' or 'qb'.
- * @param int $engineid
- */
-function store_opaque_servers($urls, $type, $engineid) {
-    foreach ($urls as $url) {
-        $server = new stdClass;
-        $server->engineid = $engineid;
-        $server->type = $type;
-        $server->url = $url;
-        insert_record('question_opaque_servers', $server, false);
-    }
+    $manager = new qtype_opaque_engine_manager();
+    return $manager->save_engine_def($engine);
 }
 
 /**
@@ -122,11 +236,8 @@ function store_opaque_servers($urls, $type, $engineid) {
  * @return boolean whether the delete succeeded.
  */
 function delete_engine_def($engineid) {
-    global $db;
-    $db->StartTrans();
-    delete_records('question_opaque_servers', 'engineid', $engineid);
-    delete_records('question_opaque_engines', 'id', $engineid);
-    return $db->CompleteTrans();
+    $manager = new qtype_opaque_engine_manager();
+    return $manager->delete_engine_def($engineid);
 }
 
 /**
@@ -138,59 +249,8 @@ function delete_engine_def($engineid) {
  * @return integer its id.
  */
 function find_or_create_engineid($engine) {
-    global $CFG;
-
-    // First we try to get a reasonably accurate guess with SQL - we load the id of all 
-    // engines with the same passkey and which use the first questionengine and questionbank
-    // (if any).
-    $where = "WHERE e.passkey = '$engine->passkey'";
-    $sql = "SELECT e.id,1 FROM {$CFG->prefix}question_opaque_engines e ";
-    if (!empty($engine->questionengines)) {
-        $qeurl = reset($engine->questionengines);
-        $sql .= "JOIN {$CFG->prefix}question_opaque_servers qe ON
-                qe.engineid = e.id AND qe.type = 'qe'";
-        $where .= " AND qe.url = '$qeurl'";
-    }
-    if (!empty($engine->questionbanks)) {
-        $qburl = reset($engine->questionbanks);
-        $sql .= "JOIN {$CFG->prefix}question_opaque_servers qb ON
-                qb.engineid = e.id AND qb.type = 'qb'";
-        $where .= " AND qb.url = '$qburl'";
-    }
-    $sql .= $where;
-    $possibleengineids = get_records_sql_menu($sql);
-
-    // Then we loop through the possibilities loading the full definition and comparing it.
-    if ($possibleengineids) {
-        foreach ($possibleengineids as $engineid => $ignored) {
-            $testengine = load_engine_def($engineid);
-            $testengine->passkey = addslashes($testengine->passkey);
-            if (is_same_engine($engine, $testengine)) {
-                return $engineid;
-            }
-        }
-    }
-
-    return save_engine_def($engine);
-}
-
-/**
- * Are these two engine definitions essentially the same (same passkey and server lists)?
- *
- * @param object $engine1 one engine definition.
- * @param object $engine2 another engine definition.
- * @return boolean whether they are the same.
- */
-function is_same_engine($engine1, $engine2) {
-    // Same passkey.
-    $ans = $engine1->passkey == $engine2->passkey &&
-    // Same question engines.
-            !array_diff($engine1->questionengines, $engine2->questionengines) &&
-            !array_diff($engine2->questionengines, $engine1->questionengines) &&
-    // Same question banks.
-            !array_diff($engine1->questionbanks, $engine2->questionbanks) &&
-            !array_diff($engine2->questionbanks, $engine1->questionbanks);
-    return $ans;
+    $manager = new qtype_opaque_engine_manager();
+    return $manager->find_or_create_engineid($engine);
 }
 
 /**
@@ -419,7 +479,7 @@ function update_opaque_state(question_attempt $qa, question_attempt_step $pendin
     }
 
     if ($cachestatus == 'catchup') {
-        if ($opaquestate->sequencenumber >= $targetseq) { 
+        if ($opaquestate->sequencenumber >= $targetseq) {
             $error = stop_question_session($opaquestate->engine,
                     $opaquestate->questionsessionid);
         }
@@ -549,7 +609,7 @@ function generate_passkey($secret, $userid) {
 }
 
 /**
- * OpenMark relies on certain browser-specific class names to be present in the 
+ * OpenMark relies on certain browser-specific class names to be present in the
  * HTML outside the question, in order to apply certian browser-specific layout
  * work-arounds. This function re-implements Om's browser sniffing rules. See
  * https://openmark.dev.java.net/source/browse/openmark/trunk/src/util/misc/UserAgent.java?view=markup

@@ -30,6 +30,22 @@ require_once(dirname(__FILE__) . '/locallib.php');
  * The Opaque question type.
  */
 class qtype_opaque extends question_type {
+    /** @var qtype_opaque_engine_manager */
+    protected $enginemanager;
+
+    public function __construct() {
+        parent::__construct();
+        $this->enginemanager = new qtype_opaque_engine_manager();
+    }
+
+    /**
+     * Set the engine manager to used. You should not need to call this except
+     * when testing.
+     * @param qtype_opaque_engine_manager $manager
+     */
+    public function set_engine_manager(qtype_opaque_engine_manager $manager) {
+        $this->enginemanager = $manager;
+    }
 
     public function can_analyse_responses() {
         return false;
@@ -64,33 +80,33 @@ class qtype_opaque extends question_type {
         $expout .= '    <remoteid>' . $question->options->remoteid . "</remoteid>\n";
         $expout .= '    <remoteversion>' . $question->options->remoteversion . "</remoteversion>\n";
         $expout .= "    <engine>\n";
-        $engine = load_engine_def($question->options->engineid);
-        $expout .= '      <name>' . $format->writetext($engine->name, 0, true) . "</name>\n";
-        $expout .= '      <passkey>' . $format->writetext($engine->passkey, 0, true) . "</passkey>\n";
+        $engine = $this->enginemanager->load_engine_def($question->options->engineid);
+        $expout .= "      <name>\n" . $format->writetext($engine->name, 4) . "      </name>\n";
+        $expout .= "      <passkey>\n" . $format->writetext($engine->passkey, 4) . "      </passkey>\n";
         foreach ($engine->questionengines as $qe) {
-            $expout .= '      <qe>' . $format->writetext($qe, 0, true) . "</qe>\n";
+            $expout .= "      <qe>\n" . $format->writetext($qe, 4) . "      </qe>\n";
         }
         foreach ($engine->questionbanks as $qb) {
-            $expout .= '      <qb>' . $format->writetext($qb, 0, true) . "</qb>\n";
+            $expout .= "      <qb>\n" . $format->writetext($qb, 4) . "      </qb>\n";
         }
         $expout .= "    </engine>\n";
         return $expout;
     }
 
-    function import_from_xml( $data, $question, $format, $extra=null ) {
+    function import_from_xml($data, $question, $format, $extra = null) {
         if (!isset($data['@']['type']) || $data['@']['type'] != 'opaque') {
             return false;
         }
 
         $question = $format->import_headers($data);
         $question->qtype = 'opaque';
-        $question->remoteid = $format->getpath($data, array('#','remoteid',0,'#'), '', false,
-                get_string('missingremoteidinimport', 'qtype_opaque'));
-        $question->remoteversion = $format->getpath($data, array('#','remoteversion',0,'#'), '', false,
-                get_string('missingremoteversioninimport', 'qtype_opaque'));
+        $question->remoteid = $format->getpath($data, array('#', 'remoteid', 0, '#'),
+                '', false, get_string('missingremoteidinimport', 'qtype_opaque'));
+        $question->remoteversion = $format->getpath($data, array('#', 'remoteversion', 0, '#'),
+                '', false, get_string('missingremoteversioninimport', 'qtype_opaque'));
 
         // Engine bit.
-        $strerror = get_string('missingenginedetailsinimport', 'qtype_opaque'); 
+        $strerror = get_string('missingenginedetailsinimport', 'qtype_opaque');
         if (!isset($data['#']['engine'][0])) {
              $format->error($strerror);
         }
@@ -110,7 +126,7 @@ class qtype_opaque extends question_type {
                 $engine->questionbanks[] = $format->import_text($qbdata['#']['text']);
             }
         }
-        $question->engineid = find_or_create_engineid($engine);
+        $question->engineid = $this->enginemanager->find_or_create_engineid($engine);
         return $question;
     }
 
@@ -125,7 +141,7 @@ class qtype_opaque extends question_type {
         if (!$opaqueoptions) {
             return false;
         }
-        $engine = load_engine_def($opaqueoptions->engineid);
+        $engine = $this->enginemanager->load_engine_def($opaqueoptions->engineid);
         if (is_string($engine)) {
             return false;
         }
@@ -189,7 +205,7 @@ class qtype_opaque extends question_type {
                 $engine->questionbanks[] = backup_todb($qbdata['#']);
             }
         }
-        $engine->id = find_or_create_engineid($engine);
+        $engine->id = $this->enginemanager->find_or_create_engineid($engine);
 
         // Read in the rest.
         $opaqueoptions = new stdClass;

@@ -16,6 +16,8 @@ require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 
 class opaque_locallib_test extends UnitTestCase {
     function test_is_same_engine() {
+        $manager = new qtype_opaque_engine_manager();
+
         $engine1 = new stdClass;
         $engine1->name = 'OpenMark live servers';
         $engine1->passkey = '';
@@ -35,23 +37,23 @@ class opaque_locallib_test extends UnitTestCase {
         $engine2->questionbanks = array(
                 'https://ltsweb1.open.ac.uk/openmark/!question',
                 'https://ltsweb2.open.ac.uk/openmark/!question');
-        $this->assertTrue(is_same_engine($engine1, $engine2));
+        $this->assertTrue($manager->is_same_engine($engine1, $engine2));
 
         $engine2->questionbanks = array(
                 'https://ltsweb2.open.ac.uk/openmark/!question',
                 'https://ltsweb1.open.ac.uk/openmark/!question');
-        $this->assertTrue(is_same_engine($engine1, $engine2));
+        $this->assertTrue($manager->is_same_engine($engine1, $engine2));
 
         $engine2->name = 'Frog';
-        $this->assertTrue(is_same_engine($engine1, $engine2));
+        $this->assertTrue($manager->is_same_engine($engine1, $engine2));
 
         $engine2->passkey = 'newt';
-        $this->assertFalse(is_same_engine($engine1, $engine2));
+        $this->assertFalse($manager->is_same_engine($engine1, $engine2));
 
         $engine2->passkey = '';
         $engine2->questionengines = array(
                 'http://ltsweb2.open.ac.uk/om-qe/services/Om');
-        $this->assertFalse(is_same_engine($engine1, $engine2));
+        $this->assertFalse($manager->is_same_engine($engine1, $engine2));
         
     }
 }
