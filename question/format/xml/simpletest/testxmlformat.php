@@ -24,6 +24,7 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+require_once($CFG->libdir . '/questionlib.php');
 require_once($CFG->dirroot . '/question/format/xml/format.php');
 
 
@@ -88,6 +89,9 @@ class qformat_xml_test extends UnitTestCase {
         $q->qtype = 'match';
 
         $q->options->shuffleanswers = 1;
+        $q->options->correctfeedback = '';
+        $q->options->partiallycorrectfeedback = '';
+        $q->options->incorrectfeedback = '';
 
         $q->options->subquestions = array();
         $q->hints = array(
@@ -173,5 +177,897 @@ END;
         $importer->import_hints($qo, $questionxml['question']);
 
         $this->assertFalse(isset($qo->hint));
+    }
+
+    public function test_import_description() {
+        $xml = '  <question type="description">
+    <name>
+      <text>A description</text>
+    </name>
+    <questiontext format="html">
+      <text>The question text.</text>
+    </questiontext>
+    <generalfeedback>
+      <text>Here is some general feedback.</text>
+    </generalfeedback>
+    <defaultgrade>0</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+  </question>';
+        $xmldata = xmlize($xml);
+
+        $importer = new qformat_xml();
+        $q = $importer->import_description($xmldata['question']);
+
+        $expectedq = new stdClass;
+        $expectedq->qtype = 'description';
+        $expectedq->name = 'A description';
+        $expectedq->questiontext = 'The question text.';
+        $expectedq->questiontextformat = FORMAT_HTML;
+        $expectedq->generalfeedback = 'Here is some general feedback.';
+        $expectedq->defaultgrade = 0;
+        $expectedq->length = 0;
+        $expectedq->penalty = 0;
+
+        $this->assert(new CheckSpecifiedFieldsExpectation($expectedq), $q);
+    }
+
+    public function test_export_description() {
+        $qdata = new stdClass;
+        $qdata->id = 123;
+        $qdata->qtype = 'description';
+        $qdata->name = 'A description';
+        $qdata->questiontext = 'The question text.';
+        $qdata->questiontextformat = FORMAT_HTML;
+        $qdata->generalfeedback = 'Here is some general feedback.';
+        $qdata->defaultgrade = 0;
+        $qdata->length = 0;
+        $qdata->penalty = 0;
+        $qdata->hidden = 0;
+
+        $exporter = new qformat_xml();
+        $xml = $exporter->writequestion($qdata);
+
+        $expectedxml = '
+
+<!-- question: 123  -->
+  <question type="description">
+    <name>
+      <text>A description</text>
+    </name>
+    <questiontext format="html">
+      <text>The question text.</text>
+    </questiontext>
+    <generalfeedback>
+      <text>Here is some general feedback.</text>
+    </generalfeedback>
+    <defaultgrade>0</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+  </question>
+';
+
+        $this->assertEqual($expectedxml, $xml);
+    }
+
+    public function test_import_essay() {
+        $xml = '  <question type="essay">
+    <name>
+      <text>An essay</text>
+    </name>
+    <questiontext format="moodle_auto_format">
+      <text>Write something.</text>
+    </questiontext>
+    <generalfeedback>
+      <text>I hope you wrote something interesting.</text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+  </question>';
+        $xmldata = xmlize($xml);
+
+        $importer = new qformat_xml();
+        $q = $importer->import_essay($xmldata['question']);
+
+        $expectedq = new stdClass;
+        $expectedq->qtype = 'essay';
+        $expectedq->name = 'An essay';
+        $expectedq->questiontext = 'Write something.';
+        $expectedq->questiontextformat = FORMAT_MOODLE;
+        $expectedq->generalfeedback = 'I hope you wrote something interesting.';
+        $expectedq->defaultgrade = 1;
+        $expectedq->length = 1;
+        $expectedq->penalty = 0;
+
+        $this->assert(new CheckSpecifiedFieldsExpectation($expectedq), $q);
+    }
+
+    public function test_export_essay() {
+        $qdata = new stdClass;
+        $qdata->id = 123;
+        $qdata->qtype = 'essay';
+        $qdata->name = 'An essay';
+        $qdata->questiontext = 'Write something.';
+        $qdata->questiontextformat = FORMAT_MOODLE;
+        $qdata->generalfeedback = 'I hope you wrote something interesting.';
+        $qdata->defaultgrade = 1;
+        $qdata->length = 1;
+        $qdata->penalty = 0;
+        $qdata->hidden = 0;
+
+        $exporter = new qformat_xml();
+        $xml = $exporter->writequestion($qdata);
+
+        $expectedxml = '
+
+<!-- question: 123  -->
+  <question type="essay">
+    <name>
+      <text>An essay</text>
+    </name>
+    <questiontext format="moodle_auto_format">
+      <text>Write something.</text>
+    </questiontext>
+    <generalfeedback>
+      <text>I hope you wrote something interesting.</text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+  </question>
+';
+
+        $this->assertEqual($expectedxml, $xml);
+    }
+
+    public function test_import_match() {
+        $xml = '  <question type="matching">
+    <name>
+      <text>Matching question</text>
+    </name>
+    <questiontext format="html">
+      <text>Match the upper and lower case letters.</text>
+    </questiontext>
+    <generalfeedback>
+      <text>The answer is A -> a, B -> b and C -> c.</text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <shuffleanswers>false</shuffleanswers>
+    <correctfeedback>
+      <text>Well done.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback>
+      <text>Not entirely.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback>
+      <text>Completely wrong!</text>
+    </incorrectfeedback>
+    <subquestion>
+      <text>A</text>
+      <answer>
+        <text>a</text>
+      </answer>
+    </subquestion>
+    <subquestion>
+      <text>B</text>
+      <answer>
+        <text>b</text>
+      </answer>
+    </subquestion>
+    <subquestion>
+      <text>C</text>
+      <answer>
+        <text>c</text>
+      </answer>
+    </subquestion>
+    <subquestion>
+      <text></text>
+      <answer>
+        <text>d</text>
+      </answer>
+    </subquestion>
+    <hint>
+      <text>Hint 1</text>
+      <shownumcorrect />
+    </hint>
+    <hint>
+      <text></text>
+      <shownumcorrect />
+      <clearwrong />
+    </hint>
+  </question>';
+        $xmldata = xmlize($xml);
+
+        $importer = new qformat_xml();
+        $q = $importer->import_matching($xmldata['question']);
+
+        $expectedq = new stdClass;
+        $expectedq->qtype = 'match';
+        $expectedq->name = 'Matching question';
+        $expectedq->questiontext = 'Match the upper and lower case letters.';
+        $expectedq->questiontextformat = FORMAT_HTML;
+        $expectedq->correctfeedback = 'Well done.';
+        $expectedq->partiallycorrectfeedback = 'Not entirely.';
+        $expectedq->shownumcorrect = false;
+        $expectedq->incorrectfeedback = 'Completely wrong!';
+        $expectedq->generalfeedback = 'The answer is A -> a, B -> b and C -> c.';
+        $expectedq->defaultgrade = 1;
+        $expectedq->length = 1;
+        $expectedq->penalty = 0.3333333;
+        $expectedq->shuffleanswers = 0;
+        $expectedq->subquestions = array('A', 'B', 'C', '');
+        $expectedq->subanswers = array('a', 'b', 'c', 'd');
+        $expectedq->hint = array('Hint 1', '');
+        $expectedq->hintshownumcorrect = array(true, true);
+        $expectedq->hintclearwrong = array(false, true);
+
+        $this->assert(new CheckSpecifiedFieldsExpectation($expectedq), $q);
+    }
+
+    public function test_export_match() {
+        $qdata = new stdClass;
+        $qdata->id = 123;
+        $qdata->qtype = 'match';
+        $qdata->name = 'Matching question';
+        $qdata->questiontext = 'Match the upper and lower case letters.';
+        $qdata->questiontextformat = FORMAT_HTML;
+        $qdata->generalfeedback = 'The answer is A -> a, B -> b and C -> c.';
+        $qdata->defaultgrade = 1;
+        $qdata->length = 1;
+        $qdata->penalty = 0.3333333;
+        $qdata->hidden = 0;
+
+        $qdata->options = new stdClass;
+        $qdata->options->shuffleanswers = 1;
+        $qdata->options->correctfeedback = 'Well done.';
+        $qdata->options->partiallycorrectfeedback = 'Not entirely.';
+        $qdata->options->shownumcorrect = false;
+        $qdata->options->incorrectfeedback = 'Completely wrong!';
+
+        $subq1 = new stdClass;
+        $subq1->questiontext = 'A';
+        $subq1->answertext = 'a';
+
+        $subq2 = new stdClass;
+        $subq2->questiontext = 'B';
+        $subq2->answertext = 'b';
+
+        $subq3 = new stdClass;
+        $subq3->questiontext = 'C';
+        $subq3->answertext = 'c';
+
+        $subq4 = new stdClass;
+        $subq4->questiontext = '';
+        $subq4->answertext = 'd';
+
+        $qdata->options->subquestions = array(
+                $subq1, $subq2, $subq3, $subq4);
+
+        $qdata->hints = array(
+            new question_hint_with_parts('Hint 1', true, false),
+            new question_hint_with_parts('', true, true),
+        );
+
+        $exporter = new qformat_xml();
+        $xml = $exporter->writequestion($qdata);
+
+        $expectedxml = '
+
+<!-- question: 123  -->
+  <question type="matching">
+    <name>
+      <text>Matching question</text>
+    </name>
+    <questiontext format="html">
+      <text>Match the upper and lower case letters.</text>
+    </questiontext>
+    <generalfeedback>
+      <text><![CDATA[The answer is A -> a, B -> b and C -> c.]]></text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <shuffleanswers>true</shuffleanswers>
+    <correctfeedback>
+      <text>Well done.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback>
+      <text>Not entirely.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback>
+      <text>Completely wrong!</text>
+    </incorrectfeedback>
+    <subquestion>
+      <text>A</text>
+      <answer>
+        <text>a</text>
+      </answer>
+    </subquestion>
+    <subquestion>
+      <text>B</text>
+      <answer>
+        <text>b</text>
+      </answer>
+    </subquestion>
+    <subquestion>
+      <text>C</text>
+      <answer>
+        <text>c</text>
+      </answer>
+    </subquestion>
+    <subquestion>
+      <text></text>
+      <answer>
+        <text>d</text>
+      </answer>
+    </subquestion>
+    <hint>
+      <text>Hint 1</text>
+      <shownumcorrect/>
+    </hint>
+    <hint>
+      <text></text>
+      <shownumcorrect/>
+      <clearwrong/>
+    </hint>
+  </question>
+';
+
+        $this->assertEqual($expectedxml, $xml);
+    }
+
+    public function test_import_multichoice() {
+        $xml = '  <question type="multichoice">
+    <name>
+      <text>Multiple choice question</text>
+    </name>
+    <questiontext format="html">
+      <text>Which are the even numbers?</text>
+    </questiontext>
+    <generalfeedback>
+      <text>The even numbers are 2 and 4.</text>
+    </generalfeedback>
+    <defaultgrade>2</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <single>false</single>
+    <shuffleanswers>false</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <correctfeedback>
+      <text><![CDATA[<p>Your answer is correct.</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback>
+      <text><![CDATA[<p>Your answer is partially correct.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback>
+      <text><![CDATA[<p>Your answer is incorrect.</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="0">
+      <text>1</text>
+      <feedback>
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100">
+      <text>2</text>
+      <feedback>
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0">
+      <text>3</text>
+      <feedback>
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100">
+      <text>4</text>
+      <feedback>
+        <text></text>
+      </feedback>
+    </answer>
+    <hint>
+      <text>Hint 1.</text>
+    </hint>
+    <hint>
+      <text>Hint 2.</text>
+    </hint>
+  </question>';
+        $xmldata = xmlize($xml);
+
+        $importer = new qformat_xml();
+        $q = $importer->import_multichoice($xmldata['question']);
+
+        $expectedq = new stdClass;
+        $expectedq->qtype = 'multichoice';
+        $expectedq->name = 'Multiple choice question';
+        $expectedq->questiontext = 'Which are the even numbers?';
+        $expectedq->questiontextformat = FORMAT_HTML;
+        $expectedq->correctfeedback = '<p>Your answer is correct.</p>';
+        $expectedq->partiallycorrectfeedback = '<p>Your answer is partially correct.</p>';
+        $expectedq->shownumcorrect = true;
+        $expectedq->incorrectfeedback = '<p>Your answer is incorrect.</p>';
+        $expectedq->generalfeedback = 'The even numbers are 2 and 4.';
+        $expectedq->defaultgrade = 2;
+        $expectedq->length = 1;
+        $expectedq->penalty = 0.3333333;
+        $expectedq->shuffleanswers = 0;
+        $expectedq->single = false;
+
+        $expectedq->answer = array('1', '2', '3', '4');
+        $expectedq->fraction = array(0, 1, 0, 1);
+        $expectedq->feedback = array('', '', '', '');
+
+        $expectedq->hint = array('Hint 1.', 'Hint 2.');
+        $expectedq->hintshownumcorrect = array(false, false);
+        $expectedq->hintclearwrong = array(false, false);
+
+        $this->assert(new CheckSpecifiedFieldsExpectation($expectedq), $q);
+    }
+
+    public function test_export_multichoice() {
+        $qdata = new stdClass;
+        $qdata->id = 123;
+        $qdata->qtype = 'multichoice';
+        $qdata->name = 'Multiple choice question';
+        $qdata->questiontext = 'Which are the even numbers?';
+        $qdata->questiontextformat = FORMAT_HTML;
+        $qdata->generalfeedback = 'The even numbers are 2 and 4.';
+        $qdata->defaultgrade = 2;
+        $qdata->length = 1;
+        $qdata->penalty = 0.3333333;
+        $qdata->hidden = 0;
+
+        $qdata->options = new stdClass;
+        $qdata->options->single = 0;
+        $qdata->options->shuffleanswers = 0;
+        $qdata->options->answernumbering = 'abc';
+        $qdata->options->correctfeedback = '<p>Your answer is correct.</p>';
+        $qdata->options->partiallycorrectfeedback = '<p>Your answer is partially correct.</p>';
+        $qdata->options->shownumcorrect = 1;
+        $qdata->options->incorrectfeedback = '<p>Your answer is incorrect.</p>';
+
+        $qdata->options->answers = array(
+            new question_answer('1', 0, ''),
+            new question_answer('2', 1, ''),
+            new question_answer('3', 0, ''),
+            new question_answer('4', 1, ''),
+        );
+
+        $qdata->hints = array(
+            new question_hint_with_parts('Hint 1.', false, false),
+            new question_hint_with_parts('Hint 2.', false, false),
+        );
+
+        $exporter = new qformat_xml();
+        $xml = $exporter->writequestion($qdata);
+
+        $expectedxml = '
+
+<!-- question: 123  -->
+  <question type="multichoice">
+    <name>
+      <text>Multiple choice question</text>
+    </name>
+    <questiontext format="html">
+      <text>Which are the even numbers?</text>
+    </questiontext>
+    <generalfeedback>
+      <text>The even numbers are 2 and 4.</text>
+    </generalfeedback>
+    <defaultgrade>2</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <single>false</single>
+    <shuffleanswers>false</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <correctfeedback>
+      <text><![CDATA[<p>Your answer is correct.</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback>
+      <text><![CDATA[<p>Your answer is partially correct.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback>
+      <text><![CDATA[<p>Your answer is incorrect.</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="0">
+      <text>1</text>
+      <feedback>
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100">
+      <text>2</text>
+      <feedback>
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0">
+      <text>3</text>
+      <feedback>
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100">
+      <text>4</text>
+      <feedback>
+        <text></text>
+      </feedback>
+    </answer>
+    <hint>
+      <text>Hint 1.</text>
+    </hint>
+    <hint>
+      <text>Hint 2.</text>
+    </hint>
+  </question>
+';
+
+        $this->assertEqual($expectedxml, $xml);
+    }
+
+    public function test_import_numerical() {
+        $xml = '  <question type="numerical">
+    <name>
+      <text>Numerical question</text>
+    </name>
+    <questiontext format="html">
+      <text>What is the answer?</text>
+    </questiontext>
+    <generalfeedback>
+      <text>General feedback: Think Hitch-hikers guide to the Galaxy.</text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0.1</penalty>
+    <hidden>0</hidden>
+    <answer fraction="100">
+      <text>42</text>
+      <feedback>
+        <text>Well done!</text>
+      </feedback>
+      <tolerance>0.001</tolerance>
+    </answer>
+    <answer fraction="0">
+      <text>13</text>
+      <feedback>
+        <text>What were you thinking?!</text>
+      </feedback>
+      <tolerance>1</tolerance>
+    </answer>
+    <answer fraction="0">
+      <text>*</text>
+      <feedback>
+        <text>Completely wrong.</text>
+      </feedback>
+      <tolerance></tolerance>
+    </answer>
+  </question>';
+        $xmldata = xmlize($xml);
+
+        $importer = new qformat_xml();
+        $q = $importer->import_numerical($xmldata['question']);
+
+        $expectedq = new stdClass;
+        $expectedq->qtype = 'numerical';
+        $expectedq->name = 'Numerical question';
+        $expectedq->questiontext = 'What is the answer?';
+        $expectedq->questiontextformat = FORMAT_HTML;
+        $expectedq->generalfeedback = 'General feedback: Think Hitch-hikers guide to the Galaxy.';
+        $expectedq->defaultgrade = 1;
+        $expectedq->length = 1;
+        $expectedq->penalty = 0.1;
+
+        $expectedq->answer = array('42', '13', '*');
+        $expectedq->fraction = array(1, 0, 0);
+        $expectedq->feedback = array('Well done!', 'What were you thinking?!', 'Completely wrong.');
+        $expectedq->tolerance = array(0.001, 1, 0);
+
+        $this->assert(new CheckSpecifiedFieldsExpectation($expectedq), $q);
+    }
+
+    public function test_export_numerical() {
+        question_bank::load_question_definition_classes('numerical');
+
+        $qdata = new stdClass;
+        $qdata->id = 123;
+        $qdata->qtype = 'numerical';
+        $qdata->name = 'Numerical question';
+        $qdata->questiontext = 'What is the answer?';
+        $qdata->questiontextformat = FORMAT_HTML;
+        $qdata->generalfeedback = 'General feedback: Think Hitch-hikers guide to the Galaxy.';
+        $qdata->defaultgrade = 1;
+        $qdata->length = 1;
+        $qdata->penalty = 0.1;
+        $qdata->hidden = 0;
+
+        $qdata->options->answers = array(
+            new qtype_numerical_answer('42', 1, 'Well done!', 0.001),
+            new qtype_numerical_answer('13', 0, 'What were you thinking?!', 1),
+            new qtype_numerical_answer('*', 0, 'Completely wrong.', ''),
+        );
+
+        $qdata->options->units = array();
+
+        $exporter = new qformat_xml();
+        $xml = $exporter->writequestion($qdata);
+
+        $expectedxml = '
+
+<!-- question: 123  -->
+  <question type="numerical">
+    <name>
+      <text>Numerical question</text>
+    </name>
+    <questiontext format="html">
+      <text>What is the answer?</text>
+    </questiontext>
+    <generalfeedback>
+      <text>General feedback: Think Hitch-hikers guide to the Galaxy.</text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0.1</penalty>
+    <hidden>0</hidden>
+    <answer fraction="100">
+      <text>42</text>
+      <feedback>
+        <text>Well done!</text>
+      </feedback>
+      <tolerance>0.001</tolerance>
+    </answer>
+    <answer fraction="0">
+      <text>13</text>
+      <feedback>
+        <text>What were you thinking?!</text>
+      </feedback>
+      <tolerance>1</tolerance>
+    </answer>
+    <answer fraction="0">
+      <text>*</text>
+      <feedback>
+        <text>Completely wrong.</text>
+      </feedback>
+      <tolerance>0</tolerance>
+    </answer>
+  </question>
+';
+
+        $this->assertEqual($expectedxml, $xml);
+    }
+
+    public function test_import_shortanswer() {
+        $xml = '  <question type="shortanswer">
+    <name>
+      <text>Short answer question</text>
+    </name>
+    <questiontext format="html">
+      <text>Fill in the gap in this sequence: Alpha, ________, Gamma.</text>
+    </questiontext>
+    <generalfeedback>
+      <text>The answer is Beta.</text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <usecase>0</usecase>
+    <answer fraction="100">
+      <text>Beta</text>
+      <feedback>
+        <text>Well done!</text>
+      </feedback>
+    </answer>
+    <answer fraction="0">
+      <text>*</text>
+      <feedback>
+        <text>Doh!</text>
+      </feedback>
+    </answer>
+    <hint>
+      <text>Hint 1</text>
+    </hint>
+    <hint>
+      <text>Hint 2</text>
+    </hint>
+  </question>';
+        $xmldata = xmlize($xml);
+
+        $importer = new qformat_xml();
+        $q = $importer->import_shortanswer($xmldata['question']);
+
+        $expectedq = new stdClass;
+        $expectedq->qtype = 'shortanswer';
+        $expectedq->name = 'Short answer question';
+        $expectedq->questiontext = 'Fill in the gap in this sequence: Alpha, ________, Gamma.';
+        $expectedq->questiontextformat = FORMAT_HTML;
+        $expectedq->generalfeedback = 'The answer is Beta.';
+        $expectedq->usecase = false;
+        $expectedq->defaultgrade = 1;
+        $expectedq->length = 1;
+        $expectedq->penalty = 0.3333333;
+
+        $expectedq->answer = array('Beta', '*');
+        $expectedq->fraction = array(1, 0);
+        $expectedq->feedback = array('Well done!', 'Doh!');
+
+        $this->assert(new CheckSpecifiedFieldsExpectation($expectedq), $q);
+    }
+
+    public function test_export_shortanswer() {
+        $qdata = new stdClass;
+        $qdata->id = 123;
+        $qdata->qtype = 'shortanswer';
+        $qdata->name = 'Short answer question';
+        $qdata->questiontext = 'Fill in the gap in this sequence: Alpha, ________, Gamma.';
+        $qdata->questiontextformat = FORMAT_HTML;
+        $qdata->generalfeedback = 'The answer is Beta.';
+        $qdata->defaultgrade = 1;
+        $qdata->length = 1;
+        $qdata->penalty = 0.3333333;
+        $qdata->hidden = 0;
+
+        $qdata->options->usecase = 0;
+
+        $qdata->options->answers = array(
+            new question_answer('Beta', 1, 'Well done!'),
+            new question_answer('*', 0, 'Doh!'),
+        );
+
+        $qdata->hints = array(
+            new question_hint('Hint 1'),
+            new question_hint('Hint 2'),
+        );
+
+        $exporter = new qformat_xml();
+        $xml = $exporter->writequestion($qdata);
+
+        $expectedxml = '
+
+<!-- question: 123  -->
+  <question type="shortanswer">
+    <name>
+      <text>Short answer question</text>
+    </name>
+    <questiontext format="html">
+      <text>Fill in the gap in this sequence: Alpha, ________, Gamma.</text>
+    </questiontext>
+    <generalfeedback>
+      <text>The answer is Beta.</text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <usecase>0</usecase>
+    <answer fraction="100">
+      <text>Beta</text>
+      <feedback>
+        <text>Well done!</text>
+      </feedback>
+    </answer>
+    <answer fraction="0">
+      <text>*</text>
+      <feedback>
+        <text>Doh!</text>
+      </feedback>
+    </answer>
+    <hint>
+      <text>Hint 1</text>
+    </hint>
+    <hint>
+      <text>Hint 2</text>
+    </hint>
+  </question>
+';
+
+        $this->assertEqual($expectedxml, $xml);
+    }
+
+    public function test_import_truefalse() {
+        $xml = '  <question type="truefalse">
+    <name>
+      <text>True false question</text>
+    </name>
+    <questiontext format="html">
+      <text>The answer is true.</text>
+    </questiontext>
+    <generalfeedback>
+      <text>General feedback: You should have chosen true.</text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>1</penalty>
+    <hidden>0</hidden>
+    <answer fraction="100">
+      <text>true</text>
+      <feedback>
+        <text>Well done!</text>
+      </feedback>
+    </answer>
+    <answer fraction="0">
+      <text>false</text>
+      <feedback>
+        <text>Doh!</text>
+      </feedback>
+    </answer>
+  </question>';
+        $xmldata = xmlize($xml);
+
+        $importer = new qformat_xml();
+        $q = $importer->import_truefalse($xmldata['question']);
+
+        $expectedq = new stdClass;
+        $expectedq->qtype = 'truefalse';
+        $expectedq->name = 'True false question';
+        $expectedq->questiontext = 'The answer is true.';
+        $expectedq->questiontextformat = FORMAT_HTML;
+        $expectedq->generalfeedback = 'General feedback: You should have chosen true.';
+        $expectedq->defaultgrade = 1;
+        $expectedq->length = 1;
+        $expectedq->penalty = 1;
+
+        $expectedq->feedbacktrue = 'Well done!';
+        $expectedq->feedbackfalse = 'Doh!';
+        $expectedq->correctanswer = true;
+
+        $this->assert(new CheckSpecifiedFieldsExpectation($expectedq), $q);
+    }
+
+    public function test_export_truefalse() {
+        $qdata = new stdClass;
+        $qdata->id = 12;
+        $qdata->qtype = 'truefalse';
+        $qdata->name = 'True false question';
+        $qdata->questiontext = 'The answer is true.';
+        $qdata->questiontextformat = FORMAT_HTML;
+        $qdata->generalfeedback = 'General feedback: You should have chosen true.';
+        $qdata->defaultgrade = 1;
+        $qdata->length = 1;
+        $qdata->penalty = 1;
+        $qdata->hidden = 0;
+
+        $qdata->options->answers = array(
+            1 => new question_answer('True', 1, 'Well done!'),
+            2 => new question_answer('False', 0, 'Doh!'),
+        );
+        $qdata->options->trueanswer = 1;
+        $qdata->options->falseanswer = 2;
+
+        $exporter = new qformat_xml();
+        $xml = $exporter->writequestion($qdata);
+
+        $expectedxml = '
+
+<!-- question: 12  -->
+  <question type="truefalse">
+    <name>
+      <text>True false question</text>
+    </name>
+    <questiontext format="html">
+      <text>The answer is true.</text>
+    </questiontext>
+    <generalfeedback>
+      <text>General feedback: You should have chosen true.</text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>1</penalty>
+    <hidden>0</hidden>
+    <answer fraction="100">
+      <text>true</text>
+      <feedback>
+        <text>Well done!</text>
+      </feedback>
+    </answer>
+    <answer fraction="0">
+      <text>false</text>
+      <feedback>
+        <text>Doh!</text>
+      </feedback>
+    </answer>
+  </question>
+';
+
+        $this->assertEqual($expectedxml, $xml);
     }
 }
