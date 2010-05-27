@@ -151,7 +151,7 @@ class qtype_truefalse extends question_type {
     */
     public function delete_question($questionid) {
         delete_records("question_truefalse", "question", $questionid);
-        return true;
+        return parent::delete_question($questionid);
     }
 
     function get_random_guess_score($questiondata) {

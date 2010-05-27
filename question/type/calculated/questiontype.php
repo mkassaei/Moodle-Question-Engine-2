@@ -358,7 +358,7 @@ class qtype_calculated extends question_dataset_dependent_questiontype {
             }
         }
         delete_records("question_datasets", "question", $questionid);
-        return true;
+        return parent::delete_question($questionid);
     }
 
     function print_question_formulation_and_controls(&$question, &$state, $cmoptions, $options) {

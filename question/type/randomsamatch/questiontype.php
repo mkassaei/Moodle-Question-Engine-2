@@ -70,7 +70,7 @@ class qtype_randomsamatch extends qtype_match {
     */
     function delete_question($questionid) {
         delete_records("question_randomsamatch", "question", $questionid);
-        return true;
+        return parent::delete_question($questionid);
     }
 
     function create_session_and_responses(&$question, &$state, $cmoptions, $attempt) {

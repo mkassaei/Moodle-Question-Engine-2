@@ -208,9 +208,8 @@ class qtype_multichoice extends question_type {
      * @return boolean Success/Failure
      */
     public function delete_question($questionid) {
-        parent::delete_question($questionid);
         delete_records('question_multichoice', 'question', $questionid);
-        return true;
+        return parent::delete_question($questionid);
     }
 
     public function get_correct_responses(&$question, &$state) {

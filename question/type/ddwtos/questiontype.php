@@ -135,7 +135,7 @@ class qtype_ddwtos extends question_type {
 
     public function delete_question($questionid) {
         delete_records('question_ddwtos', 'questionid', $questionid);
-        return true;
+        return parent::delete_question($questionid);
     }
 
     protected function initialise_question_instance(question_definition $question, $questiondata) {

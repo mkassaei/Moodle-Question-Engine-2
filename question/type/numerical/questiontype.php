@@ -276,10 +276,9 @@ class qtype_numerical extends question_type {
      * @param object $question  The question being deleted
      */
     public function delete_question($questionid) {
-        parent::delete_question($questionid);
         delete_records("question_numerical", "question", $questionid);
         delete_records("question_numerical_units", "question", $questionid);
-        return true;
+        return parent::delete_question($questionid);
     }
 
     public function get_correct_responses(&$question, &$state) {
