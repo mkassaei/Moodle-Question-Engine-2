@@ -126,7 +126,7 @@ class qformat_xml extends qformat_default {
 
         if ($istext) {
             if (!is_string($xml)) {
-                $this->error(get_string('invalidxml','qformat_xml'));
+                $this->error(get_string('invalidxml', 'qformat_xml'));
             }
             $xml = addslashes(trim($xml));
         }
@@ -147,12 +147,12 @@ class qformat_xml extends qformat_default {
         // Question name
         $qo->name = $this->getpath($question,
                 array('#', 'name', 0, '#', 'text', 0, '#'), '', true,
-                get_string('xmlimportnoname','quiz'));
+                get_string('xmlimportnoname', 'quiz'));
         $qo->questiontext = $this->getpath($question,
                 array('#', 'questiontext', 0, '#', 'text', 0, '#'), '', true);
         $qo->questiontextformat = $this->trans_format(
                 $this->getpath($question, array('#', 'questiontext', 0, '@', 'format'), ''));
-        $qo->image = $this->getpath($question, array('#','image',0,'#'), $qo->image);
+        $qo->image = $this->getpath($question, array('#', 'image', 0, '#'), $qo->image);
         $image_base64 = $this->getpath($question, array('#', 'image_base64', '0', '#'), '');
         if (!empty($image_base64)) {
             $qo->image = $this->importimagefile($qo->image, stripslashes($image_base64));
@@ -161,6 +161,11 @@ class qformat_xml extends qformat_default {
                 array('#', 'generalfeedback', 0, '#', 'text', 0, '#'), $qo->generalfeedback, true);
         $qo->defaultgrade = $this->getpath($question, array('#', 'defaultgrade', 0, '#'), $qo->defaultgrade);
         $qo->penalty = $this->getpath($question, array('#', 'penalty', 0, '#'), $qo->penalty);
+
+        // Fix problematic rounding from old files:
+        if (abs($qo->penalty - 0.3333333) < 0.005) {
+            $qo->penalty = 0.3333333;
+        }
 
         return $qo;
     }
@@ -192,13 +197,20 @@ class qformat_xml extends qformat_default {
     public function import_overall_feedback($qo, $questionxml, $withshownumpartscorrect = false) {
         $qo->correctfeedback = $this->getpath($questionxml,
                 array('#', 'correctfeedback', 0, '#', 'text', 0, '#'), '', true);
-        if ($withshownumpartscorrect) {
-            $qo->shownumcorrect = array_key_exists('shownumcorrect', $questionxml['#']);
-        }
         $qo->partiallycorrectfeedback = $this->getpath($questionxml,
                 array('#', 'partiallycorrectfeedback', 0, '#', 'text', 0, '#'), '', true);
         $qo->incorrectfeedback = $this->getpath($questionxml,
                 array('#', 'incorrectfeedback', 0, '#', 'text', 0, '#'), '', true);
+
+        if ($withshownumpartscorrect) {
+            $qo->shownumcorrect = array_key_exists('shownumcorrect', $questionxml['#']);
+
+            // Backwards compatibility:
+            if (array_key_exists('correctresponsesfeedback', $questionxml['#'])) {
+                $qo->shownumcorrect = $this->trans_single($this->getpath($questionxml,
+                        array('#', 'correctresponsesfeedback', 0, '#'), 1));
+            }
+        }
     }
 
     /**
@@ -207,11 +219,28 @@ class qformat_xml extends qformat_default {
      * @return object hint for storing in the database.
      */
     public function import_hint($hintxml) {
+        if (array_key_exists('hintcontent', $hintxml['#'])) {
+            // Backwards compatibility:
+
+            $hint = new stdClass;
+            $hint->hint = $this->getpath($hintxml,
+                    array('#', 'hintcontent', 0, '#', 'text' ,0, '#'), '', true);
+            $hint->shownumcorrect = $this->getpath($hintxml,
+                    array('#', 'statenumberofcorrectresponses', 0, '#'), 0);
+            $hint->clearwrong = $this->getpath($hintxml,
+                    array('#', 'clearincorrectresponses', 0, '#'), 0);
+            $hint->options = $this->getpath($hintxml,
+                    array('#', 'showfeedbacktoresponses', 0, '#'), 0);
+
+            return $hint;
+        }
+
         $hint = new stdClass;
-        $hint->hint = $this->getpath($hintxml, array('#','text', 0 , '#'), '', true);
+        $hint->hint = $this->getpath($hintxml, array('#', 'text', 0 , '#'), '', true);
         $hint->shownumcorrect = array_key_exists('shownumcorrect', $hintxml['#']);
         $hint->clearwrong = array_key_exists('clearwrong', $hintxml['#']);
-        $hint->options = $this->getpath($hintxml, array('#','options', 0 , '#'), '', true);
+        $hint->options = $this->getpath($hintxml, array('#', 'options', 0 , '#'), '', true);
+
         return $hint;
     }
 
@@ -293,7 +322,7 @@ class qformat_xml extends qformat_default {
         $qo->qtype = MULTIANSWER;
         $qo->course = $this->course;
         $qo->generalfeedback = $this->getpath($questions,
-                array('#','generalfeedback',0,'#','text',0,'#'), '', true);
+                array('#', 'generalfeedback', 0, '#', 'text', 0, '#'), '', true);
 
         if (!empty($questions)) {
             $qo->name = $this->import_text($questions['#']['name'][0]['#']['text']);
@@ -431,7 +460,7 @@ class qformat_xml extends qformat_default {
             $qo->tolerance[] = $this->getpath($answer, array('#', 'tolerance', 0, '#'), 0);
 
             // fraction as a tag is deprecated
-            $fraction = $this->getpath($answer, array('@','fraction'), 0) / 100;
+            $fraction = $this->getpath($answer, array('@', 'fraction'), 0) / 100;
             $qo->fraction[] = $this->getpath($answer, array('#', 'fraction', 0, '#'), $fraction); // deprecated
         }
 
@@ -462,8 +491,8 @@ class qformat_xml extends qformat_default {
 
         // header parts particular to matching
         $qo->qtype = MATCH;
-        $qo->shuffleanswers = $this->getpath($question,
-                array('#', 'shuffleanswers', 0, '#'), 1);
+        $qo->shuffleanswers = $this->trans_single($this->getpath($question,
+                array('#', 'shuffleanswers', 0, '#'), 1));
 
         // get subquestions
         $subquestions = $question['#']['subquestion'];
@@ -472,9 +501,9 @@ class qformat_xml extends qformat_default {
 
         // run through subquestions
         foreach ($subquestions as $subquestion) {
-            $qo->subquestions[] = $this->getpath($subquestion, array('#','text',0,'#'), '', true);
+            $qo->subquestions[] = $this->getpath($subquestion, array('#', 'text', 0, '#'), '', true);
             $qo->subanswers[] = $this->getpath($subquestion,
-                    array('#','answer',0,'#','text',0,'#'), '', true);
+                    array('#', 'answer', 0, '#', 'text', 0, '#'), '', true);
         }
 
         $this->import_overall_feedback($qo, $question, true);
@@ -497,7 +526,7 @@ class qformat_xml extends qformat_default {
 
         // get feedback
         $qo->feedback = $this->getpath($question,
-                array('#', 'answer', 0, '#', 'feedback', 0, '#', 'text',0,'#'), '', true);
+                array('#', 'answer', 0, '#', 'feedback', 0, '#', 'text', 0, '#'), '', true);
 
         // get fraction - <fraction> tag is deprecated
         $qo->fraction = $this->getpath($question, array('@', 'fraction'), 0) / 100;
@@ -772,31 +801,12 @@ class qformat_xml extends qformat_default {
         return $xml;
     }
 
-    function xmltidy($content) {
-        // This only works if tidy is installed.
-        if (extension_loaded('tidy')) {
-            $config = array('input-xml' => true, 'output-xml' => true, 'indent' => true, 'wrap' => 0);
-            $tidy = new tidy();
-            $tidy->parseString($content, $config, 'utf8');
-            $tidy->cleanRepair();
-            return $tidy->value;
-
-        } else {
-            return $content;
-        }
-    }
-
     function presave_process($content) {
         // Override to allow us to add xml headers and footers
-
-        // Add the xml headers and footers
-        $content = '<?xml version="1.0" encoding="UTF-8"?>
+        return '<?xml version="1.0" encoding="UTF-8"?>
 <quiz>
-$content
+' . $content . '
 </quiz>';
-
-        // Make the xml look nice
-        return $this->xmltidy($content);
     }
 
     /**
