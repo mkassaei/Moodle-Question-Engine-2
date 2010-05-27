@@ -149,4 +149,323 @@ class qtype_ddwtos_test extends UnitTestCase {
         $this->assertEqual(0, $response[2]->fraction);
         $this->assertEqual('cat: insect', $response[2]->responseclass);
     }
+
+    public function test_xml_import() {
+        $xml = '  <question type="ddwtos">
+    <name>
+      <text>A drag-and-drop question</text>
+    </name>
+    <questiontext format="moodle_auto_format">
+      <text>Put these in order: [[1]], [[2]], [[3]].</text>
+    </questiontext>
+    <generalfeedback>
+      <text>The answer is Alpha, Beta, Gamma.</text>
+    </generalfeedback>
+    <defaultgrade>3</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <shuffleanswers>1</shuffleanswers>
+    <correctfeedback>
+      <text><![CDATA[<p>Your answer is correct.</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback>
+      <text><![CDATA[<p>Your answer is partially correct.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback>
+      <text><![CDATA[<p>Your answer is incorrect.</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <dragbox>
+      <text>Alpha</text>
+      <group>1</group>
+    </dragbox>
+    <dragbox>
+      <text>Beta</text>
+      <group>1</group>
+    </dragbox>
+    <dragbox>
+      <text>Gamma</text>
+      <group>1</group>
+      <infinite/>
+    </dragbox>
+    <hint>
+      <text>Try again.</text>
+      <shownumcorrect />
+    </hint>
+    <hint>
+      <text>These are the first three letters of the Greek alphabet.</text>
+      <shownumcorrect />
+      <clearwrong />
+    </hint>
+  </question>';
+        $xmldata = xmlize($xml);
+
+        $importer = new qformat_xml();
+        $q = $importer->try_importing_using_qtypes(
+                $xmldata['question'], null, null, 'opaque');
+
+        $expectedq = new stdClass;
+        $expectedq->qtype = 'ddwtos';
+        $expectedq->name = 'A drag-and-drop question';
+        $expectedq->questiontext = 'Put these in order: [[1]], [[2]], [[3]].';
+        $expectedq->questiontextformat = FORMAT_MOODLE;
+        $expectedq->generalfeedback = 'The answer is Alpha, Beta, Gamma.';
+        $expectedq->defaultgrade = 3;
+        $expectedq->length = 1;
+        $expectedq->penalty = 0.3333333;
+
+        $expectedq->shuffleanswers = 1;
+        $expectedq->correctfeedback = '<p>Your answer is correct.</p>';
+        $expectedq->partiallycorrectfeedback = '<p>Your answer is partially correct.</p>';
+        $expectedq->shownumcorrect = true;
+        $expectedq->incorrectfeedback = '<p>Your answer is incorrect.</p>';
+
+        $expectedq->answer = array('Alpha', 'Beta', 'Gamma');
+        $expectedq->draggroup = array(1, 1, 1);
+        $expectedq->infinite = array(false, false, true);
+
+        $expectedq->hint = array('Try again.', 'These are the first three letters of the Greek alphabet.');
+        $expectedq->hintshownumcorrect = array(true, true);
+        $expectedq->hintclearwrong = array(false, true);
+
+        $this->assert(new CheckSpecifiedFieldsExpectation($expectedq), $q);
+    }
+
+    public function test_xml_import_legacy() {
+        $xml = '  <question type="ddwtos">
+    <name>
+      <text>QDandD1 Base definition</text>
+    </name>
+    <questiontext format="html">
+      <text>&lt;p&gt;Drag and drop the words from the list below to fill the blank spaces and correctly complete the sentence.&lt;/p&gt; &lt;p&gt;At 25°C all aqueous basic solutions have [[1]]&#160;ion concentrations less than [[8]]&lt;br /&gt;mol litre&lt;sup&gt;-1&lt;/sup&gt; and pH values [[9]] than [[6]].&lt;/p&gt; &lt;!--DONOTCLEAN--&gt;</text>
+    </questiontext>
+    <image></image>
+    <generalfeedback>
+      <text>&lt;p&gt;At 25 &amp;#xB0;C all aqueous basic solutions have hydrogen ion concentrations less than 10&lt;sup&gt;&amp;#x2212;7&lt;/sup&gt; mol litre&lt;sup&gt;&amp;#x2212;1&lt;/sup&gt; and pH values greater than 7.&lt;/p&gt; &lt;p&gt;See Section 9 of S103 &lt;em class="italic"&gt;Discovering Science&lt;/em&gt; Block 8.&lt;/p&gt;</text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0.33</penalty>
+    <hidden>0</hidden>
+    <shuffleanswers>0</shuffleanswers>
+    <shuffleanswers>false</shuffleanswers>
+    <answer>
+      <correctanswer>1</correctanswer>
+      <text>hydrogen</text>
+      <feedback>
+        <text>O:8:"stdClass":2:{s:9:"draggroup";s:1:"1";s:8:"infinite";i:0;}</text>
+      </feedback>
+    </answer>
+    <answer>
+      <correctanswer>0</correctanswer>
+      <text>positive</text>
+      <feedback>
+        <text>O:8:"stdClass":2:{s:9:"draggroup";s:1:"1";s:8:"infinite";i:0;}</text>
+      </feedback>
+    </answer>
+    <answer>
+      <correctanswer>0</correctanswer>
+      <text>hydroxide</text>
+      <feedback>
+        <text>O:8:"stdClass":2:{s:9:"draggroup";s:1:"1";s:8:"infinite";i:0;}</text>
+      </feedback>
+    </answer>
+    <answer>
+      <correctanswer>0</correctanswer>
+      <text>negative</text>
+      <feedback>
+        <text>O:8:"stdClass":2:{s:9:"draggroup";s:1:"1";s:8:"infinite";i:0;}</text>
+      </feedback>
+    </answer>
+    <answer>
+      <correctanswer>0</correctanswer>
+      <text>10&lt;sup&gt;7&lt;/sup&gt;</text>
+      <feedback>
+        <text>O:8:"stdClass":2:{s:9:"draggroup";s:1:"2";s:8:"infinite";i:0;}</text>
+      </feedback>
+    </answer>
+    <answer>
+      <correctanswer>1</correctanswer>
+      <text>7</text>
+      <feedback>
+        <text>O:8:"stdClass":2:{s:9:"draggroup";s:1:"2";s:8:"infinite";i:0;}</text>
+      </feedback>
+    </answer>
+    <answer>
+      <correctanswer>0</correctanswer>
+      <text>1</text>
+      <feedback>
+        <text>O:8:"stdClass":2:{s:9:"draggroup";s:1:"2";s:8:"infinite";i:0;}</text>
+      </feedback>
+    </answer>
+    <answer>
+      <correctanswer>1</correctanswer>
+      <text>10&lt;sup&gt;-7&lt;/sup&gt;</text>
+      <feedback>
+        <text>O:8:"stdClass":2:{s:9:"draggroup";s:1:"2";s:8:"infinite";i:0;}</text>
+      </feedback>
+    </answer>
+    <answer>
+      <correctanswer>1</correctanswer>
+      <text>greater</text>
+      <feedback>
+        <text>O:8:"stdClass":2:{s:9:"draggroup";s:1:"3";s:8:"infinite";i:0;}</text>
+      </feedback>
+    </answer>
+    <answer>
+      <correctanswer>0</correctanswer>
+      <text>less</text>
+      <feedback>
+        <text>O:8:"stdClass":2:{s:9:"draggroup";s:1:"3";s:8:"infinite";i:0;}</text>
+      </feedback>
+    </answer>
+    <correctfeedback>
+      <text>Your answer is correct.</text>
+    </correctfeedback>
+    <correctresponsesfeedback>1</correctresponsesfeedback>
+    <partiallycorrectfeedback>
+      <text>Your answer is partially correct.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback>
+      <text>Your answer is incorrect.</text>
+    </incorrectfeedback>
+    <unlimited>0</unlimited>
+    <penalty>0.33</penalty>
+    <hint>
+      <statenumberofcorrectresponses>1</statenumberofcorrectresponses>
+      <clearincorrectresponses>0</clearincorrectresponses>
+      <hintcontent>
+        <text>You may wish to read&#160;Section 9 of&#160;&lt;em class="italic"&gt;Discovering Science&lt;/em&gt; Block 8.</text>
+      </hintcontent>
+    </hint>
+    <hint>
+      <statenumberofcorrectresponses>1</statenumberofcorrectresponses>
+      <clearincorrectresponses>1</clearincorrectresponses>
+      <hintcontent>
+        <text>Any incorrect choices&#160;will be removed before your final try.</text>
+      </hintcontent>
+    </hint>
+  </question>';
+        $xmldata = xmlize($xml);
+
+        $importer = new qformat_xml();
+        $q = $importer->try_importing_using_qtypes(
+                $xmldata['question'], null, null, 'opaque');
+
+        $expectedq = new stdClass;
+        $expectedq->qtype = 'ddwtos';
+        $expectedq->name = 'QDandD1 Base definition';
+        $expectedq->questiontext = '<p>Drag and drop the words from the list below to fill the blank spaces and correctly complete the sentence.</p><p>At 25°C all aqueous basic solutions have [[1]] ion concentrations less than [[8]]<br />mol litre<sup>-1</sup> and pH values [[9]] than [[6]].</p><!--DONOTCLEAN-->';
+        $expectedq->questiontextformat = FORMAT_HTML;
+        $expectedq->generalfeedback = '<p>At 25 &#xB0;C all aqueous basic solutions have hydrogen ion concentrations less than 10<sup>&#x2212;7</sup> mol litre<sup>&#x2212;1</sup> and pH values greater than 7.</p><p>See Section 9 of S103 <em class=\"italic\">Discovering Science</em> Block 8.</p>';
+        $expectedq->defaultgrade = 1;
+        $expectedq->length = 1;
+        $expectedq->penalty = 0.3333333;
+
+        $expectedq->shuffleanswers = 0;
+        $expectedq->correctfeedback = 'Your answer is correct.';
+        $expectedq->partiallycorrectfeedback = 'Your answer is partially correct.';
+        $expectedq->shownumcorrect = true;
+        $expectedq->incorrectfeedback = 'Your answer is incorrect.';
+
+        $expectedq->answer = array('hydrogen', 'positive', 'hydroxide', 'negative', '10<sup>7</sup>', '7', '1', '10<sup>-7</sup>', 'greater', 'less');
+        $expectedq->draggroup = array(1, 1, 1, 1, 2, 2, 2, 2, 3, 3);
+        $expectedq->infinite = array(false, false, false, false, false, false, false, false, false, false);
+
+        $expectedq->hint = array(
+            'You may wish to read Section 9 of <em class=\"italic\">Discovering Science</em> Block 8.',
+            'Any incorrect choices will be removed before your final try.'
+        );
+        $expectedq->hintshownumcorrect = array(true, true);
+        $expectedq->hintclearwrong = array(false, true);
+
+        $this->assert(new CheckSpecifiedFieldsExpectation($expectedq), $q);
+    }
+
+    public function test_xml_export() {
+        $qdata = new stdClass;
+        $qdata->id = 123;
+        $qdata->qtype = 'ddwtos';
+        $qdata->name = 'A drag-and-drop question';
+        $qdata->questiontext = 'Put these in order: [[1]], [[2]], [[3]].';
+        $qdata->questiontextformat = FORMAT_MOODLE;
+        $qdata->generalfeedback = 'The answer is Alpha, Beta, Gamma.';
+        $qdata->defaultgrade = 3;
+        $qdata->length = 1;
+        $qdata->penalty = 0.3333333;
+        $qdata->hidden = 0;
+
+        $qdata->options->shuffleanswers = 1;
+        $qdata->options->correctfeedback = '<p>Your answer is correct.</p>';
+        $qdata->options->partiallycorrectfeedback = '<p>Your answer is partially correct.</p>';
+        $qdata->options->shownumcorrect = true;
+        $qdata->options->incorrectfeedback = '<p>Your answer is incorrect.</p>';
+
+        $qdata->options->answers = array(
+            new question_answer('Alpha', 0, 'O:8:"stdClass":2:{s:9:"draggroup";s:1:"1";s:8:"infinite";b:0;}'),
+            new question_answer('Beta', 0, 'O:8:"stdClass":2:{s:9:"draggroup";s:1:"1";s:8:"infinite";b:0;}'),
+            new question_answer('Gamma', 0, 'O:8:"stdClass":2:{s:9:"draggroup";s:1:"1";s:8:"infinite";b:1;}'),
+        );
+
+        $qdata->hints = array(
+            new question_hint_with_parts('Try again.', true, false),
+            new question_hint_with_parts('These are the first three letters of the Greek alphabet.', true, true),
+        );
+
+        $exporter = new qformat_xml();
+        $xml = $exporter->writequestion($qdata);
+
+        $expectedxml = '
+
+<!-- question: 123  -->
+  <question type="ddwtos">
+    <name>
+      <text>A drag-and-drop question</text>
+    </name>
+    <questiontext format="moodle_auto_format">
+      <text>Put these in order: [[1]], [[2]], [[3]].</text>
+    </questiontext>
+    <generalfeedback>
+      <text>The answer is Alpha, Beta, Gamma.</text>
+    </generalfeedback>
+    <defaultgrade>3</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <shuffleanswers>1</shuffleanswers>
+    <correctfeedback>
+      <text><![CDATA[<p>Your answer is correct.</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback>
+      <text><![CDATA[<p>Your answer is partially correct.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback>
+      <text><![CDATA[<p>Your answer is incorrect.</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <dragbox>
+      <text>Alpha</text>
+      <group>1</group>
+    </dragbox>
+    <dragbox>
+      <text>Beta</text>
+      <group>1</group>
+    </dragbox>
+    <dragbox>
+      <text>Gamma</text>
+      <group>1</group>
+      <infinite/>
+    </dragbox>
+    <hint>
+      <text>Try again.</text>
+      <shownumcorrect/>
+    </hint>
+    <hint>
+      <text>These are the first three letters of the Greek alphabet.</text>
+      <shownumcorrect/>
+      <clearwrong/>
+    </hint>
+  </question>
+';
+
+        $this->assertEqual($expectedxml, $xml);
+    }
 }
