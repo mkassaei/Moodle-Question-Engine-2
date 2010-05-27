@@ -51,8 +51,8 @@ class qtype_oumultiresponse_test_helper {
         );
 
         $mc->hints = array(
-            new qtype_oumultirespones_hint('Hint 1', true, false, false),
-            new qtype_oumultirespones_hint('Hint 1', true, true, true),
+            new qtype_oumultiresponse_hint('Hint 1', true, false, false),
+            new qtype_oumultiresponse_hint('Hint 1', true, true, true),
         );
 
         return $mc;

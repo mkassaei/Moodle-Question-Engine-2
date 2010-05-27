@@ -25,6 +25,11 @@
  */
 
 
+require_once($CFG->libdir . '/questionlib.php');
+require_once($CFG->dirroot . '/question/engine/lib.php');
+require_once($CFG->dirroot . '/question/format/xml/format.php');
+
+
 /**
  * This questions type is like the standard multiplechoice question type, but
  * with these differences:
@@ -197,7 +202,7 @@ class qtype_oumultiresponse extends question_type {
     }
 
     protected function make_hint($hint) {
-        return qtype_oumultirespones_hint::load_from_record($hint);
+        return qtype_oumultiresponse_hint::load_from_record($hint);
     }
 
     protected function initialise_question_instance(question_definition $question, $questiondata) {
@@ -219,9 +224,8 @@ class qtype_oumultiresponse extends question_type {
      * @return boolean Success/Failure
      */
     public function delete_question($questionid) {
-        parent::delete_question($questionid);
         delete_records('question_oumultiresponse', 'questionid', $questionid);
-        return true;
+        return parent::delete_question($questionid);
     }
 
     /**
@@ -500,6 +504,59 @@ class qtype_oumultiresponse extends question_type {
         return count($this->get_correct_answers($question))/count($this->get_all_answers($question));
     }
 
+    function import_from_xml($data, $question, $format, $extra=null) {
+        if (!isset($data['@']['type']) || $data['@']['type'] != 'oumultiresponse') {
+            return false;
+        }
+
+        $question = $format->import_headers($data);
+        $question->qtype = 'oumultiresponse';
+
+        $question->shuffleanswers = $format->trans_single(
+                $format->getpath($data, array('#', 'shuffleanswers', 0, '#'), 1));
+        $question->answernumbering = $format->getpath($data,
+                array('#', 'answernumbering', 0, '#'), 'abc');
+
+        $format->import_overall_feedback($question, $data, true);
+
+        // Run through the answers
+        $answers = $data['#']['answer'];
+        foreach ($answers as $answer) {
+            $ans = $format->import_answer($answer);
+            $question->answer[] = $ans->answer;
+            $question->correctanswer[] = !empty($ans->fraction);
+            $question->feedback[] = $ans->feedback;
+
+            // Backwards compatibility.
+            if (array_key_exists('correctanswer', $answer['#'])) {
+                $key = end(array_keys($question->correctanswer));
+                $question->correctanswer[$key] = $format->getpath($answer,
+                        array('#', 'correctanswer', 0, '#'), 0);
+            }
+        }
+
+        $format->import_hints($question, $data, true, true);
+
+        // Get extra choicefeedback setting from each hint.
+        foreach ($question->hintoptions as $key => $options) {
+            $question->hintshowchoicefeedback[$key] = !empty($options);
+        }
+
+        return $question;
+    }
+
+    function export_to_xml($question, $format, $extra = null) {
+        $output = '';
+
+        $output .= "    <shuffleanswers>" . $format->get_single($question->options->shuffleanswers) . "</shuffleanswers>\n";
+        $output .= "    <answernumbering>{$question->options->answernumbering}</answernumbering>\n";
+
+        $output .= $format->write_overall_feedback($question->options);
+        $output .= $format->write_answers($question->options->answers);
+
+        return $output;
+    }
+
     /**
      * Backup the datAppendIteratordeleteDatagetNodePathDOMElementgetElementsByTagNameNSDOMImplementationSourcea in the question (This is used in question/backuplib.php)
      *
@@ -698,7 +755,7 @@ class qtype_oumultiresponse extends question_type {
  * @copyright 2010 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_oumultirespones_hint extends question_hint_with_parts {
+class qtype_oumultiresponse_hint extends question_hint_with_parts {
     /** @var boolean whether to show the feedback for each choice. */
     public $showchoicefeedback;
 
