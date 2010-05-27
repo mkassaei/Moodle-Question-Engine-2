@@ -228,9 +228,7 @@ END;
         $exporter = new qformat_xml();
         $xml = $exporter->writequestion($qdata);
 
-        $expectedxml = '
-
-<!-- question: 123  -->
+        $expectedxml = '<!-- question: 123  -->
   <question type="description">
     <name>
       <text>A description</text>
@@ -299,9 +297,7 @@ END;
         $exporter = new qformat_xml();
         $xml = $exporter->writequestion($qdata);
 
-        $expectedxml = '
-
-<!-- question: 123  -->
+        $expectedxml = '<!-- question: 123  -->
   <question type="essay">
     <name>
       <text>An essay</text>
@@ -454,9 +450,7 @@ END;
         $exporter = new qformat_xml();
         $xml = $exporter->writequestion($qdata);
 
-        $expectedxml = '
-
-<!-- question: 123  -->
+        $expectedxml = '<!-- question: 123  -->
   <question type="matching">
     <name>
       <text>Matching question</text>
@@ -646,9 +640,7 @@ END;
         $exporter = new qformat_xml();
         $xml = $exporter->writequestion($qdata);
 
-        $expectedxml = '
-
-<!-- question: 123  -->
+        $expectedxml = '<!-- question: 123  -->
   <question type="multichoice">
     <name>
       <text>Multiple choice question</text>
@@ -796,9 +788,7 @@ END;
         $exporter = new qformat_xml();
         $xml = $exporter->writequestion($qdata);
 
-        $expectedxml = '
-
-<!-- question: 123  -->
+        $expectedxml = '<!-- question: 123  -->
   <question type="numerical">
     <name>
       <text>Numerical question</text>
@@ -924,9 +914,7 @@ END;
         $exporter = new qformat_xml();
         $xml = $exporter->writequestion($qdata);
 
-        $expectedxml = '
-
-<!-- question: 123  -->
+        $expectedxml = '<!-- question: 123  -->
   <question type="shortanswer">
     <name>
       <text>Short answer question</text>
@@ -1037,9 +1025,7 @@ END;
         $exporter = new qformat_xml();
         $xml = $exporter->writequestion($qdata);
 
-        $expectedxml = '
-
-<!-- question: 12  -->
+        $expectedxml = '<!-- question: 12  -->
   <question type="truefalse">
     <name>
       <text>True false question</text>

@@ -263,9 +263,7 @@ class qtype_opaque_test extends UnitTestCase {
         $exporter = new qformat_xml();
         $xml = $exporter->writequestion($qdata);
 
-        $expectedxml = '
-
-<!-- question: 321  -->
+        $expectedxml = '<!-- question: 321  -->
   <question type="opaque">
     <name>
       <text>An Opaque question</text>

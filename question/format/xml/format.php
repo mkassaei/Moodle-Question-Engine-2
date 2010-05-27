@@ -381,6 +381,8 @@ class qformat_xml extends qformat_default {
             notify(get_string('truefalseimporterror', 'quiz', $a));
         }
 
+        $this->import_hints($qo, $question);
+
         return $qo;
     }
 
@@ -658,7 +660,6 @@ class qformat_xml extends qformat_default {
         // Iterate through questions
         foreach ($xml['quiz']['#']['question'] as $question) {
             $questiontype = $question['@']['type'];
-            $questiontype = get_string('questiontype', 'quiz', $questiontype);
 
             if ($questiontype == 'multichoice') {
                 $qo = $this->import_multichoice($question);
@@ -805,8 +806,7 @@ class qformat_xml extends qformat_default {
         // Override to allow us to add xml headers and footers
         return '<?xml version="1.0" encoding="UTF-8"?>
 <quiz>
-' . $content . '
-</quiz>';
+' . $content . '</quiz>';
     }
 
     /**
@@ -843,7 +843,7 @@ class qformat_xml extends qformat_default {
         $expout = '';
 
         // Add a comment linking this to the original question id.
-        $expout .= "\n\n<!-- question: $question->id  -->\n";
+        $expout .= "<!-- question: $question->id  -->\n";
 
         // Check question type
         if (!$questiontype = $this->get_qtype($question->qtype)) {
@@ -959,7 +959,7 @@ class qformat_xml extends qformat_default {
             break;
 
         case DESCRIPTION:
-            // nothing more to do for this type
+            // Nothing else to do.
             break;
 
         case MULTIANSWER:
@@ -973,7 +973,7 @@ class qformat_xml extends qformat_default {
             break;
 
         case ESSAY:
-            // Nothing to do.
+            // Nothing else to do.
             break;
 
         case CALCULATED:
@@ -1042,11 +1042,7 @@ class qformat_xml extends qformat_default {
         }
 
         // Output any hints.
-        if (!empty($question->hints)) {
-            foreach ($question->hints as $hint) {
-                $expout .= $this->write_hint($hint);
-            }
-        }
+        $expout .= $this->write_hints($question);
 
         // close the question tag
         $expout .= "  </question>\n";
@@ -1075,6 +1071,18 @@ class qformat_xml extends qformat_default {
         $output .= "      </feedback>\n";
         $output .= $extra;
         $output .= "    </answer>\n";
+        return $output;
+    }
+
+    public function write_hints($question) {
+        if (empty($question->hints)) {
+            return '';
+        }
+
+        $output = '';
+        foreach ($question->hints as $hint) {
+            $output .= $this->write_hint($hint);
+        }
         return $output;
     }
 

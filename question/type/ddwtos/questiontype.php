@@ -431,9 +431,11 @@ class qtype_ddwtos extends question_type {
             $question->infinite = array();
 
             foreach ($data['#']['dragbox'] as $dragboxxml) {
-                $question->answer[] = $format->getpath($dragboxxml, array('#', 'text', 0, '#'), '', true);
-                $question->draggroup[] = $format->getpath($dragboxxml, array('#', 'group', 0, '#'), 1);
-                $question->infinite[] = array_key_exists('infinite', $dragboxxml['#']);
+                $question->choices[] = array(
+                    'answer' => $format->getpath($dragboxxml, array('#', 'text', 0, '#'), '', true),
+                    'draggroup' => $format->getpath($dragboxxml, array('#', 'group', 0, '#'), 1),
+                    'infinite' => array_key_exists('infinite', $dragboxxml['#']),
+                );
             }
 
         } else {
@@ -441,9 +443,11 @@ class qtype_ddwtos extends question_type {
             foreach ($data['#']['answer'] as $answerxml) {
                 $ans = $format->import_answer($answerxml);
                 $options = unserialize(stripslashes($ans->feedback));
-                $question->answer[] = $ans->answer;
-                $question->draggroup[] = $options->draggroup;
-                $question->infinite[] = $options->infinite;
+                $question->choices[] = array(
+                    'answer' => $ans->answer,
+                    'draggroup' => $options->draggroup,
+                    'infinite' => $options->infinite,
+                );
             }
         }
 

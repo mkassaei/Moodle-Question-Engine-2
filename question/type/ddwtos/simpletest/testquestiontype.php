@@ -202,7 +202,7 @@ class qtype_ddwtos_test extends UnitTestCase {
 
         $importer = new qformat_xml();
         $q = $importer->try_importing_using_qtypes(
-                $xmldata['question'], null, null, 'opaque');
+                $xmldata['question'], null, null, 'ddwtos');
 
         $expectedq = new stdClass;
         $expectedq->qtype = 'ddwtos';
@@ -220,9 +220,11 @@ class qtype_ddwtos_test extends UnitTestCase {
         $expectedq->shownumcorrect = true;
         $expectedq->incorrectfeedback = '<p>Your answer is incorrect.</p>';
 
-        $expectedq->answer = array('Alpha', 'Beta', 'Gamma');
-        $expectedq->draggroup = array(1, 1, 1);
-        $expectedq->infinite = array(false, false, true);
+        $expectedq->choices = array(
+            array('answer' => 'Alpha', 'draggroup' => 1, 'infinite' => false),
+            array('answer' => 'Beta', 'draggroup' => 1, 'infinite' => false),
+            array('answer' => 'Gamma', 'draggroup' => 1, 'infinite' => true),
+        );
 
         $expectedq->hint = array('Try again.', 'These are the first three letters of the Greek alphabet.');
         $expectedq->hintshownumcorrect = array(true, true);
@@ -349,7 +351,7 @@ class qtype_ddwtos_test extends UnitTestCase {
 
         $importer = new qformat_xml();
         $q = $importer->try_importing_using_qtypes(
-                $xmldata['question'], null, null, 'opaque');
+                $xmldata['question'], null, null, 'ddwtos');
 
         $expectedq = new stdClass;
         $expectedq->qtype = 'ddwtos';
@@ -367,9 +369,18 @@ class qtype_ddwtos_test extends UnitTestCase {
         $expectedq->shownumcorrect = true;
         $expectedq->incorrectfeedback = 'Your answer is incorrect.';
 
-        $expectedq->answer = array('hydrogen', 'positive', 'hydroxide', 'negative', '10<sup>7</sup>', '7', '1', '10<sup>-7</sup>', 'greater', 'less');
-        $expectedq->draggroup = array(1, 1, 1, 1, 2, 2, 2, 2, 3, 3);
-        $expectedq->infinite = array(false, false, false, false, false, false, false, false, false, false);
+        $expectedq->choices = array(
+            array('answer' => 'hydrogen', 'draggroup' => 1, 'infinite' => false),
+            array('answer' => 'positive', 'draggroup' => 1, 'infinite' => false),
+            array('answer' => 'hydroxide', 'draggroup' => 1, 'infinite' => false),
+            array('answer' => 'negative', 'draggroup' => 1, 'infinite' => false),
+            array('answer' => '10<sup>7</sup>', 'draggroup' => 2, 'infinite' => false),
+            array('answer' => '7', 'draggroup' => 2, 'infinite' => false),
+            array('answer' => '1', 'draggroup' => 2, 'infinite' => false),
+            array('answer' => '10<sup>-7</sup>', 'draggroup' => 2, 'infinite' => false),
+            array('answer' => 'greater', 'draggroup' => 3, 'infinite' => false),
+            array('answer' => 'less', 'draggroup' => 3, 'infinite' => false),
+        );
 
         $expectedq->hint = array(
             'You may wish to read Section 9 of <em class=\"italic\">Discovering Science</em> Block 8.',
@@ -414,9 +425,7 @@ class qtype_ddwtos_test extends UnitTestCase {
         $exporter = new qformat_xml();
         $xml = $exporter->writequestion($qdata);
 
-        $expectedxml = '
-
-<!-- question: 123  -->
+        $expectedxml = '<!-- question: 123  -->
   <question type="ddwtos">
     <name>
       <text>A drag-and-drop question</text>
