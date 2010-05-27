@@ -222,7 +222,7 @@ class qtype_multianswer extends question_type {
     */
     function delete_question($questionid) {
         delete_records("question_multianswer", "question", $questionid);
-        return true;
+        return parent::delete_question($questionid);
     }
 
     function get_correct_responses(&$question, &$state) {

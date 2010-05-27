@@ -175,10 +175,9 @@ class qtype_match extends question_type {
      * @param integer $question->id
      */
     public function delete_question($questionid) {
-        parent::delete_question($questionid);
         delete_records("question_match", "question", $questionid);
         delete_records("question_match_sub", "question", $questionid);
-        return true;
+        return parent::delete_question($questionid);
     }
 
     function get_random_guess_score($questiondata) {

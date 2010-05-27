@@ -115,7 +115,7 @@ class question_edit_ddwtos_form extends question_edit_form {
         }
 
         $grouparray[] =& $mform->createElement('select', 'draggroup', get_string('group', 'qtype_ddwtos'), $options);
-        $grouparray[] =& $mform->createElement('checkbox', 'infinite',  ' ', get_string('infinite', 'qtype_ddwtos'), null, array('size'=>1, 'class'=>'tweakcss'));
+        $grouparray[] =& $mform->createElement('checkbox', 'infinite', ' ', get_string('infinite', 'qtype_ddwtos'), null, array('size'=>1, 'class'=>'tweakcss'));
         $textboxgroup[] = $mform->createElement('group','choices', 'Choice {no}',$grouparray);
 
         if (isset($this->question->options)) {

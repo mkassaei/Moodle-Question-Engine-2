@@ -27,6 +27,7 @@
 
 require_once($CFG->libdir . '/questionlib.php');
 require_once($CFG->dirroot . '/question/engine/lib.php');
+require_once($CFG->dirroot . '/question/format/xml/format.php');
 
 
 /**
@@ -134,7 +135,7 @@ class qtype_ddwtos extends question_type {
 
     public function delete_question($questionid) {
         delete_records('question_ddwtos', 'questionid', $questionid);
-        return true;
+        return parent::delete_question($questionid);
     }
 
     protected function initialise_question_instance(question_definition $question, $questiondata) {
@@ -411,14 +412,81 @@ class qtype_ddwtos extends question_type {
         return $responsedetails;
     }
 
+    function import_from_xml($data, $question, $format, $extra=null) {
+        if (!isset($data['@']['type']) || $data['@']['type'] != 'ddwtos') {
+            return false;
+        }
+
+        $question = $format->import_headers($data);
+        $question->qtype = 'ddwtos';
+
+        $question->shuffleanswers = $format->trans_single(
+                $format->getpath($data, array('#', 'shuffleanswers', 0, '#'), 1));
+
+        if (!empty($data['#']['dragbox'])) {
+            // Modern XML format.
+            $dragboxes = $data['#']['dragbox'];
+            $question->answer = array();
+            $question->draggroup = array();
+            $question->infinite = array();
+
+            foreach ($data['#']['dragbox'] as $dragboxxml) {
+                $question->choices[] = array(
+                    'answer' => $format->getpath($dragboxxml, array('#', 'text', 0, '#'), '', true),
+                    'draggroup' => $format->getpath($dragboxxml, array('#', 'group', 0, '#'), 1),
+                    'infinite' => array_key_exists('infinite', $dragboxxml['#']),
+                );
+            }
+
+        } else {
+            // Legacy format containing PHP serialisation.
+            foreach ($data['#']['answer'] as $answerxml) {
+                $ans = $format->import_answer($answerxml);
+                $options = unserialize(stripslashes($ans->feedback));
+                $question->choices[] = array(
+                    'answer' => $ans->answer,
+                    'draggroup' => $options->draggroup,
+                    'infinite' => $options->infinite,
+                );
+            }
+        }
+
+        $format->import_overall_feedback($question, $data, true);
+        $format->import_hints($question, $data, true);
+
+        return $question;
+    }
+
+    function export_to_xml($question, $format, $extra = null) {
+        $output = '';
+
+        $output .= '    <shuffleanswers>' . $question->options->shuffleanswers . "</shuffleanswers>\n";
+
+        $output .= $format->write_overall_feedback($question->options);
+
+        foreach ($question->options->answers as $answer) {
+            $options = unserialize($answer->feedback);
+
+            $output .= "    <dragbox>\n";
+            $output .= $format->writetext($answer->answer, 3);
+            $output .= "      <group>{$options->draggroup}</group>\n";
+            if ($options->infinite) {
+                $output .= "      <infinite/>\n";
+            }
+            $output .= "    </dragbox>\n";
+        }
+
+        return $output;
+    }
+
     /*
      * Backup the data in the question
      *
      * This is used in question/backuplib.php
      */
-    public function backup($bf,$preferences,$question,$level=6) {
+    public function backup($bf, $preferences, $question, $level = 6) {
         $status = true;
-        $ddwtos = get_records("question_ddwtos","questionid",$question,"id");
+        $ddwtos = get_records("question_ddwtos", "questionid", $question, "id");
 
         //If there are ddwtos
         if ($ddwtos) {

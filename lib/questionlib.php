@@ -333,22 +333,7 @@ function delete_question($questionid) {
         echo "Question with id $questionid does not exist.<br />";
     }
 
-    if ($states = get_records('question_states', 'question', $questionid)) {
-        $stateslist = implode(',', array_keys($states));
-
-        // delete questiontype-specific data
-        foreach ($QTYPES as $qtype) {
-            $qtype->delete_states($stateslist);
-        }
-    }
-
-    // delete entries from all other question tables
-    // It is important that this is done only after calling the questiontype functions
-    delete_records("question_answers", "question", $questionid);
-    delete_records("question_states", "question", $questionid);
-    delete_records("question_sessions", "questionid", $questionid);
-
-    // Now recursively delete all child questions
+    // Recursively delete all child questions
     if ($children = get_records('question', 'parent', $questionid)) {
         foreach ($children as $child) {
             if ($child->id != $questionid) {

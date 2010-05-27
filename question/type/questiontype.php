@@ -31,6 +31,9 @@ require_once($CFG->dirroot . '/question/engine/lib.php');
  */
 class question_type {
 
+    public function __construct() {
+    }
+
     /**
      * @return string the name of this question type.
      */
