@@ -38,3 +38,4 @@ $string['selectone'] = 'Select one:';
 $string['shuffleanswers'] = 'Shuffle the choices?';
 $string['singleanswer'] = 'Choose one answer.';
 $string['youmustselectananswer'] = 'You must select an answer.';
+$string['youmustselectatleastoneanswer'] = 'You must select at least one answer.';
