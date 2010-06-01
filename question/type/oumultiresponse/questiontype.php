@@ -207,6 +207,7 @@ class qtype_oumultiresponse extends question_type {
 
     protected function initialise_question_instance(question_definition $question, $questiondata) {
         parent::initialise_question_instance($question, $questiondata);
+        $question->shuffleanswers = $questiondata->options->shuffleanswers;
         $question->answernumbering = $questiondata->options->answernumbering;
 
         $question->correctfeedback = $questiondata->options->correctfeedback;
