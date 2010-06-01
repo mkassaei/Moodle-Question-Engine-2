@@ -151,7 +151,7 @@ class qtype_multichoice_single_question extends qtype_multichoice_base {
         if ($this->is_gradable_response($response)) {
             return '';
         }
-        return get_string('youmustselectananswer', 'qtype_multichoice');
+        return get_string('pleaseselectananswer', 'qtype_multichoice');
     }
 }
 
@@ -277,6 +277,6 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
         if ($this->is_gradable_response($response)) {
             return '';
         }
-        return get_string('youmustselectananswer', 'qtype_multichoice');
+        return get_string('pleaseselectatleastoneanswer', 'qtype_multichoice');
     }
 }

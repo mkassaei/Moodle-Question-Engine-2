@@ -62,7 +62,7 @@ class qtype_truefalse_question extends question_graded_automatically {
         if ($this->is_gradable_response($response)) {
             return '';
         }
-        return get_string('youmustselectananswer', 'qtype_truefalse');
+        return get_string('pleaseselectananswer', 'qtype_truefalse');
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {

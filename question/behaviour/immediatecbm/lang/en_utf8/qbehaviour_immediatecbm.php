@@ -1,4 +1,4 @@
 <?php
 
 $string['immediatecbm'] = 'Immediate feedback with CBM';
-$string['youmustselectacertainty'] = 'You must select a certainty.';
+$string['pleaseselectacertainty'] = 'Please select a certainty.';

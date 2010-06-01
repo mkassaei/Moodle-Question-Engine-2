@@ -75,7 +75,7 @@ class qtype_numerical_question extends question_graded_by_strategy
         if ($this->is_gradable_response($response)) {
             return '';
         }
-        return get_string('youmustenterananswer', 'qtype_numerical');
+        return get_string('pleaseenterananswer', 'qtype_numerical');
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {

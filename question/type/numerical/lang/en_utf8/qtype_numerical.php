@@ -14,6 +14,6 @@ $string['invalidnumerictolerance'] = 'One of the tolerances you entered was not 
 $string['multiplier'] = 'Multiplier';
 $string['notenoughanswers'] = 'You must enter at least one answer.';
 $string['numerical'] = 'Numerical';
+$string['pleaseenterananswer'] = 'Please enter an answer.';
 $string['unit'] = 'Unit';
 $string['unithdr'] = 'Unit $a';
-$string['youmustenterananswer'] = 'You must enter an answer.';
