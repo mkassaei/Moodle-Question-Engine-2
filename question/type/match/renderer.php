@@ -89,13 +89,8 @@ class qtype_match_renderer extends qtype_with_overall_feedback_renderer {
         $result .= html_writer::end_tag('div'); // ablock
 
         if ($qa->get_state() == question_state::$invalid) {
-            $result .= html_writer::nonempty_tag('div', $question->get_validation_error($response),
-                    array('class' => 'validationerror'));
-        }
-
-        if ($qa->get_state() == question_state::$invalid) {
             $result .= html_writer::nonempty_tag('div',
-                    $question->get_validation_error($qa->get_last_qt_data()),
+                    $question->get_validation_error($response),
                     array('class' => 'validationerror'));
         }
 
