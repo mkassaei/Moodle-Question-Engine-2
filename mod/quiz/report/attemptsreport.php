@@ -442,6 +442,41 @@ abstract class quiz_attempt_report_table extends table_sql {
     }
 
     /**
+     * Make a link to review an individual question in a popup window.
+     *
+     * @param string $data HTML fragment. The text to make into the link.
+     * @param object $attempt data for the row of the table being output. 
+     * @param integer $qnumber the number used to identify this question within this usage.
+     */
+    public function make_review_link($data, $attempt, $qnumber) {
+        global $CFG;
+
+        $stepdata = $this->lateststeps[$attempt->usageid][$qnumber];
+        $state = question_state::get($stepdata->state);
+
+        $flag = '';
+        if ($stepdata->flagged) {
+            $flag = ' <img src="' . $CFG->pixpath . '/i/flagged.png" alt="' .
+                    get_string('flagged', 'question') . '" class="questionflag" />';
+        }
+
+        $feedbackimg = '';
+        if ($state->is_finished() && $state != question_state::$needsgrading) {
+            $feedbackimg = question_get_feedback_image($stepdata->fraction);
+        }
+
+        $output = '<span class="que"><span class="' . $state->get_state_class() . '">' .
+                $data . " $feedbackimg $flag</span></span>";
+
+        $output = link_to_popup_window('/mod/quiz/reviewquestion.php?attempt=' .
+                $attempt->attempt . '&amp;qnumber=' . $qnumber,
+                'reviewquestion', $output, 450, 650, get_string('reviewresponse', 'quiz'),
+                'none', true);
+
+        return $output;
+    }
+
+    /**
      * Load information about the latest state of selected questions in selected attempts.
      *
      * The results are returned as an two dimensional array $qubaid => $qnumber => $dataobject

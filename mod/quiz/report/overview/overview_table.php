@@ -250,26 +250,7 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
             $grade = '<del>'.$oldgrade.'</del><br />' . $newgrade;
         }
 
-        $flag = '';
-        if ($stepdata->flagged) {
-            $flag = ' <img src="' . $CFG->pixpath . '/i/flagged.png" alt="' .
-                    get_string('flagged', 'question') . '" class="questionflag" />';
-        }
-
-        $feedbackimg = '';
-        if ($state->is_finished() && $state != question_state::$needsgrading) {
-            $feedbackimg = question_get_feedback_image($stepdata->fraction);
-        }
-
-        $grade = '<span class="que"><span class="' . $state->get_state_class() . '">' .
-                $grade . " $feedbackimg $flag</span></span>";
-
-        $grade = link_to_popup_window('/mod/quiz/reviewquestion.php?attempt=' .
-                $attempt->attempt . '&amp;qnumber=' . $qnumber,
-                'reviewquestion', $grade, 450, 650, get_string('reviewresponse', 'quiz'),
-                'none', true);
-
-        return $grade;
+        return $this->make_review_link($grade, $attempt, $qnumber);
     }
 
     public function col_regraded($attempt) {

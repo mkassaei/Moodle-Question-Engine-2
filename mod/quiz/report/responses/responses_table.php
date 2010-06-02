@@ -110,7 +110,6 @@ class quiz_report_responses_table extends quiz_attempt_report_table {
         }
 
         $stepdata = $this->lateststeps[$attempt->usageid][$qnumber];
-        $state = question_state::get($stepdata->state);
 
         if (is_null($stepdata->$field)) {
             $summary = '-';
@@ -122,26 +121,7 @@ class quiz_report_responses_table extends quiz_attempt_report_table {
             return $summary;
         }
 
-        $flag = '';
-        if ($stepdata->flagged) {
-            $flag = ' <img src="' . $CFG->pixpath . '/i/flagged.png" alt="' .
-                    get_string('flagged', 'question') . '" class="questionflag" />';
-        }
-
-        $feedbackimg = '';
-        if ($state->is_finished() && $state != question_state::$needsgrading) {
-            $feedbackimg = question_get_feedback_image($stepdata->fraction);
-        }
-
-        $summary = '<span class="que"><span class="' . $state->get_state_class() . '">' .
-                $summary . " $feedbackimg $flag</span></span>";
-
-        $summary = link_to_popup_window('/mod/quiz/reviewquestion.php?attempt=' .
-                $attempt->attempt . '&amp;question=' . $qnumber,
-                'reviewquestion', $summary, 450, 650, get_string('reviewresponse', 'quiz'),
-                'none', true);
-
-        return $summary;
+        return $this->make_review_link($summary, $attempt, $qnumber);
     }
 
     public function other_cols($colname, $attempt) {
