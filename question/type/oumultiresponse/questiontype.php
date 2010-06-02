@@ -539,8 +539,10 @@ class qtype_oumultiresponse extends question_type {
         $format->import_hints($question, $data, true, true);
 
         // Get extra choicefeedback setting from each hint.
-        foreach ($question->hintoptions as $key => $options) {
-            $question->hintshowchoicefeedback[$key] = !empty($options);
+        if (!empty($question->hintoptions)) {
+            foreach ($question->hintoptions as $key => $options) {
+                $question->hintshowchoicefeedback[$key] = !empty($options);
+            }
         }
 
         return $question;
