@@ -186,7 +186,7 @@ class quiz_overview_report extends quiz_attempt_report {
 
         if (!$nostudents || ($attemptsmode == QUIZ_REPORT_ATTEMPTS_ALL)) {
             // Construct the SQL
-            $fields = sql_concat('u.id', "'#'", 'COALESCE(qa.attempt, 0)') . ' AS uniqueid, ';
+            $fields = sql_concat('u.id', "'#'", 'COALESCE(quiza.attempt, 0)') . ' AS uniqueid, ';
             if ($qmsubselect) {
                 $fields .=
                     "(CASE " .
@@ -201,9 +201,9 @@ class quiz_overview_report extends quiz_attempt_report {
             $table->set_count_sql("SELECT COUNT(1) FROM $from WHERE $where", $params);
 
             // Test to see if there are any regraded attempts to be listed.
-            $fields .= ", COALESCE((SELECT MAX(qqr.regraded) FROM {$CFG->prefix}quiz_question_regrade qqr WHERE qqr.questionusageid = qa.uniqueid),-1) AS regraded";
+            $fields .= ", COALESCE((SELECT MAX(qqr.regraded) FROM {$CFG->prefix}quiz_question_regrade qqr WHERE qqr.questionusageid = quiza.uniqueid),-1) AS regraded";
             if ($regradefilter) {
-                $where .= " AND COALESCE((SELECT MAX(qqr.regraded) FROM {$CFG->prefix}quiz_question_regrade} qqr WHERE qqr.questionusageid = qa.uniqueid),-1) <> -1";
+                $where .= " AND COALESCE((SELECT MAX(qqr.regraded) FROM {$CFG->prefix}quiz_question_regrade} qqr WHERE qqr.questionusageid = quiza.uniqueid),-1) <> -1";
             }
             $table->set_sql($fields, $from, $where);
 
@@ -406,18 +406,18 @@ class quiz_overview_report extends quiz_attempt_report {
     protected function regrade_attempts_needing_it($quiz, $groupstudents) {
         global $CFG;
 
-        $where = "qa.quiz = $quiz->id AND qa.preview = 0 AND qqr.regraded = 0";
+        $where = "quiza.quiz = $quiz->id AND quiza.preview = 0 AND qqr.regraded = 0";
 
         // Fetch all attempts that need regrading
         if ($groupstudents) {
             list($usql, $params) = get_in_or_equal($groupstudents);
-            $where .= " AND qa.userid $usql";
+            $where .= " AND quiza.userid $usql";
         }
 
         $toregrade = get_records_sql("
-                SELECT qa.uniqueid, qqr.numberinusage
-                FROM {$CFG->prefix}quiz_attempts qa
-                JOIN {$CFG->prefix}quiz_question_regrade qqr ON qqr.questionusageid = qa.uniqueid
+                SELECT quiza.uniqueid, qqr.numberinusage
+                FROM {$CFG->prefix}quiz_attempts quiza
+                JOIN {$CFG->prefix}quiz_question_regrade qqr ON qqr.questionusageid = quiza.uniqueid
                 WHERE $where");
 
         if (!$toregrade) {
@@ -450,17 +450,17 @@ class quiz_overview_report extends quiz_attempt_report {
         global $CFG;
         if ($groupstudents) {
             list($usql, $params) = get_in_or_equal($groupstudents);
-            $usertest = "qa.userid $usql AND ";
+            $usertest = "quiza.userid $usql AND ";
         } else {
             $usertest = '';
         }
         $sql = "SELECT COUNT(1)
-                FROM {$CFG->prefix}quiz_attempts qa
-                JOIN {$CFG->prefix}quiz_question_regrade qqr ON qa.uniqueid = qqr.questionusageid
+                FROM {$CFG->prefix}quiz_attempts quiza
+                JOIN {$CFG->prefix}quiz_question_regrade qqr ON quiza.uniqueid = qqr.questionusageid
                 WHERE
                     $usertest
-                    qa.quiz = $quiz->id AND
-                    qa.preview = 0 AND
+                    quiza.quiz = $quiz->id AND
+                    quiza.preview = 0 AND
                     qqr.regraded = 0";
         return count_records_sql($sql);
     }

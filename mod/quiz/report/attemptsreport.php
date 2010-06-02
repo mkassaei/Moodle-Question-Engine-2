@@ -140,15 +140,15 @@ abstract class quiz_attempt_report extends quiz_default_report {
     protected function base_sql($quiz, $qmsubselect, $qmfilter, $attemptsmode, $reportstudents) {
         global $CFG;
 
-        $fields = sql_concat('u.id', "'#'", 'COALESCE(qa.attempt, 0)') . ' AS uniqueid,';
+        $fields = sql_concat('u.id', "'#'", 'COALESCE(quiza.attempt, 0)') . ' AS uniqueid,';
 
         if ($qmsubselect) {
             $fields .= "\n(CASE WHEN $qmsubselect THEN 1 ELSE 0 END) AS gradedattempt,";
         }
 
         $fields .= "
-                qa.uniqueid AS usageid,
-                qa.id AS attempt,
+                quiza.uniqueid AS usageid,
+                quiza.id AS attempt,
                 u.id AS userid,
                 u.idnumber,
                 u.firstname,
@@ -158,14 +158,14 @@ abstract class quiz_attempt_report extends quiz_default_report {
                 u.institution,
                 u.department,
                 u.email,
-                qa.sumgrades,
-                qa.timefinish,
-                qa.timestart,
-                qa.timefinish - qa.timestart AS duration";
+                quiza.sumgrades,
+                quiza.timefinish,
+                quiza.timestart,
+                quiza.timefinish - quiza.timestart AS duration";
 
         // This part is the same for all cases - join users and quiz_attempts tables
         $from = "\n{$CFG->prefix}user u";
-        $from .= "\nLEFT JOIN {$CFG->prefix}quiz_attempts qa ON qa.userid = u.id AND qa.quiz = $quiz->id";
+        $from .= "\nLEFT JOIN {$CFG->prefix}quiz_attempts quiza ON quiza.userid = u.id AND quiza.quiz = $quiz->id";
         $params = array('quizid' => $quiz->id);
 
         if ($qmsubselect && $qmfilter) {
@@ -174,25 +174,25 @@ abstract class quiz_attempt_report extends quiz_default_report {
         switch ($attemptsmode) {
             case QUIZ_REPORT_ATTEMPTS_ALL:
                 // Show all attempts, including students who are no longer in the course
-                $where = 'qa.id IS NOT NULL AND qa.preview = 0';
+                $where = 'quiza.id IS NOT NULL AND quiza.preview = 0';
                 break;
             case QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH:
                 // Show only students with attempts
                 list($allowed_usql, $allowed_params) = get_in_or_equal($reportstudents, SQL_PARAMS_NAMED, 'u0000');
                 $params += $allowed_params;
-                $where = "u.id $allowed_usql AND qa.preview = 0 AND qa.id IS NOT NULL";
+                $where = "u.id $allowed_usql AND quiza.preview = 0 AND quiza.id IS NOT NULL";
                 break;
             case QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH_NO:
                 // Show only students without attempts
                 list($allowed_usql, $allowed_params) = get_in_or_equal($reportstudents, SQL_PARAMS_NAMED, 'u0000');
                 $params += $allowed_params;
-                $where = "u.id $allowed_usql AND qa.id IS NULL";
+                $where = "u.id $allowed_usql AND quiza.id IS NULL";
                 break;
             case QUIZ_REPORT_ATTEMPTS_ALL_STUDENTS:
                 // Show all students with or without attempts
                 list($allowed_usql, $allowed_params) = get_in_or_equal($reportstudents, SQL_PARAMS_NAMED, 'u0000');
                 $params += $allowed_params;
-                $where = "u.id $allowed_usql AND (qa.preview = 0 OR qa.preview IS NULL)";
+                $where = "u.id $allowed_usql AND (quiza.preview = 0 OR quiza.preview IS NULL)";
                 break;
         }
 
@@ -548,7 +548,7 @@ abstract class quiz_attempt_report_table extends table_sql {
 
         $this->sql->fields .= ",\n$fields";
         $this->sql->from .= "\nLEFT JOIN $inlineview ON " .
-                "$alias.questionusageid = qa.uniqueid AND $alias.numberinusage = $qnumber";
+                "$alias.questionusageid = quiza.uniqueid AND $alias.numberinusage = $qnumber";
     }
 
     /**
@@ -564,8 +564,7 @@ abstract class quiz_attempt_report_table extends table_sql {
 
         if ($this->is_downloading()) {
             // We want usages for all attempts.
-            $from = substr($this->sql->from, 5); // Strip off 'FROM '.
-            return new qubaid_join($from, 'usageid', $this->sql->where);
+            return new qubaid_join($this->sql->from, 'quiza.uniqueid', $this->sql->where);
         }
 
         $qubaids = array();
