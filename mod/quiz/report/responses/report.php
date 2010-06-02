@@ -185,7 +185,7 @@ class quiz_responses_report extends quiz_attempt_report {
             $this->add_user_columns($table, $columns, $headers);
 
             if ($table->is_downloading()) {
-                $this->add_time_columns($table, $columns, $headers);
+                $this->add_time_columns($columns, $headers);
             }
 
             $this->add_grade_columns($quiz, $columns, $headers);
