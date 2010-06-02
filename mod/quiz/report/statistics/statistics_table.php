@@ -185,7 +185,7 @@ class quiz_report_statistics_table extends flexible_table {
 
         if ($question->qtype!='random') {
             $tooltip = get_string('detailedanalysis', 'quiz_statistics');
-            $url = $this->baseurl . '&amp;qid=' . $question->id;
+            $url = $this->baseurl . 'qid=' . $question->id;
             $name = '<a title="' . $tooltip . '" href="' . $url . '">' . $name . '</a>';
         }
 

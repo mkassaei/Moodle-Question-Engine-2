@@ -823,7 +823,8 @@ class quiz_statistics_report extends quiz_default_report {
      *     - $subquestions The subquestions, if any, with an additional _stats field.
      *     - $s Number of attempts included in the stats.
      */
-    protected function get_quiz_and_questions_stats($quiz, $currentgroup, $nostudentsingroup, $useallattempts, $groupstudents, $questions) {
+    protected function get_quiz_and_questions_stats($quiz, $currentgroup,
+            $nostudentsingroup, $useallattempts, $groupstudents, $questions) {
 
         list($quizstats, $questions, $subquestions, $s) =
                 $this->try_loading_cached_stats($quiz, $currentgroup, $nostudentsingroup,
