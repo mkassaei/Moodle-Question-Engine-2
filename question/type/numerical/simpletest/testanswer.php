@@ -38,6 +38,18 @@ class qtype_numerical_answer_test extends UnitTestCase {
         $this->assertFalse($answer->within_tolerance(8.01));
     }
 
+    public function test_within_tolerance_blank() {
+        $answer = new qtype_numerical_answer(1234, 1.0, '', '');
+        $this->assertTrue($answer->within_tolerance(1234));
+        $this->assertFalse($answer->within_tolerance(1234.000001));
+        $this->assertFalse($answer->within_tolerance(0));
+
+        $answer = new qtype_numerical_answer(0, 1.0, '', '');
+        $this->assertTrue($answer->within_tolerance(0));
+        $this->assertFalse($answer->within_tolerance(pow(10, -1 * ini_get('precision') + 1)));
+        $this->assertTrue($answer->within_tolerance(pow(10, -1 * ini_get('precision'))));
+    }
+
     public function test_within_tolerance_relative() {
         $answer = new qtype_numerical_answer(7.0, 1.0, '', 0.1);
         $answer->tolerancetype = 1;

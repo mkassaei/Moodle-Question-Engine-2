@@ -129,7 +129,7 @@ class qbehaviour_opaque extends question_behaviour {
             $pendingstep->set_fraction(0);
             foreach ($opaquestate->results->scores as $score) {
                 if ($score->axis == '') {
-                    $pendingstep->set_fraction($score->marks / $this->qa->get_max_mark());
+                    $pendingstep->set_fraction($score->marks / $this->question->defaultmark);
                 }
             }
 

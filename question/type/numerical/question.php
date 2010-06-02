@@ -75,7 +75,7 @@ class qtype_numerical_question extends question_graded_by_strategy
         if ($this->is_gradable_response($response)) {
             return '';
         }
-        return get_string('youmustenterananswer', 'qtype_numerical');
+        return get_string('pleaseenterananswer', 'qtype_numerical');
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {
@@ -129,7 +129,7 @@ class qtype_numerical_answer extends question_answer {
 
             case 2: case 'nominal':
                 $tolerance = $this->tolerance + pow(10, -1 * ini_get('precision')) *
-                        min(1, abs($this->answer));
+                        max(1, abs($this->answer));
                 return array($this->answer - $tolerance, $this->answer + $tolerance);
 
             case 3: case 'geometric':
@@ -146,6 +146,6 @@ class qtype_numerical_answer extends question_answer {
             return true;
         }
         list($min, $max) = $this->get_tolerance_interval();
-        return $min < $value && $value < $max;
+        return $min <= $value && $value <= $max;
     }
 }

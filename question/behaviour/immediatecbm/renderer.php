@@ -34,7 +34,7 @@ class qbehaviour_immediatecbm_renderer extends qbehaviour_deferredcbm_renderer {
         $output = parent::controls($qa, $options);
         if ($qa->get_state() == question_state::$invalid && !$qa->get_last_step()->has_behaviour_var('certainty')) {
             $output .= html_writer::tag('div',
-                    get_string('youmustselectacertainty', 'qbehaviour_immediatecbm'),
+                    get_string('pleaseselectacertainty', 'qbehaviour_immediatecbm'),
                     array('class' => 'validationerror'));
         }
         $output .= $this->submit_button($qa, $options);

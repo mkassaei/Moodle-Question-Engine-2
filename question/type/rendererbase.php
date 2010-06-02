@@ -88,26 +88,33 @@ abstract class qtype_renderer extends renderer_base {
      */
     public function feedback(question_attempt $qa, question_display_options $options) {
         $output = '';
+        $hint = null;
+
         if ($options->feedback) {
             $output .= html_writer::nonempty_tag('div', $this->specific_feedback($qa),
                     array('class' => 'specificfeedback'));
             $hint = $qa->get_applicable_hint();
-            if ($hint) {
-                $output .= $this->hint($qa->get_question(), $hint);
-            }
         }
+
         if ($options->numpartscorrect) {
             $output .= html_writer::nonempty_tag('div', $this->num_parts_correct($qa),
                     array('class' => 'numpartscorrect'));
         }
+
+        if ($hint) {
+            $output .= $this->hint($qa->get_question(), $hint);
+        }
+
         if ($options->generalfeedback) {
             $output .= html_writer::nonempty_tag('div', $this->general_feedback($qa),
                     array('class' => 'generalfeedback'));
         }
+
         if ($options->correctresponse) {
             $output .= html_writer::nonempty_tag('div', $this->correct_response($qa),
                     array('class' => 'correctresponse'));
         }
+
         return $output;
     }
 

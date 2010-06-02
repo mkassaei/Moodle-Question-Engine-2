@@ -88,6 +88,12 @@ question_flag_changer = {
     }
 };
 
+/**
+ * Initialise a question submit button. This saves the scroll position and
+ * sets the fragment on the form submit URL so the page reloads in the right place.
+ * @param id the id of the button in the HTML.
+ * @param qnumber the number of the question_attempt within the usage.
+ */
 function question_init_submit_button(id, qnumber) {
     var button = document.getElementById(id);
     YAHOO.util.Event.addListener(button, 'click', function(e) {
@@ -99,6 +105,10 @@ function question_init_submit_button(id, qnumber) {
     });
 }
 
+/**
+ * Initialise the question form.
+ * @param id the id of the form in the HTML.
+ */
 function question_init_form(id) {
     var responseform = document.getElementById(id);
     responseform.setAttribute('autocomplete', 'off');
@@ -111,16 +121,26 @@ function question_init_form(id) {
         YAHOO.util.Event.onDOMReady(function() { window.scrollTo(0, matches[1]); });
         // And the following horror is necessary to make it work in IE 8.
         // Note that the class ie8 on body is only there in Moodle 2.0 and OU Moodle.
-        if (YAHOO.util.Dom.hasClass(document.body, 'ie8')) {
-            YAHOO.util.Event.addListener(window, 'load', function() {
-                setTimeout(function() {
-                    setTimeout(function() {
-                        window.scrollTo(0, matches[1]);
-                    }, 12);
-                }, 12);
-            });
+        if (YAHOO.util.Dom.hasClass(document.body, 'ie')) {
+            question_force_ie_to_scroll(matches[1])
         }
     }
+}
+
+/**
+ * Beat IE into submission.
+ * @param targetpos the target scroll position.
+ */
+function question_force_ie_to_scroll(targetpos) {
+    var hackcount = 25;
+    function do_scroll() {
+        window.scrollTo(0, targetpos);
+        hackcount -= 1;
+        if (hackcount > 0) {
+            setTimeout(do_scroll, 10);
+        }
+    }
+    YAHOO.util.Event.addListener(window, 'load', do_scroll);
 }
 
 /**

@@ -131,7 +131,7 @@ WHERE
  * one attempt that will be graded for each user. Or return
  * empty string if all attempts contribute to final grade.
  */
-function quiz_report_qm_filter_select($quiz, $quizattemptsalias = 'qa') {
+function quiz_report_qm_filter_select($quiz, $quizattemptsalias = 'quiza') {
     global $CFG;
     if ($quiz->attempts == 1) {//only one attempt allowed on this quiz
         return '';

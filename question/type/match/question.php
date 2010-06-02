@@ -178,7 +178,7 @@ class qtype_match_question extends question_graded_automatically {
         if ($this->is_complete_response($response)) {
             return '';
         }
-        return get_string('youmustselectananswer', 'qtype_match');
+        return get_string('pleaseananswerallparts', 'qtype_match');
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {

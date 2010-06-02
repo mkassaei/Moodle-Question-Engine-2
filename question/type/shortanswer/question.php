@@ -63,7 +63,7 @@ class qtype_shortanswer_question extends question_graded_by_strategy
         if ($this->is_gradable_response($response)) {
             return '';
         }
-        return get_string('youmustenterananswer', 'qtype_shortanswer');
+        return get_string('pleaseenterananswer', 'qtype_shortanswer');
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {

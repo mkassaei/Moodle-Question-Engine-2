@@ -13,5 +13,5 @@ $string['correctanswers'] = 'Correct answers';
 $string['editingshortanswer'] = 'Editing a Short answer question';
 $string['filloutoneanswer'] = 'You must provide at least one possible answer. Answers left blank will not be used. \'*\' can be used as a wildcard to match any characters. The first matching answer will be used to determine the score and feedback.';
 $string['notenoughanswers'] = 'This type of question requires at least $a answers';
+$string['pleaseenterananswer'] = 'Please enter an answer.';
 $string['shortanswer'] = 'Short answer';
-$string['youmustenterananswer'] = 'You must enter an answer.';

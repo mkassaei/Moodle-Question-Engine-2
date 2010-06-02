@@ -222,7 +222,7 @@ class qtype_ddwtos_question extends question_graded_automatically {
         if ($this->is_complete_response($response)) {
             return '';
         }
-        return get_string('youmustdragananswertoeachbox', 'qtype_ddwtos');
+        return get_string('pleaseputananswerineachbox', 'qtype_ddwtos');
     }
 
     public function grade_response(array $response) {

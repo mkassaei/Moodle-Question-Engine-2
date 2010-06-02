@@ -69,13 +69,6 @@ abstract class qtype_multichoice_base extends question_graded_automatically {
         return $question . ': ' . implode('; ', $choices);
     }
 
-    public function get_validation_error(array $response) {
-        if ($this->is_gradable_response($response)) {
-            return '';
-        }
-        return get_string('youmustselectananswer', 'qtype_multichoice');
-    }
-
     public function get_order(question_attempt $qa) {
         $this->init_order($qa);
         return $this->order;
@@ -152,6 +145,13 @@ class qtype_multichoice_single_question extends qtype_multichoice_base {
     public function grade_response(array $response) {
         $fraction = $this->answers[$this->order[$response['answer']]]->fraction;
         return array($fraction, question_state::graded_state_for_fraction($fraction));
+    }
+
+    public function get_validation_error(array $response) {
+        if ($this->is_gradable_response($response)) {
+            return '';
+        }
+        return get_string('pleaseselectananswer', 'qtype_multichoice');
     }
 }
 
@@ -271,5 +271,12 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
         }
         $fraction = min(max(0, $fraction), 1.0);
         return array($fraction, question_state::graded_state_for_fraction($fraction));
+    }
+
+    public function get_validation_error(array $response) {
+        if ($this->is_gradable_response($response)) {
+            return '';
+        }
+        return get_string('pleaseselectatleastoneanswer', 'qtype_multichoice');
     }
 }
