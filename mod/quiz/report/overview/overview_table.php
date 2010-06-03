@@ -185,7 +185,7 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
             foreach ($this->questions as $question) {
                 if (isset($this->regradedqs[$attempt->usageid][$question->qnumber])) {
                     $newsumgrade += $this->regradedqs[$attempt->usageid][$question->qnumber]->newfraction * $question->maxmark;
-                    $oldsumgrade += $this->regradedqs[$attempt->usageid][$question->qnumber]->newfraction * $question->maxmark;
+                    $oldsumgrade += $this->regradedqs[$attempt->usageid][$question->qnumber]->oldfraction * $question->maxmark;
                 } else {
                     $newsumgrade += $this->lateststeps[$attempt->usageid][$question->qnumber]->fraction * $question->maxmark;
                     $oldsumgrade += $this->lateststeps[$attempt->usageid][$question->qnumber]->fraction * $question->maxmark;

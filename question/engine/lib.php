@@ -741,7 +741,7 @@ class question_usage_by_activity {
      * not been assigned yet.
      */
     public function get_question_fraction($qnumber) {
-        return $this->get_question_attempt($qnumber)->get_mark();
+        return $this->get_question_attempt($qnumber)->get_fraction();
     }
 
     /**

@@ -454,7 +454,7 @@ class quiz_overview_report extends quiz_attempt_report {
         } else {
             $usertest = '';
         }
-        $sql = "SELECT COUNT(1)
+        $sql = "SELECT COUNT(DISTINCT quiza.id)
                 FROM {$CFG->prefix}quiz_attempts quiza
                 JOIN {$CFG->prefix}quiz_question_regrade qqr ON quiza.uniqueid = qqr.questionusageid
                 WHERE
