@@ -2672,8 +2672,10 @@ body.notes .notesgroup {
     padding: 0.3em;
     width: auto;
 }
-.multichoice .answer span,
-.truefalse .answer span {
+.multichoice .answer span.r0,
+.multichoice .answer span.r1,
+.truefalse .answer span.r0,
+.truefalse .answer span.r1 {
     display: block;
     padding: 0.3em;
 }
