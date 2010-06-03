@@ -120,6 +120,41 @@ class question_utils_test extends UnitTestCase {
                 'key'));
     }
 
+    public function test_arrays_same_at_key_integer() {
+        $this->assertTrue(question_utils::arrays_same_at_key_integer(
+                array(),
+                array(),
+                'key'));
+        $this->assertFalse(question_utils::arrays_same_at_key_integer(
+                array(),
+                array('key' => 1),
+                'key'));
+        $this->assertFalse(question_utils::arrays_same_at_key_integer(
+                array('key' => 1),
+                array(),
+                'key'));
+        $this->assertTrue(question_utils::arrays_same_at_key_integer(
+                array('key' => 1),
+                array('key' => 1),
+                'key'));
+        $this->assertFalse(question_utils::arrays_same_at_key_integer(
+                array('key' => 1),
+                array('key' => 2),
+                'key'));
+        $this->assertTrue(question_utils::arrays_same_at_key_integer(
+                array('key' => 1),
+                array('key' => '1'),
+                'key'));
+        $this->assertTrue(question_utils::arrays_same_at_key_integer(
+                array('key' => '0'),
+                array('key' => ''),
+                'key'));
+        $this->assertTrue(question_utils::arrays_same_at_key_integer(
+                array(),
+                array('key' => 0),
+                'key'));
+    }
+
     public function test_int_to_roman() {
         $this->assertIdentical('i', question_utils::int_to_roman(1));
         $this->assertIdentical('iv', question_utils::int_to_roman(4));

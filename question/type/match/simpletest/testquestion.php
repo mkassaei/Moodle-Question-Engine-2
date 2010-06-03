@@ -73,7 +73,7 @@ class qtype_match_question_test extends UnitTestCase {
         $question = test_question_maker::make_a_matching_question();
         $question->init_first_step(new question_attempt_step());
 
-        $this->assertFalse($question->is_same_response(
+        $this->assertTrue($question->is_same_response(
                 array(),
                 array('sub0' => '0', 'sub1' => '0', 'sub2' => '0', 'sub3' => '0')));
 

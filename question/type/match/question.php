@@ -88,7 +88,7 @@ class qtype_match_question extends question_graded_automatically {
     public function summarise_response(array $response) {
         $matches = array();
         foreach ($this->stemorder as $key => $stemid) {
-            if (array_key_exists($this->field($key), $response)) {
+            if (array_key_exists($this->field($key), $response) && $response[$this->field($key)]) {
                 $matches[] = html_to_text($this->format_text($this->stems[$stemid]), 0) . ' -> ' .
                         html_to_text($this->format_text(
                         $this->choices[$this->choiceorder[$response[$this->field($key)]]]), 0);
@@ -184,7 +184,7 @@ class qtype_match_question extends question_graded_automatically {
     public function is_same_response(array $prevresponse, array $newresponse) {
         foreach ($this->stemorder as $key => $notused) {
             $fieldname = $this->field($key);
-            if (!question_utils::arrays_same_at_key($prevresponse, $newresponse, $fieldname)) {
+            if (!question_utils::arrays_same_at_key_integer($prevresponse, $newresponse, $fieldname)) {
                 return false;
             }
         }

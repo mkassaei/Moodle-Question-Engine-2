@@ -2478,7 +2478,7 @@ abstract class question_utils {
      * Tests to see whether two arrays have the same value at a particular key.
      * This method will return true if:
      * 1. Neither array contains the key; or
-     * 2. Both arrays conatain the key, and the corresponding values compare
+     * 2. Both arrays contain the key, and the corresponding values compare
      *      identical when cast to strings and compared with ===.
      * @param array $array1 the first array.
      * @param array $array2 the second array.
@@ -2498,10 +2498,8 @@ abstract class question_utils {
 
     /**
      * Tests to see whether two arrays have the same value at a particular key.
-     * This method will return true if:
-     * 1. Neither array contains the key; or
-     * 2. Both arrays conatain the key, and the corresponding values compare
-     *      identical when cast to strings and compared with ===.
+     * Missing values are replaced by '', and then the values are cast to
+     * strings and compared with ===.
      * @param array $array1 the first array.
      * @param array $array2 the second array.
      * @param string $key an array key.
@@ -2521,6 +2519,31 @@ abstract class question_utils {
             $value2 = '';
         }
         return ((string) $value1) === ((string) $value2);
+    }
+
+    /**
+     * Tests to see whether two arrays have the same value at a particular key.
+     * Missing values are replaced by 0, and then the values are cast to
+     * integers and compared with ===.
+     * @param array $array1 the first array.
+     * @param array $array2 the second array.
+     * @param string $key an array key.
+     * @return boolean whether the two arrays have the same value (or lack of
+     *      one) for a given key.
+     */
+    public static function arrays_same_at_key_integer(
+            array $array1, array $array2, $key) {
+        if (array_key_exists($key, $array1)) {
+            $value1 = $array1[$key];
+        } else {
+            $value1 = 0;
+        }
+        if (array_key_exists($key, $array2)) {
+            $value2 = $array2[$key];
+        } else {
+            $value2 = 0;
+        }
+        return ((integer) $value1) === ((integer) $value2);
     }
 
     private static $units = array('', 'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix');

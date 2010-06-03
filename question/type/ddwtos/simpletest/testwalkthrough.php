@@ -49,7 +49,7 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
 
     public function test_interactive_behaviour() {
 
-        // Create a multichoice single question.
+        // Create a drag-and-drop question.
         $dd = qtype_ddwtos_test_helper::make_a_ddwtos_question();
         $dd->hints = array(
             new question_hint_with_parts('This is the first hint.', false, false),
@@ -147,5 +147,178 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
         // Verify.
         $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(2);
+    }
+
+    public function test_deferred_feedback() {
+
+        // Create a drag-and-drop question.
+        $dd = qtype_ddwtos_test_helper::make_a_ddwtos_question();
+        $dd->shufflechoices = false;
+        $this->start_attempt_at_question($dd, 'deferredfeedback', 3);
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, false),
+                $this->get_contains_drop_box_expectation('p2', 2, false),
+                $this->get_contains_drop_box_expectation('p3', 3, false),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_does_not_contain_feedback_expectation());
+
+        // Save a partial answer.
+        $this->process_submission(array('p1' => '1', 'p2' => '2'));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, false),
+                $this->get_contains_drop_box_expectation('p2', 2, false),
+                $this->get_contains_drop_box_expectation('p3', 3, false),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', '2'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation());
+
+        // Save the right answer.
+        $this->process_submission(array('p1' => '1', 'p2' => '1', 'p3' => '1'));
+
+        // Verify.
+        $this->check_current_state(question_state::$complete);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, false),
+                $this->get_contains_drop_box_expectation('p2', 2, false),
+                $this->get_contains_drop_box_expectation('p3', 3, false),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', '1'),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation());
+
+        // Finish the attempt.
+        $this->quba->finish_all_questions();
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedright);
+        $this->check_current_mark(3);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, true),
+                $this->get_contains_drop_box_expectation('p2', 2, true),
+                $this->get_contains_drop_box_expectation('p3', 3, true),
+                $this->get_contains_correct_expectation());
+
+        // Change the right answer a bit.
+        $dd->rightchoices[2] = 2;
+
+        // Check regrading does not mess anything up.
+        $this->quba->regrade_all_questions();
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedpartial);
+        $this->check_current_mark(2);
+    }
+
+    public function test_deferred_feedback_unanswered() {
+
+        // Create a drag-and-drop question.
+        $dd = qtype_ddwtos_test_helper::make_a_ddwtos_question();
+        $dd->shufflechoices = false;
+        $this->start_attempt_at_question($dd, 'deferredfeedback', 3);
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, false),
+                $this->get_contains_drop_box_expectation('p2', 2, false),
+                $this->get_contains_drop_box_expectation('p3', 3, false),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation());
+        $this->check_step_count(1);
+
+        // Save a blank response.
+        $this->process_submission(array('p1' => '', 'p2' => '', 'p3' => ''));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, false),
+                $this->get_contains_drop_box_expectation('p2', 2, false),
+                $this->get_contains_drop_box_expectation('p3', 3, false),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation());
+        $this->check_step_count(1);
+
+        // Finish the attempt.
+        $this->quba->finish_all_questions();
+
+        // Verify.
+        $this->check_current_state(question_state::$gaveup);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, true),
+                $this->get_contains_drop_box_expectation('p2', 2, true),
+                $this->get_contains_drop_box_expectation('p3', 3, true));
+    }
+
+    public function test_deferred_feedback_partial_answer() {
+
+        // Create a drag-and-drop question.
+        $dd = qtype_ddwtos_test_helper::make_a_ddwtos_question();
+        $dd->shufflechoices = false;
+        $this->start_attempt_at_question($dd, 'deferredfeedback', 3);
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, false),
+                $this->get_contains_drop_box_expectation('p2', 2, false),
+                $this->get_contains_drop_box_expectation('p3', 3, false),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation());
+
+        // Save a partial response.
+        $this->process_submission(array('p1' => '1', 'p2' => '', 'p3' => ''));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, false),
+                $this->get_contains_drop_box_expectation('p2', 2, false),
+                $this->get_contains_drop_box_expectation('p3', 3, false),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation());
+
+        // Finish the attempt.
+        $this->quba->finish_all_questions();
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedpartial);
+        $this->check_current_mark(1);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, true),
+                $this->get_contains_drop_box_expectation('p2', 2, true),
+                $this->get_contains_drop_box_expectation('p3', 3, true),
+                $this->get_contains_partcorrect_expectation());
     }
 }

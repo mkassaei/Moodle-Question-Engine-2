@@ -106,7 +106,8 @@ class qtype_ddwtos_question extends question_graded_automatically {
     public function summarise_response(array $response) {
         $matches = array();
         foreach ($this->places as $place => $group) {
-            if (array_key_exists($this->field($place), $response)) {
+            if (array_key_exists($this->field($place), $response) &&
+                    $response[$this->field($place)]) {
                 $choices[] = '{' . $this->get_selected_choice(
                         $group, $response[$this->field($place)])->text . '}';
             }
@@ -211,7 +212,8 @@ class qtype_ddwtos_question extends question_graded_automatically {
     public function is_same_response(array $prevresponse, array $newresponse) {
         foreach ($this->places as $place => $notused) {
             $fieldname = $this->field($place);
-            if (!question_utils::arrays_same_at_key($prevresponse, $newresponse, $fieldname)) {
+            if (!question_utils::arrays_same_at_key_missing_is_blank(
+                    $prevresponse, $newresponse, $fieldname)) {
                 return false;
             }
         }
