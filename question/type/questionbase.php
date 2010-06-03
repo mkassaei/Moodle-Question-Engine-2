@@ -159,7 +159,7 @@ abstract class question_definition {
      * @return string|null a plain text summary of this question.
      */
     public function get_question_summary() {
-        return strip_tags($this->format_questiontext());
+        return html_to_text($this->format_questiontext(), 0);
     }
 
     /**

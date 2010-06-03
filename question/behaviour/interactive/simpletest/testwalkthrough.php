@@ -381,7 +381,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
 
     public function test_interactive_feedback_match_reset() {
 
-        // Create a multichoice multiple question.
+        // Create a matching question.
         $m = test_question_maker::make_a_matching_question();
         $m->shufflestems = false;
         $m->hints = array(

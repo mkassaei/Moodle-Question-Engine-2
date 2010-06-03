@@ -43,7 +43,7 @@ class qtype_essay_question extends question_with_responses {
 
     public function summarise_response(array $response) {
         if (isset($response['answer'])) {
-            return shorten_text(strip_tags($this->format_text($response['answer'], true)), 200);
+            return shorten_text(html_to_text($this->format_text($response['answer'], true), 0), 200);
         } else {
             return null;
         }

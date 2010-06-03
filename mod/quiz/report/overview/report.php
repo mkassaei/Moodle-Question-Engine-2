@@ -347,8 +347,6 @@ class quiz_overview_report extends quiz_attempt_report {
         }
 
         if (!$dryrun) {
-            $attempt->sumgrades = $quba->get_total_mark();
-
             question_engine::save_questions_usage_by_activity($quba);
         }
 
@@ -426,15 +424,15 @@ class quiz_overview_report extends quiz_attempt_report {
 
         $attemptquestions = array();
         foreach ($toregrade as $row) {
-            $attemptquestions[$row->uniqueid][] = $row->numberinusag;
+            $attemptquestions[$row->uniqueid][] = $row->numberinusage;
         }
-        $attempts = get_records_list('quiz_attempts', 'uniqueid', implode(array_keys($attemptquestions)));
+        $attempts = get_records_list('quiz_attempts', 'uniqueid', implode(',', array_keys($attemptquestions)));
 
         $this->clear_regrade_table($quiz, $groupstudents);
 
         foreach ($attempts as $attempt) {
             set_time_limit(30);
-            $this->regrade_attempt($attempt, false, $attemptquestions[$attempt->usageid]);
+            $this->regrade_attempt($attempt, false, $attemptquestions[$attempt->uniqueid]);
         }
 
         $this->update_overall_grades($quiz);
@@ -454,7 +452,7 @@ class quiz_overview_report extends quiz_attempt_report {
         } else {
             $usertest = '';
         }
-        $sql = "SELECT COUNT(1)
+        $sql = "SELECT COUNT(DISTINCT quiza.id)
                 FROM {$CFG->prefix}quiz_attempts quiza
                 JOIN {$CFG->prefix}quiz_question_regrade qqr ON quiza.uniqueid = qqr.questionusageid
                 WHERE

@@ -36,8 +36,8 @@ require_once($CFG->dirroot . '/question/engine/simpletest/helpers.php');
 class qtype_essay_question_test extends UnitTestCase {
     public function test_get_question_summary() {
         $essay = test_question_maker::make_an_essay_question();
-        $essay->questiontext = '<b>Test</b>';
-        $this->assertEqual('Test', $essay->get_question_summary());
+        $essay->questiontext = 'Hello <img src="http://example.com/globe.png" alt="world" />';
+        $this->assertEqual('Hello [world]', $essay->get_question_summary());
     }
 
     public function test_summarise_response() {

@@ -978,7 +978,8 @@ class quiz_statistics_report extends quiz_default_report {
     }
 }
 
-function quiz_report_attempts_sql($quizid, $currentgroup, $groupstudents, $allattempts = true) {
+function quiz_report_attempts_sql($quizid, $currentgroup, $groupstudents,
+        $allattempts = true, $includeungraded = true) {
     global $CFG;
 
     $fromqa = "{$CFG->prefix}quiz_attempts quiza ";
@@ -994,6 +995,10 @@ function quiz_report_attempts_sql($quizid, $currentgroup, $groupstudents, $allat
 
     if (!$allattempts) {
         $whereqa .= 'AND quiza.attempt = 1 ';
+    }
+
+    if (!$includeungraded) {
+        $whereqa .= 'AND quiza.sumgrades IS NOT NULL ';
     }
 
     return array($fromqa, $whereqa, $qaparams);
