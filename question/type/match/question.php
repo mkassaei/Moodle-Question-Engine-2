@@ -72,14 +72,14 @@ class qtype_match_question extends question_graded_automatically {
     }
 
     public function get_question_summary() {
-        $question = strip_tags($this->format_questiontext());
+        $question = html_to_text($this->format_questiontext(), 0);
         $stems = array();
         foreach ($this->stemorder as $stemid) {
-            $stems[] = strip_tags($this->format_text($this->stems[$stemid]));
+            $stems[] = html_to_text($this->format_text($this->stems[$stemid]), 0);
         }
         $choices = array();
         foreach ($this->choiceorder as $choiceid) {
-            $choices[] = strip_tags($this->format_text($this->choices[$choiceid]));
+            $choices[] = html_to_text($this->format_text($this->choices[$choiceid]), 0);
         }
         return $question . ' {' . implode('; ', $stems) . '} -> {' .
                 implode('; ', $choices) . '}';
@@ -89,9 +89,9 @@ class qtype_match_question extends question_graded_automatically {
         $matches = array();
         foreach ($this->stemorder as $key => $stemid) {
             if (array_key_exists($this->field($key), $response)) {
-                $matches[] = strip_tags($this->format_text($this->stems[$stemid])) . ' -> ' .
-                        strip_tags($this->format_text(
-                        $this->choices[$this->choiceorder[$response[$this->field($key)]]]));
+                $matches[] = html_to_text($this->format_text($this->stems[$stemid]), 0) . ' -> ' .
+                        html_to_text($this->format_text(
+                        $this->choices[$this->choiceorder[$response[$this->field($key)]]]), 0);
             }
         }
         if (empty($matches)) {

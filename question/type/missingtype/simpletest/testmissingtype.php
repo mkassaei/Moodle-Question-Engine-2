@@ -108,7 +108,7 @@ class qtype_missing_test extends UnitTestCase {
     public function test_get_question_summary() {
         $q = new qtype_missingtype_question();
         $q->questiontext = '<b>Test</b>';
-        $this->assertEqual('Test', $q->get_question_summary());
+        $this->assertEqual('TEST', $q->get_question_summary());
     }
 
     public function test_summarise_response() {

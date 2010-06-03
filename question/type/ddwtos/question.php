@@ -86,12 +86,12 @@ class qtype_ddwtos_question extends question_graded_automatically {
     }
 
     public function get_question_summary() {
-        $question = strip_tags($this->format_questiontext());
+        $question = html_to_text($this->format_questiontext(), 0);
         $groups = array();
         foreach ($this->choices as $group => $choices) {
             $cs = array();
             foreach ($choices as $choice) {
-                $cs[] = strip_tags($this->format_text($choice->text));
+                $cs[] = html_to_text($this->format_text($choice->text), 0);
             }
             $groups[] = '[[' . $group . ']] -> {' . implode(' / ', $cs) . '}';
         }
