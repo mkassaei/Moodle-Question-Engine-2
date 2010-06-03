@@ -100,7 +100,8 @@ class quiz_statistics_question_stats {
         $this->allattempts = $allattempts;
 
         list($qsql, $qparams) = get_in_or_equal(array_keys($this->questions), SQL_PARAMS_NAMED, 'q0000');
-        list($fromqa, $whereqa, $qaparams) = quiz_report_attempts_sql($quizid, $currentgroup, $groupstudents, $allattempts);
+        list($fromqa, $whereqa, $qaparams) = quiz_report_attempts_sql(
+                $quizid, $currentgroup, $groupstudents, $allattempts, false);
 
         $this->states = get_records_sql("
                 SELECT

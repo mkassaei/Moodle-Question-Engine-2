@@ -543,9 +543,11 @@ $sqlorderby
         }
 
         list($statetest) = get_in_or_equal(array(
+                question_state::$gaveup,
                 question_state::$gradedwrong,
                 question_state::$gradedpartial,
                 question_state::$gradedright,
+                question_state::$mangaveup,
                 question_state::$mangrwrong,
                 question_state::$mangrpartial,
                 question_state::$mangrright));
@@ -553,7 +555,7 @@ $sqlorderby
         $records = get_records_sql("
 SELECT
     qa.numberinusage,
-    AVG(qas.fraction) AS averagefraction,
+    AVG(COALESCE(qas.fraction, 0)) AS averagefraction,
     COUNT(1) AS numaveraged
 
 FROM {$qubaids->from_question_attempts('qa')}
