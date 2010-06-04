@@ -17,7 +17,7 @@
 
 
 /**
- * Question iteraction model for the old adaptive mode, with no penalties.
+ * Question behaviour for the old adaptive mode, with no penalties.
  *
  * @package qbehaviour_adaptivenopenalty
  * @copyright 2009 The Open University

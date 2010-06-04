@@ -17,7 +17,7 @@
 
 
 /**
- * Question iteraction model for the case when the student's answer is just
+ * Question behaviour for the case when the student's answer is just
  * saved until they submit the whole attempt, and then it is graded.
  *
  * @package qbehaviour_deferredfeedback
