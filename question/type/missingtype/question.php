@@ -29,6 +29,10 @@
  * This question definition class is used when the actual question type of this
  * question cannot be found.
  *
+ * Why does this this class implement question_automatically_gradable? I am not
+ * sure at the moment. Perhaps it is important for it to work with as many
+ * behaviours as possible.
+ *
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -47,6 +51,10 @@ class qtype_missingtype_question extends question_definition implements question
 
     public function is_gradable_response(array $response) {
         return false;
+    }
+
+    public function get_validation_error(array $response) {
+        return '';
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {

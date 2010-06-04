@@ -17,7 +17,7 @@
 
 
 /**
- * Question iteraction model where the student can submit questions one at a
+ * Question behaviour where the student can submit questions one at a
  * time for immediate feedback.
  *
  * @package qbehaviour_immediatefeedback

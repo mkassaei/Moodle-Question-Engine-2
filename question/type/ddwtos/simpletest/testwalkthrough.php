@@ -321,4 +321,141 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_drop_box_expectation('p3', 3, true),
                 $this->get_contains_partcorrect_expectation());
     }
+
+    public function test_interactive_grading() {
+
+        // Create a drag-and-drop question.
+        $dd = qtype_ddwtos_test_helper::make_a_ddwtos_question();
+        $dd->hints = array(
+            new question_hint_with_parts('This is the first hint.', true, true),
+            new question_hint_with_parts('This is the second hint.', true, true),
+        );
+        $dd->shufflechoices = false;
+        $this->start_attempt_at_question($dd, 'interactive', 9);
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->assertEqual('interactivecountback',
+                $this->quba->get_question_attempt($this->qnumber)->get_behaviour_name());
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, false),
+                $this->get_contains_drop_box_expectation('p2', 2, false),
+                $this->get_contains_drop_box_expectation('p3', 3, false),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_tries_remaining_expectation(3),
+                $this->get_does_not_contain_num_parts_correct(),
+                $this->get_no_hint_visible_expectation());
+
+        // Submit an response with the first two parts right.
+        $this->process_submission(array('p1' => '1', 'p2' => '1', 'p3' => '2', '-submit' => 1));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, true),
+                $this->get_contains_drop_box_expectation('p2', 2, true),
+                $this->get_contains_drop_box_expectation('p3', 3, true),
+                $this->get_contains_submit_button_expectation(false),
+                $this->get_contains_try_again_button_expectation(true),
+                $this->get_does_not_contain_correctness_expectation(),
+                new PatternExpectation('/' . preg_quote(get_string('notcomplete', 'qbehaviour_interactive')) . '/'),
+                $this->get_contains_hint_expectation('This is the first hint'),
+                $this->get_contains_num_parts_correct(2),
+                $this->get_contains_standard_partiallycorrect_overall_feedback_expectation(),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''));
+
+        // Check that extract responses will return the reset data.
+        $prefix = $this->quba->get_field_prefix($this->qnumber);
+        $this->assertEqual(array('p1' => '1', 'p2' => '1'),
+                $this->quba->extract_responses($this->qnumber, array($prefix . 'p1' => '1', $prefix . 'p2' => '1', '-tryagain' => 1)));
+
+        // Do try again.
+        $this->process_submission(array('p1' => '1', 'p2' => '1', '-tryagain' => 1));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, false),
+                $this->get_contains_drop_box_expectation('p2', 2, false),
+                $this->get_contains_drop_box_expectation('p3', 3, false),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_try_again_button_expectation(),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_tries_remaining_expectation(2),
+                $this->get_no_hint_visible_expectation());
+
+        // Submit an response with the first and last parts right.
+        $this->process_submission(array('p1' => '1', 'p2' => '2', 'p3' => '1', '-submit' => 1));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, true),
+                $this->get_contains_drop_box_expectation('p2', 2, true),
+                $this->get_contains_drop_box_expectation('p3', 3, true),
+                $this->get_contains_submit_button_expectation(false),
+                $this->get_contains_try_again_button_expectation(true),
+                $this->get_does_not_contain_correctness_expectation(),
+                new PatternExpectation('/' . preg_quote(get_string('notcomplete', 'qbehaviour_interactive')) . '/'),
+                $this->get_contains_hint_expectation('This is the second hint'),
+                $this->get_contains_num_parts_correct(2),
+                $this->get_contains_standard_partiallycorrect_overall_feedback_expectation(),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', '1'));
+
+        // Do try again.
+        $this->process_submission(array('p1' => '1', 'p3' => '1', '-tryagain' => 1));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, false),
+                $this->get_contains_drop_box_expectation('p2', 2, false),
+                $this->get_contains_drop_box_expectation('p3', 3, false),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', '1'),
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_try_again_button_expectation(),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_tries_remaining_expectation(1),
+                $this->get_no_hint_visible_expectation());
+
+        // Submit the right answer.
+        $this->process_submission(array('p1' => '1', 'p2' => '1', 'p3' => '1', '-submit' => 1));
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedright);
+        $this->check_current_mark(6);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, true),
+                $this->get_contains_drop_box_expectation('p2', 2, true),
+                $this->get_contains_drop_box_expectation('p3', 3, true),
+                $this->get_contains_submit_button_expectation(false),
+                $this->get_does_not_contain_try_again_button_expectation(),
+                $this->get_contains_correct_expectation(),
+                $this->get_no_hint_visible_expectation(),
+                $this->get_does_not_contain_num_parts_correct(),
+                $this->get_contains_standard_correct_overall_feedback_expectation(),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', '1'));
+    }
 }

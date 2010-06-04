@@ -17,7 +17,7 @@
 
 
 /**
- * Question iteraction model where the student can submit questions one at a
+ * Question behaviour where the student can submit questions one at a
  * time for immediate feedback, with certainty based marking.
  *
  * @package qbehaviour_immediatecbm

@@ -101,7 +101,7 @@ class qtype_ddwtos_question_test extends UnitTestCase {
         $dd->init_first_step(new question_attempt_step());
 
         $initialresponse = array('p1' => 1, 'p2' => 1, 'p3' => 1, 'p4' => 1);
-        $this->assertEqual(array('p1' => 1, 'p3' => 1),
+        $this->assertEqual(array('p1' => 1, 'p2' => '', 'p3' => 1, 'p4' => ''),
                 $dd->clear_wrong_from_response($initialresponse));
     }
 

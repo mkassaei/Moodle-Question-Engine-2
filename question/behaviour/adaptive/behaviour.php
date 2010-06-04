@@ -17,7 +17,7 @@
 
 
 /**
- * Question iteraction model for the old adaptive mode.
+ * Question behaviour for the old adaptive mode.
  *
  * @package qbehaviour_adaptive
  * @copyright 2009 The Open University

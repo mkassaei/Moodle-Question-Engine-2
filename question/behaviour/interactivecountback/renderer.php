@@ -16,28 +16,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 
+require_once(dirname(__FILE__) . '/../interactive/renderer.php');
+
+
 /**
- * Question behaviour for the old adaptive mode, with no penalties.
+ * Renderer for outputting parts of a question belonging to the interactive with
+ * countback behaviour.
  *
- * @package qbehaviour_adaptivenopenalty
- * @copyright 2009 The Open University
+ * There are not differences from the interactive output. We just need a class
+ * definition.
+ *
+ * @package qbehaviour_interactivecountback
+ * @copyright 2010 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(dirname(__FILE__) . '/../adaptive/behaviour.php');
 
-/**
- * Question behaviour for adaptive mode, with no penalties.
- *
- * This is the old version of interactive mode, without penalties.
- *
- * @copyright 2009 The Open University
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class qbehaviour_adaptivenopenalty extends qbehaviour_adaptive {
-    const IS_ARCHETYPAL = true;
-
-    protected function adjusted_fraction($fraction, $prevtries) {
-        return $fraction;
-    }
+class qbehaviour_interactivecountback_renderer extends qbehaviour_interactive_renderer {
 }
