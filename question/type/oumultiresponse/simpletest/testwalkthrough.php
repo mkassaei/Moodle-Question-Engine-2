@@ -164,7 +164,7 @@ class qtype_oumultiresponse_walkthrough_test extends qbehaviour_walkthrough_test
 
         // Verify.
         $this->check_current_state(question_state::$gradedright);
-        $this->check_current_mark(1);
+        $this->check_current_mark(1.5);
         $this->check_current_output(
                 $this->get_contains_mc_checkbox_expectation('choice0', false, true),
                 $this->get_contains_mc_checkbox_expectation('choice1', false, false),

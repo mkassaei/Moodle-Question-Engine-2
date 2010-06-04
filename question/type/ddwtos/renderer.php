@@ -57,6 +57,13 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
         $result .= html_writer::tag('div', $dragboxs,
                 array('class' => 'answercontainer'));
 
+        // We abuse the clear_wrong method to output the hidden form fields we
+        // want irrespective of whether we are actually clearing the wrong
+        // bits of the response.
+        if (!$options->clearwrong) {
+            $result .= $this->clear_wrong($qa, false);
+        }
+
         if ($qa->get_state() == question_state::$invalid) {
             $result .= html_writer::nonempty_tag('div',
                     $question->get_validation_error($qa->get_last_qt_data()),
@@ -91,13 +98,7 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
         return html_writer::tag('span', $boxcontents, array(
                 'id' => $this->box_id($qa, 'p' . $place, $group),
                 'class' => 'slot group' . $group . $readonly,
-                'tabindex' => '0')) .
-                html_writer::empty_tag('input', array(
-                'type' => 'hidden',
-                'id' => $this->box_id($qa, 'p' . $place, $group) . '_hidden',
-                'class' => 'group' . $group . $readonly,
-                'name' => $qa->get_qt_field_name($qa->get_question()->field($place)),
-                'value' => $value));
+                'tabindex' => '0'));
     }
 
     protected function drag_boxes($qa, $group, $choices, question_display_options $options) {
@@ -131,5 +132,52 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
     public function head_code(question_attempt $qa) {
         require_js(array('yui_dom-event', 'yui_dragdrop'));
         return parent::head_code($qa);
+    }
+
+    /**
+     * Actually, this question type abuses this method to always ouptut the
+     * hidden fields it needs.
+     */
+    public function clear_wrong(question_attempt $qa, $reallyclear = true) {
+        $question = $qa->get_question();
+        $response = $qa->get_last_qt_data();
+
+        if (!empty($response) && $reallyclear) {
+            $cleanresponse = $question->clear_wrong_from_response($response);
+        } else {
+            $cleanresponse = $response;
+        }
+
+        $output = '';
+        foreach ($qa->get_question()->places as $place => $group) {
+            $fieldname = $question->field($place);
+            if (array_key_exists($fieldname, $response)) {
+                $value = $response[$fieldname];
+            } else {
+                $value = '';
+            }
+            if (array_key_exists($fieldname, $cleanresponse)) {
+                $cleanvalue = $cleanresponse[$fieldname];
+            } else {
+                $cleanvalue = '';
+            }
+            if ($cleanvalue != $value) {
+                $output .= html_writer::empty_tag('input', array(
+                        'type' => 'hidden',
+                        'id' => $this->box_id($qa, 'p' . $place, $group) . '_hidden',
+                        'value' => s($value))) .
+                        html_writer::empty_tag('input', array(
+                        'type' => 'hidden',
+                        'name' => $qa->get_qt_field_name($fieldname),
+                        'value' => s($cleanvalue)));
+            } else {
+                $output .= html_writer::empty_tag('input', array(
+                        'type' => 'hidden',
+                        'id' => $this->box_id($qa, 'p' . $place, $group) . '_hidden',
+                        'name' => $qa->get_qt_field_name($fieldname),
+                        'value' => s($value)));
+            }
+        }
+        return $output;
     }
 }

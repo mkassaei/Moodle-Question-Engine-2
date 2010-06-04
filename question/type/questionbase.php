@@ -344,12 +344,41 @@ interface question_automatically_gradable extends question_manually_gradable {
     public function is_gradable_response(array $response);
 
     /**
+     * In situations where is_gradable_response() returns false, this method
+     * should generate a description of what the problem is.
+     * @return string the message.
+     */
+    public function get_validation_error(array $response);
+
+    /**
      * Grade a response to the question, returning a fraction between get_min_fraction() and 1.0,
      * and the corresponding state CORRECT, PARTIALLY_CORRECT or INCORRECT.
      * @param array $response responses, as returned by {@link question_attempt_step::get_qt_data()}.
      * @return array (number, integer) the fraction, and the state.
      */
     public function grade_response(array $response);
+}
+
+
+/**
+ * Interface that a {@link question_definition} must implement to be usable by
+ * the interactivecountback behaviour.
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+interface question_automatically_gradable_with_countback extends question_automatically_gradable {
+    /**
+     * Work out a final grade for this attempt, taking into account all the
+     * tries the student made.
+     * @param array $responses the response for each try. Each element of this
+     * array is a response array, as would be passed to {@link grade_response()}.
+     * There may be between 1 and $totaltries responses.
+     * @param integer $totaltries The maximum number of tries allowed.
+     * @return numeric the fraction that should be awarded for this
+     * sequence of response.
+     */
+    public function compute_final_grade($responses, $totaltries);
 }
 
 
@@ -381,13 +410,6 @@ abstract class question_graded_automatically extends question_with_responses
     }
 
     /**
-     * In situations where is_gradable_response() returns false, this method
-     * should generate a description of what the problem is.
-     * @return string the message.
-     */
-    abstract public function get_validation_error(array $response);
-
-    /**
      * Generate a brief, plain-text, summary of the correct answer to this question.
      * This is used by various reports, and can also be useful when testing.
      * This method will return null if such a summary is not possible, or
@@ -400,6 +422,26 @@ abstract class question_graded_automatically extends question_with_responses
             return null;
         }
         return $this->summarise_response($correctresponse);
+    }
+}
+
+
+/**
+ * This class represents a question that can be graded automatically with
+ * countback grading in interactive mode.
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+abstract class question_graded_automatically_with_countback
+        extends question_graded_automatically
+        implements question_automatically_gradable_with_countback {
+
+    public function make_behaviour(question_attempt $qa, $preferredbehaviour) {
+        if ($preferredbehaviour == 'interactive') {
+            return question_engine::make_behaviour('interactivecountback', $qa, $preferredbehaviour);
+        }
+        return question_engine::make_archetypal_behaviour($preferredbehaviour, $qa);
     }
 }
 

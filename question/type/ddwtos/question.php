@@ -31,7 +31,7 @@
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_ddwtos_question extends question_graded_automatically {
+class qtype_ddwtos_question extends question_graded_automatically_with_countback {
     /** @var boolean Whether the question stems should be shuffled. */
     public $shufflechoices;
 
@@ -132,7 +132,7 @@ class qtype_ddwtos_question extends question_graded_automatically {
         foreach ($this->places as $place => $notused) {
             if (array_key_exists($this->field($place), $response) &&
                     $response[$this->field($place)] != $this->get_right_choice_for($place)) {
-                unset($response[$this->field($place)]);
+                $response[$this->field($place)] = '';
             }
         }
         return $response;
@@ -230,8 +230,31 @@ class qtype_ddwtos_question extends question_graded_automatically {
     public function grade_response(array $response) {
         list($right, $total) = $this->get_num_parts_right($response);
         $fraction = $right / $total;
-        // TODO credit for earlier tries in interactive mode.
         return array($fraction, question_state::graded_state_for_fraction($fraction));
+    }
+
+    public function compute_final_grade($responses, $totaltries) {
+        $totalscore = 0;
+        foreach ($this->places as $place => $notused) {
+            $fieldname = $this->field($place);
+
+            $lastwrongindex = -1;
+            $finallyright = false;
+            foreach ($responses as $i => $response) {
+                if (!array_key_exists($fieldname, $response) ||
+                        $response[$fieldname] != $this->get_right_choice_for($place)) {
+                    $lastwrongindex = $i;
+                    $finallyright = false;
+                }
+                $finallyright = true;
+            }
+
+            if ($finallyright) {
+                $totalscore += max(0, 1 - ($lastwrongindex + 1) * $this->penalty);
+            }
+        }
+
+        return $totalscore / count($this->places);
     }
 }
 

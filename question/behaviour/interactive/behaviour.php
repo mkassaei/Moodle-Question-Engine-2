@@ -17,7 +17,7 @@
 
 
 /**
- * Question iteraction model where the student can submit questions one at a
+ * Question behaviour where the student can submit questions one at a
  * time for immediate feedback.
  *
  * @package qbehaviour_interactive
@@ -45,7 +45,7 @@ class qbehaviour_interactive extends question_behaviour_with_save {
      * we are showing the try again button to the student during an attempt.
      * The particular number was chosen randomly. PHP will treat it the same
      * as true, but in the renderer we reconginse it display the try again
-     * button enabled even though the rest of the question is disabled..
+     * button enabled even though the rest of the question is disabled.
      * @var integer
      */
     const READONLY_EXCEPT_TRY_AGAIN = 23485299;
@@ -157,7 +157,7 @@ class qbehaviour_interactive extends question_behaviour_with_save {
             list($fraction, $state) = $this->question->grade_response($response);
             if ($state == question_state::$gradedright || $triesleft == 1) {
                 $pendingstep->set_state($state);
-                $pendingstep->set_fraction($this->adjust_fraction($fraction));
+                $pendingstep->set_fraction($this->adjust_fraction($fraction, $pendingstep));
 
             } else {
                 $pendingstep->set_behaviour_var('_triesleft', $triesleft - 1);
@@ -168,7 +168,7 @@ class qbehaviour_interactive extends question_behaviour_with_save {
         return question_attempt::KEEP;
     }
 
-    protected function adjust_fraction($fraction) {
+    protected function adjust_fraction($fraction, question_attempt_pending_step $pendingstep) {
         $totaltries = $this->qa->get_step(0)->get_behaviour_var('_triesleft');
         $triesleft = $this->qa->get_last_behaviour_var('_triesleft');
 
@@ -188,7 +188,7 @@ class qbehaviour_interactive extends question_behaviour_with_save {
 
         } else {
             list($fraction, $state) = $this->question->grade_response($response);
-            $pendingstep->set_fraction($this->adjust_fraction($fraction));
+            $pendingstep->set_fraction($this->adjust_fraction($fraction, $pendingstep));
             $pendingstep->set_state($state);
         }
         $pendingstep->set_new_response_summary($this->question->summarise_response($response));

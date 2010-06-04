@@ -31,7 +31,7 @@
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_match_question extends question_graded_automatically {
+class qtype_match_question extends question_graded_automatically_with_countback {
     /** @var boolean Whether the question stems should be shuffled. */
     public $shufflestems;
 
@@ -195,6 +195,30 @@ class qtype_match_question extends question_graded_automatically {
         list($right, $total) = $this->get_num_parts_right($response);
         $fraction = $right / $total;
         return array($fraction, question_state::graded_state_for_fraction($fraction));
+    }
+
+    public function compute_final_grade($responses, $totaltries) {
+        $totalstemscore = 0;
+        foreach ($this->stemorder as $key => $stemid) {
+            $fieldname = $this->field($key);
+
+            $lastwrongindex = -1;
+            $finallyright = false;
+            foreach ($responses as $i => $response) {
+                if (!array_key_exists($fieldname, $response) || !$response[$fieldname] ||
+                        $this->choiceorder[$response[$fieldname]] != $this->right[$stemid]) {
+                    $lastwrongindex = $i;
+                    $finallyright = false;
+                }
+                $finallyright = true;
+            }
+
+            if ($finallyright) {
+                $totalstemscore += max(0, 1 - ($lastwrongindex + 1) * $this->penalty);
+            }
+        }
+
+        return $totalstemscore / count($this->stemorder);
     }
 
     public function get_stem_order() {
