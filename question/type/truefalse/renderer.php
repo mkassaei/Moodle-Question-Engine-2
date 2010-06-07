@@ -60,12 +60,15 @@ class qtype_truefalse_renderer extends qtype_renderer {
         // Work out which radio button to select (if any)
         $truechecked = false;
         $falsechecked = false;
+        $responsearray = array();
         if ($response) {
             $trueattributes['checked'] = 'checked';
             $truechecked = true;
+            $responsearray = array('answer' => 1);
         } else if ($response !== '') {
             $falseattributes['checked'] = 'checked';
             $falsechecked = true;
+            $responsearray = array('answer' => 1);
         }
 
         // Work out visual feedback for answer correctness.
@@ -111,7 +114,7 @@ class qtype_truefalse_renderer extends qtype_renderer {
 
         if ($qa->get_state() == question_state::$invalid) {
             $result .= html_writer::nonempty_tag('div',
-                    $question->get_validation_error(array('answer' => $currentanswer)),
+                    $question->get_validation_error($responsearray),
                     array('class' => 'validationerror'));
         }
 
