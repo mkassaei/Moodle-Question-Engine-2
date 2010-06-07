@@ -219,7 +219,7 @@ class html2text
         '-',
         '*',
         'Â£',
-        'EUR',                                  // Euro sign. € ?
+        'EUR',                                  // Euro sign. ï¿½ ?
         ' '                                     // Runs of spaces, post-handling
     );
 
@@ -238,6 +238,9 @@ class html2text
                                                    // <a href="">
         '/<(th)[^>]*>(.*?)<\/th>/i',               // <th> and </th>
         '/<(img)[^>]*alt=\"([^>"]+)\"[^>]*>/i',    // <img> with alt
+// ou-specific begins
+        '/<(math)[^>]*alt=\"([^>"]+)\"[^>]*>/i',    // <math> with alt
+// ou-specific ends
     );
 
    /**
@@ -577,6 +580,11 @@ class html2text
             return $this->_build_link_list($matches[3], $matches[4]);
         case 'img':
             return '[' . $matches[2] . ']';
+// ou-specific begins
+// replace mathml with its alt text.
+        case 'math':
+            return $matches[2];
+// ou-specific ends
         }
     }
     
