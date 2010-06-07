@@ -61,10 +61,10 @@ abstract class qtype_multichoice_base extends question_graded_automatically {
     }
 
     public function get_question_summary() {
-        $question = strip_tags($this->format_questiontext());
+        $question = html_to_text($this->format_questiontext());
         $choices = array();
         foreach ($this->order as $ansid) {
-            $choices[] = strip_tags($this->format_text($this->answers[$ansid]->answer));
+            $choices[] = html_to_text($this->format_text($this->answers[$ansid]->answer));
         }
         return $question . ': ' . implode('; ', $choices);
     }
@@ -116,7 +116,7 @@ class qtype_multichoice_single_question extends qtype_multichoice_base {
                 !array_key_exists($response['answer'], $this->order)) {
             return null;
         }
-        return strip_tags($this->format_text(
+        return html_to_text($this->format_text(
                 $this->answers[$this->order[$response['answer']]]->answer));
     }
 
@@ -218,7 +218,7 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
         foreach ($this->order as $key => $ans) {
             $fieldname = $this->field($key);
             if (array_key_exists($fieldname, $response) && $response[$fieldname]) {
-                $selectedchoices[] = strip_tags($this->format_text(
+                $selectedchoices[] = html_to_text($this->format_text(
                         $this->answers[$ans]->answer));
             }
         }
