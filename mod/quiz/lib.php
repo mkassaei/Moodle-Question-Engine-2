@@ -71,6 +71,9 @@ define('QUIZ_REVIEW_ANSWERS',         8*0x1041); // Show correct answers
 define('QUIZ_REVIEW_SOLUTIONS',      16*0x1041); // Show solutions
 define('QUIZ_REVIEW_GENERALFEEDBACK',32*0x1041); // Show question general feedback
 define('QUIZ_REVIEW_OVERALLFEEDBACK', 1*0x4440000); // Show quiz overall feedback
+// ou-specific begins
+define('QUIZ_REVIEW_CORRECTNESS', 2*0x4440000); // Show correctness
+// ou-specific ends
 // Multipliers 2*0x4440000, 4*0x4440000 and 8*0x4440000 are still available
 /**#@-*/
 
@@ -913,6 +916,21 @@ function quiz_process_options(&$quiz) {
         $review += (QUIZ_REVIEW_SCORES & QUIZ_REVIEW_CLOSED);
         unset($quiz->scoreclosed);
     }
+
+// ou-specific begins
+    if (isset($quiz->correctnessimmediately)) {
+        $review += (QUIZ_REVIEW_CORRECTNESS & QUIZ_REVIEW_IMMEDIATELY);
+        unset($quiz->correctnessimmediately);
+    }
+    if (isset($quiz->correctnessopen)) {
+        $review += (QUIZ_REVIEW_CORRECTNESS & QUIZ_REVIEW_OPEN);
+        unset($quiz->correctnessopen);
+    }
+    if (isset($quiz->correctnessclosed)) {
+        $review += (QUIZ_REVIEW_CORRECTNESS & QUIZ_REVIEW_CLOSED);
+        unset($quiz->correctnessclosed);
+    }
+// ou-specific endss
 
     if (isset($quiz->feedbackimmediately)) {
         $review += (QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_IMMEDIATELY);

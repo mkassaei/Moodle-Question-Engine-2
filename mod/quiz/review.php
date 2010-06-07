@@ -137,7 +137,12 @@ print_container_end();
 echo '</div>';
 
 // Start the main column.
-echo '<div id="middle-column"><div id="middle-column-inner">';
+// ou-specific begins
+/* Comment out core code.
+echo '<div id="middle-column">';
+*/
+echo '<div id="middle-column" class="has-left-column"><div id="middle-column-inner">';
+// ou-specific ends
 print_container_start();
 echo skip_main_destination();
 
@@ -292,7 +297,12 @@ if ($lastpage) {
 }
 // End middle column.
 print_container_end();
+// ou-specific begins
+/* Comment out core code.
+echo '</div>';
+*/
 echo '</div></div>';
+// ou-specific ends
 
 // End middle column.
 echo '</div>';
