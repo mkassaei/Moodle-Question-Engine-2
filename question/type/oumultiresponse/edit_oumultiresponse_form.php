@@ -87,9 +87,9 @@ class question_edit_oumultiresponse_form extends question_edit_form {
             $default_values['answernumbering'] =  $question->options->answernumbering;
             $default_values['shuffleanswers'] =  $question->options->shuffleanswers;
             $default_values['correctfeedback'] =  $question->options->correctfeedback;
-            $default_values['correctresponsesfeedback'] = $question->options->correctresponsesfeedback;
             $default_values['partiallycorrectfeedback'] =  $question->options->partiallycorrectfeedback;
             $default_values['incorrectfeedback'] =  $question->options->incorrectfeedback;
+            $default_values['shownumcorrect'] = $question->options->shownumcorrect;
             $question = (object)((array)$question + $default_values);
         }
 
