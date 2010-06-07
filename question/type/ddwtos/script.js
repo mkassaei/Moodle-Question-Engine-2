@@ -232,11 +232,7 @@ var ddwtos_currentzindex = 10;
     }
 
     function is_infinite(el){
-        var inf = el.id.split("_")[3];
-        if (inf == 1) {
-            return true;
-        }
-        return false;
+        return YAHOO.util.Dom.hasClass(el, 'infinite');
     }
 
     function show_element(el){
