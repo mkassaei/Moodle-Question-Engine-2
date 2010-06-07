@@ -426,6 +426,7 @@ function quiz_update_sumgrades($quiz) {
             ), 0)
             WHERE id = $quiz->id";
     execute_sql($sql, false);
+    $quiz->sumgrades = get_field('quiz', 'sumgrades', 'id', $quiz->id);
 }
 
 function quiz_update_all_attempt_sumgrades($quiz) {

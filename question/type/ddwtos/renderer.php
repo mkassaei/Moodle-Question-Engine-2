@@ -113,9 +113,14 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
             $content = str_replace('-', '&#x2011;', $choice->text);
             $content = $this->dodgy_ie_fix(str_replace(' ', '&#160;', $content));
 
+            $infinite = '';
+            if ($choice->isinfinite) {
+                $infinite = ' infinite';
+            }
+
             $boxes .= html_writer::tag('span', $content, array(
                     'id' => $this->box_id($qa, $key, $choice->draggroup),
-                    'class' => 'player group' . $choice->draggroup . $readonly)) . ' ';
+                    'class' => 'player group' . $choice->draggroup . $infinite . $readonly)) . ' ';
         }
 
         return html_writer::nonempty_tag('div', $boxes, array('class' => 'answertext'));

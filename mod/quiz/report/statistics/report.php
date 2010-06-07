@@ -408,16 +408,16 @@ class quiz_statistics_report extends quiz_default_report {
     protected function get_formatted_quiz_info_data($course, $cm, $quiz, $quizstats) {
 
         // You can edit this array to control which statistics are displayed.
-        $todisplay = array('firstattemptscount' => '',
-                    'allattemptscount' => '',
+        $todisplay = array('firstattemptscount' => 'number',
+                    'allattemptscount' => 'number',
                     'firstattemptsavg' => 'summarks_as_percentage',
                     'allattemptsavg' => 'summarks_as_percentage',
                     'median' => 'summarks_as_percentage',
                     'standarddeviation' => 'summarks_as_percentage',
-                    'skewness' => '',
-                    'kurtosis' => '',
-                    'cic' => 'number_format',
-                    'errorratio' => 'number_format',
+                    'skewness' => 'number',
+                    'kurtosis' => 'number',
+                    'cic' => 'number_format_percent',
+                    'errorratio' => 'number_format_percent',
                     'standarderror' => 'summarks_as_percentage');
 
         // General information about the quiz.
@@ -439,17 +439,23 @@ class quiz_statistics_report extends quiz_default_report {
 
         // The statistics.
         foreach ($todisplay as $property => $format) {
-            if (!isset($quizstats->$property) || !isset($format[$property])) {
+            if (!isset($quizstats->$property) || empty($format[$property])) {
                 continue;
             }
             $value = $quizstats->$property;
 
-            switch ($format[$property]) {
+            switch ($format) {
                 case 'summarks_as_percentage':
                     $formattedvalue = quiz_report_scale_summarks_as_percentage($value, $quiz);
                     break;
-                case 'number_format':
+                case 'number_format_percent':
                     $formattedvalue = quiz_format_grade($quiz, $value) . '%';
+                    break;
+                case 'number_format':
+                    $formattedvalue = quiz_format_grade($quiz, $value);
+                    break;
+                case 'number':
+                    $formattedvalue = $value + 0;
                     break;
                 default:
                     $formattedvalue = $value;
