@@ -1,4 +1,5 @@
-.oumultiresponse .answer span {
+.oumultiresponse .answer span.r0,
+.oumultiresponse .answer span.r1 {
     display: block;
     padding: 0.3em;
 }
