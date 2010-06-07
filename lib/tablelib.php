@@ -560,9 +560,15 @@ class flexible_table {
         }
 
         foreach ($this->sess->sortby as $column => $notused) {
-            if (!isset($this->columns[$column])) {
-                unset($this->sess->sortby[$column]);
+            if (isset($this->columns[$column])) {
+                continue; // This column is OK.
             }
+            if (in_array($column, array('firstname', 'lastname')) &&
+                    isset($this->columns['fullname'])) {
+                continue; // This column is OK.
+            }
+            // This column is not OK.
+            unset($this->sess->sortby[$column]);
         }
 
         return $this->sess->sortby;
