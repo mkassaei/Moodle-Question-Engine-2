@@ -229,17 +229,19 @@ class qtype_oumultiresponse extends question_type {
         return parent::delete_question($questionid);
     }
 
-    /**
-     * For random question type return empty string which means won't calculate.
-     * @param object $question
-     * @return mixed either a integer score out of 1 that the average random
-     * guess by a student might give or an empty string which means will not
-     * calculate.
-     */
-    function get_random_guess_score($question) {
-        // TODO
-        // corrected formula for this.
-        return count($this->get_correct_answers($question))/count($this->get_all_answers($question));
+    function get_random_guess_score($questiondata) {
+        // We compute the randome guess score here on the assumption we are using
+        // the deferred feedback behaviour, and the question text tells the
+        // student how many of the responses are correct.
+        // Amazingly, the forumla for this works out to be
+        // # correct choices / total # choices in all cases.
+        $numright = 0;
+        foreach ($questiondata->options->answers as $answer) {
+            if (!question_state::graded_state_for_fraction($answer->fraction)->is_incorrect()) {
+                $numright += 1;
+            }
+        }
+        return $numright / count($questiondata->options->answers);
     }
 
     function import_from_xml($data, $question, $format, $extra=null) {

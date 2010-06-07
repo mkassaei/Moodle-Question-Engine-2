@@ -43,16 +43,32 @@ require_once($CFG->dirroot . '/question/type/oumultiresponse/questiontype.php');
 class qtype_oumultiresponse_test extends UnitTestCase {
     private $qtype;
 
-    function setUp() {
+    public function setUp() {
         $this->qtype = new qtype_oumultiresponse();
     }
 
-    function tearDown() {
+    public function tearDown() {
         $this->qtype = null;
     }
 
-    function test_name() {
+    public function test_name() {
         $this->assertEqual($this->qtype->name(), 'oumultiresponse');
+    }
+
+    public function test_get_random_guess_score() {
+        $questiondata = new stdClass;
+        $questiondata->options->answers = array(
+            1 => new question_answer('A', 1, ''),
+            2 => new question_answer('B', 0, ''),
+            3 => new question_answer('C', 0, ''),
+        );
+        $this->assertWithinMargin(1/3, $this->qtype->get_random_guess_score($questiondata), 0.000001);
+
+        $questiondata->options->answers[2]->fraction = 1;
+        $this->assertWithinMargin(2/3, $this->qtype->get_random_guess_score($questiondata), 0.000001);
+
+        $questiondata->options->answers[4] = new question_answer('D', 0, '');
+        $this->assertWithinMargin(1/2, $this->qtype->get_random_guess_score($questiondata), 0.000001);
     }
 
     public function test_xml_import() {
