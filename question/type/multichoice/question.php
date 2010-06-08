@@ -262,6 +262,33 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
         return $this->is_complete_response($response);
     }
 
+    /**
+     * @param array $response responses, as returned by {@link question_attempt_step::get_qt_data()}.
+     * @return integer the number of choices that were selected. in this response.
+     */
+    public function get_num_selected_choices(array $response) {
+        $numselected = 0;
+        foreach ($response as $key => $value) {
+            if (!empty($value)) {
+                $numselected += 1;
+            }
+        }
+        return $numselected;
+    }
+
+    /**
+     * @return integer the number of choices that are correct.
+     */
+    public function get_num_correct_choices() {
+        $numcorrect = 0;
+        foreach ($this->answers as $ans) {
+            if (!question_state::graded_state_for_fraction($ans->fraction)->is_incorrect()) {
+                $numcorrect += 1;
+            }
+        }
+        return $numcorrect;
+    }
+
     public function grade_response(array $response) {
         $fraction = 0;
         foreach ($this->order as $key => $ansid) {
@@ -278,5 +305,28 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
             return '';
         }
         return get_string('pleaseselectatleastoneanswer', 'qtype_multichoice');
+    }
+
+    /**
+     * Disable those hint settings that we don't want when the student has selected
+     * more choices than the number of right choices. This avoids giving the game away.
+     * @param question_hint_with_parts $hint a hint.
+     */
+    protected function disable_hint_settings_when_too_many_selected(question_hint_with_parts $hint) {
+        $hint->clearwrong = false;
+    }
+
+    public function get_hint($hintnumber, question_attempt $qa) {
+        $hint = parent::get_hint($hintnumber, $qa);
+        if (is_null($hint)) {
+            return $hint;
+        }
+
+        if ($this->get_num_selected_choices($qa->get_last_qt_data()) >
+                $this->get_num_correct_choices()) {
+            $hint = clone($hint);
+            $this->disable_hint_settings_when_too_many_selected($hint);
+        }
+        return $hint;
     }
 }

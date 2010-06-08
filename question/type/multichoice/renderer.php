@@ -95,7 +95,10 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_overall_feedba
             } else {
                 $feedbackimg[] = '';
             }
-            if (($options->feedback || $options->correctresponse) && $isselected) {
+            // $options->suppresschoicefeedback is a hack specific to the
+            // oumultiresponse question type. It would be good to refactor to
+            // avoid refering to it here.
+            if ($options->feedback && empty($options->suppresschoicefeedback) && $isselected) {
                 $feedback[] = $question->format_text($ans->feedback);
             } else {
                 $feedback[] = '';
@@ -288,5 +291,14 @@ class qtype_multichoice_multi_renderer extends qtype_multichoice_renderer_base {
             
         }
         return '';
+    }
+
+    protected function num_parts_correct(question_attempt $qa) {
+        if ($qa->get_question()->get_num_selected_choices($qa->get_last_qt_data()) >
+                $qa->get_question()->get_num_correct_choices()) {
+            return get_string('toomanyselected', 'qtype_multichoice');
+        }
+
+        return parent::num_parts_correct($qa);
     }
 }
