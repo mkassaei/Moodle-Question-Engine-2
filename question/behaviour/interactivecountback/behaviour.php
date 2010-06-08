@@ -70,14 +70,20 @@ class qbehaviour_interactivecountback extends qbehaviour_interactive {
         $totaltries = $this->qa->get_step(0)->get_behaviour_var('_triesleft');
 
         $responses = array();
+        $lastsave = array();
         foreach ($this->qa->get_step_iterator() as $step) {
             if ($step->has_behaviour_var('submit')) {
                 $responses[] = $step->get_qt_data();
+                $lastsave = array();
+            } else {
+                $lastsave = $step->get_qt_data();
             }
         }
         $lastresponse = $pendingstep->get_qt_data();
         if (!empty($lastresponse)) {
             $responses[] = $lastresponse;
+        } else if (!empty($lastsave)) {
+            $responses[] = $lastsave;
         }
 
         return $this->question->compute_final_grade($responses, $totaltries);

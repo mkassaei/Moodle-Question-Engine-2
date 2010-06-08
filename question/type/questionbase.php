@@ -357,6 +357,16 @@ interface question_automatically_gradable extends question_manually_gradable {
      * @return array (number, integer) the fraction, and the state.
      */
     public function grade_response(array $response);
+
+    /**
+     * Get one of the question hints. The question_attempt is passed in case
+     * the question type wants to do something complex. For example, the
+     * multiple choice with multiple responses question type will turn off most
+     * of the hint options if the student has selected too many opitions.
+     * @param integer $hintnumber Which hint to display. Indexed starting from 0
+     * @param question_attempt $qa The question_attempt.
+     */
+    public function get_hint($hintnumber, question_attempt $qa);
 }
 
 
@@ -422,6 +432,13 @@ abstract class question_graded_automatically extends question_with_responses
             return null;
         }
         return $this->summarise_response($correctresponse);
+    }
+
+    public function get_hint($hintnumber, question_attempt $qa) {
+        if (!isset($this->hints[$hintnumber])) {
+            return null;
+        }
+        return $this->hints[$hintnumber];
     }
 }
 
@@ -559,6 +576,14 @@ class question_hint {
     public static function load_from_record($row) {
         return new question_hint($row->hint);
     }
+
+    /**
+     * Adjust this display options according to the hint settings.
+     * @param question_display_options $options
+     */
+    public function adjust_display_options(question_display_options $options) {
+        // Do nothing.
+    }
 }
 
 
@@ -596,6 +621,14 @@ class question_hint_with_parts extends question_hint {
      */
     public static function load_from_record($row) {
         return new question_hint_with_parts($row->hint, $row->shownumcorrect, $row->clearwrong);
+    }
+
+    public function adjust_display_options(question_display_options $options) {
+        parent::adjust_display_options($options);
+        if ($this->clearwrong) {
+            $options->clearwrong = true;
+        }
+        $options->numpartscorrect = $this->shownumcorrect;
     }
 }
 

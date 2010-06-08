@@ -203,13 +203,11 @@ abstract class qtype_with_overall_feedback_renderer extends qtype_renderer {
         $state = $qa->get_state();
 
         if (!$state->is_finished()) {
-            list($num, $outof) = $qa->get_question()->get_num_parts_right(
-                    $qa->get_last_qt_data());
-            if (is_null($outof)) {
+            $response = $qa->get_last_qt_data();
+            if (!$qa->get_question()->is_gradable_response($response)) {
                 return '';
             }
-
-            $state = question_state::graded_state_for_fraction($num / $outof);
+            list($notused, $state) = $qa->get_question()->grade_response($response);
         }
 
         $feedback = '';

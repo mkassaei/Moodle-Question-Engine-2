@@ -522,4 +522,9 @@ class qtype_oumultiresponse_hint extends question_hint_with_parts {
         return new question_hint_with_parts($row->hint, $row->shownumcorrect,
                 $row->clearwrong, !empty($row->options));
     }
+
+    public function adjust_display_options(question_display_options $options) {
+        parent::adjust_display_options($options);
+        $options->suppresschoicefeedback = !$this->showchoicefeedback;
+    }
 }

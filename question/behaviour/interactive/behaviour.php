@@ -75,11 +75,10 @@ class qbehaviour_interactive extends question_behaviour_with_save {
                 $options->readonly = self::READONLY_EXCEPT_TRY_AGAIN;
             }
             $hint = $this->get_applicable_hint();
-            if ($hint && !empty($hint->clearwrong)) {
-                $options->clearwrong = true;
+            if (!is_null($hint)) {
+                $hint->adjust_display_options($options);
             }
             $options->feedback = $specificfeedback;
-            $options->numpartscorrect = !empty($hint->shownumcorrect);
         }
     }
 
@@ -87,8 +86,8 @@ class qbehaviour_interactive extends question_behaviour_with_save {
         if (!$this->is_try_again_state()) {
             return null;
         }
-        return $this->question->hints[count($this->question->hints) -
-                $this->qa->get_last_behaviour_var('_triesleft')];
+        return $this->question->get_hint(count($this->question->hints) -
+                $this->qa->get_last_behaviour_var('_triesleft'), $this->qa);
     }
 
     public function get_expected_data() {

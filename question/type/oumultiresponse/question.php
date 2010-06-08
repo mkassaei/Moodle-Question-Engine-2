@@ -44,20 +44,19 @@ class qtype_oumultiresponse_question extends qtype_multichoice_multi_question
         return question_engine::make_archetypal_behaviour($preferredbehaviour, $qa);
     }
 
-    protected function get_num_correct_choices() {
-        $numcorrect = 0;
-        foreach ($this->answers as $ans) {
-            if (!question_state::graded_state_for_fraction($ans->fraction)->is_incorrect()) {
-                $numcorrect += 1;
-            }
-        }
-        return $numcorrect;
+    public function grade_response(array $response) {
+        list($numright, $total) = $this->get_num_parts_right($response);
+
+        $numwrong = $this->get_num_selected_choices($response) - $numright;
+        $numright = max(0, $numright - $numwrong);
+        $fraction = $numright / $this->get_num_correct_choices();
+
+        return array($fraction, question_state::graded_state_for_fraction($fraction));
     }
 
-    public function grade_response(array $response) {
-        list($right, $total) = $this->get_num_parts_right($response);
-        $fraction = $right / $this->get_num_correct_choices();
-        return array($fraction, question_state::graded_state_for_fraction($fraction));
+    protected function disable_hint_settings_when_too_many_selected(question_hint_with_parts $hint) {
+        parent::disable_hint_settings_when_too_many_selected($hint);
+        $hint->showchoicefeedback = false;
     }
 
     public function compute_final_grade($responses, $totaltries) {

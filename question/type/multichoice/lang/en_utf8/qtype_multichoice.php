@@ -39,3 +39,4 @@ $string['selectmulti'] = 'Select one or more:';
 $string['selectone'] = 'Select one:';
 $string['shuffleanswers'] = 'Shuffle the choices?';
 $string['singleanswer'] = 'Choose one answer.';
+$string['toomanyselected'] = 'You have selected too many options.';
