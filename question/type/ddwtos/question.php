@@ -245,8 +245,9 @@ class qtype_ddwtos_question extends question_graded_automatically_with_countback
                         $response[$fieldname] != $this->get_right_choice_for($place)) {
                     $lastwrongindex = $i;
                     $finallyright = false;
+                } else {
+                    $finallyright = true;
                 }
-                $finallyright = true;
             }
 
             if ($finallyright) {

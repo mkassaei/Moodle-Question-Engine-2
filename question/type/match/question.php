@@ -209,8 +209,9 @@ class qtype_match_question extends question_graded_automatically_with_countback 
                         $this->choiceorder[$response[$fieldname]] != $this->right[$stemid]) {
                     $lastwrongindex = $i;
                     $finallyright = false;
+                } else {
+                    $finallyright = true;
                 }
-                $finallyright = true;
             }
 
             if ($finallyright) {
