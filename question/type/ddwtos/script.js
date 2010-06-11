@@ -300,10 +300,10 @@ var ddwtos_currentzindex = 10;
                 original.clones[index].startDrag(0, 0);
                 original.clones[index].onDragDrop(null, slot.id);
             }
-            YAHOO.util.Event.on(slot.id, "focus", setFocus);
-            YAHOO.util.Event.on(slot.id, "blur", setBlur);
+            YAHOO.util.Event.addListener(slot.id, "focus", setFocus);
+            YAHOO.util.Event.addListener(slot.id, "blur", setBlur);
 
-            YAHOO.util.Event.on(slot.id, "mousedown", mouseDown);
+            YAHOO.util.Event.addListener(slot.id, "mousedown", mouseDown);
 
             var myobj = new SlotObject(slot.id, group, currentvalue, values, funCallKeys);
 
@@ -313,7 +313,8 @@ var ddwtos_currentzindex = 10;
 
         //resize
         var listofslotsandplayers = new list_of_slots_and_players(slots, players);
-        YAHOO.util.Event.on(window, "resize", set_xy_after_resize, listofslotsandplayers);
+        YAHOO.util.Event.addListener(window, "resize", set_xy_after_resize, listofslotsandplayers);
+        YAHOO.util.Event.addListener(window, "load", set_xy_after_resize, listofslotsandplayers);
     }
 
     function getValuesForThisSlot(slotid, players) {
@@ -439,17 +440,17 @@ var ddwtos_currentzindex = 10;
             return;
         }
 
-        var hiddenElement = document.getElementById(slotobj.id + '_hidden');
-
         if (direction == 0) {
             call_YUI_startDrag_onInvalidDrop(slotobj);
             return;
         }
 
+        var hiddenElement = document.getElementById(slotobj.id + '_hidden');
+
         // Get current position in values list
         var selectedIndex = -1;
-        for(var i=0; i<slotobj.values.length; i++) {
-            if (slotobj.values[i] == hiddenElement.value) {
+        for(var i = 0; i < slotobj.values.length; i++) {
+            if (slotobj.values[i].split("_")[1] == hiddenElement.value) {
                 selectedIndex = i;
                 break;
             }
@@ -459,18 +460,17 @@ var ddwtos_currentzindex = 10;
         while (true) {
             // Get new position in values list
             selectedIndex += direction;
-
-            //empty the slot at the beginning or the end of the players list
-            if ((selectedIndex == -1) || (selectedIndex == slotobj.values.length)) {
-                call_YUI_startDrag_onInvalidDrop(slotobj);
-                return;
-            }
-
-            if (selectedIndex >= slotobj.values.length) {
-                selectedIndex = 0;
+            if (selectedIndex > slotobj.values.length) {
+                selectedIndex-= slotobj.values.length + 1;
             }
             if (selectedIndex < 0) {
-                selectedIndex = slotobj.values.length-1;
+                selectedIndex += slotobj.values.length + 1;
+            }
+
+            //empty the slot at the beginning or the end of the players list
+            if (selectedIndex == slotobj.values.length) {
+                call_YUI_startDrag_onInvalidDrop(slotobj);
+                return;
             }
 
             // If we loop round back to the current one then there are
@@ -509,24 +509,17 @@ var ddwtos_currentzindex = 10;
     }
 
     function mouseDown() {
-        //YAHOO.util.Dom.setStyle(this, 'border', 'thin  solid #0000FF');// blue
     }
 
     function setFocus() {
-        YAHOO.util.Dom.setStyle(this, 'border-bottom', 'medium  solid #000000');
+        YAHOO.util.Dom.setStyle(this, 'border-bottom', '4px  solid #000000');
 
         // Bug 7674 - Strange drawing in drop box 1 on tabbing to it
-        this.hideFocus=true;
-
-        //IE8
-        var browser = navigator.appVersion;
-        if (browser.indexOf('MSIE 8.0') > -1){
-            YAHOO.util.Dom.setStyle(this, 'border-bottom', 'thick  solid #000000');
-        }
+        this.hideFocus = true;
     }
 
     function setBlur() {
-        YAHOO.util.Dom.setStyle(this, 'border-bottom', 'thin  solid #000000');
+        YAHOO.util.Dom.setStyle(this, 'border-bottom', '1px  solid #000000');
     }
 
     function ie7_zoom_message (){
@@ -556,7 +549,7 @@ var ddwtos_currentzindex = 10;
 
                     YAHOO.util.Dom.setStyle(block, 'margin', '5px 5px 5px 0');
                     YAHOO.util.Dom.setStyle(block, 'padding', '5px');
-                    YAHOO.util.Dom.setStyle(block, 'border', 'thin  solid #BB0000');
+                    YAHOO.util.Dom.setStyle(block, 'border', '1px  solid #BB0000');
                     YAHOO.util.Dom.setStyle(block, 'background-color', '#FFFAFA');
                     answers[i].parentNode.insertBefore(block, answers[i]);
                     innerHideAnswers(answers[i]);
