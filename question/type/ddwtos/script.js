@@ -440,17 +440,17 @@ var ddwtos_currentzindex = 10;
             return;
         }
 
-        var hiddenElement = document.getElementById(slotobj.id + '_hidden');
-
         if (direction == 0) {
             call_YUI_startDrag_onInvalidDrop(slotobj);
             return;
         }
 
+        var hiddenElement = document.getElementById(slotobj.id + '_hidden');
+
         // Get current position in values list
         var selectedIndex = -1;
-        for(var i=0; i<slotobj.values.length; i++) {
-            if (slotobj.values[i] == hiddenElement.value) {
+        for(var i = 0; i < slotobj.values.length; i++) {
+            if (slotobj.values[i].split("_")[1] == hiddenElement.value) {
                 selectedIndex = i;
                 break;
             }
@@ -460,18 +460,17 @@ var ddwtos_currentzindex = 10;
         while (true) {
             // Get new position in values list
             selectedIndex += direction;
-
-            //empty the slot at the beginning or the end of the players list
-            if ((selectedIndex == -1) || (selectedIndex == slotobj.values.length)) {
-                call_YUI_startDrag_onInvalidDrop(slotobj);
-                return;
-            }
-
-            if (selectedIndex >= slotobj.values.length) {
-                selectedIndex = 0;
+            if (selectedIndex > slotobj.values.length) {
+                selectedIndex-= slotobj.values.length + 1;
             }
             if (selectedIndex < 0) {
-                selectedIndex = slotobj.values.length-1;
+                selectedIndex += slotobj.values.length + 1;
+            }
+
+            //empty the slot at the beginning or the end of the players list
+            if (selectedIndex == slotobj.values.length) {
+                call_YUI_startDrag_onInvalidDrop(slotobj);
+                return;
             }
 
             // If we loop round back to the current one then there are
