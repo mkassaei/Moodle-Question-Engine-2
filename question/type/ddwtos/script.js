@@ -510,24 +510,17 @@ var ddwtos_currentzindex = 10;
     }
 
     function mouseDown() {
-        //YAHOO.util.Dom.setStyle(this, 'border', 'thin  solid #0000FF');// blue
     }
 
     function setFocus() {
-        YAHOO.util.Dom.setStyle(this, 'border-bottom', 'medium  solid #000000');
+        YAHOO.util.Dom.setStyle(this, 'border-bottom', '4px  solid #000000');
 
         // Bug 7674 - Strange drawing in drop box 1 on tabbing to it
-        this.hideFocus=true;
-
-        //IE8
-        var browser = navigator.appVersion;
-        if (browser.indexOf('MSIE 8.0') > -1){
-            YAHOO.util.Dom.setStyle(this, 'border-bottom', 'thick  solid #000000');
-        }
+        this.hideFocus = true;
     }
 
     function setBlur() {
-        YAHOO.util.Dom.setStyle(this, 'border-bottom', 'thin  solid #000000');
+        YAHOO.util.Dom.setStyle(this, 'border-bottom', '1px  solid #000000');
     }
 
     function ie7_zoom_message (){
@@ -557,7 +550,7 @@ var ddwtos_currentzindex = 10;
 
                     YAHOO.util.Dom.setStyle(block, 'margin', '5px 5px 5px 0');
                     YAHOO.util.Dom.setStyle(block, 'padding', '5px');
-                    YAHOO.util.Dom.setStyle(block, 'border', 'thin  solid #BB0000');
+                    YAHOO.util.Dom.setStyle(block, 'border', '1px  solid #BB0000');
                     YAHOO.util.Dom.setStyle(block, 'background-color', '#FFFAFA');
                     answers[i].parentNode.insertBefore(block, answers[i]);
                     innerHideAnswers(answers[i]);
