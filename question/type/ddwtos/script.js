@@ -300,10 +300,10 @@ var ddwtos_currentzindex = 10;
                 original.clones[index].startDrag(0, 0);
                 original.clones[index].onDragDrop(null, slot.id);
             }
-            YAHOO.util.Event.on(slot.id, "focus", setFocus);
-            YAHOO.util.Event.on(slot.id, "blur", setBlur);
+            YAHOO.util.Event.addListener(slot.id, "focus", setFocus);
+            YAHOO.util.Event.addListener(slot.id, "blur", setBlur);
 
-            YAHOO.util.Event.on(slot.id, "mousedown", mouseDown);
+            YAHOO.util.Event.addListener(slot.id, "mousedown", mouseDown);
 
             var myobj = new SlotObject(slot.id, group, currentvalue, values, funCallKeys);
 
@@ -313,7 +313,8 @@ var ddwtos_currentzindex = 10;
 
         //resize
         var listofslotsandplayers = new list_of_slots_and_players(slots, players);
-        YAHOO.util.Event.on(window, "resize", set_xy_after_resize, listofslotsandplayers);
+        YAHOO.util.Event.addListener(window, "resize", set_xy_after_resize, listofslotsandplayers);
+        YAHOO.util.Event.addListener(window, "load", set_xy_after_resize, listofslotsandplayers);
     }
 
     function getValuesForThisSlot(slotid, players) {
