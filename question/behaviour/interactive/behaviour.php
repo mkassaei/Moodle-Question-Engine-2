@@ -111,6 +111,19 @@ class qbehaviour_interactive extends question_behaviour_with_save {
         return parent::get_expected_qt_data();
     }
 
+    public function get_state_string() {
+        if (!$this->qa->get_state()->is_active()) {
+            return parent::get_state_string();
+        }
+
+        if ($this->is_try_again_state()) {
+            return get_string('notcomplete', 'qbehaviour_interactive');
+        } else {
+            return get_string('triesremaining', 'qbehaviour_interactive',
+                    $this->qa->get_last_behaviour_var('_triesleft'));
+        }
+    }
+
     public function init_first_step(question_attempt_step $step) {
         parent::init_first_step($step);
         $step->set_behaviour_var('_triesleft', count($this->question->hints) + 1);

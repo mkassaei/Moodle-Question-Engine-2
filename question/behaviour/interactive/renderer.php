@@ -33,20 +33,6 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qbehaviour_interactive_renderer extends qbehaviour_renderer {
-    public function get_state_string(question_attempt $qa) {
-        // TODO when this is move to the behaviour class, change to use is_try_again_state.
-        if ($qa->get_state()->is_active()) {
-            $laststep = $qa->get_last_step();
-            if ($laststep->has_behaviour_var('submit') && $laststep->has_behaviour_var('_triesleft')) {
-                return get_string('notcomplete', 'qbehaviour_interactive');
-            } else {
-                return get_string('triesremaining', 'qbehaviour_interactive', $qa->get_last_behaviour_var('_triesleft'));
-            }
-        } else {
-            return $qa->get_state()->default_string();
-        }
-    }
-
     public function controls(question_attempt $qa, question_display_options $options) {
         return $this->submit_button($qa, $options);
     }

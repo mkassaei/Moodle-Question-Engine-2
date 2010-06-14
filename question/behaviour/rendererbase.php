@@ -37,19 +37,6 @@
  */
 abstract class qbehaviour_renderer extends renderer_base {
     /**
-     * Generate a brief textual description of the current state of the question,
-     * normally displayed under the question number.
-     *
-     * TODO should this acutally be a method on $qa instead?
-     *
-     * @param question_attempt $qa a question attempt.
-     * @return string a brief summary of the current state of the qestion attempt.
-     */
-    public function get_state_string(question_attempt $qa) {
-        return $qa->get_state()->default_string();
-    }
-
-    /**
      * Generate some HTML (which may be blank) that appears in the question
      * formulation area, afer the question type generated output.
      *

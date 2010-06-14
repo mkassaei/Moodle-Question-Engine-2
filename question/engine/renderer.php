@@ -139,7 +139,7 @@ class core_question_renderer extends renderer_base {
      */
     protected function status(question_attempt $qa, qbehaviour_renderer $behaviouroutput, question_display_options $options) {
         if ($options->correctness) {
-            return html_writer::tag('div', $behaviouroutput->get_state_string($qa),
+            return html_writer::tag('div', $qa->get_state_string(),
                     array('class' => 'state'));
         } else {
             return '';
@@ -297,9 +297,50 @@ class core_question_renderer extends renderer_base {
      */
     protected function response_history(question_attempt $qa, qbehaviour_renderer $behaviouroutput,
             qtype_renderer $qtoutput, question_display_options $options) {
-        $output = '';
-        // TODO
-        return $output;
+
+        if (!$options->history) {
+            return '';
+        }
+
+        $table = new stdClass;
+        $table->head  = array (
+            get_string('step', 'question'),
+            get_string('time'),
+            get_string('action', 'question'),
+            get_string('state', 'question'),
+        );
+        if ($options->marks >= question_display_options::MARK_AND_MAX) {
+            $table->head[] = get_string('marks', 'question');
+        }
+
+        // TODO indicate current state, and don't link.
+        // TODO implement action summary.
+
+        foreach ($qa->get_step_iterator() as $i => $step) {
+            $stepno = $i + 1;
+            if (!empty($options->questionreviewlink)) {
+                $stepno = link_to_popup_window($options->questionreviewlink .
+                        '&amp;qnumber=' . $qa->get_number_in_usage() .
+                        '&step=' . $i, 'reviewquestion', $stepno, 450, 650,
+                        get_string('reviewresponse', 'quiz'), 'none', true);
+            }
+            $row = array(
+                $stepno,
+                userdate($step->get_timecreated(), get_string('strftimedatetimeshort')),
+                $qa->summarise_action($step),
+                $step->get_state()->default_string(),
+            );
+
+            if ($options->marks >= question_display_options::MARK_AND_MAX) {
+                $row[] = $qa->format_fraction_as_mark($step->get_fraction(), $options->markdp);
+            }
+
+            $table->data[] = $row;
+        }
+
+        return html_writer::tag('h3', get_string('responsehistory', 'question'),
+                array('class' => 'responsehistoryheader')) . html_writer::tag('div',
+                print_table($table, true), array('class' => 'responsehistoryheader'));
     }
 
 }

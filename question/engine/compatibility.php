@@ -131,7 +131,7 @@ function nice_backtrace($callers) {
  * @param Exception $e the exception.
  */
 function display_exception($e) {
-    global $CFG;
+    global $CFG, $THEME;
     $debuginfo = '';
 
     if ($e instanceof moodle_exception) {

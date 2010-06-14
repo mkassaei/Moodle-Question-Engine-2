@@ -2631,6 +2631,13 @@ body.notes .notesgroup {
     padding: 0.5em;
     margin: 0 0 0.5em;
 }
+.que .history h3 {
+    margin: 0 0 0.2em;
+}
+.que .history table {
+    width: 100%;
+    margin: 0;
+}
 .que .ablock {
     margin: 0.7em 0 0.3em 0;
 }
