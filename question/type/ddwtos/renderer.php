@@ -90,15 +90,18 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
 
         $value = $qa->get_last_qt_var($question->field($place));
 
-        $readonly = '';
+        $attributes = array(
+            'id' => $this->box_id($qa, 'p' . $place, $group),
+            'class' => 'slot group' . $group
+        );
+
         if ($options->readonly) {
-            $readonly = ' readonly';
+            $attributes['class'] .= ' readonly';
+        } else {
+            $attributes['tabindex'] = '0';
         }
 
-        return html_writer::tag('span', $boxcontents, array(
-                'id' => $this->box_id($qa, 'p' . $place, $group),
-                'class' => 'slot group' . $group . $readonly,
-                'tabindex' => '0'));
+        return html_writer::tag('span', $boxcontents, $attributes);
     }
 
     protected function drag_boxes($qa, $group, $choices, question_display_options $options) {
