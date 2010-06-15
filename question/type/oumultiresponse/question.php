@@ -46,12 +46,12 @@ class qtype_oumultiresponse_question extends qtype_multichoice_multi_question
 
     public function grade_response(array $response) {
         list($numright, $total) = $this->get_num_parts_right($response);
-
         $numwrong = $this->get_num_selected_choices($response) - $numright;
-        $numright = max(0, $numright - $numwrong);
-        $fraction = $numright / $this->get_num_correct_choices();
+        $numcorrect = $this->get_num_correct_choices();
 
-        return array($fraction, question_state::graded_state_for_fraction($fraction));
+        $fraction = max(0, $numright - $numwrong) / $numcorrect;
+
+        return array($fraction, question_state::graded_state_for_fraction($numright / $numcorrect));
     }
 
     protected function disable_hint_settings_when_too_many_selected(question_hint_with_parts $hint) {
