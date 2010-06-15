@@ -170,6 +170,6 @@ $string['submissionoutofsequence'] = 'Access out of sequence. Please do not clic
 $string['submit'] = 'Submit';
 $string['submitandfinish'] = 'Submit and finish';
 $string['xoutofmax'] = '$a->mark out of $a->max';
-$string['yougotnright'] = 'You got $a->num correct.';
+$string['yougotnright'] = 'You have correctly selected {$a->num}.';
 
 $string['unexpectedexception'] = 'Unexpected exception: $a';
