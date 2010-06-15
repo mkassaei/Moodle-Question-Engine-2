@@ -1,9 +1,3 @@
-.body {
-    margin:0;
-    padding:0;
-    font-family: arial;
-}
-
 .qtext {
     line-height:2em;
     margin-top: 1px;
@@ -11,51 +5,29 @@
     display: block;
 }
 
-.ie7 .qtext {
-    line-height:2.3em;
-    margin-top: 1px;
-    margin-bottom: 0.5em;
-    display: block;
-}
-
 .answercontainer {
+    line-height: 2em;
     margin-bottom:1em;
     display: block;
 }
 
 .answertext {
     padding-bottom: 0.5em;
-    line-height: 2em;
-}
-.ie7 .answertext,
-.ie8 .answertext {
-    padding-bottom: 0.5em;
-    line-height: 2.3em;
-}
-
-.linebreak {
-    margin-bottom: 0.75em;
 }
 
 .slot {
+    display: inline-block;
     text-align: center;
     border: 1px solid #000000;
 }
 .player {
+    display: inline-block;
     text-align: center;
     cursor: move;
-    margin: 0em 0em 0.2em 0.3em;
     border: 1px solid #000000;
 }
-
-.ie7 .slot {
-    padding-bottom: 0.2em;
-}
-.ie8 .slot {
-    padding-bottom: 0.4em;
-}
-.ie8 .player {
-    padding-bottom: 0.4em;
+.player.placed { /* Lets the focus rectangle be visible in IE. */
+    background: transparent;
 }
 
 .readonly {
