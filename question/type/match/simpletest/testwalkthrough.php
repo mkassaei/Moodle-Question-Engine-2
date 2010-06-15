@@ -246,4 +246,71 @@ class qtype_match_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_partcorrect_expectation(),
                 $this->get_no_hint_visible_expectation());
     }
+
+    public function test_interactive_with_invalid() {
+
+        // Create a matching question.
+        $m = test_question_maker::make_a_matching_question();
+        $m->hints = array(
+            new question_hint_with_parts('This is the first hint.', false, false),
+            new question_hint_with_parts('This is the second hint.', true, true),
+        );
+        $m->shufflestems = false;
+        $this->start_attempt_at_question($m, 'interactive', 4);
+
+        $choiceorder = $m->get_choice_order();
+        $orderforchoice = array_combine(array_values($choiceorder), array_keys($choiceorder));
+        $choices = array(0 => get_string('choose') . '...');
+        foreach ($choiceorder as $key => $choice) {
+            $choices[$key] = $m->choices[$choice];
+        }
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_select_expectation('sub0', $choices, null, true),
+                $this->get_contains_select_expectation('sub1', $choices, null, true),
+                $this->get_contains_select_expectation('sub2', $choices, null, true),
+                $this->get_contains_select_expectation('sub3', $choices, null, true),
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_tries_remaining_expectation(3),
+                $this->get_no_hint_visible_expectation());
+
+        // Try to submit an invalid answer.
+        $this->process_submission(array('sub0' => '0',
+                'sub1' => '0', 'sub2' => '0',
+                'sub3' => '0', '-submit' => '1'));
+
+        // Verify.
+        $this->check_current_state(question_state::$invalid);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_select_expectation('sub0', $choices, null, true),
+                $this->get_contains_select_expectation('sub1', $choices, null, true),
+                $this->get_contains_select_expectation('sub2', $choices, null, true),
+                $this->get_contains_select_expectation('sub3', $choices, null, true),
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_tries_remaining_expectation(3),
+                $this->get_no_hint_visible_expectation());
+
+        // Now submit the right answer.
+        $this->process_submission(array('sub0' => $orderforchoice[1],
+                'sub1' => $orderforchoice[2], 'sub2' => $orderforchoice[2],
+                'sub3' => $orderforchoice[1], '-submit' => '1'));
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedright);
+        $this->check_current_mark(4);
+        $this->check_current_output(
+                $this->get_contains_select_expectation('sub0', $choices, 1, false),
+                $this->get_contains_select_expectation('sub1', $choices, 2, false),
+                $this->get_contains_select_expectation('sub2', $choices, 2, false),
+                $this->get_contains_select_expectation('sub3', $choices, 1, false),
+                $this->get_contains_submit_button_expectation(false),
+                $this->get_contains_correct_expectation(),
+                $this->get_no_hint_visible_expectation());
+        }
 }
