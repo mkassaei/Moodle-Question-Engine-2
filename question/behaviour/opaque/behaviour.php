@@ -48,6 +48,18 @@ class qbehaviour_opaque extends question_behaviour {
         return 'qtype_opaque_question';
     }
 
+    public function get_state_string() {
+        $state = $this->qa->get_state();
+        $omstate = $this->qa->get_last_behaviour_var('_statestring');
+        if ($state->is_finished()) {
+            return $state->default_string();
+        } else if ($omstate) {
+            return $omstate;
+        } else {
+            return get_string('notcomplete', 'qbehaviour_opaque');
+        }
+    }
+
     public function init_first_step(question_attempt_step $step) {
         global $USER;
 

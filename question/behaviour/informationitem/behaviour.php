@@ -65,6 +65,10 @@ class qbehaviour_informationitem extends question_behaviour {
         }
     }
 
+    public function get_state_string() {
+        return '';
+    }
+
     public function process_action(question_attempt_pending_step $pendingstep) {
         if ($pendingstep->has_behaviour_var('comment')) {
             return $this->process_comment($pendingstep);

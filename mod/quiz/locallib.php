@@ -944,7 +944,7 @@ function quiz_get_reviewoptions($quiz, $attempt, $context) {
     }
 
     // Provide the links to the question review and comment script
-    $options->questionreviewlink = '/mod/quiz/reviewquestion.php';
+    $options->questionreviewlink = '/mod/quiz/reviewquestion.php?attempt=' . $attempt->id;
 
     // Show a link to the comment box only for closed attempts
     if ($attempt->timefinish && !is_null($context) && has_capability('mod/quiz:grade', $context)) {
@@ -956,14 +956,15 @@ function quiz_get_reviewoptions($quiz, $attempt, $context) {
             has_capability('moodle/grade:viewhidden', $context) && !$attempt->preview) {
         // People who can see reports and hidden grades should be shown everything,
         // except during preview when teachers want to see what students see.
-        $options->responses = true;
-        $options->scores = true;
-        $options->feedback = true;
-        $options->correct_responses = true;
-        $options->solutions = false;
-        $options->generalfeedback = true;
-        $options->overallfeedback = true;
+        $options->responses = question_display_options::VISIBLE;
+        $options->scores = question_display_options::VISIBLE;
+        $options->feedback = question_display_options::VISIBLE;
+        $options->correct_responses = question_display_options::VISIBLE;
+        $options->solutions = question_display_options::HIDDEN;
+        $options->generalfeedback = question_display_options::VISIBLE;
+        $options->overallfeedback = question_display_options::VISIBLE;
         $options->quizstate = QUIZ_STATE_TEACHERACCESS;
+        $options->history = question_display_options::VISIBLE;
     } else {
         // Work out the state of the attempt ...
         if (((time() - $attempt->timefinish) < 120) || $attempt->timefinish==0) {

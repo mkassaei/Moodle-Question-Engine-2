@@ -27,10 +27,6 @@
 
 
 class qbehaviour_informationitem_renderer extends qbehaviour_renderer {
-    public function get_state_string(question_attempt $qa) {
-        return '';
-    }
-
     public function controls(question_attempt $qa, question_display_options $options) {
         if ($qa->get_state() != question_state::$todo) {
             return '';

@@ -112,7 +112,10 @@ function question_init_submit_button(id, qnumber) {
 function question_init_form(id) {
     var responseform = document.getElementById(id);
     responseform.setAttribute('autocomplete', 'off');
+
     YAHOO.util.Event.addListener(responseform, 'keypress', question_filter_key_events);
+    YAHOO.util.Event.addListener(responseform, 'submit', question_prevent_repeat_submission, responseform);
+
     var matches = window.location.href.match(/^.*[?&]scrollpos=(\d*)(?:&|$|#).*$/, '$1');
     if (matches) {
         // onDOMReady is the effective one here. I am leaving the immediate call to
@@ -125,6 +128,26 @@ function question_init_form(id) {
             question_force_ie_to_scroll(matches[1])
         }
     }
+}
+
+/**
+ * Event handler to stop the quiz form being submitted more than once.
+ * @param e the form submit event.
+ * @param form the form element.
+ */
+function question_prevent_repeat_submission(e, form) {
+    if (form.questionformalreadysubmitted) {
+        YAHOO.util.Event.stopEvent(e);
+        return;
+    }
+
+    setTimeout(function() {
+        YAHOO.util.Dom.getElementsBy(function(el) {
+            return el.type == 'submit';
+        }, 'input', form, function(el) {
+            el.disabled = true; });
+        }, 0);
+    form.questionformalreadysubmitted = true;
 }
 
 /**

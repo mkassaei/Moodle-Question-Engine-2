@@ -1508,9 +1508,12 @@ class question_attempt {
      * @return string A brief textual description of the current state.
      */
     public function get_state_string() {
-        return $this->behaviour->get_renderer()->get_state_string($this);
+        return $this->behaviour->get_state_string();
     }
 
+    /**
+     * @return integer the timestamp of the most recent step in this question attempt.
+     */
     public function get_last_action_time() {
         return $this->get_last_step()->get_timecreated();
     }
@@ -1529,11 +1532,18 @@ class question_attempt {
      * {@link get_fraction()} * {@link get_max_mark()}.
      */
     public function get_mark() {
-        $mark = $this->get_fraction();
-        if (!is_null($mark)) {
-            $mark *= $this->maxmark;
+        return $this->fraction_to_mark($this->get_fraction());
+    }
+
+    /**
+     * @param number|null $fraction a fraction.
+     * @return number|null the corresponding mark.
+     */
+    public function fraction_to_mark($fraction) {
+        if (is_null($fraction)) {
+            return null;
         }
-        return $mark;
+        return $fraction * $this->maxmark;
     }
 
     /** @return number the maximum mark possible for this question attempt. */
@@ -1556,7 +1566,17 @@ class question_attempt {
      * @return string formatted mark.
      */
     public function format_mark($dp) {
-        return format_float($this->get_mark(), $dp);
+        return $this->format_fraction_as_mark($this->get_fraction(), $dp);
+    }
+
+    /**
+     * The current mark, formatted to the stated number of decimal places. Uses
+     * {@link format_float()} to format floats according to the current locale.
+     * @param integer $dp number of decimal places.
+     * @return string formatted mark.
+     */
+    public function format_fraction_as_mark($fraction, $dp) {
+        return format_float($this->fraction_to_mark($fraction), $dp);
     }
 
     /**
@@ -1576,6 +1596,15 @@ class question_attempt {
      */
     public function get_applicable_hint() {
         return $this->behaviour->get_applicable_hint();
+    }
+
+    /**
+     * Produce a plain-text summary of what the user did during a step.
+     * @param question_attempt_step $step the step in quetsion.
+     * @return string a summary of what was done during that step.
+     */
+    public function summarise_action(question_attempt_step $step) {
+        return $this->behaviour->summarise_action($step);
     }
 
     /**

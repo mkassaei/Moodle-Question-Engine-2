@@ -34,17 +34,6 @@ class qbehaviour_adaptive_renderer extends qbehaviour_renderer {
         }
     }
 
-    public function get_state_string(question_attempt $qa) {
-        $state = $qa->get_state();
-
-        $laststep = $qa->get_last_step();
-        if ($laststep->has_behaviour_var('_try')) {
-            $state = question_state::graded_state_for_fraction($laststep->get_behaviour_var('_rawfraction'));
-
-        }
-        return $state->default_string();
-    }
-
     public function controls(question_attempt $qa, question_display_options $options) {
         return $this->submit_button($qa, $options);
     }

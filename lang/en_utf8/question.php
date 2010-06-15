@@ -114,6 +114,7 @@ $string['upgradeproblemunknowncategory'] = 'Problem detected when upgrading ques
 $string['yourfileshoulddownload'] = 'Your export file should start to download shortly. If not, please <a href=\"$a\">click here</a>. Parent changed to fix problem.';
 
 
+$string['action'] = 'Action';
 $string['addanotherhint'] = 'Add another hint';
 $string['answersaved'] = 'Answer saved';
 $string['changeoptions'] = 'Change options';
@@ -140,6 +141,7 @@ $string['invalidanswer'] = 'Invalid answer';
 $string['mark'] = 'Mark';
 $string['markedoutof'] = 'Marked out of';
 $string['markandmax'] = 'Mark and max';
+$string['marks'] = 'Marks';
 $string['marksvisible'] = 'Marks visible';
 $string['maxmarkonly'] = 'Max mark only';
 $string['notanswered'] = 'Not answered';
@@ -154,6 +156,7 @@ $string['penaltyforeachincorrecttry'] = 'Penalty for each incorrect try';
 $string['questionx'] = 'Question $a';
 $string['questionidmismatch'] = 'Question ids mismatch';
 $string['requiresgrading'] = 'Requires grading';
+$string['responsehistory'] = 'Response history';
 $string['responsehistoryvisible'] = 'Response history visible';
 $string['restart'] = 'Start again';
 $string['restartwiththeseoptions'] = 'Start again with these options';
@@ -161,10 +164,12 @@ $string['saveflags'] = 'Save the state of the flags';
 $string['settingsformultipletries'] = 'Settings for multiple tries';
 $string['shownumpartscorrect'] = 'Show the number of correct responses';
 $string['specificfeedbackvisible'] = 'Specific feedback visible';
+$string['state'] = 'State';
+$string['step'] = 'Step';
 $string['submissionoutofsequence'] = 'Access out of sequence. Please do not click the back button when working on quiz questions.';
 $string['submit'] = 'Submit';
 $string['submitandfinish'] = 'Submit and finish';
 $string['xoutofmax'] = '$a->mark out of $a->max';
-$string['yougotnright'] = 'You got $a->num correct.';
+$string['yougotnright'] = 'You have correctly selected {$a->num}.';
 
 $string['unexpectedexception'] = 'Unexpected exception: $a';

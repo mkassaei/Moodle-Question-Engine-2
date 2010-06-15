@@ -258,7 +258,7 @@ abstract class question_state {
     /**
      * Return the name of an appropriate string to look up in the question
      * language pack for a state. This is used, for example, by
-     * {@link qbehaviour_renderer::get_state_string()}. However, behaviours
+     * {@link question_behaviour::get_state_string()}. However, behaviours
      * sometimes change this default string for soemthing more specific.
      *
      * @return string the name of a string that can be looked up in the 'question'

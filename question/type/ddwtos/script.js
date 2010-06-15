@@ -94,6 +94,7 @@ var ddwtos_currentzindex = 10;
         //Abstract method called after a drag/drop object is clicked and the drag or mousedown time thresholds have beeen met.
         startDrag : function(x, y) {
             YAHOO.util.Dom.setStyle(this.getEl(), "zIndex", ddwtos_currentzindex++);
+            YAHOO.util.Dom.removeClass(this.getEl(), 'placed');
 
             if (is_infinite(this.getEl()) && !this.slot){
                 var currentplayer = this.getEl().id.replace(/_clone[0-9]+$/, '');
@@ -137,6 +138,7 @@ var ddwtos_currentzindex = 10;
             this.slot = target;
             target.player = this;
             YAHOO.util.Dom.setXY(target.player.getEl(), YAHOO.util.Dom.getXY(target.getEl()));
+            YAHOO.util.Dom.addClass(this.getEl(), 'placed');
 
             // set value
             var hiddenElement = document.getElementById(id + '_hidden');
@@ -146,6 +148,7 @@ var ddwtos_currentzindex = 10;
         //Abstract method called when this item is dropped on an area with no drop target
         onInvalidDrop : function(e) {
             YAHOO.util.Dom.setXY(this.getEl(), YAHOO.util.Dom.getXY(this.originalplayer.getEl()));
+            YAHOO.util.Dom.removeClass(this.getEl(), 'placed');
         }
     });
     // end of Player object (the draggable item) ////////////////////////////////
@@ -187,20 +190,15 @@ var ddwtos_currentzindex = 10;
         }
         newNode.id = el.id + '_clone' + p.clones.length; // _clone0 for first
 
-        newNode.style.textAlign = 'center';
-
         newNode.style.position = 'absolute';
 
         var region = YAHOO.util.Dom.getRegion(el);
         var height = region.bottom - region.top;
-        newNode.style.height = (height-7) + "px";
-        newNode.style.paddingTop = "1px";
-        newNode.style.paddingBottom = "5px";
-
         var width = region.right - region.left;
-        newNode.style.width = (width-8) + "px";
-        newNode.style.paddingLeft = "3px";
-        newNode.style.paddingRight = "3px";
+
+        // -2 is becuase get_region includes the border, but style.width/height does not.
+        newNode.style.height = (height - 2) + "px";
+        newNode.style.width = (width - 2) + "px";
 
         el.parentNode.parentNode.appendChild(newNode);
         YAHOO.util.Dom.setXY(newNode, YAHOO.util.Dom.getXY(el));
@@ -376,18 +374,12 @@ var ddwtos_currentzindex = 10;
             var height = region.bottom - region.top;
             el.style.display = 'inline-block';
             el.style.width = gwidth + 'px';
-            el.style.height = (el.className.indexOf('slot ')==0 ? height-5 : height-6) + 'px';
+            el.style.height = height + 'px';
             return;
         }
 
         YAHOO.util.Dom.setStyle(el, 'padding-right', Math.floor((remainder + 1) / 2) + 'px');
         YAHOO.util.Dom.setStyle(el, 'padding-left', Math.floor(remainder / 2) + 'px');
-
-        //not IE
-        if (!window.ActiveXObject) {
-            YAHOO.util.Dom.setStyle(el, 'padding-top', '3px');
-            YAHOO.util.Dom.setStyle(el, 'padding-bottom', '3px');
-        }
     }
 
     function funCallKeys(e, slotobj) {
@@ -512,14 +504,11 @@ var ddwtos_currentzindex = 10;
     }
 
     function setFocus() {
-        YAHOO.util.Dom.setStyle(this, 'border-bottom', '4px  solid #000000');
-
-        // Bug 7674 - Strange drawing in drop box 1 on tabbing to it
-        this.hideFocus = true;
+        YAHOO.util.Dom.addClass(this, 'focussed');
     }
 
     function setBlur() {
-        YAHOO.util.Dom.setStyle(this, 'border-bottom', '1px  solid #000000');
+        YAHOO.util.Dom.removeClass(this, 'focussed');
     }
 
     function ie7_zoom_message (){

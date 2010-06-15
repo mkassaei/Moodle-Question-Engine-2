@@ -27,18 +27,6 @@
 
 
 class qbehaviour_opaque_renderer extends qbehaviour_renderer {
-    public function get_state_string(question_attempt $qa) {
-        $state = $qa->get_state();
-        $omstate = $qa->get_last_behaviour_var('_statestring');
-        if ($state->is_finished()) {
-            return $state->default_string();
-        } else if ($omstate) {
-            return $omstate;
-        } else {
-            return get_string('notcomplete', 'qbehaviour_opaque');
-        }
-    }
-
     public function controls(question_attempt $qa, question_display_options $options) {
         if ($qa->get_state()->is_gave_up()) {
             return html_writer::tag('div', get_string('notcompletedmessage', 'qtype_opaque'),

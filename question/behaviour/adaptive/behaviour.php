@@ -62,6 +62,18 @@ class qbehaviour_adaptive extends question_behaviour_with_save {
         }
     }
 
+    public function get_state_string() {
+        $state = $this->qa->get_state();
+
+        $laststep = $this->qa->get_last_step();
+        if ($laststep->has_behaviour_var('_try')) {
+            $state = question_state::graded_state_for_fraction(
+                    $laststep->get_behaviour_var('_rawfraction'));
+        }
+
+        return $state->default_string();
+    }
+
     public function process_action(question_attempt_pending_step $pendingstep) {
         if ($pendingstep->has_behaviour_var('comment')) {
             return $this->process_comment($pendingstep);
