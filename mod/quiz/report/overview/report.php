@@ -67,7 +67,7 @@ class quiz_overview_report extends quiz_attempt_report {
             } else {
                 $qmfilter = 0;
             }
-            $regradefilter = $fromform->regradefilter;
+            $regradefilter = !empty($fromform->regradefilter);
             set_user_preference('quiz_report_overview_detailedmarks', $fromform->detailedmarks);
             set_user_preference('quiz_report_pagesize', $fromform->pagesize);
             $detailedmarks = $fromform->detailedmarks;
@@ -203,7 +203,7 @@ class quiz_overview_report extends quiz_attempt_report {
             // Test to see if there are any regraded attempts to be listed.
             $fields .= ", COALESCE((SELECT MAX(qqr.regraded) FROM {$CFG->prefix}quiz_question_regrade qqr WHERE qqr.questionusageid = quiza.uniqueid),-1) AS regraded";
             if ($regradefilter) {
-                $where .= " AND COALESCE((SELECT MAX(qqr.regraded) FROM {$CFG->prefix}quiz_question_regrade} qqr WHERE qqr.questionusageid = quiza.uniqueid),-1) <> -1";
+                $where .= " AND COALESCE((SELECT MAX(qqr.regraded) FROM {$CFG->prefix}quiz_question_regrade qqr WHERE qqr.questionusageid = quiza.uniqueid),-1) <> -1";
             }
             $table->set_sql($fields, $from, $where);
 
