@@ -115,7 +115,7 @@ abstract class qbehaviour_renderer extends renderer_base {
     public function manual_comment_view(question_attempt $qa, question_display_options $options) {
         $output = '';
         if ($qa->has_manual_comment()) {
-            $output .= get_string('commentx', 'question', $qa->get_manual_comment());
+            $output .= get_string('commentx', 'question', $qa->get_behaviour()->format_comment());
         }
         if ($options->manualcommentlink) {
             $strcomment = get_string('commentormark', 'question');

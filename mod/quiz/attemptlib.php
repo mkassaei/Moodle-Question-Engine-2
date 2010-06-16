@@ -421,27 +421,6 @@ class quiz_attempt {
 
     // Functions for loading more data =====================================================
 
-    /**
-     * Reload the state of a particular question up to and including the state with
-     * sequence number $seq, but no further.
-     * @param integer $qnumber the number used to identify this question within this attempt.
-     * @param integer $seq the sequence number to load up to.
-     */
-    public function load_question_at_state($qnumber, $seq) {
-        // Save the hacky extra fields we set on this question.
-        $question = $this->quba->get_question($qnumber);
-        $page = $question->_page;
-        $number = $question->_number;
-
-        // Do the reload of this question state.
-        question_engine::reload_question_state_in_quba($this->quba, $qnumber, $seq);
-
-        // Put back the hacky extra fields we set.
-        $question = $this->quba->get_question($qnumber);
-        $question->_page = $page;
-        $question->_number = $number;
-    }
-
 //    /**
 //     * Load the state of a number of questions that have already been loaded.
 //     *
@@ -641,6 +620,19 @@ class quiz_attempt {
      */
     public function get_render_options() {
         return quiz_get_renderoptions($this->get_quiz(), $this->attempt, $this->quizobj->get_context());
+    }
+
+    /**
+     * Wrapper that calls get_render_options with the appropriate arguments.
+     *
+     * @return question_display_options the render options for this user on this attempt.
+     */
+    public function get_display_options($reviewing) {
+        if ($reviewing) {
+            return $this->get_review_options();
+        } else {
+            return $this->get_render_options();
+        }
     }
 
     /**
@@ -862,12 +854,25 @@ class quiz_attempt {
      * @return string HTML for the question in its current state.
      */
     public function render_question($qnumber, $reviewing, $thispageurl = '') {
-        if ($reviewing) {
-            $options = $this->get_review_options();
-        } else {
-            $options = $this->get_render_options();
-        }
-        return $this->quba->render_question($qnumber, $options, $this->quba->get_question($qnumber)->_number);
+        return $this->quba->render_question($qnumber,
+                $this->get_display_options($reviewing),
+                $this->quba->get_question($qnumber)->_number);
+    }
+
+    /**
+     * Like {@link render_question()} but displays the question at the past step
+     * indicated by $seq, rather than showing the latest step.
+     *
+     * @param integer $id the id of a question in this quiz attempt.
+     * @param integer $seq the seq number of the past state to display.
+     * @param boolean $reviewing is the being printed on an attempt or a review page.
+     * @param string $thispageurl the URL of the page this question is being printed on.
+     * @return string HTML for the question in its current state.
+     */
+    public function render_question_at_step($qnumber, $seq, $reviewing, $thispageurl = '') {
+        return $this->quba->render_question_at_step($qnumber, $seq,
+                $this->get_display_options($reviewing),
+                $this->quba->get_question($qnumber)->_number);
     }
 
     /**

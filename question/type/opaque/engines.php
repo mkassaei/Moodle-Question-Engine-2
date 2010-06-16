@@ -63,7 +63,6 @@ if ($engines) {
         src="<?php p($CFG->pixpath . '/t/delete.gif') ?>" border="0" alt="<?php p($strdelete) ?>" /></a>
 </p>
         <?php
-        // TODO add a test icon that loads the engine metadata in a popup window.
     }
 } else {
     echo '<p>', get_string('noengines', 'qtype_opaque'), '</p>';

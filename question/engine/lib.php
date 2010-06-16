@@ -76,19 +76,6 @@ abstract class question_engine {
     }
 
     /**
-     * Reload the state of one question in a {@link question_usage_by_activity}
-     * from the database. Possibly only going as far as the step with sequence number $seq.
-     * @param question_usage_by_activity $quba the id of the usage to load.
-     * @param integer $qnumber the number used to identify this question within this usage.
-     * @param integer $seq (optional) If given, only load the steps up to and including
-     *      the one with this sequence number.
-     */
-    public static function reload_question_state_in_quba(question_usage_by_activity $quba, $qnumber, $seq = null) {
-        $dm = new question_engine_data_mapper();
-        $dm->reload_question_state_in_quba($quba, $qnumber, $seq);
-    }
-
-    /**
      * Save a {@link question_usage_by_activity} to the database. This works either
      * if the usage was newly created by {@link make_questions_usage_by_activity()}
      * or loaded from the database using {@link load_questions_usage_by_activity()}
@@ -826,6 +813,36 @@ class question_usage_by_activity {
     }
 
     /**
+     * Like {@link render_question()} but displays the question at the past step
+     * indicated by $seq, rather than showing the latest step.
+     *
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $seq the seq number of the past state to display.
+     * @param question_display_options $options controls how the question is rendered.
+     * @param string|null $number The question number to display. 'i' is a special
+     *      value that gets displayed as Information. Null means no number is displayed.
+     * @return string HTML fragment representing the question.
+     */
+    public function render_question_at_step($qnumber, $seq, $options, $number = null) {
+        return $this->get_question_attempt($qnumber)->render_at_step($seq, $options, $number, $this->preferredbehaviour);
+    }
+
+    /**
+     * Replace a particular question_attempt with a different one.
+     *
+     * For internal use only. Used when reloading the state of a question from the
+     * database.
+     *
+     * @param array $records Raw records loaded from the database.
+     * @param integer $questionattemptid The id of the question_attempt to extract.
+     * @return question_attempt The newly constructed question_attempt_step.
+     */
+    public function replace_loaded_question_attempt_info($qnumber, $qa) {
+        $this->check_qnumber($qnumber);
+        $this->questionattempts[$qnumber] = $qa;
+    }
+
+    /**
      * You should probably not use this method in code outside the question engine.
      * The main reason for exposing it was for the benefit of unit tests.
      * @param integer $qnumber the number used to identify this question within this usage.
@@ -1075,21 +1092,6 @@ class question_usage_by_activity {
 
         return $quba;
     }
-
-    /**
-     * Replace a particular question_attempt with a different one.
-     *
-     * For internal use only. Used when reloading the state of a question from the
-     * database.
-     *
-     * @param array $records Raw records loaded from the database.
-     * @param integer $questionattemptid The id of the question_attempt to extract.
-     * @return question_attempt The newly constructed question_attempt_step.
-     */
-    public function replace_loaded_question_attempt_info($qnumber, $qa) {
-        $this->check_qnumber($qnumber);
-        $this->questionattempts[$qnumber] = $qa;
-    }
 }
 
 
@@ -1323,6 +1325,14 @@ class question_attempt {
     }
 
     /**
+     * For internal use only.
+     * @return question_behaviour the behaviour that is controlling this attempt.
+     */
+    public function get_behaviour() {
+        return $this->behaviour;
+    }
+
+    /**
      * Set the flagged state of this question.
      * @param boolean $flagged the new state.
      */
@@ -1428,6 +1438,18 @@ class question_attempt {
      */
     public function get_step_iterator() {
         return new question_attempt_step_iterator($this);
+    }
+
+    /**
+     * The same as {@link get_step_iterator()}. However, for a
+     * {@link question_attempt_with_restricted_history} this returns the full
+     * list of steps, while {@link get_step_iterator()} returns only the
+     * limited history.
+     * @return question_attempt_step_iterator for iterating over the steps in
+     * this attempt, in order.
+     */
+    public function get_full_step_iterator() {
+        return $this->get_step_iterator();
     }
 
     /**
@@ -1629,6 +1651,21 @@ class question_attempt {
     public function render_head_html() {
         return $this->question->get_renderer()->head_code($this) .
                 $this->behaviour->get_renderer()->head_code($this);
+    }
+
+    /**
+     * Like {@link render_question()} but displays the question at the past step
+     * indicated by $seq, rather than showing the latest step.
+     *
+     * @param integer $seq the seq number of the past state to display.
+     * @param question_display_options $options controls how the question is rendered.
+     * @param string|null $number The question number to display. 'i' is a special
+     *      value that gets displayed as Information. Null means no number is displayed.
+     * @return string HTML fragment representing the question.
+     */
+    public function render_at_step($seq, $options, $number, $preferredbehaviour) {
+        $restrictedqa = new question_attempt_with_restricted_history($this, $seq, $preferredbehaviour);
+        return $restrictedqa->render($options, $number);
     }
 
     /**
@@ -1981,6 +2018,86 @@ class question_attempt {
 
 
 /**
+ * This subclass of question_attempt pretends that only part of the step history
+ * exists. It is used for rendering the question in past states.
+ *
+ * All methods that try to modify the question_attempt throw exceptions.
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_attempt_with_restricted_history extends question_attempt {
+    /**
+     * @var question_attempt the underlying question_attempt.
+     */
+    protected $baseqa;
+
+    /**
+     * Create a question_attempt_with_restricted_history
+     * @param question_attempt $baseqa The question_attempt to make a restricted version of.
+     * @param integer $lastseq the index of the last step to include.
+     * @param string $preferredbehaviour the preferred behaviour. It is slightly
+     *      annoyting that this needs to be passed, but unavoidable for now.
+     */
+    public function __construct(question_attempt $baseqa, $lastseq, $preferredbehaviour) {
+        if ($lastseq < 0 || $lastseq >= $baseqa->get_num_steps()) {
+            throw new coding_exception('$seq out of range', $seq);
+        }
+
+        $this->baseqa = $baseqa;
+        $this->steps = array_slice($baseqa->steps, 0, $lastseq + 1);
+        $this->observer = new question_usage_null_observer();
+
+        // This should be a straight copy of all the remaining fields.
+        $this->id = $baseqa->id;
+        $this->usageid = $baseqa->usageid;
+        $this->numberinusage = $baseqa->numberinusage;
+        $this->question = $baseqa->question;
+        $this->maxmark = $baseqa->maxmark;
+        $this->minfraction = $baseqa->minfraction;
+        $this->questionsummary = $baseqa->questionsummary;
+        $this->responsesummary = $baseqa->responsesummary;
+        $this->rightanswer = $baseqa->rightanswer;
+        $this->flagged = $baseqa->flagged;
+
+        // Except behaviour, where we need to create a new one.
+        $this->behaviour = question_engine::make_behaviour(
+                $baseqa->get_behaviour_name(), $this, $preferredbehaviour);
+    }
+
+    public function get_full_step_iterator() {
+        return $this->baseqa->get_step_iterator();
+    }
+
+    protected function add_step(question_attempt_step $step) {
+        coding_exception('Cannot modify a question_attempt_with_restricted_history.');
+    }
+    public function process_action($submitteddata, $timestamp = null, $userid = null) {
+        coding_exception('Cannot modify a question_attempt_with_restricted_history.');
+    }
+    public function start($preferredbehaviour, $submitteddata = array(), $timestamp = null, $userid = null) {
+        coding_exception('Cannot modify a question_attempt_with_restricted_history.');
+    }
+
+    public function set_database_id($id) {
+        coding_exception('Cannot modify a question_attempt_with_restricted_history.');
+    }
+    public function set_flagged($flagged) {
+        coding_exception('Cannot modify a question_attempt_with_restricted_history.');
+    }
+    public function set_number_in_usage($qnumber) {
+        coding_exception('Cannot modify a question_attempt_with_restricted_history.');
+    }
+    public function set_question_summary($questionsummary) {
+        coding_exception('Cannot modify a question_attempt_with_restricted_history.');
+    }
+    public function set_usage_id($usageid) {
+        coding_exception('Cannot modify a question_attempt_with_restricted_history.');
+    }
+}
+
+
+/**
  * A class abstracting access to the {@link question_attempt::$states} array.
  *
  * This is actively linked to question_attempt. If you add an new step
@@ -2215,7 +2332,7 @@ class question_attempt_step {
     public function get_qt_data() {
         $result = array();
         foreach ($this->data as $name => $value) {
-            if ($name[0] != '-') {
+            if ($name[0] != '-' && $name[0] != ':') {
                 $result[$name] = $value;
             }
         }
@@ -2371,16 +2488,16 @@ class question_attempt_pending_step extends question_attempt_step {
  */
 class question_attempt_step_read_only extends question_attempt_step {
     public function set_state($state) {
-        throw new Exception('Cannot modify a question_attempt_step_read_only.');
+        throw new coding_exception('Cannot modify a question_attempt_step_read_only.');
     }
     public function set_fraction($fraction) {
-        throw new Exception('Cannot modify a question_attempt_step_read_only.');
+        throw new coding_exception('Cannot modify a question_attempt_step_read_only.');
     }
     public function set_qt_var($name, $value) {
-        throw new Exception('Cannot modify a question_attempt_step_read_only.');
+        throw new coding_exception('Cannot modify a question_attempt_step_read_only.');
     }
     public function set_behaviour_var($name, $value) {
-        throw new Exception('Cannot modify a question_attempt_step_read_only.');
+        throw new coding_exception('Cannot modify a question_attempt_step_read_only.');
     }
 }
 

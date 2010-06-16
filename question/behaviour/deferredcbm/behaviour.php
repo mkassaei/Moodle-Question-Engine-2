@@ -84,10 +84,6 @@ class qbehaviour_deferredcbm extends qbehaviour_deferredfeedback {
         return parent::is_complete_response($pendingstep) && $pendingstep->has_behaviour_var('certainty');
     }
 
-    protected function get_certainty() {
-
-    }
-
     public function process_finish(question_attempt_pending_step $pendingstep) {
         $status = parent::process_finish($pendingstep);
         if ($status == question_attempt::KEEP) {
@@ -107,6 +103,15 @@ class qbehaviour_deferredcbm extends qbehaviour_deferredfeedback {
                     $this->qa->get_last_step()->get_behaviour_var('certainty')));
         }
         return $status;
+    }
+
+    public function summarise_action(question_attempt_step $step) {
+        $summary = parent::summarise_action($step);
+        if ($step->has_behaviour_var('certainty')) {
+            $summary = question_cbm::summary_with_certainty($summary,
+                    $step->get_behaviour_var('certainty'));
+        }
+        return $summary;
     }
 
     public static function adjust_random_guess_score($fraction) {

@@ -2638,6 +2638,9 @@ body.notes .notesgroup {
     width: 100%;
     margin: 0;
 }
+.que .history .current {
+    font-weight: bold;
+}
 .que .ablock {
     margin: 0.7em 0 0.3em 0;
 }

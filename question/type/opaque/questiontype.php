@@ -65,7 +65,6 @@ class qtype_opaque extends question_type {
 
     protected function initialise_question_instance(question_definition $question, $questiondata) {
         parent::initialise_question_instance($question, $questiondata);
-        // TODO
         $question->engineid = $questiondata->options->engineid;
         $question->remoteid = $questiondata->options->remoteid;
         $question->remoteversion = $questiondata->options->remoteversion;
