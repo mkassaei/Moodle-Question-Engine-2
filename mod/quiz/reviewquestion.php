@@ -30,7 +30,7 @@ require_once('locallib.php');
 
 $attemptid = required_param('attempt', PARAM_INT); // attempt id
 $qnumber = required_param('qnumber', PARAM_INT); // question number in usage
-$seq = optional_param('seq', null, PARAM_INT); // sequence number
+$seq = optional_param('step', null, PARAM_INT); // sequence number
 
 $attemptobj = quiz_attempt::create($attemptid);
 
@@ -56,11 +56,6 @@ if (!$attemptobj->has_capability('mod/quiz:viewreports')) {
         notify($accessmanager->cannot_review_message($attemptobj->get_review_options()));
         close_window_button();
     }
-}
-
-// Load the question in the right state.
-if (!is_null($seq)) {
-    $attemptobj->load_question_at_state($qnumber, $seq);
 }
 
 // Work out the base URL of this page.
@@ -131,7 +126,11 @@ if (!empty($rows)) {
 }
 
 // Print the question in the requested state.
-echo $attemptobj->render_question($qnumber, true, $currenturl);
+if (!is_null($seq)) {
+    echo $attemptobj->render_question_at_step($qnumber, $seq, true, $currenturl);
+} else {
+    echo $attemptobj->render_question($qnumber, true, $currenturl);
+}
 
 // Finish the page
 print_footer();

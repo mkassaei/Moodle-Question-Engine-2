@@ -253,60 +253,6 @@ ORDER BY
         return question_usage_by_activity::load_from_records($records, $qubaid);
     }
 
-    public function reload_question_state_in_quba(question_usage_by_activity $quba, $qnumber, $seq = null) {
-        global $CFG;
-        $questionattemptid = $quba->get_question_attempt($qnumber)->get_database_id();
-
-        $seqtest = '';
-        if (!is_null($seq)) {
-            $seqtest = 'AND qas.sequencenumber <= ' . $seq;
-        }
-
-        $records = get_records_sql("
-SELECT
-    COALESCE(qasd.id, -1 * qas.id) AS id,
-    qa.id AS questionattemptid,
-    qa.questionusageid,
-    qa.numberinusage,
-    qa.behaviour,
-    qa.questionid,
-    qa.maxmark,
-    qa.minfraction,
-    qa.flagged,
-    qa.questionsummary,
-    qa.rightanswer,
-    qa.responsesummary,
-    qa.timemodified,
-    qas.id AS attemptstepid,
-    qas.sequencenumber,
-    qas.state,
-    qas.fraction,
-    qas.timecreated,
-    qas.userid,
-    qasd.name,
-    qasd.value
-
-FROM {$CFG->prefix}question_attempts_new qa
-LEFT JOIN {$CFG->prefix}question_attempt_steps qas ON qas.questionattemptid = qa.id
-LEFT JOIN {$CFG->prefix}question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
-
-WHERE
-    qa.id = $questionattemptid
-    $seqtest
-
-ORDER BY
-    qas.sequencenumber
-        ");
-
-        if (!$records) {
-            throw new Exception('Failed to load question_attempt ' . $questionattemptid);
-        }
-
-        $qa = question_attempt::load_from_records($records, $questionattemptid,
-                new question_usage_null_observer());
-        $quba->replace_loaded_question_attempt_info($qnumber, $qa);
-    }
-
     /**
      * Load information about the latest state of each question from the database.
      *

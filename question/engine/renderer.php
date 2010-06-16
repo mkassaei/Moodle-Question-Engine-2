@@ -313,17 +313,19 @@ class core_question_renderer extends renderer_base {
             $table->head[] = get_string('marks', 'question');
         }
 
-        // TODO indicate current state, and don't link.
-        // TODO implement action summary.
-
-        foreach ($qa->get_step_iterator() as $i => $step) {
+        foreach ($qa->get_full_step_iterator() as $i => $step) {
             $stepno = $i + 1;
-            if (!empty($options->questionreviewlink)) {
+            $rowclass = '';
+            if ($stepno == $qa->get_num_steps()) {
+                $rowclass = 'current';
+            } else if (!empty($options->questionreviewlink)) {
                 $stepno = link_to_popup_window($options->questionreviewlink .
                         '&amp;qnumber=' . $qa->get_number_in_usage() .
                         '&step=' . $i, 'reviewquestion', $stepno, 450, 650,
                         get_string('reviewresponse', 'quiz'), 'none', true);
             }
+            $user = new stdClass;
+            $user->id = $step->get_user_id();
             $row = array(
                 $stepno,
                 userdate($step->get_timecreated(), get_string('strftimedatetimeshort')),
@@ -335,6 +337,7 @@ class core_question_renderer extends renderer_base {
                 $row[] = $qa->format_fraction_as_mark($step->get_fraction(), $options->markdp);
             }
 
+            $table->rowclass[] = $rowclass;
             $table->data[] = $row;
         }
 

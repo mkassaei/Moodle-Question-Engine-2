@@ -136,6 +136,15 @@ class qbehaviour_immediatecbm extends qbehaviour_immediatefeedback {
         return question_attempt::KEEP;
     }
 
+    public function summarise_action(question_attempt_step $step) {
+        $summary = parent::summarise_action($step);
+        if ($step->has_behaviour_var('certainty')) {
+            $summary = question_cbm::summary_with_certainty($summary,
+                    $step->get_behaviour_var('certainty'));
+        }
+        return $summary;
+    }
+
     public static function adjust_random_guess_score($fraction) {
         return question_cbm::adjust_fraction($fraction, question_cbm::default_certainty());
     }

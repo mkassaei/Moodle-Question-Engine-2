@@ -57,6 +57,9 @@ class qbehaviour_informationitem extends question_behaviour {
 
     public function adjust_display_options(question_display_options $options) {
         parent::adjust_display_options($options);
+
+        $options->marks = question_display_options::HIDDEN;
+
         // At the moment, the code exists to process a manual comment on an
         // information item, but we don't display the UI unless there is already
         // a comment.
@@ -79,6 +82,17 @@ class qbehaviour_informationitem extends question_behaviour {
         } else {
             return question_attempt::DISCARD;
         }
+    }
+
+    public function summarise_action(question_attempt_step $step) {
+        if ($step->has_behaviour_var('comment')) {
+            return $this->summarise_manual_comment($step);
+        } else if ($step->has_behaviour_var('finish')) {
+            return $this->summarise_finish($step);
+        } else if ($step->has_behaviour_var('seen')) {
+            return get_string('seen', 'qbehaviour_informationitem');
+        }
+        return $this->summarise_start($step);
     }
 
     public function process_comment(question_attempt_pending_step $pendingstep) {

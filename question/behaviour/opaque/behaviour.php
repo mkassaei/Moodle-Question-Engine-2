@@ -99,6 +99,28 @@ class qbehaviour_opaque extends question_behaviour {
         return question_utils::arrays_have_same_keys_and_values($newdata, $olddata);
     }
 
+    public function summarise_action(question_attempt_step $step) {
+        if ($step->has_behaviour_var('finish')) {
+            return $this->summarise_finish($step);
+        } else if ($step->has_behaviour_var('comment')) {
+            return $this->summarise_manual_comment($step);
+        } else {
+            $data = $step->get_qt_data();
+            $formatteddata = array();
+            foreach ($data as $name => $value) {
+                if (substr($name, 0, 1) == '_') {
+                    continue;
+                }
+                $formatteddata[] = $name . ' => ' . s($value);
+            }
+            if ($formatteddata) {
+                return get_string('submitted', 'question', implode(', ', $formatteddata));
+            } else {
+                return $this->summarise_start($step);
+            }
+        }
+    }
+
     public function process_action(question_attempt_pending_step $pendingstep) {
         if ($pendingstep->has_behaviour_var('finish')) {
             return $this->process_finish($pendingstep);

@@ -1,7 +1,5 @@
 <?php  // $Id$
 
-//TODO: check this file, because I changed the index.html
-
 // This file keeps track of upgrades to
 // the ddwtos qtype plugin
 //

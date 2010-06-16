@@ -277,10 +277,7 @@ abstract class question_behaviour {
         return $this->qa->get_state()->default_string();
     }
 
-    public function summarise_action(question_attempt_step $step) {
-        // TODO
-        return '';
-    }
+    abstract public function summarise_action(question_attempt_step $step);
 
     /**
      * Initialise the first step in a question attempt.
@@ -359,6 +356,52 @@ abstract class question_behaviour {
                 corresponding_commented_state($pendingstep->get_fraction()));
         return question_attempt::KEEP;
     }
+
+    /**
+     * @param $comment the comment text to format. If omitted,
+     *      $this->qa->get_manual_comment() is used.
+     * @return string the comment, ready to be output.
+     */
+    public function format_comment($comment = null) {
+        $formatoptions = new stdClass;
+        $formatoptions->noclean = true;
+        $formatoptions->para = false;
+
+        if (is_null($comment)) {
+            $comment = $this->qa->get_manual_comment();
+        }
+
+        return format_text($comment, FORMAT_HTML, $formatoptions);
+    }
+
+    /**
+     * @return string a summary of a manual comment action.
+     * @param unknown_type $step
+     */
+    protected function summarise_manual_comment($step) {
+        $a = new stdClass;
+        if ($step->has_behaviour_var('comment')) {
+            $a->comment = shorten_text(html_to_text($this->format_comment(
+                    $step->get_behaviour_var('comment')), 0), 200);
+        } else {
+            $a->comment = '';
+        }
+        if ($step->has_behaviour_var('mark')) {
+            $a->mark = $step->get_behaviour_var('mark') /
+                    $step->get_behaviour_var('maxmark') * $this->qa->get_max_mark();
+            return get_string('manuallygraded', 'question', $a);
+        } else {
+            return get_string('manuallygraded', 'question', $a->comment);
+        }
+    }
+
+    public function summarise_start($step) {
+        return get_string('started', 'question');
+    }
+
+    public function summarise_finish($step) {
+        return get_string('attemptfinished', 'question');
+    }
 }
 
 
@@ -423,6 +466,30 @@ abstract class question_behaviour_with_save extends question_behaviour {
             $pendingstep->set_state(question_state::$todo);
         }
         return question_attempt::KEEP;
+    }
+
+    public function summarise_submit(question_attempt_step $step) {
+        return get_string('submitted', 'queston',
+                $this->question->summarise_response($step->get_qt_data()));
+    }
+
+    public function summarise_save(question_attempt_step $step) {
+        $data = $step->get_submitted_data();
+        if (empty($data)) {
+            return $this->summarise_start($step);
+        }
+        return get_string('saved', 'question',
+                $this->question->summarise_response($step->get_qt_data()));
+    }
+
+
+    public function summarise_finish($step) {
+        $data = $step->get_qt_data();
+        if ($data) {
+            return get_string('attemptfinishedsubmitting', 'question',
+                    $this->question->summarise_response($data));
+        }
+        return get_string('attemptfinished', 'question');
     }
 }
 

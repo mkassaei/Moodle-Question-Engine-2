@@ -73,6 +73,18 @@ class qbehaviour_immediatefeedback extends question_behaviour_with_save {
         }
     }
 
+    public function summarise_action(question_attempt_step $step) {
+        if ($step->has_behaviour_var('comment')) {
+            return $this->summarise_manual_comment($step);
+        } else if ($step->has_behaviour_var('finish')) {
+            return $this->summarise_finish($step);
+        } else if ($pendingstep->has_behaviour_var('submit')) {
+            return $this->summarise_submit($step);
+        } else {
+            return $this->summarise_save($step);
+        }
+    }
+
     public function process_submit(question_attempt_pending_step $pendingstep) {
         if ($this->qa->get_state()->is_finished()) {
             return question_attempt::DISCARD;

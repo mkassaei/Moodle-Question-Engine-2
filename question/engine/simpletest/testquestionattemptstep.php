@@ -88,10 +88,10 @@ class question_attempt_step_test extends UnitTestCase {
     }
 
     public function test_get_data() {
-        $step = new question_attempt_step(array('x' => 1, '-y' => 'frog'));
+        $step = new question_attempt_step(array('x' => 1, '-y' => 'frog', ':flagged' => 1));
         $this->assertEqual(array('x' => '1'), $step->get_qt_data());
         $this->assertEqual(array('y' => 'frog'), $step->get_behaviour_data());
-        $this->assertEqual(array('x' => 1, '-y' => 'frog'), $step->get_all_data());
+        $this->assertEqual(array('x' => 1, '-y' => 'frog', ':flagged' => 1), $step->get_all_data());
     }
 
     public function test_get_submitted_data() {
