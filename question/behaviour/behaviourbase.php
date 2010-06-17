@@ -469,7 +469,7 @@ abstract class question_behaviour_with_save extends question_behaviour {
     }
 
     public function summarise_submit(question_attempt_step $step) {
-        return get_string('submitted', 'queston',
+        return get_string('submitted', 'question',
                 $this->question->summarise_response($step->get_qt_data()));
     }
 

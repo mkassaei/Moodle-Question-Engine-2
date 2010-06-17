@@ -40,7 +40,7 @@ require_once($CFG->libdir . '/tablelib.php');
  */
 class quiz_report_statistics_question_table extends flexible_table {
     /** @var object this question with a _stats field. */
-    protected $question;
+    protected $questiondata;
 
     /**
      * Constructor.
@@ -59,25 +59,40 @@ class quiz_report_statistics_question_table extends flexible_table {
      * @param object $question a question with a _stats field
      * @param boolean $hassubqs
      */
-    public function setup($reporturl, $question, $hassubqs) {
-        $this->question = $question;
+    public function setup($reporturl, $questiondata, quiz_statistics_response_analyser $responesstats) {
+        $this->questiondata = $questiondata;
+
+        $this->define_baseurl($reporturl->out());
+        $this->collapsible(false);
+        $this->set_attribute('class', 'generaltable generalbox boxaligncenter');
 
         // Define table columns
         $columns = array();
         $headers = array();
 
-        if ($hassubqs) {
-            $columns[] = 'subq';
-            $headers[] = '';
+        if ($responesstats->has_subparts()) {
+            $columns[] = 'part';
+            $headers[] = 'Part of question';
         }
 
-        $columns[] = 'response';
-        $headers[] = get_string('response', 'quiz_statistics');
+        if ($responesstats->has_response_classes()) {
+            $columns[] = 'responseclass';
+            $headers[] = get_string('modelresponse', 'quiz_statistics');
 
-        $columns[] = 'credit';
+            if ($responesstats->has_actual_responses()) {
+                $columns[] = 'response';
+                $headers[] = get_string('actualresponse', 'quiz_statistics');
+            }
+
+        } else {
+            $columns[] = 'response';
+            $headers[] = get_string('response', 'quiz_statistics');
+        }
+
+        $columns[] = 'fraction';
         $headers[] = get_string('optiongrade', 'quiz_statistics');
 
-        $columns[] = 'rcount';
+        $columns[] = 'count';
         $headers[] = get_string('count', 'quiz_statistics');
 
         $columns[] = 'frequency';
@@ -87,41 +102,18 @@ class quiz_report_statistics_question_table extends flexible_table {
         $this->define_headers($headers);
         $this->sortable(false);
 
-        $this->column_class('credit', 'numcol');
-        $this->column_class('rcount', 'numcol');
+        $this->column_class('fraction', 'numcol');
+        $this->column_class('count', 'numcol');
         $this->column_class('frequency', 'numcol');
 
-        // Set up the table
-        $this->define_baseurl($reporturl->out());
-
-        $this->collapsible(false);
-
-        $this->set_attribute('class', 'generaltable generalbox boxaligncenter');
+        $this->column_suppress('part');
+        $this->column_suppress('responseclass');
 
         parent::setup();
     }
 
-    /**
-     * If the question has sub-parts, this column identifies the part.
-     * @param object $response containst the data to display.
-     * @return string contents of this table cell.
-     */
-    protected function col_subq($response) {
-        return $response->subq;
-    }
-
-    /**
-     * The response the student gave.
-     * @param object $response containst the data to display.
-     * @return string contents of this table cell.
-     */
-    protected function col_response($response) {
-        global $QTYPES;
-        if (!$this->is_downloading() || $this->is_downloading() == 'xhtml') {
-            return $QTYPES[$this->question->qtype]->format_response($response->response, $this->question->questiontextformat);
-        } else {
-            return $response->response;
-        }
+    protected function format_percentage($fraction) {
+        return format_float($fraction * 100, 2) . '%';
     }
 
     /**
@@ -129,12 +121,12 @@ class quiz_report_statistics_question_table extends flexible_table {
      * @param object $response containst the data to display.
      * @return string contents of this table cell.
      */
-    protected function col_credit($response) {
-        if (is_null($response->credit)) {
+    protected function col_fraction($response) {
+        if (is_null($response->fraction)) {
             return '';
         }
 
-        return ($response->credit * 100) . '%';
+        return $this->format_percentage($response->fraction);
     }
 
     /**
@@ -143,10 +135,10 @@ class quiz_report_statistics_question_table extends flexible_table {
      * @return string contents of this table cell.
      */
     protected function col_frequency($response) {
-        if (!$this->question->_stats->s) {
+        if (!$this->questiondata->_stats->s) {
             return '';
         }
 
-        return format_float($response->rcount / $this->question->_stats->s * 100, 2) . '%';
+        return $this->format_percentage($response->count / $this->questiondata->_stats->s);
     }
 }

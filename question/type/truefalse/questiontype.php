@@ -160,12 +160,12 @@ class qtype_truefalse extends question_type {
 
     function get_possible_responses($questiondata) {
         $true = new stdClass;
-        $true->responseclass = get_string('true', 'question_truefalse');
+        $true->responseclass = get_string('true', 'qtype_truefalse');
         $true->fraction = $questiondata->options->answers[
                 $questiondata->options->trueanswer]->fraction;
 
         $false = new stdClass;
-        $false->responseclass = get_string('false', 'question_truefalse');
+        $false->responseclass = get_string('false', 'qtype_truefalse');
         $false->fraction = $questiondata->options->answers[
                 $questiondata->options->falseanswer]->fraction;
 

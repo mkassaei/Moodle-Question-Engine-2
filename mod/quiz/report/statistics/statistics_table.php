@@ -183,10 +183,16 @@ class quiz_report_statistics_table extends flexible_table {
             return $name;
         }
 
-        if ($question->qtype!='random') {
-            $tooltip = get_string('detailedanalysis', 'quiz_statistics');
-            $url = $this->baseurl . 'qid=' . $question->id;
-            $name = '<a title="' . $tooltip . '" href="' . $url . '">' . $name . '</a>';
+        $extraurlparam = '';
+        if ($question->_stats->subquestion) {
+            $extraurlparam = 'qid=' . $question->id;
+        } else if ($question->_stats->qnumber && $question->qtype != 'random') {
+            $extraurlparam = 'qnumber=' . $question->_stats->qnumber;
+        }
+
+        if ($extraurlparam) {
+            $name = '<a title="' . get_string('detailedanalysis', 'quiz_statistics') .
+                    '" href="' . $this->baseurl . $extraurlparam . '">' . $name . '</a>';
         }
 
         if ($this->is_dubious_question($question)) {

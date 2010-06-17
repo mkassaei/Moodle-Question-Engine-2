@@ -32,7 +32,7 @@ Incorporate other OU-specific quiz customisations into this code (8d)
 √          answers???
         new correctness review option on the editing form/db/backup and restore/config/defaults 0.5d
         new 'during the attempt' review option period 0.5d
-        display of question history on the review page
+√       display of question history on the review page
 √       count-back scoring for ou-multiresponse, drag-and-drop, and matching question types.
 √       matching question, add overall feedback fields (check lang file) 1d
 √       ou_backup_IsConvertingToStandard 0.5d

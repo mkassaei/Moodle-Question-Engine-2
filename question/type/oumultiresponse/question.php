@@ -51,7 +51,12 @@ class qtype_oumultiresponse_question extends qtype_multichoice_multi_question
 
         $fraction = max(0, $numright - $numwrong) / $numcorrect;
 
-        return array($fraction, question_state::graded_state_for_fraction($numright / $numcorrect));
+        $state = question_state::graded_state_for_fraction($fraction);
+        if ($state == question_state::$gradedwrong && $numright > 0) {
+            $state = question_state::$gradedpartial;
+        }
+
+        return array($fraction, $state);
     }
 
     protected function disable_hint_settings_when_too_many_selected(question_hint_with_parts $hint) {

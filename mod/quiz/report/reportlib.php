@@ -48,7 +48,7 @@ define('QUIZ_REPORT_ATTEMPTS_ALL_STUDENTS', 3);
  */
 function quiz_report_index_by_keys($datum, $keys, $keysunique = true) {
     if (!$datum) {
-        return $datum;
+        return array();
     }
     $key = array_shift($keys);
     $datumkeyed = array();

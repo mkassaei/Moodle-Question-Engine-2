@@ -116,7 +116,7 @@ class qtype_ddwtos_test extends UnitTestCase {
         $this->assertWithinMargin(0.5, $this->qtype->get_random_guess_score($q), 0.0000001);
     }
 
-    public function x_test_get_possible_responses() { // TODO
+    public function test_get_possible_responses() {
         $q = $this->get_test_question_data();
         $responses = $this->qtype->get_possible_responses($q);
 
@@ -125,29 +125,29 @@ class qtype_ddwtos_test extends UnitTestCase {
         $response = array_shift($responses);
         $this->assertEqual(2, count($response));
 
-        $this->assertEqual(1, $response[0]->fraction);
-        $this->assertEqual('frog: amphibian', $response[0]->responseclass);
+        $this->assertEqual(1, $response[1]->fraction);
+        $this->assertEqual('quick', $response[1]->responseclass);
 
-        $this->assertEqual(0, $response[1]->fraction);
-        $this->assertEqual('frog: mammal', $response[1]->responseclass);
+        $this->assertEqual(0, $response[2]->fraction);
+        $this->assertEqual('slow', $response[2]->responseclass);
 
         $response = array_shift($responses);
         $this->assertEqual(2, count($response));
 
         $this->assertEqual(1, $response[1]->fraction);
-        $this->assertEqual('cat: mammal', $response[1]->responseclass);
+        $this->assertEqual('fox', $response[1]->responseclass);
 
         $this->assertEqual(0, $response[2]->fraction);
-        $this->assertEqual('cat: insect', $response[2]->responseclass);
+        $this->assertEqual('dog', $response[2]->responseclass);
 
         $response = array_shift($responses);
         $this->assertEqual(2, count($response));
 
         $this->assertEqual(1, $response[1]->fraction);
-        $this->assertEqual('cat: mammal', $response[1]->responseclass);
+        $this->assertEqual('lazy', $response[1]->responseclass);
 
         $this->assertEqual(0, $response[2]->fraction);
-        $this->assertEqual('cat: insect', $response[2]->responseclass);
+        $this->assertEqual('assiduous', $response[2]->responseclass);
     }
 
     public function test_xml_import() {

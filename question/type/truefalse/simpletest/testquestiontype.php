@@ -71,9 +71,9 @@ class qtype_truefalse_test extends UnitTestCase {
         $this->assertEqual(2, count($response));
 
         $this->assertEqual(1, $response[0]->fraction);
-        $this->assertEqual(get_string('true', 'question_truefalse'), $response[0]->responseclass);
+        $this->assertEqual(get_string('true', 'qtype_truefalse'), $response[0]->responseclass);
 
         $this->assertEqual(0, $response[1]->fraction);
-        $this->assertEqual(get_string('false', 'question_truefalse'), $response[1]->responseclass);
+        $this->assertEqual(get_string('false', 'qtype_truefalse'), $response[1]->responseclass);
     }
 }

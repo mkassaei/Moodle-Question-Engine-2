@@ -91,7 +91,7 @@ class qbehaviour_adaptive extends question_behaviour_with_save {
             return $this->summarise_manual_comment($step);
         } else if ($step->has_behaviour_var('finish')) {
             return $this->summarise_finish($step);
-        } else if ($pendingstep->has_behaviour_var('submit')) {
+        } else if ($step->has_behaviour_var('submit')) {
             return $this->summarise_submit($step);
         } else {
             return $this->summarise_save($step);
