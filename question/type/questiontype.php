@@ -646,17 +646,17 @@ class question_type {
      * This method should return all the possible types of response that are
      * recognised for this question. 
      *
-     * The question is modelled as comprising one or more subquestions. For each
-     * subquestion, there are one or more categories that that students response
-     * might fall into, each of those categories earning a certain score.
+     * The question is modelled as comprising one or more subparts. For each
+     * subpart, there are one or more classes that that students response
+     * might fall into, each of those classes earning a certain score.
      *
-     * For example, in a shortanswer question, there is only one subquestion, the
+     * For example, in a shortanswer question, there is only one subpart, the
      * text entry field. The response the student gave will be classified according
      * to which of the possible $question->options->answers it matches.
      *
-     * For the matching question type, there will be one subquestion for each
-     * question stem, and for each stem, each of the possible choices might be
-     * the student's response.
+     * For the matching question type, there will be one subpart for each
+     * question stem, and for each stem, each of the possible choices is a class
+     * of student's response.
      *
      * A response is an object with two fields, ->responseclass is a string
      * presentation of that response, and ->fraction, the credit for a response

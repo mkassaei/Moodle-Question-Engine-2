@@ -299,117 +299,24 @@ class qtype_ddwtos extends question_type {
         return $goupofanswers;
     }
 
-    protected function get_possible_responses_for_each_dropbox($question) {
-        $dropboxes = $this->get_array_of_placeholders($question);
-        $correctanswers = $this->get_correct_answers($question);
+    public function get_possible_responses($questiondata) {
+        $question = $this->make_question($questiondata);
 
-        $results = array();
-        foreach ($dropboxes as $key=>$dropbox){
-            $index = $key+1;
-            $dbox = "Box $index";
-            $group = 0;
-            $possibleanswers = array();
-            foreach ($correctanswers as $ca){
-                if($dropbox == $ca['choice']){
-                    $correctanswer = $ca['answer'];
+        $parts = array();
+        foreach ($question->places as $place => $group) {
+            $choices = array();
 
-                    //alocate answers to dropboxes
-                    if (is_array($question->options->answers)) {
-                        $correctanswerarray = array();//this is an array because of answer id
-                        $incorrectanswers = array();
-                        foreach ($question->options->answers as $answer) {
-                            if ($answer->answer) {
-                                if ($correctanswer == $answer->answer) {
-                                    $correctanswerarray[$key] = $answer->answer;
-                                    continue;
-                                }
-
-                                //$fb = unserialize($answer->feedback);
-                                //if($fb->draggroup == $group){
-                                //    $incorrectanswers[$answer->id] = $answer->answer . '[no]';
-                                //}
-                            }
-                        }
-                        $possibleanswers['correct']= $correctanswerarray;
-                        //$possibleanswers['incorrect'] = $incorrectanswers;
-                    }
-                }
+            foreach ($question->choices[$group] as $i => $choice) {
+                $r = new stdClass;
+                $r->responseclass = html_to_text($question->format_text($choice->text));
+                $r->fraction = ($question->rightchoices[$place] == $i);
+                $choices[$i] = $r;
             }
-            $results[$dbox] = $possibleanswers;
+
+            $parts[$place] = $choices;
         }
-        return $results;
-    }
 
-    public function get_possible_responses($question) {
-        $responsesforeachdropbox = $this->get_possible_responses_for_each_dropbox($question);
-        $answers = array();
-        foreach ($responsesforeachdropbox as $key=>$dropbox){
-            foreach ($dropbox as $correctness=>$answerarray){
-                foreach ($answerarray as $id=>$text){
-                    if($correctness = 'correct'){
-                        $r = new stdClass;
-                        $r->answer = $key. ': ' . $text;
-                        $r->credit = round(1/count($responsesforeachdropbox), 4);
-                    }
-                    $answers[$id] = array($id =>$r);
-                }
-            }
-        }
-        return $answers;
-    }
-
-    public function get_actual_response($question, $state) {
-        $thistry = $this->get_responses_for_this_try($question, $state);
-        $dropboxes = $this->get_array_of_placeholders($question);
-        $choices = $this->get_array_of_choices($question);
-        $results = array();
-        foreach($dropboxes as $key=>$dropbox){
-
-            //get the answer string
-            $id = 0;
-            $answer = null;
-            $index = $key+1;
-            foreach ($choices as $choice){
-                if ($thistry[$key] == $choice['choice']) {
-                    $answer = $choice['answer'];
-                    break;
-                }
-            }
-
-            //The DropBox has a correct answer
-            if ($thistry[$key] == $dropbox) {
-                $results[$key] = "Box $index: $answer";
-            }
-
-        }
-        return $results;
-   }
-
-    public function get_actual_response_details($question, $state) {
-        $responses = $this->get_actual_response($question, $state);
-        $teacherresponses = $this->get_possible_responses($question, $state);
-
-        //only one response
-        $responsedetails =array();
-        foreach ($responses as $tsubqid => $response){
-            $responsedetail = new object();
-            $responsedetail->subqid = $tsubqid;
-            $responsedetail->response = $response;
-            foreach ($teacherresponses[$tsubqid] as $aid => $tresponse){
-                if ($tresponse->answer == $response){
-                    $responsedetail->aid = $aid;
-                    break;
-                }
-            }
-            if (isset($responsedetail->aid)){
-                $responsedetail->credit = $teacherresponses[$tsubqid][$aid]->credit;
-            } else {
-                $responsedetail->aid = 0;
-                $responsedetail->credit = 0;
-            }
-            $responsedetails[] = $responsedetail;
-        }
-        return $responsedetails;
+        return $parts;
     }
 
     function import_from_xml($data, $question, $format, $extra=null) {

@@ -413,12 +413,11 @@ class quiz_statistics_question_stats {
      * Get the data for the individual question response analysis table.
      */
     protected function process_actual_responses($question, $state) {
-        global $QTYPES;
-        if ($question->qtype != 'random' && 
-                $QTYPES[$question->qtype]->show_analysis_of_responses()) {
+        if (question_bank::get_qtype($question->qtype, false)->can_analyse_responses()) {
             $restoredstate = clone($state);
             restore_question_state($question, $restoredstate);
-            $responsedetails = $QTYPES[$question->qtype]->get_actual_response_details($question, $restoredstate);
+            $responsedetails = question_bank::get_qtype($question->qtype, false)->
+                    get_actual_response_details($question, $restoredstate);
             foreach ($responsedetails as $responsedetail) {
                 $responsedetail->questionid = $question->id;
                 $this->add_response_detail_to_array($responsedetail);
@@ -431,8 +430,7 @@ class quiz_statistics_question_stats {
      * @return number the random guess score for this question.
      */
     protected function get_random_guess_score($questiondata) {
-        global $QTYPES;
-        return $QTYPES[$questiondata->qtype]->get_random_guess_score($questiondata);
+        return question_bank::get_qtype($questiondata->qtype, false)->get_random_guess_score($questiondata);
     }
 
     /**

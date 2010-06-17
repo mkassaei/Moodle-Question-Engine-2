@@ -60,7 +60,9 @@ $string['questioninformation'] = 'Question information';
 $string['questionstatistics'] = 'Question statistics';
 $string['analysisofresponses'] = 'Analysis of responses';
 $string['statisticsreportgraph'] = 'Statistics for question positions';
-$string['response'] = 'Answer';
+$string['response'] = 'Response';
+$string['modelresponse'] = 'Model response';
+$string['actualresponse'] = 'Actual response';
 $string['optiongrade'] = 'Partial credit';
 $string['count'] = 'Count';
 $string['frequency'] = 'Frequency';
@@ -68,4 +70,3 @@ $string['backtoquizreport'] = 'Back to main statistics report page.';
 $string['analysisofresponsesfor'] = 'Analysis of responses for $a.';
 $string['downloadeverything'] = 'Download full report as';
 $string['negcovar'] ='Negative covariance of grade with total attempt grade';
-?>

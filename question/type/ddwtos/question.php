@@ -108,8 +108,8 @@ class qtype_ddwtos_question extends question_graded_automatically_with_countback
         foreach ($this->places as $place => $group) {
             if (array_key_exists($this->field($place), $response) &&
                     $response[$this->field($place)]) {
-                $choices[] = '{' . $this->get_selected_choice(
-                        $group, $response[$this->field($place)])->text . '}';
+                $choices[] = '{' . html_to_text($this->format_text($this->get_selected_choice(
+                        $group, $response[$this->field($place)])->text)) . '}';
             }
         }
         if (empty($choices)) {
