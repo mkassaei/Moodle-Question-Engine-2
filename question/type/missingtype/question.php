@@ -65,6 +65,10 @@ class qtype_missingtype_question extends question_definition implements question
         return null;
     }
 
+    public function classify_response(array $response) {
+        return array();
+    }
+
     public function init_first_step(question_attempt_step $step) {
         throw new Exception('This question is of a type that is not installed on your system. Cannot start an attempt at it.');
     }

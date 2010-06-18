@@ -282,6 +282,7 @@ class quiz_overview_report extends quiz_attempt_report {
             $this->add_grade_columns($quiz, $columns, $headers);
 
             $this->set_up_table_columns($table, $columns, $headers, $reporturl, $displayoptions, false);
+            $table->set_attribute('class', 'generaltable generalbox grades');
 
             $table->out($pagesize, true);
         }

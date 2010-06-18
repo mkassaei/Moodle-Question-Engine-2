@@ -33,14 +33,13 @@
 class quiz_statistics_question_stats {
     public $questions;
     public $subquestions = array();
-    public $responses = array();
 
     protected $s;
     protected $summarksavg;
     protected $allattempts;
 
     /** @var mixed states from which to calculate stats - iteratable. */
-    protected $states;
+    protected $lateststeps;
 
     protected $sumofmarkvariance = 0;
     protected $randomselectors = array();
@@ -68,22 +67,22 @@ class quiz_statistics_question_stats {
      * @return object ready to hold all the question statistics.
      */
     protected function make_blank_question_stats() {
-        $statsinit = new stdClass;
-        $statsinit->qnumber = null;
-        $statsinit->s = 0;
-        $statsinit->totalmarks = 0;
-        $statsinit->totalothermarks = 0;
-        $statsinit->markvariancesum = 0;
-        $statsinit->othermarkvariancesum = 0;
-        $statsinit->covariancesum = 0;
-        $statsinit->covariancemaxsum = 0;
-        $statsinit->subquestion = false;
-        $statsinit->subquestions = '';
-        $statsinit->covariancewithoverallmarksum = 0;
-        $statsinit->randomguessscore = null;
-        $statsinit->markarray = array();
-        $statsinit->othermarksarray = array();
-        return $statsinit;
+        $stats = new stdClass;
+        $stats->qnumber = null;
+        $stats->s = 0;
+        $stats->totalmarks = 0;
+        $stats->totalothermarks = 0;
+        $stats->markvariancesum = 0;
+        $stats->othermarkvariancesum = 0;
+        $stats->covariancesum = 0;
+        $stats->covariancemaxsum = 0;
+        $stats->subquestion = false;
+        $stats->subquestions = '';
+        $stats->covariancewithoverallmarksum = 0;
+        $stats->randomguessscore = null;
+        $stats->markarray = array();
+        $stats->othermarksarray = array();
+        return $stats;
     }
 
     /**
@@ -94,16 +93,16 @@ class quiz_statistics_question_stats {
      * @param array $groupstudents students in this group.
      * @param boolean $allattempts use all attempts, or just first attempts.
      */
-    public function get_records($quizid, $currentgroup, $groupstudents, $allattempts) {
+    public function load_step_data($quizid, $currentgroup, $groupstudents, $allattempts) {
         global $CFG;
 
         $this->allattempts = $allattempts;
 
         list($qsql, $qparams) = get_in_or_equal(array_keys($this->questions), SQL_PARAMS_NAMED, 'q0000');
-        list($fromqa, $whereqa, $qaparams) = quiz_report_attempts_sql(
+        list($fromqa, $whereqa, $qaparams) = quiz_statistics_attempts_sql(
                 $quizid, $currentgroup, $groupstudents, $allattempts, false);
 
-        $this->states = get_records_sql("
+        $this->lateststeps = get_records_sql("
                 SELECT
                     qas.id,
                     quiza.sumgrades,
@@ -123,48 +122,48 @@ class quiz_statistics_question_stats {
                     qa.numberinusage $qsql AND
                     $whereqa");
 
-        if ($this->states === false) {
+        if ($this->lateststeps === false) {
             throw new moodle_exception('errorstatisticsquestions', 'quiz_statistics');
         }
     }
 
-    public function process_states() {
+    public function compute_statistics() {
         set_time_limit(0);
 
         $subquestionstats = array();
 
         // Compute the statistics of position, and for random questions, work
         // out which questions appear in which positions.
-        foreach ($this->states as $state) {
-            $this->initial_states_walker($state, $this->questions[$state->numberinusage]->_stats);
+        foreach ($this->lateststeps as $step) {
+            $this->initial_steps_walker($step, $this->questions[$step->numberinusage]->_stats);
 
             // If this is a random question what is the real item being used?
-            if ($state->questionid != $this->questions[$state->numberinusage]->id) {
-                if (!isset($subquestionstats[$state->questionid])) {
-                    $subquestionstats[$state->questionid] = $this->make_blank_question_stats();
-                    $subquestionstats[$state->questionid]->questionid = $state->questionid;
-                    $subquestionstats[$state->questionid]->allattempts = $this->allattempts;
-                    $subquestionstats[$state->questionid]->usedin = array();
-                    $subquestionstats[$state->questionid]->subquestion = true;
-                    $subquestionstats[$state->questionid]->differentweights = false;
-                    $subquestionstats[$state->questionid]->maxmark = $state->maxmark;
-                } else if ($subquestionstats[$state->questionid]->maxmark != $state->maxmark) {
-                    $subquestionstats[$state->questionid]->differentweights = true;
+            if ($step->questionid != $this->questions[$step->numberinusage]->id) {
+                if (!isset($subquestionstats[$step->questionid])) {
+                    $subquestionstats[$step->questionid] = $this->make_blank_question_stats();
+                    $subquestionstats[$step->questionid]->questionid = $step->questionid;
+                    $subquestionstats[$step->questionid]->allattempts = $this->allattempts;
+                    $subquestionstats[$step->questionid]->usedin = array();
+                    $subquestionstats[$step->questionid]->subquestion = true;
+                    $subquestionstats[$step->questionid]->differentweights = false;
+                    $subquestionstats[$step->questionid]->maxmark = $step->maxmark;
+                } else if ($subquestionstats[$step->questionid]->maxmark != $step->maxmark) {
+                    $subquestionstats[$step->questionid]->differentweights = true;
                 }
 
-                $this->initial_states_walker($state,
-                        $subquestionstats[$state->questionid], false);
+                $this->initial_steps_walker($step,
+                        $subquestionstats[$step->questionid], false);
 
-                $number = $this->questions[$state->numberinusage]->number;
-                $subquestionstats[$state->questionid]->usedin[$number] = $number;
+                $number = $this->questions[$step->numberinusage]->number;
+                $subquestionstats[$step->questionid]->usedin[$number] = $number;
 
-                $randomselectorstring = $this->questions[$state->numberinusage]->category .
-                        '/' . $this->questions[$state->numberinusage]->questiontext;
+                $randomselectorstring = $this->questions[$step->numberinusage]->category .
+                        '/' . $this->questions[$step->numberinusage]->questiontext;
                 if (!isset($this->randomselectors[$randomselectorstring])) {
                     $this->randomselectors[$randomselectorstring] = array();
                 }
-                $this->randomselectors[$randomselectorstring][$state->questionid] =
-                        $state->questionid;
+                $this->randomselectors[$randomselectorstring][$step->questionid] =
+                        $step->questionid;
             }
         }
 
@@ -224,13 +223,13 @@ class quiz_statistics_question_stats {
         }
 
         // Go through the records one more time
-        foreach ($this->states as $state) {
-            $this->secondary_states_walker($state,
-                    $this->questions[$state->numberinusage]->_stats);
+        foreach ($this->lateststeps as $step) {
+            $this->secondary_steps_walker($step,
+                    $this->questions[$step->numberinusage]->_stats);
 
-            if ($this->questions[$state->numberinusage]->qtype == 'random') {
-                $this->secondary_states_walker($state,
-                        $this->subquestions[$state->questionid]->_stats);
+            if ($this->questions[$step->numberinusage]->qtype == 'random') {
+                $this->secondary_steps_walker($step,
+                        $this->subquestions[$step->questionid]->_stats);
             }
         }
 
@@ -272,22 +271,22 @@ class quiz_statistics_question_stats {
      * Update $stats->totalmarks, $stats->markarray, $stats->totalothermarks
      * and $stats->othermarksarray to include another state.
      *
-     * @param object $state the state to add to the statistics.
+     * @param object $step the state to add to the statistics.
      * @param object $stats the question statistics we are accumulating.
      * @param boolean $positionstat whether this is a statistic of position of question.
      */
-    protected function initial_states_walker($state, &$stats, $positionstat = true) {
+    protected function initial_steps_walker($step, $stats, $positionstat = true) {
         $stats->s++;
-        $stats->totalmarks += $state->mark;
-        $stats->markarray[] = $state->mark;
+        $stats->totalmarks += $step->mark;
+        $stats->markarray[] = $step->mark;
 
         if ($positionstat) {
-            $stats->totalothermarks += $state->sumgrades - $state->mark;
-            $stats->othermarksarray[] = $state->sumgrades - $state->mark;
+            $stats->totalothermarks += $step->sumgrades - $step->mark;
+            $stats->othermarksarray[] = $step->sumgrades - $step->mark;
 
         } else {
-            $stats->totalothermarks += $state->sumgrades;
-            $stats->othermarksarray[] = $state->sumgrades;
+            $stats->totalothermarks += $step->sumgrades;
+            $stats->othermarksarray[] = $step->sumgrades;
         }
     }
 
@@ -297,7 +296,7 @@ class quiz_statistics_question_stats {
      *
      * @param object $stats quetsion stats to update.
      */
-    protected function initial_question_walker(&$stats) {
+    protected function initial_question_walker($stats) {
         $stats->markaverage = $stats->totalmarks / $stats->s;
 
         if ($stats->maxmark != 0) {
@@ -316,18 +315,18 @@ class quiz_statistics_question_stats {
      * Now we know the averages, accumulate the date needed to compute the higher
      * moments of the question scores.
      *
-     * @param object $state the state to add to the statistics.
+     * @param object $step the state to add to the statistics.
      * @param object $stats the question statistics we are accumulating.
      * @param boolean $positionstat whether this is a statistic of position of question.
      */
-    protected function secondary_states_walker($state, &$stats) {
-        $markdifference = $state->mark - $stats->markaverage;
+    protected function secondary_steps_walker($step, $stats) {
+        $markdifference = $step->mark - $stats->markaverage;
         if ($stats->subquestion) {
-            $othermarkdifference = $state->sumgrades - $stats->othermarkaverage;
+            $othermarkdifference = $step->sumgrades - $stats->othermarkaverage;
         } else {
-            $othermarkdifference = $state->sumgrades - $state->mark - $stats->othermarkaverage;
+            $othermarkdifference = $step->sumgrades - $step->mark - $stats->othermarkaverage;
         }
-        $overallmarkdifference = $state->sumgrades - $this->summarksavg;
+        $overallmarkdifference = $step->sumgrades - $this->summarksavg;
 
         $sortedmarkdifference = array_shift($stats->markarray) - $stats->markaverage;
         $sortedothermarkdifference = array_shift($stats->othermarksarray) - $stats->othermarkaverage;
@@ -344,7 +343,7 @@ class quiz_statistics_question_stats {
      *
      * @param object $stats quetsion stats to update.
      */
-    protected function secondary_question_walker(&$stats) {
+    protected function secondary_question_walker($stats) {
         if ($stats->s > 1) {
             $stats->markvariance = $stats->markvariancesum / ($stats->s - 1);
             $stats->othermarkvariance = $stats->othermarkvariancesum / ($stats->s - 1);
@@ -377,56 +376,8 @@ class quiz_statistics_question_stats {
         }
     }
 
-    public function process_responses() {
-        return; // TODO
-        foreach ($this->states as $state) {
-            if ($this->questions[$state->question]->qtype == 'random') {
-                if ($realstate = question_get_real_state($state)) {
-                    $this->process_actual_responses($this->subquestions[$realstate->question], $realstate);
-                }
-            } else {
-                $this->process_actual_responses($this->questions[$state->question], $state);
-            }
-        }
-        $this->responses = quiz_report_unindex($this->responses);
-    }
-
-    protected function add_response_detail_to_array($responsedetail) {
-        $responsedetail->rcount = 1;
-        if (isset($this->responses[$responsedetail->subqid])) {
-            if (isset($this->responses[$responsedetail->subqid][$responsedetail->aid])) {
-                if (isset($this->responses[$responsedetail->subqid][$responsedetail->aid][$responsedetail->response])) {
-                    $this->responses[$responsedetail->subqid][$responsedetail->aid][$responsedetail->response]->rcount++;
-                } else {
-                    $this->responses[$responsedetail->subqid][$responsedetail->aid][$responsedetail->response] = $responsedetail;
-                }
-            } else {
-                $this->responses[$responsedetail->subqid][$responsedetail->aid] = array($responsedetail->response => $responsedetail);
-            }
-        } else {
-            $this->responses[$responsedetail->subqid] = array();
-            $this->responses[$responsedetail->subqid][$responsedetail->aid] = array($responsedetail->response => $responsedetail);
-        }
-    }
-
-    /** 
-     * Get the data for the individual question response analysis table.
-     */
-    protected function process_actual_responses($question, $state) {
-        if (question_bank::get_qtype($question->qtype, false)->can_analyse_responses()) {
-            $restoredstate = clone($state);
-            restore_question_state($question, $restoredstate);
-            $responsedetails = question_bank::get_qtype($question->qtype, false)->
-                    get_actual_response_details($question, $restoredstate);
-            foreach ($responsedetails as $responsedetail) {
-                $responsedetail->questionid = $question->id;
-                $this->add_response_detail_to_array($responsedetail);
-            }
-        }
-    }
-
     /**
-     * @param object $question
+     * @param object $questiondata
      * @return number the random guess score for this question.
      */
     protected function get_random_guess_score($questiondata) {

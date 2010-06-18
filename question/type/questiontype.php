@@ -80,7 +80,8 @@ class question_type {
      * responses.
      *
      * If this method returns true, you must implement the get_possible_responses
-     * and TODO methods.
+     * method, and the question_definition class must implement the
+     * classify_response method.
      *
      * @return boolean whether this report can analyse all the student reponses
      * for things like the quiz statistics report.

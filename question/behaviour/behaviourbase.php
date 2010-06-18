@@ -268,6 +268,17 @@ abstract class question_behaviour {
     }
 
     /**
+     * @return array subpartid => object with fields
+     *      ->responseclassid the 
+     *      ->response the actual response the student gave to this part, as a string.
+     *      ->fraction the credit awarded for this subpart, may be null.
+     *      returns an empty array if no analysis is possible.
+     */
+    public function classify_response() {
+        return $this->question->classify_response($this->qa->get_last_qt_data());
+    }
+
+    /**
      * Generate a brief textual description of the current state of the question,
      * normally displayed under the question number.
      *
