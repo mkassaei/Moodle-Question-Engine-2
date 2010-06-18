@@ -203,7 +203,7 @@ class quiz_statistics_report extends quiz_default_report {
 
             $this->output_individual_question_data($quiz, $subquestions[$qid]);
             $this->output_individual_question_response_analysis(
-                    $quiz, $subquestions[$qid], $reporturl, $quizstats);
+                    $subquestions[$qid], $reporturl, $quizstats);
 
             // Back to overview link.
             print_box('<a href="' . $reporturl->out() . '">' .
@@ -255,7 +255,7 @@ class quiz_statistics_report extends quiz_default_report {
                 $question->name.'&nbsp;'.$datumfromtable['actions']);
         $questioninfotable->data[] = array(get_string('questiontype', 'quiz_statistics'),
                 $datumfromtable['icon'] . '&nbsp;' .
-                get_string($question->qtype, 'quiz') . '&nbsp;' .
+                question_bank::get_qtype($question->qtype, false)->menu_name() . '&nbsp;' .
                 $datumfromtable['icon']);
         $questioninfotable->data[] = array(get_string('positions', 'quiz_statistics'),
                 $question->_stats->positions);
@@ -745,8 +745,9 @@ class quiz_statistics_report extends quiz_default_report {
         if (!empty($subquestionstats)) {
             $subqstofetch = array_keys($subquestionstats);
             $subquestions = question_load_questions($subqstofetch);
-            foreach (array_keys($subquestions) as $subqid) {
+            foreach ($subquestions as $subqid => $subq) {
                 $subquestions[$subqid]->_stats = $subquestionstats[$subqid];
+                $subquestions[$subqid]->maxmark = $subq->defaultgrade;
             }
         }
 
