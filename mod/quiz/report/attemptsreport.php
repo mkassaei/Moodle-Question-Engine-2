@@ -576,7 +576,6 @@ abstract class quiz_attempt_report_table extends table_sql {
         return new qubaid_list($qubaids);
     }
 
-
     public function query_db($pagesize, $useinitialsbar=true) {
         foreach ($this->get_sort_columns() as $column => $notused) {
             if ($qnumber = $this->is_latest_step_column($column)) {
