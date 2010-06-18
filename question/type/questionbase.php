@@ -322,6 +322,18 @@ interface question_manually_gradable {
      * @return string a plain text summary of that response, that could be used in reports.
      */
     public function summarise_response(array $response);
+
+    /**
+     * Categorise the student's response according to the categories defined by
+     * get_possible_responses
+     * @param $response a response, as might be passed to {@link grade_response()}.
+     * @return array subpartid => object with fields
+     *      ->responseclassid the 
+     *      ->response the actual response the student gave to this part, as a string.
+     *      ->fraction the credit awarded for this subpart, may be null.
+     *      returns an empty array if no analysis is possible.
+     */
+    public function classify_response(array $response);
 }
 
 
@@ -401,6 +413,9 @@ interface question_automatically_gradable_with_countback extends question_automa
  */
 abstract class question_with_responses extends question_definition
         implements question_manually_gradable {
+    function classify_response(array $response) {
+        return array();
+    }
 }
 
 

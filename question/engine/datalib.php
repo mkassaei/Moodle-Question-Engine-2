@@ -158,6 +158,7 @@ WHERE
         $records = get_records_sql("
 SELECT
     COALESCE(qasd.id, -1 * qas.id) AS id,
+    quba.preferredbehaviour,
     qa.id AS questionattemptid,
     qa.questionusageid,
     qa.numberinusage,
@@ -180,6 +181,7 @@ SELECT
     qasd.value
 
 FROM {$CFG->prefix}question_attempts_new qa
+JOIN {$CFG->prefix}question_usages quba ON quba.id = qa.questionusageid
 LEFT JOIN {$CFG->prefix}question_attempt_steps qas ON qas.questionattemptid = qa.id
 LEFT JOIN {$CFG->prefix}question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
 
@@ -194,7 +196,9 @@ ORDER BY
             throw new Exception('Failed to load question_attempt ' . $questionattemptid);
         }
 
-        return question_attempt::load_from_records($records, $questionattemptid);
+        $record = current($records);
+        return question_attempt::load_from_records($records, $questionattemptid,
+                new question_usage_null_observer(), $record->preferredbehaviour);
     }
 
     /**
@@ -521,6 +525,72 @@ ORDER BY qa.numberinusage
         ");
 
         return $records;
+    }
+
+    /**
+     * Load a {@link question_attempt} from the database, including all its
+     * steps.
+     * @param integer $questionid the question to load all the attempts fors.
+     * @param qubaid_condition $qubaids used to restrict which usages are included
+     * in the query. See {@link qubaid_condition}.
+     * @return array of question_attempts.
+     */
+    public function load_attempts_at_question($questionid, qubaid_condition $qubaids) {
+        global $CFG;
+        $records = get_records_sql("
+SELECT
+    COALESCE(qasd.id, -1 * qas.id) AS id,
+    quba.preferredbehaviour,
+    qa.id AS questionattemptid,
+    qa.questionusageid,
+    qa.numberinusage,
+    qa.behaviour,
+    qa.questionid,
+    qa.maxmark,
+    qa.minfraction,
+    qa.flagged,
+    qa.questionsummary,
+    qa.rightanswer,
+    qa.responsesummary,
+    qa.timemodified,
+    qas.id AS attemptstepid,
+    qas.sequencenumber,
+    qas.state,
+    qas.fraction,
+    qas.timecreated,
+    qas.userid,
+    qasd.name,
+    qasd.value
+
+FROM {$qubaids->from_question_attempts('qa')}
+JOIN {$CFG->prefix}question_usages quba ON quba.id = qa.questionusageid
+LEFT JOIN {$CFG->prefix}question_attempt_steps qas ON qas.questionattemptid = qa.id
+LEFT JOIN {$CFG->prefix}question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
+
+WHERE
+    {$qubaids->where()} AND
+    qa.questionid = $questionid
+
+ORDER BY
+    quba.id,
+    qa.id,
+    qas.sequencenumber
+        ");
+
+        if (!$records) {
+            return array();
+        }
+
+        $questionattempts = array();
+        $record = current($records);
+        while ($record) {
+            $questionattempts[$record->questionattemptid] =
+                    question_attempt::load_from_records($records,
+                    $record->questionattemptid, new question_usage_null_observer(),
+                    $record->preferredbehaviour);
+            $record = current($records);
+        }
+        return $questionattempts;
     }
 
     /**

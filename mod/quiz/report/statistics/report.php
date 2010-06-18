@@ -564,7 +564,8 @@ class quiz_statistics_report extends quiz_default_report {
             return $this->get_emtpy_stats($questions);
         }
 
-        list($fromqa, $whereqa, $qaparams) = quiz_report_attempts_sql($quizid, $currentgroup, $groupstudents);
+        list($fromqa, $whereqa, $qaparams) = quiz_statistics_attempts_sql(
+                $quizid, $currentgroup, $groupstudents);
 
         $attempttotals = get_records_sql("
                 SELECT
@@ -613,7 +614,7 @@ class quiz_statistics_report extends quiz_default_report {
         $quizstats->allattemptsavg = $allattempts->total / $allattempts->countrecs;
 
         // Recalculate sql again this time possibly including test for first attempt.
-        list($fromqa, $whereqa, $qaparams) = quiz_report_attempts_sql($quizid, $currentgroup, $groupstudents, $useallattempts);
+        list($fromqa, $whereqa, $qaparams) = quiz_statistics_attempts_sql($quizid, $currentgroup, $groupstudents, $useallattempts);
 
         // Median
         if ($s % 2 == 0) {
@@ -679,9 +680,8 @@ class quiz_statistics_report extends quiz_default_report {
         }
 
         $qstats = new quiz_statistics_question_stats($questions, $s, $summarksavg);
-        $qstats->get_records($quizid, $currentgroup, $groupstudents, $useallattempts);
-        $qstats->process_states();
-        $qstats->process_responses();
+        $qstats->load_step_data($quizid, $currentgroup, $groupstudents, $useallattempts);
+        $qstats->compute_statistics();
 
         if ($s > 1) {
             $p = count($qstats->questions); // No of positions
@@ -764,7 +764,7 @@ class quiz_statistics_report extends quiz_default_report {
      * @param array $subquestions The subquestions, if any, with an additional _stats field.
      */
     protected function cache_stats($quizid, $currentgroup,
-            $quizstats, $questions, $subquestions, $responses) {
+            $quizstats, $questions, $subquestions) {
 
         $toinsert = clone($quizstats);
         $toinsert->quizid = $quizid;
@@ -792,10 +792,7 @@ class quiz_statistics_report extends quiz_default_report {
             insert_record('quiz_question_statistics', $subquestion->_stats, false);
         }
 
-        foreach ($responses as $response) {
-            $response->quizstatisticsid = $quizstats->id;
-            insert_record('quiz_question_response_stats', $response, false);
-        }
+        return $quizstats->id;
     }
 
     /**
@@ -829,12 +826,46 @@ class quiz_statistics_report extends quiz_default_report {
             $subquestions = $qstats->subquestions;
 
             if ($s) {
-                $this->cache_stats($quiz->id, $currentgroup,
-                        $quizstats, $questions, $subquestions, $qstats->responses);
+                $quizstatisticsid = $this->cache_stats($quiz->id, $currentgroup,
+                        $quizstats, $questions, $subquestions);
+
+                $this->analyse_responses($quizstatisticsid, $quiz->id, $currentgroup,
+                        $nostudentsingroup, $useallattempts, $groupstudents,
+                        $questions, $subquestions);
             }
         }
 
         return array($quizstats, $questions, $subquestions, $s);
+    }
+
+    protected function analyse_responses($quizstatisticsid, $quizid, $currentgroup,
+            $nostudentsingroup, $useallattempts, $groupstudents, $questions, $subquestions) {
+
+        $qubaids = quiz_statistics_qubaids_condition($quizid, $currentgroup, $groupstudents);
+
+        $done = array();
+        foreach ($questions as $question) {
+            if (!question_bank::get_qtype($question->qtype, false)->can_analyse_responses()) {
+                continue;
+            }
+            $done[$question->id] = 1;
+
+            $responesstats = new quiz_statistics_response_analyser($question);
+            $responesstats->analyse($qubaids);
+            $responesstats->store_cached($quizstatisticsid);
+        }
+
+        foreach ($subquestions as $question) {
+            if (!question_bank::get_qtype($question->qtype, false)->can_analyse_responses() ||
+                    isset($done[$question->id])) {
+                continue;
+            }
+            $done[$question->id] = 1;
+
+            $responesstats = new quiz_statistics_response_analyser($question);
+            $responesstats->analyse($qubaids);
+            $responesstats->store_cached($quizstatisticsid);
+        }
     }
 
     /**
@@ -871,7 +902,7 @@ class quiz_statistics_report extends quiz_default_report {
         }
 
         // Find the number of attempts since the cached statistics were computed.
-        list($fromqa, $whereqa, $qaparams) = quiz_report_attempts_sql($quizid, $currentgroup, $groupstudents, $useallattempts);
+        list($fromqa, $whereqa, $qaparams) = quiz_statistics_attempts_sql($quizid, $currentgroup, $groupstudents, $useallattempts);
         $count = count_records_sql("
                 SELECT COUNT(1)
                 FROM $fromqa
@@ -969,7 +1000,7 @@ class quiz_statistics_report extends quiz_default_report {
     }
 }
 
-function quiz_report_attempts_sql($quizid, $currentgroup, $groupstudents,
+function quiz_statistics_attempts_sql($quizid, $currentgroup, $groupstudents,
         $allattempts = true, $includeungraded = true) {
     global $CFG;
 
@@ -993,4 +1024,17 @@ function quiz_report_attempts_sql($quizid, $currentgroup, $groupstudents,
     }
 
     return array($fromqa, $whereqa, $qaparams);
+}
+
+/**
+ * Return a {@link qubaid_condition} from the values returned by
+ * {@link quiz_statistics_attempts_sql}
+ * @param string $fromqa from quiz_statistics_attempts_sql.
+ * @param string $whereqa from quiz_statistics_attempts_sql.
+ */
+function quiz_statistics_qubaids_condition($quizid, $currentgroup, $groupstudents,
+        $allattempts = true, $includeungraded = true) {
+    list($fromqa, $whereqa) = quiz_statistics_attempts_sql($quizid, $currentgroup,
+            $groupstudents, $allattempts, $includeungraded);
+    return new qubaid_join($fromqa, 'quiza.uniqueid', $whereqa);
 }

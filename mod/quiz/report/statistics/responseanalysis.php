@@ -116,8 +116,10 @@ class quiz_statistics_response_analyser {
      */
     public function analyse($qubaids) {
         // Load data.
-        // TODO
+        $dm = new question_engine_data_mapper();
+        $questionattempts = $dm->load_attempts_at_question($this->questiondata->id, $qubaids);
 
+        // Analyse it.
         foreach ($questionattempts as $qa) {
             $this->add_data_from_one_attempt($qa);
         }
@@ -126,11 +128,11 @@ class quiz_statistics_response_analyser {
     }
 
     /**
-     * 
-     * @param question_attempt $qa
+     * Analyse the data from one question attempt.
+     * @param question_attempt $qa the data to analyse.
      */
     protected function add_data_from_one_attempt(question_attempt $qa) {
-        $partresponses = $qa->get_response_classification();
+        $partresponses = $qa->classify_response();
         foreach ($partresponses as $subpartid => $partresponse) {
             if (!isset($this->responses[$subpartid][$partresponse->responseclassid][$partresponse->response])) {
                 $resp = new stdClass;

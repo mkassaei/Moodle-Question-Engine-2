@@ -1961,9 +1961,10 @@ class question_attempt {
      *      ->responseclassid the 
      *      ->response the actual response the student gave to this part, as a string.
      *      ->fraction the credit awarded for this subpart, may be null.
+     *      returns an empty array if no analysis is possible.
      */
-    public function get_response_classification() {
-        return array(); // TODO
+    public function classify_response() {
+        return $this->behaviour->classify_response();
     }
 
     /**
