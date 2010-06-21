@@ -100,6 +100,29 @@ class qtype_match_question extends question_graded_automatically_with_countback 
         return implode('; ', $matches);
     }
 
+    public function classify_response(array $response) {
+        $selectedchoices = array();
+        foreach ($this->stemorder as $key => $stemid) {
+            if (array_key_exists($this->field($key), $response) && $response[$this->field($key)]) {
+                $selectedchoices[$stemid] = $this->choiceorder[$response[$this->field($key)]];
+            } else {
+                $selectedchoices[$stemid] = 0;
+            }
+        }
+
+        $parts = array();
+        foreach ($this->stems as $stemid => $stem) {
+            if (empty($selectedchoices[$stemid])) {
+                continue;
+            }
+            $choice = $this->choices[$selectedchoices[$stemid]];
+            $parts[$stemid] = new question_classified_response(
+                    $selectedchoices[$stemid], html_to_text($this->format_text($choice)),
+                    $selectedchoices[$stemid] == $this->right[$stemid]);
+        }
+        return $parts;
+    }
+
     public function clear_wrong_from_response(array $response) {
         foreach ($this->stemorder as $key => $stemid) {
             if ($response[$this->field($key)] != $this->get_right_choice_for($stemid)) {

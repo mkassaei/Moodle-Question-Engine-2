@@ -25,6 +25,11 @@
  */
 
 
+require_once($CFG->libdir . '/questionlib.php');
+require_once($CFG->dirroot . '/question/engine/lib.php');
+require_once($CFG->dirroot . '/question/type/shortanswer/question.php');
+
+
 /**
  * The short answer question type.
  *
@@ -139,10 +144,8 @@ class qtype_shortanswer extends question_type {
         $responses = array();
 
         foreach ($questiondata->options->answers as $aid => $answer) {
-            $r = new stdClass;
-            $r->responseclass = $answer->answer;
-            $r->fraction = $answer->fraction;
-            $responses[$aid] = $r;
+            $responses[$aid] = new question_possible_response($answer->answer,
+                    $answer->fraction);
         }
 
         return array($questiondata->id => $responses);

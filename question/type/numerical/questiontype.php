@@ -306,21 +306,20 @@ class qtype_numerical extends question_type {
         $unit = $this->get_default_numerical_unit($questiondata);
 
         foreach ($questiondata->options->answers as $aid => $answer) {
-            $r = new stdClass;
-            $r->responseclass = $answer->answer;
-            $r->fraction = $answer->fraction;
+            $responseclass = $answer->answer;
 
-            if ($answer->answer != '*') {
+            if ($responseclass != '*') {
                 if ($unit) {
-                    $r->responseclass .= ' ' . $unit->unit;
+                    $responseclass .= ' ' . $unit->unit;
                 }
 
                 $ans = new qtype_numerical_answer($answer->answer, $answer->fraction, $answer->feedback, $answer->tolerance);
                 list($min, $max) = $ans->get_tolerance_interval();
-                $r->responseclass .= " ($min..$max)";
+                $responseclass .= " ($min..$max)";
             }
 
-            $responses[$aid] = $r;
+            $responses[$aid] = new question_possible_response($responseclass,
+                    $answer->fraction);
         }
 
         return array($questiondata->id => $responses);

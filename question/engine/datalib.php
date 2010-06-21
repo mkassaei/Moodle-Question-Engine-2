@@ -658,6 +658,10 @@ ORDER BY
         delete_records_select('question_usages', $where);
     }
 
+    /**
+     * Delete all the steps for a question attempt.
+     * @param integer $qaids question_attempt id.
+     */
     public function delete_steps_for_question_attempts($qaids) {
         global $CFG;
         if (empty($qaids)) {
@@ -669,6 +673,26 @@ ORDER BY
                 FROM {$CFG->prefix}question_attempt_steps qas
                 WHERE questionattemptid $test)");
         delete_records_select('question_attempt_steps', 'questionattemptid ' . $test);
+    }
+
+    /**
+     * Delete all the previews for a given question.
+     * @param integer $questionid question id.
+     */
+    public function delete_previews($questionid) {
+        global $CFG;
+        $previews = get_records_sql_menu("
+                SELECT DISTINCT quba.id, 1
+                FROM {$CFG->prefix}question_usages quba
+                JOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = quba.id
+                WHERE quba.owningplugin = 'core_question_preview' AND
+                    qa.questionid = '$questionid'");
+        if (empty($previews)) {
+            return;
+        }
+        $this->delete_questions_usage_by_activities(
+                "{$CFG->prefix}question_usages.id IN (" .
+                implode(',', array_keys($previews)) . ')');
     }
 
     /**

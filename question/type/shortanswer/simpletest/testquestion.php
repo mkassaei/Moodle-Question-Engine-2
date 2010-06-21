@@ -125,4 +125,20 @@ class qtype_shortanswer_question_test extends UnitTestCase {
         $summary = $sa->summarise_response(array('answer' => 'dog'));
         $this->assertEqual('dog', $summary);
     }
+
+    public function test_classify_response() {
+        $num = test_question_maker::make_a_shortanswer_question();
+        $num->init_first_step(new question_attempt_step());
+
+        $this->assertEqual(array(
+                new question_classified_response(0, 'frog', 1.0)),
+                $num->classify_response(array('answer' => 'frog')));
+        $this->assertEqual(array(
+                new question_classified_response(1, 'toad', 0.8)),
+                $num->classify_response(array('answer' => 'toad')));
+        $this->assertEqual(array(
+                new question_classified_response(2, 'cat', 0.0)),
+                $num->classify_response(array('answer' => 'cat')));
+        $this->assertEqual(array(), $num->classify_response(array('answer' => '')));
+    }
 }

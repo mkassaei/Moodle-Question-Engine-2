@@ -181,29 +181,25 @@ class qtype_match extends question_type {
     }
 
     function get_random_guess_score($questiondata) {
-        return 1 / count($questiondata->options->subquestions);
+        $q = $this->make_question($questiondata);
+        return 1 / count($q->choices);
     }
 
     function get_possible_responses($questiondata) {
         $subqs = array();
 
-        foreach ($questiondata->options->subquestions as $subqid => $subq) {
-            if (!$subq->questiontext) {
-                continue;
-            }
+        $q = $this->make_question($questiondata);
+
+        foreach ($q->stems as $stemid => $stem) {
 
             $responses = array();
-            foreach ($questiondata->options->subquestions as $aid => $answer) {
-                $r = new stdClass;
-                $r->responseclass = $subq->questiontext . ': ' . $answer->answertext;
-                $r->fraction = 0;
-                if ($subqid == $aid) {
-                    $r->fraction = 1;
-                }
-                $responses[$aid] = $r;
+            foreach ($q->choices as $choiceid => $choice) {
+                $responses[$choiceid] = new question_possible_response(
+                        html_to_text($q->format_text($stem)) . ': ' . html_to_text($q->format_text($choice)),
+                        $choiceid == $q->right[$stemid]);
             }
 
-            $subqs[$subqid] = $responses;
+            $subqs[$stemid] = $responses;
         }
 
         return $subqs;
