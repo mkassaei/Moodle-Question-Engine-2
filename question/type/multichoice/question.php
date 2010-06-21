@@ -120,6 +120,17 @@ class qtype_multichoice_single_question extends qtype_multichoice_base {
                 $this->answers[$this->order[$response['answer']]]->answer));
     }
 
+    public function classify_response(array $response) {
+        if (!array_key_exists('answer', $response) ||
+                !array_key_exists($response['answer'], $this->order)) {
+            return array();
+        }
+        $choiceid = $this->order[$response['answer']];
+        $ans = $this->answers[$choiceid];
+        return array(new question_classified_response($choiceid,
+                html_to_text($this->format_text($ans->answer)), $ans->fraction));
+    }
+
     public function get_correct_response() {
         foreach ($this->order as $key => $answerid) {
             if (question_state::graded_state_for_fraction(
@@ -226,6 +237,24 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
             return null;
         }
         return implode('; ', $selectedchoices);
+    }
+
+    public function classify_response(array $response) {
+        $selectedchoices = array();
+        foreach ($this->order as $key => $ansid) {
+            $fieldname = $this->field($key);
+            if (array_key_exists($fieldname, $response) && $response[$fieldname]) {
+                $selectedchoices[$ansid] = 1;
+            }
+        }
+        $choices = array();
+        foreach ($this->answers as $ansid => $ans) {
+            if (isset($selectedchoices[$ansid])) {
+                $choices[] = new question_classified_response($ansid,
+                        html_to_text($this->format_text($ans->answer)), $ans->fraction);
+            }
+        }
+        return $choices;
     }
 
     public function get_correct_response() {

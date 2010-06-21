@@ -202,4 +202,20 @@ class qtype_ddwtos_question_test extends UnitTestCase {
         $this->assertEqual(array(0, question_state::$gradedwrong),
                 $dd->grade_response(array('p1' => 0, 'p2' => 1, 'p3' => 2, 'p4' => 1)));
     }
+
+    public function test_classify_response() {
+        $dd = qtype_ddwtos_test_helper::make_a_ddwtos_question();
+        $dd->shufflechoices = false;
+        $dd->init_first_step(new question_attempt_step());
+
+        $this->assertEqual(array(
+                    1 => new question_classified_response(1, 'quick', 1),
+                    2 => new question_classified_response(2, 'dog', 0),
+                    3 => new question_classified_response(1, 'lazy', 1),
+                ), $dd->classify_response(array('p1' => 1, 'p2' => 2, 'p3' => 1)));
+        $this->assertEqual(array(
+                    2 => new question_classified_response(1, 'fox', 1),
+                    3 => new question_classified_response(2, 'assiduous', 0),
+                ), $dd->classify_response(array('p1' => 0, 'p2' => 1, 'p3' => 2)));
+    }
 }

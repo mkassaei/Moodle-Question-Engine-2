@@ -24,7 +24,7 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once($CFG->dirroot . '/question/type/shortanswer/question.php');
+
 require_once($CFG->dirroot . '/question/engine/simpletest/helpers.php');
 
 
@@ -94,5 +94,21 @@ class qtype_numerical_question_test extends UnitTestCase {
         $num = test_question_maker::make_a_numerical_question();
         $summary = $num->summarise_response(array('answer' => '3.1'));
         $this->assertEqual('3.1', $summary);
+    }
+
+    public function test_classify_response() {
+        $num = test_question_maker::make_a_numerical_question();
+        $num->init_first_step(new question_attempt_step());
+
+        $this->assertEqual(array(
+                new question_classified_response(2, '3.1', 0.0)),
+                $num->classify_response(array('answer' => '3.1')));
+        $this->assertEqual(array(
+                new question_classified_response(4, '42', 0.0)),
+                $num->classify_response(array('answer' => '42')));
+        $this->assertEqual(array(
+                new question_classified_response(0, '3.14', 1.0)),
+                $num->classify_response(array('answer' => '3.14')));
+        $this->assertEqual(array(), $num->classify_response(array('answer' => '')));
     }
 }

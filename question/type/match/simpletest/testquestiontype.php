@@ -45,13 +45,34 @@ class qtype_match_test extends UnitTestCase {
     }
 
     protected function get_test_question_data() {
+        global $USER;
         $q = new stdClass;
-        $q->id = 1;
+        $q->id = 0;
+        $q->name = 'Matching question';
+        $q->category = 0;
+        $q->parent = 0;
+        $q->questiontext = 'Classify the animals.';
+        $q->questiontextformat = FORMAT_HTML;
+        $q->generalfeedback = 'General feedback.';
+        $q->defaultgrade = 1;
+        $q->penalty = 0.3333333;
+        $q->length = 1;
+        $q->stamp = make_unique_id_code();
+        $q->version = make_unique_id_code();
+        $q->hidden = 0;
+        $q->timecreated = time();
+        $q->timemodified = time();
+        $q->createdby = $USER->id;
+        $q->modifiedby = $USER->id;
+
+        $q->options->shuffleanswers = false;
+        test_question_maker::set_standard_overall_feedback_fields($q->options);
 
         $q->options->subquestions = array(
-            (object) array('questiontext' => 'frog', 'answertext' => 'amphibian'),
-            (object) array('questiontext' => 'cat', 'answertext' => 'mammal'),
-            (object) array('questiontext' => '', 'answertext' => 'insect'),
+            14 => (object) array('id' => 14, 'questiontext' => 'frog', 'answertext' => 'amphibian'),
+            15 => (object) array('id' => 15, 'questiontext' => 'cat', 'answertext' => 'mammal'),
+            16 => (object) array('id' => 16, 'questiontext' => 'newt', 'answertext' => 'amphibian'),
+            17 => (object) array('id' => 17, 'questiontext' => '', 'answertext' => 'insect'),
         );
 
         return $q;
@@ -74,30 +95,42 @@ class qtype_match_test extends UnitTestCase {
         $q = $this->get_test_question_data();
         $responses = $this->qtype->get_possible_responses($q);
 
-        $this->assertEqual(2, count($responses));
+        $this->assertEqual(3, count($responses));
 
-        $response = array_shift($responses);
+        $response = $responses[14];
         $this->assertEqual(3, count($response));
 
-        $this->assertEqual(1, $response[0]->fraction);
-        $this->assertEqual('frog: amphibian', $response[0]->responseclass);
+        $this->assertEqual(1, $response[14]->fraction);
+        $this->assertEqual('frog: amphibian', $response[14]->responseclass);
 
-        $this->assertEqual(0, $response[1]->fraction);
-        $this->assertEqual('frog: mammal', $response[1]->responseclass);
+        $this->assertEqual(0, $response[15]->fraction);
+        $this->assertEqual('frog: mammal', $response[15]->responseclass);
 
-        $this->assertEqual(0, $response[2]->fraction);
-        $this->assertEqual('frog: insect', $response[2]->responseclass);
+        $this->assertEqual(0, $response[17]->fraction);
+        $this->assertEqual('frog: insect', $response[17]->responseclass);
 
-        $response = array_shift($responses);
+        $response = $responses[15];
         $this->assertEqual(3, count($response));
 
-        $this->assertEqual(0, $response[0]->fraction);
-        $this->assertEqual('cat: amphibian', $response[0]->responseclass);
+        $this->assertEqual(0, $response[14]->fraction);
+        $this->assertEqual('cat: amphibian', $response[14]->responseclass);
 
-        $this->assertEqual(1, $response[1]->fraction);
-        $this->assertEqual('cat: mammal', $response[1]->responseclass);
+        $this->assertEqual(1, $response[15]->fraction);
+        $this->assertEqual('cat: mammal', $response[15]->responseclass);
 
-        $this->assertEqual(0, $response[2]->fraction);
-        $this->assertEqual('cat: insect', $response[2]->responseclass);
+        $this->assertEqual(0, $response[17]->fraction);
+        $this->assertEqual('cat: insect', $response[17]->responseclass);
+
+        $response = $responses[16];
+        $this->assertEqual(3, count($response));
+
+        $this->assertEqual(1, $response[14]->fraction);
+        $this->assertEqual('newt: amphibian', $response[14]->responseclass);
+
+        $this->assertEqual(0, $response[15]->fraction);
+        $this->assertEqual('newt: mammal', $response[15]->responseclass);
+
+        $this->assertEqual(0, $response[17]->fraction);
+        $this->assertEqual('newt: insect', $response[17]->responseclass);
     }
 }

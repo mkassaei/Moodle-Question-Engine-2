@@ -108,6 +108,28 @@ class qtype_multichoice_single_question_test extends UnitTestCase {
         $this->assertEqual(array('answer' => 0),
                 $question->get_correct_response());
     }
+
+    public function test_summarise_response() {
+        $mc = test_question_maker::make_a_multichoice_single_question();
+        $mc->shuffleanswers = false;
+        $mc->init_first_step(new question_attempt_step());
+
+        $summary = $mc->summarise_response(array('answer' => 0));
+
+        $this->assertEqual('A', $summary);
+    }
+
+    public function test_classify_response() {
+        $mc = test_question_maker::make_a_multichoice_single_question();
+        $mc->shuffleanswers = false;
+        $mc->init_first_step(new question_attempt_step());
+
+        $this->assertEqual(array(
+                new question_classified_response(14, 'B', -0.3333333),
+                ), $mc->classify_response(array('answer' => 1)));
+
+        $this->assertEqual(array(), $mc->classify_response(array()));
+    }
 }
 
 
@@ -188,12 +210,25 @@ class qtype_multichoice_multi_question_test extends UnitTestCase {
     }
 
     public function test_summarise_response() {
-        $mc = test_question_maker::make_a_multichoice_single_question();
+        $mc = test_question_maker::make_a_multichoice_multi_question();
         $mc->shuffleanswers = false;
         $mc->init_first_step(new question_attempt_step());
 
-        $summary = $mc->summarise_response(array('answer' => 0));
+        $summary = $mc->summarise_response(array('choice1' => 1, 'choice2' => 1));
 
-        $this->assertEqual('A', $summary);
+        $this->assertEqual('B; C', $summary);
+    }
+
+    public function test_classify_response() {
+        $mc = test_question_maker::make_a_multichoice_multi_question();
+        $mc->shuffleanswers = false;
+        $mc->init_first_step(new question_attempt_step());
+
+        $this->assertEqual(array(
+                    new question_classified_response(13, 'A', 0.5),
+                    new question_classified_response(14, 'B', -1.0),
+                ), $mc->classify_response(array('choice0' => 1, 'choice1' => 1)));
+
+        $this->assertEqual(array(), $mc->classify_response(array()));
     }
 }

@@ -243,10 +243,8 @@ class qtype_multichoice extends question_type {
         $responses = array();
 
         foreach ($questiondata->options->answers as $aid => $answer) {
-            $r = new stdClass;
-            $r->responseclass = $answer->answer;
-            $r->fraction = $answer->fraction;
-            $responses[$aid] = $r;
+            $responses[$aid] = new question_possible_response($answer->answer,
+                    $answer->fraction);
         }
 
         return array($questiondata->id => $responses);

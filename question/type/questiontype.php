@@ -1063,3 +1063,32 @@ class question_type {
         return array($form, $question);
     }
 }
+
+
+/**
+ * This class is used in the return value from
+ * {@link question_type::get_possible_responses()}.
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_possible_response {
+    /**
+     * @var string the classification of this response the student gave to this
+     * part of the question. Must match one of the responseclasses returned by
+     * {@link question_type::get_possible_responses()}.
+     */
+    public $responseclass;
+    /** @var string the actual response the student gave to this part. */
+    public $fraction;
+    /**
+     * Constructor, just an easy way to set the fields.
+     * @param string $responseclassid see the field descriptions above.
+     * @param string $response see the field descriptions above.
+     * @param number $fraction see the field descriptions above.
+     */
+    public function __construct($responseclass, $fraction) {
+        $this->responseclass = $responseclass;
+        $this->fraction = $fraction;
+    }
+}

@@ -327,13 +327,42 @@ interface question_manually_gradable {
      * Categorise the student's response according to the categories defined by
      * get_possible_responses
      * @param $response a response, as might be passed to {@link grade_response()}.
-     * @return array subpartid => object with fields
-     *      ->responseclassid the 
-     *      ->response the actual response the student gave to this part, as a string.
-     *      ->fraction the credit awarded for this subpart, may be null.
+     * @return array subpartid => {@link question_classified_response} objects.
      *      returns an empty array if no analysis is possible.
      */
     public function classify_response(array $response);
+}
+
+
+/**
+ * This class is used in the return value from
+ * {@link question_manually_gradable::classify_response()}.
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_classified_response {
+    /**
+     * @var string the classification of this response the student gave to this
+     * part of the question. Must match one of the responseclasses returned by
+     * {@link question_type::get_possible_responses()}.
+     */
+    public $responseclassid;
+    /** @var string the actual response the student gave to this part. */
+    public $response;
+    /** @var number the fraction this part of the response earned. */
+    public $fraction;
+    /**
+     * Constructor, just an easy way to set the fields.
+     * @param string $responseclassid see the field descriptions above.
+     * @param string $response see the field descriptions above.
+     * @param number $fraction see the field descriptions above.
+     */
+    public function __construct($responseclassid, $response, $fraction) {
+        $this->responseclassid = $responseclassid;
+        $this->response = $response;
+        $this->fraction = $fraction;
+    }
 }
 
 
@@ -530,6 +559,18 @@ abstract class question_graded_by_strategy extends question_graded_automatically
             return array(0, question_state::$gradedwrong);
         }
     }
+
+    public function classify_response(array $response) {
+        if (empty($response['answer'])) {
+            return array();
+        }
+        $ans = $this->get_matching_answer($response);
+        if (!$ans) {
+            return array();
+        }
+        return array($this->id => new question_classified_response(
+                $ans->id, $response['answer'], $ans->fraction));
+    }
 }
 
 
@@ -718,8 +759,9 @@ class question_first_matching_answer_grading_strategy implements question_gradin
     }
 
     public function grade(array $response) {
-        foreach ($this->question->get_answers() as $answer) {
+        foreach ($this->question->get_answers() as $aid => $answer) {
             if ($this->question->compare_response_with_answer($response, $answer)) {
+                $answer->id = $aid;
                 return $answer;
             }
         }

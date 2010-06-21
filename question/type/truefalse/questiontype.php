@@ -159,20 +159,14 @@ class qtype_truefalse extends question_type {
     }
 
     function get_possible_responses($questiondata) {
-        $true = new stdClass;
-        $true->responseclass = get_string('true', 'qtype_truefalse');
-        $true->fraction = $questiondata->options->answers[
-                $questiondata->options->trueanswer]->fraction;
-
-        $false = new stdClass;
-        $false->responseclass = get_string('false', 'qtype_truefalse');
-        $false->fraction = $questiondata->options->answers[
-                $questiondata->options->falseanswer]->fraction;
-
         return array(
             $questiondata->id => array(
-                0 => $true,
-                1 => $false
+                0 => new question_possible_response(get_string('false', 'qtype_truefalse'),
+                        $questiondata->options->answers[
+                        $questiondata->options->falseanswer]->fraction),
+                1 => new question_possible_response(get_string('true', 'qtype_truefalse'),
+                        $questiondata->options->answers[
+                        $questiondata->options->trueanswer]->fraction),
             )
         );
     }

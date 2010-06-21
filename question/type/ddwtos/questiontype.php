@@ -307,10 +307,9 @@ class qtype_ddwtos extends question_type {
             $choices = array();
 
             foreach ($question->choices[$group] as $i => $choice) {
-                $r = new stdClass;
-                $r->responseclass = html_to_text($question->format_text($choice->text));
-                $r->fraction = ($question->rightchoices[$place] == $i);
-                $choices[$i] = $r;
+                $choices[$i] = new question_possible_response(
+                        html_to_text($question->format_text($choice->text)),
+                        $question->rightchoices[$place] == $i);
             }
 
             $parts[$place] = $choices;

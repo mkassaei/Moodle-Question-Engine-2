@@ -257,6 +257,24 @@ class qtype_ddwtos_question extends question_graded_automatically_with_countback
 
         return $totalscore / count($this->places);
     }
+
+    public function classify_response(array $response) {
+        $parts = array();
+        foreach ($this->places as $place => $group) {
+            if (!array_key_exists($this->field($place), $response) ||
+                    !$response[$this->field($place)]) {
+                continue;
+            }
+
+            $fieldname = $this->field($place);
+            $choiceno = $this->choiceorder[$group][$response[$fieldname]];
+            $choice = $this->choices[$group][$choiceno];
+            $parts[$place] = new question_classified_response(
+                    $choiceno, html_to_text($this->format_text($choice->text)),
+                    $this->get_right_choice_for($place) == $response[$fieldname]);
+        }
+        return $parts;
+    }
 }
 
 

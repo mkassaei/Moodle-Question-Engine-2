@@ -145,4 +145,31 @@ class qtype_match_question_test extends UnitTestCase {
 
         $this->assertPattern('/Dog -> \w+; Frog -> \w+/', $summary);
     }
+
+    public function test_classify_response() {
+        $match = test_question_maker::make_a_matching_question();
+        $match->shufflestems = false;
+        $match->init_first_step(new question_attempt_step());
+
+        $choiceorder = $match->get_choice_order();
+        $orderforchoice = array_combine(array_values($choiceorder), array_keys($choiceorder));
+        $choices = array(0 => get_string('choose') . '...');
+        foreach ($choiceorder as $key => $choice) {
+            $choices[$key] = $match->choices[$choice];
+        }
+
+        $this->assertEqual(array(
+                    1 => new question_classified_response(2, 'Amphibian', 0),
+                    2 => new question_classified_response(3, 'Insect', 0),
+                ), $match->classify_response(array('sub0' => $orderforchoice[2],
+                        'sub1' => $orderforchoice[3], 'sub2' => 0, 'sub3' => 0)));
+        $this->assertEqual(array(
+                    1 => new question_classified_response(1, 'Mammal', 1),
+                    2 => new question_classified_response(2, 'Amphibian', 1),
+                    3 => new question_classified_response(2, 'Amphibian', 1),
+                    4 => new question_classified_response(1, 'Mammal', 1),
+                ), $match->classify_response(array('sub0' => $orderforchoice[1],
+                        'sub1' => $orderforchoice[2], 'sub2' => $orderforchoice[2],
+                        'sub3' => $orderforchoice[1])));
+    }
 }

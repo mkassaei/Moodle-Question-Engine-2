@@ -54,6 +54,20 @@ class qtype_truefalse_question extends question_graded_automatically {
         }
     }
 
+    public function classify_response(array $response) {
+        if (!array_key_exists('answer', $response)) {
+            return null;
+        }
+        list($fraction) = $this->grade_response($response);
+        if ($response['answer']) {
+            return array(new question_classified_response(1,
+                    get_string('true', 'qtype_truefalse'), $fraction));
+        } else {
+            return array(new question_classified_response(0,
+                    get_string('false', 'qtype_truefalse'), $fraction));
+        }
+    }
+
     public function is_complete_response(array $response) {
         return array_key_exists('answer', $response);
     }
