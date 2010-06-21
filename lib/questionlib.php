@@ -321,8 +321,13 @@ function delete_question($questionid) {
         return;
     }
 
-    // delete questiontype-specific data
+    // Check permissions.
     question_require_capability_on($question, 'edit');
+
+    $dm = new question_engine_data_mapper();
+    $dm->delete_previews($questionid);
+
+    // Delete questiontype-specific data
     if ($question) {
         if (isset($QTYPES[$question->qtype])) {
             $QTYPES[$question->qtype]->delete_question($questionid);
