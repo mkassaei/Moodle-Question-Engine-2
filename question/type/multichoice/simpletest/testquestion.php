@@ -125,10 +125,12 @@ class qtype_multichoice_single_question_test extends UnitTestCase {
         $mc->init_first_step(new question_attempt_step());
 
         $this->assertEqual(array(
-                new question_classified_response(14, 'B', -0.3333333),
+                $mc->id => new question_classified_response(14, 'B', -0.3333333),
                 ), $mc->classify_response(array('answer' => 1)));
 
-        $this->assertEqual(array(), $mc->classify_response(array()));
+        $this->assertEqual(array(
+                $mc->id => question_classified_response::no_response(),
+            ), $mc->classify_response(array()));
     }
 }
 
@@ -225,8 +227,8 @@ class qtype_multichoice_multi_question_test extends UnitTestCase {
         $mc->init_first_step(new question_attempt_step());
 
         $this->assertEqual(array(
-                    new question_classified_response(13, 'A', 0.5),
-                    new question_classified_response(14, 'B', -1.0),
+                    13 => new question_classified_response(13, 'A', 0.5),
+                    14 => new question_classified_response(14, 'B', -1.0),
                 ), $mc->classify_response(array('choice0' => 1, 'choice1' => 1)));
 
         $this->assertEqual(array(), $mc->classify_response(array()));

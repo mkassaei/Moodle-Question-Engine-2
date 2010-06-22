@@ -113,6 +113,7 @@ class qtype_match_question extends question_graded_automatically_with_countback 
         $parts = array();
         foreach ($this->stems as $stemid => $stem) {
             if (empty($selectedchoices[$stemid])) {
+                $parts[$stemid] = question_classified_response::no_response();
                 continue;
             }
             $choice = $this->choices[$selectedchoices[$stemid]];

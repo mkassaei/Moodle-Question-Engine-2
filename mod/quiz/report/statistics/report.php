@@ -346,7 +346,11 @@ class quiz_statistics_report extends quiz_default_report {
 
                 $responsesdata = $responesstats->responses[$partid][$responseclassid];
                 if (empty($responsesdata)) {
-                    $rowdata->response = '';
+                    if (!array_key_exists('responseclass', $qtable->columns)) {
+                        $rowdata->response = $responseclass->responseclass;
+                    } else {
+                        $rowdata->response = '';
+                    }
                     $rowdata->fraction = $responseclass->fraction;
                     $rowdata->count = 0;
                     $qtable->add_data_keyed($qtable->format_row($rowdata));
@@ -977,34 +981,6 @@ class quiz_statistics_report extends quiz_default_report {
         if (!delete_records_select('quiz_question_response_stats', "quizstatisticsid $todeletesql")) {
             mtrace('Error deleting out of date quiz_question_response_stats records.');
         }
-    }
-
-    /**
-     * Comparison callback for response details. Sorts by decreasing fraction, then answer.
-     * @param object $detail1 object to compare
-     * @param object $detail2 object to compare
-     * @return number -1, 0 or 1, depending on whether $detail1 should come before or after $detail2.
-     */
-    protected function sort_response_details($detail1, $detail2) {
-        if ($detail1->credit == $detail2->credit) {
-            return strcmp($detail1->answer, $detail2->answer);
-        }
-
-        return ($detail1->credit > $detail2->credit) ? -1 : 1;
-    }
-
-    /**
-     * Comparison callback for answers. Sorts by decreasing frequency, then response.
-     * @param object $answer1 object to compare
-     * @param object $answer2 object to compare
-     * @return number -1, 0 or 1, depending on whether $answer1 should come before or after $answer2.
-     */
-    protected function sort_answers($answer1, $answer2) {
-        if ($answer1->rcount == $answer2->rcount) {
-            return strcmp($answer1->response, $answer2->response);
-        }
-
-        return ($answer1->rcount > $answer2->rcount) ? -1 : 1;
     }
 
     /**

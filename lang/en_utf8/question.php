@@ -119,6 +119,7 @@ $string['addanotherhint'] = 'Add another hint';
 $string['answersaved'] = 'Answer saved';
 $string['attemptfinished'] = 'Attempt finished';
 $string['attemptfinishedsubmitting'] = 'Attempt finished submitting: ';
+$string['noresponse'] = '[No response]';
 $string['changeoptions'] = 'Change options';
 $string['check'] = 'Check';
 $string['clearwrongparts'] = 'Clear incorrect responses';

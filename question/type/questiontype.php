@@ -1091,4 +1091,8 @@ class question_possible_response {
         $this->responseclass = $responseclass;
         $this->fraction = $fraction;
     }
+
+    public static function no_response() {
+        return new question_possible_response(get_string('noresponse', 'question'), 0);
+    }
 }
