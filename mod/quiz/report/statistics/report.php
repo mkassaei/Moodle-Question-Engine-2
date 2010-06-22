@@ -591,10 +591,12 @@ class quiz_statistics_report extends quiz_default_report {
 
         if (isset($attempttotals[1])) {
             $firstattempts = $attempttotals[1];
+            $firstattempts->average = $firstattempts->total / $firstattempts->countrecs;
         } else {
             $firstattempts = new stdClass;
             $firstattempts->countrecs = 0;
             $firstattempts->total = 0;
+            $firstattempts->average = '-';
         }
 
         $allattempts = new stdClass;
@@ -625,7 +627,7 @@ class quiz_statistics_report extends quiz_default_report {
         $quizstats->allattempts = $useallattempts;
         $quizstats->firstattemptscount = $firstattempts->countrecs;
         $quizstats->allattemptscount = $allattempts->countrecs;
-        $quizstats->firstattemptsavg = $firstattempts->total / $firstattempts->countrecs;
+        $quizstats->firstattemptsavg = $firstattempts->average;
         $quizstats->allattemptsavg = $allattempts->total / $allattempts->countrecs;
 
         // Recalculate sql again this time possibly including test for first attempt.
