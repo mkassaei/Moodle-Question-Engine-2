@@ -529,15 +529,18 @@ class quiz_statistics_report extends quiz_default_report {
      * Return the stats data for when there are no stats to show.
      *
      * @param array $questions question definitions.
+     * @param integer $firstattemptscount number of first attempts (optional).
+     * @param integer $firstattemptscount total number of attempts (optional).
      * @return array with three elements:
      *      - integer $s Number of attempts included in the stats (0).
      *      - array $quizstats The statistics for overall attempt scores.
      *      - array $qstats The statistics for each question.
      */
-    protected function get_emtpy_stats($questions) {
+    protected function get_emtpy_stats($questions, $firstattemptscount = 0,
+            $allattemptscount = 0) {
         $quizstats = new stdClass;
-        $quizstats->firstattemptscount = 0;
-        $quizstats->allattemptscount = 0;
+        $quizstats->firstattemptscount = $firstattemptscount;
+        $quizstats->allattemptscount = $allattemptscount;
 
         $qstats = new stdClass;
         $qstats->questions = $questions;
@@ -571,7 +574,7 @@ class quiz_statistics_report extends quiz_default_report {
         }
 
         list($fromqa, $whereqa, $qaparams) = quiz_statistics_attempts_sql(
-                $quizid, $currentgroup, $groupstudents);
+                $quizid, $currentgroup, $groupstudents, true);
 
         $attempttotals = get_records_sql("
                 SELECT
@@ -586,7 +589,13 @@ class quiz_statistics_report extends quiz_default_report {
             return $this->get_emtpy_stats($questions);
         }
 
-        $firstattempts = $attempttotals[1];
+        if (isset($attempttotals[1])) {
+            $firstattempts = $attempttotals[1];
+        } else {
+            $firstattempts = new stdClass;
+            $firstattempts->countrecs = 0;
+            $firstattempts->total = 0;
+        }
 
         $allattempts = new stdClass;
         if (isset($attempttotals[0])) {
@@ -606,11 +615,11 @@ class quiz_statistics_report extends quiz_default_report {
         }
 
         $s = $usingattempts->countrecs;
-        $summarksavg = $usingattempts->total / $usingattempts->countrecs;
-
         if ($s == 0) {
-            return $this->get_emtpy_stats($questions);
+            return $this->get_emtpy_stats($questions, $firstattempts->countrecs,
+                    $allattempts->countrecs);
         }
+        $summarksavg = $usingattempts->total / $usingattempts->countrecs;
 
         $quizstats = new stdClass;
         $quizstats->allattempts = $useallattempts;
