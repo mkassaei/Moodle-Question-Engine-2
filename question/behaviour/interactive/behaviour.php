@@ -112,7 +112,8 @@ class qbehaviour_interactive extends question_behaviour_with_save {
     }
 
     public function get_state_string() {
-        if (!$this->qa->get_state()->is_active()) {
+        $state = $this->qa->get_state();
+        if (!$state->is_active() || $state == question_state::$invalid) {
             return parent::get_state_string();
         }
 
