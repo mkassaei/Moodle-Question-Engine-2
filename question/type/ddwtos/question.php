@@ -263,6 +263,7 @@ class qtype_ddwtos_question extends question_graded_automatically_with_countback
         foreach ($this->places as $place => $group) {
             if (!array_key_exists($this->field($place), $response) ||
                     !$response[$this->field($place)]) {
+                $parts[$place] = question_classified_response::no_response();
                 continue;
             }
 

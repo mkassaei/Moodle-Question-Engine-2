@@ -67,17 +67,12 @@ class qtype_shortanswer_test extends UnitTestCase {
 
     public function test_get_possible_responses() {
         $q = $this->get_test_question_data();
-        $responses = $this->qtype->get_possible_responses($q);
 
-        $this->assertEqual(1, count($responses));
-
-        $response = reset($responses);
-        $this->assertEqual(2, count($response));
-
-        $this->assertEqual(1, $response[1]->fraction);
-        $this->assertEqual('frog', $response[1]->responseclass);
-
-        $this->assertEqual(0.1, $response[2]->fraction);
-        $this->assertEqual('*', $response[2]->responseclass);
+        $this->assertEqual(array(
+            $q->id => array(
+                1 => new question_possible_response('frog', 1),
+                2 => new question_possible_response('*', 0.1),
+                null => question_possible_response::no_response()),
+        ), $this->qtype->get_possible_responses($q));
     }
 }

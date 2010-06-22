@@ -50,6 +50,7 @@ class qtype_multichoice_test extends UnitTestCase {
     protected function get_test_question_data() {
         $q = new stdClass;
         $q->id = 1;
+        $q->options->single = true;
         $q->options->answers[1] = (object) array('answer' => 'frog', 'fraction' => 1);
         $q->options->answers[2] = (object) array('answer' => 'toad', 'fraction' => 0);
 
@@ -69,15 +70,20 @@ class qtype_multichoice_test extends UnitTestCase {
         $q = $this->get_test_question_data();
         $responses = $this->qtype->get_possible_responses($q);
 
-        $this->assertEqual(1, count($responses));
+        $this->assertEqual(array(
+            $q->id => array(
+                1 => new question_possible_response('frog', 1),
+                2 => new question_possible_response('toad', 0),
+            )), $this->qtype->get_possible_responses($q));
+    }
 
-        $response = reset($responses);
-        $this->assertEqual(2, count($response));
+    public function test_get_possible_responses_mulit() {
+        $q = $this->get_test_question_data();
+        $q->options->single = false;
 
-        $this->assertEqual(1, $response[1]->fraction);
-        $this->assertEqual('frog', $response[1]->responseclass);
-
-        $this->assertEqual(0, $response[2]->fraction);
-        $this->assertEqual('toad', $response[2]->responseclass);
+        $this->assertEqual(array(
+            1 => array(1 => new question_possible_response('frog', 1)),
+            2 => array(2 => new question_possible_response('toad', 0)),
+        ), $this->qtype->get_possible_responses($q));
     }
 }

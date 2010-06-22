@@ -311,6 +311,7 @@ class qtype_ddwtos extends question_type {
                         html_to_text($question->format_text($choice->text)),
                         $question->rightchoices[$place] == $i);
             }
+            $choices[null] = question_possible_response::no_response();
 
             $parts[$place] = $choices;
         }

@@ -363,6 +363,10 @@ class question_classified_response {
         $this->response = $response;
         $this->fraction = $fraction;
     }
+
+    public static function no_response() {
+        return new question_classified_response(null, null, null);
+    }
 }
 
 
@@ -562,11 +566,12 @@ abstract class question_graded_by_strategy extends question_graded_automatically
 
     public function classify_response(array $response) {
         if (empty($response['answer'])) {
-            return array();
+            return array($this->id => question_classified_response::no_response());
         }
+
         $ans = $this->get_matching_answer($response);
         if (!$ans) {
-            return array();
+            return array($this->id => question_classified_response::no_response());
         }
         return array($this->id => new question_classified_response(
                 $ans->id, $response['answer'], $ans->fraction));

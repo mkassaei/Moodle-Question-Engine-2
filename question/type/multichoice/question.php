@@ -123,11 +123,11 @@ class qtype_multichoice_single_question extends qtype_multichoice_base {
     public function classify_response(array $response) {
         if (!array_key_exists('answer', $response) ||
                 !array_key_exists($response['answer'], $this->order)) {
-            return array();
+            return array(question_classified_response::no_response());
         }
         $choiceid = $this->order[$response['answer']];
         $ans = $this->answers[$choiceid];
-        return array(new question_classified_response($choiceid,
+        return array($this->id => new question_classified_response($choiceid,
                 html_to_text($this->format_text($ans->answer)), $ans->fraction));
     }
 
@@ -250,7 +250,7 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
         $choices = array();
         foreach ($this->answers as $ansid => $ans) {
             if (isset($selectedchoices[$ansid])) {
-                $choices[] = new question_classified_response($ansid,
+                $choices[$ansid] = new question_classified_response($ansid,
                         html_to_text($this->format_text($ans->answer)), $ans->fraction);
             }
         }

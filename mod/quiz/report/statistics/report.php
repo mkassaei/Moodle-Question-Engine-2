@@ -346,7 +346,11 @@ class quiz_statistics_report extends quiz_default_report {
 
                 $responsesdata = $responesstats->responses[$partid][$responseclassid];
                 if (empty($responsesdata)) {
-                    $rowdata->response = '';
+                    if (!array_key_exists('responseclass', $qtable->columns)) {
+                        $rowdata->response = $responseclass->responseclass;
+                    } else {
+                        $rowdata->response = '';
+                    }
                     $rowdata->fraction = $responseclass->fraction;
                     $rowdata->count = 0;
                     $qtable->add_data_keyed($qtable->format_row($rowdata));
@@ -529,15 +533,18 @@ class quiz_statistics_report extends quiz_default_report {
      * Return the stats data for when there are no stats to show.
      *
      * @param array $questions question definitions.
+     * @param integer $firstattemptscount number of first attempts (optional).
+     * @param integer $firstattemptscount total number of attempts (optional).
      * @return array with three elements:
      *      - integer $s Number of attempts included in the stats (0).
      *      - array $quizstats The statistics for overall attempt scores.
      *      - array $qstats The statistics for each question.
      */
-    protected function get_emtpy_stats($questions) {
+    protected function get_emtpy_stats($questions, $firstattemptscount = 0,
+            $allattemptscount = 0) {
         $quizstats = new stdClass;
-        $quizstats->firstattemptscount = 0;
-        $quizstats->allattemptscount = 0;
+        $quizstats->firstattemptscount = $firstattemptscount;
+        $quizstats->allattemptscount = $allattemptscount;
 
         $qstats = new stdClass;
         $qstats->questions = $questions;
@@ -571,7 +578,7 @@ class quiz_statistics_report extends quiz_default_report {
         }
 
         list($fromqa, $whereqa, $qaparams) = quiz_statistics_attempts_sql(
-                $quizid, $currentgroup, $groupstudents);
+                $quizid, $currentgroup, $groupstudents, true);
 
         $attempttotals = get_records_sql("
                 SELECT
@@ -586,7 +593,15 @@ class quiz_statistics_report extends quiz_default_report {
             return $this->get_emtpy_stats($questions);
         }
 
-        $firstattempts = $attempttotals[1];
+        if (isset($attempttotals[1])) {
+            $firstattempts = $attempttotals[1];
+            $firstattempts->average = $firstattempts->total / $firstattempts->countrecs;
+        } else {
+            $firstattempts = new stdClass;
+            $firstattempts->countrecs = 0;
+            $firstattempts->total = 0;
+            $firstattempts->average = '-';
+        }
 
         $allattempts = new stdClass;
         if (isset($attempttotals[0])) {
@@ -606,17 +621,17 @@ class quiz_statistics_report extends quiz_default_report {
         }
 
         $s = $usingattempts->countrecs;
-        $summarksavg = $usingattempts->total / $usingattempts->countrecs;
-
         if ($s == 0) {
-            return $this->get_emtpy_stats($questions);
+            return $this->get_emtpy_stats($questions, $firstattempts->countrecs,
+                    $allattempts->countrecs);
         }
+        $summarksavg = $usingattempts->total / $usingattempts->countrecs;
 
         $quizstats = new stdClass;
         $quizstats->allattempts = $useallattempts;
         $quizstats->firstattemptscount = $firstattempts->countrecs;
         $quizstats->allattemptscount = $allattempts->countrecs;
-        $quizstats->firstattemptsavg = $firstattempts->total / $firstattempts->countrecs;
+        $quizstats->firstattemptsavg = $firstattempts->average;
         $quizstats->allattemptsavg = $allattempts->total / $allattempts->countrecs;
 
         // Recalculate sql again this time possibly including test for first attempt.
@@ -966,34 +981,6 @@ class quiz_statistics_report extends quiz_default_report {
         if (!delete_records_select('quiz_question_response_stats', "quizstatisticsid $todeletesql")) {
             mtrace('Error deleting out of date quiz_question_response_stats records.');
         }
-    }
-
-    /**
-     * Comparison callback for response details. Sorts by decreasing fraction, then answer.
-     * @param object $detail1 object to compare
-     * @param object $detail2 object to compare
-     * @return number -1, 0 or 1, depending on whether $detail1 should come before or after $detail2.
-     */
-    protected function sort_response_details($detail1, $detail2) {
-        if ($detail1->credit == $detail2->credit) {
-            return strcmp($detail1->answer, $detail2->answer);
-        }
-
-        return ($detail1->credit > $detail2->credit) ? -1 : 1;
-    }
-
-    /**
-     * Comparison callback for answers. Sorts by decreasing frequency, then response.
-     * @param object $answer1 object to compare
-     * @param object $answer2 object to compare
-     * @return number -1, 0 or 1, depending on whether $answer1 should come before or after $answer2.
-     */
-    protected function sort_answers($answer1, $answer2) {
-        if ($answer1->rcount == $answer2->rcount) {
-            return strcmp($answer1->response, $answer2->response);
-        }
-
-        return ($answer1->rcount > $answer2->rcount) ? -1 : 1;
     }
 
     /**

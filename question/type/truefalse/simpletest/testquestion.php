@@ -87,11 +87,13 @@ class qtype_truefalse_question_test extends UnitTestCase {
         $tf->init_first_step(new question_attempt_step());
 
         $this->assertEqual(array(
-                new question_classified_response(0, get_string('false', 'qtype_truefalse'), 0.0)),
+                $tf->id => new question_classified_response(0, get_string('false', 'qtype_truefalse'), 0.0)),
                 $tf->classify_response(array('answer' => '0')));
         $this->assertEqual(array(
-                new question_classified_response(1, get_string('true', 'qtype_truefalse'), 1.0)),
+                $tf->id => new question_classified_response(1, get_string('true', 'qtype_truefalse'), 1.0)),
                 $tf->classify_response(array('answer' => '1')));
-        $this->assertEqual(array(), $tf->classify_response(array()));
+        $this->assertEqual(array(
+                $tf->id => question_classified_response::no_response()),
+                $tf->classify_response(array()));
     }
 }

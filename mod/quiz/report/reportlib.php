@@ -282,6 +282,9 @@ function quiz_report_scale_summarks_as_percentage($rawmark, $quiz, $round = true
     if ($quiz->sumgrades == 0) {
         return '';
     }
+    if (!is_numeric($rawmark)) {
+        return $rawmark;
+    }
 
     $mark = $rawmark * 100 / $quiz->sumgrades;
     if ($round) {

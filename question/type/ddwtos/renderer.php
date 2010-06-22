@@ -188,4 +188,23 @@ class qtype_ddwtos_renderer extends qtype_with_overall_feedback_renderer {
         }
         return $output;
     }
+
+    public function correct_response(question_attempt $qa) {
+        $question = $qa->get_question();
+
+        $correctanswer = '';
+        foreach ($question->textfragments as $i => $fragment) {
+            if ($i > 0) {
+                $group = $question->places[$i];
+                $choice = $question->choices[$group][$question->get_right_choice_for($i)];
+                $correctanswer .= '[' . str_replace('-', '&#x2011;',
+                        $choice->text) . ']';
+            }
+            $correctanswer .= $fragment;
+        }
+
+        if (!empty($correctanswer)) {
+            return get_string('correctansweris', 'qtype_match', $correctanswer);
+        }
+    }
 }

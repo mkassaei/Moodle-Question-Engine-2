@@ -147,6 +147,7 @@ class qtype_shortanswer extends question_type {
             $responses[$aid] = new question_possible_response($answer->answer,
                     $answer->fraction);
         }
+        $responses[null] = question_possible_response::no_response();
 
         return array($questiondata->id => $responses);
     }

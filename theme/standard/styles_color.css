@@ -1133,13 +1133,18 @@ table.quizreviewsummary td.cell {
 }
 #quiznavigation .qnbutton.correct {
   background-color: #cfc;
+  border-bottom: 0.27em solid #080;
+  height: 1.3em;
 }
 #quiznavigation .qnbutton.partiallycorrect {
   background-color: #ffa;
 }
 #quiznavigation .qnbutton.notanswered,
 #quiznavigation .qnbutton.incorrect {
-      background-color: #fcc;
+  background-color: #fcc;
+  border-top: 0.27em solid #800;
+  height: 1.3em;
+  line-height: 1.23em !important;
 }
 
 /***

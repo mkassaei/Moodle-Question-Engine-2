@@ -214,6 +214,7 @@ class qtype_ddwtos_question_test extends UnitTestCase {
                     3 => new question_classified_response(1, 'lazy', 1),
                 ), $dd->classify_response(array('p1' => 1, 'p2' => 2, 'p3' => 1)));
         $this->assertEqual(array(
+                    1 => question_classified_response::no_response(),
                     2 => new question_classified_response(1, 'fox', 1),
                     3 => new question_classified_response(2, 'assiduous', 0),
                 ), $dd->classify_response(array('p1' => 0, 'p2' => 1, 'p3' => 2)));

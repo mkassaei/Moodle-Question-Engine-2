@@ -109,6 +109,8 @@ class qtype_numerical_question_test extends UnitTestCase {
         $this->assertEqual(array(
                 new question_classified_response(0, '3.14', 1.0)),
                 $num->classify_response(array('answer' => '3.14')));
-        $this->assertEqual(array(), $num->classify_response(array('answer' => '')));
+        $this->assertEqual(array(
+                question_classified_response::no_response()),
+                $num->classify_response(array('answer' => '')));
     }
 }

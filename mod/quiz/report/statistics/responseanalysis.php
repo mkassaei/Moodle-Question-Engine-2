@@ -132,6 +132,8 @@ class quiz_statistics_response_analyser {
      * @param question_attempt $qa the data to analyse.
      */
     protected function add_data_from_one_attempt(question_attempt $qa) {
+        $blankresponse = question_classified_response::no_response();
+
         $partresponses = $qa->classify_response();
         foreach ($partresponses as $subpartid => $partresponse) {
             if (!isset($this->responses[$subpartid][$partresponse->responseclassid][$partresponse->response])) {
@@ -193,7 +195,11 @@ class quiz_statistics_response_analyser {
                     $row->quizstatisticsid = $quizstatisticsid;
                     $row->questionid = $this->questiondata->id;
                     $row->subqid = $subpartid;
-                    $row->aid = $responseclassid;
+                    if ($responseclassid === '') {
+                        $row->aid = null;
+                    } else {
+                        $row->aid = $responseclassid;
+                    }
                     $row->response = $response;
                     $row->rcount = $data->count;
                     $row->credit = $data->fraction;

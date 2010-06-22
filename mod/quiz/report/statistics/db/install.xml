@@ -56,7 +56,7 @@
         <FIELD NAME="quizstatisticsid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="questionid"/>
         <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="quizstatisticsid" NEXT="subqid"/>
         <FIELD NAME="subqid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="questionid" NEXT="aid"/>
-        <FIELD NAME="aid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="subqid" NEXT="response"/>
+        <FIELD NAME="aid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="subqid" NEXT="response"/>
         <FIELD NAME="response" TYPE="text" LENGTH="big" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="aid" NEXT="rcount"/>
         <FIELD NAME="rcount" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="response" NEXT="credit"/>
         <FIELD NAME="credit" TYPE="number" LENGTH="15" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" DECIMALS="5" PREVIOUS="rcount"/>

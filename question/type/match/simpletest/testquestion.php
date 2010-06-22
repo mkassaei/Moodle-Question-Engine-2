@@ -161,6 +161,8 @@ class qtype_match_question_test extends UnitTestCase {
         $this->assertEqual(array(
                     1 => new question_classified_response(2, 'Amphibian', 0),
                     2 => new question_classified_response(3, 'Insect', 0),
+                    3 => question_classified_response::no_response(),
+                    4 => question_classified_response::no_response(),
                 ), $match->classify_response(array('sub0' => $orderforchoice[2],
                         'sub1' => $orderforchoice[3], 'sub2' => 0, 'sub3' => 0)));
         $this->assertEqual(array(

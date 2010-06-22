@@ -240,14 +240,25 @@ class qtype_multichoice extends question_type {
     }
 
     function get_possible_responses($questiondata) {
-        $responses = array();
+        if ($questiondata->options->single) {
+            $responses = array();
 
-        foreach ($questiondata->options->answers as $aid => $answer) {
-            $responses[$aid] = new question_possible_response($answer->answer,
-                    $answer->fraction);
+            foreach ($questiondata->options->answers as $aid => $answer) {
+                $responses[$aid] = new question_possible_response($answer->answer,
+                        $answer->fraction);
+            }
+
+            return array($questiondata->id => $responses);
+        } else {
+            $parts = array();
+
+            foreach ($questiondata->options->answers as $aid => $answer) {
+                $parts[$aid] = array($aid =>
+                        new question_possible_response($answer->answer, $answer->fraction));
+            }
+
+            return $parts;
         }
-
-        return array($questiondata->id => $responses);
     }
 
 /// BACKUP FUNCTIONS ////////////////////////////

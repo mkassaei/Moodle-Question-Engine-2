@@ -198,6 +198,7 @@ class qtype_match extends question_type {
                         html_to_text($q->format_text($stem)) . ': ' . html_to_text($q->format_text($choice)),
                         $choiceid == $q->right[$stemid]);
             }
+            $responses[null] = question_possible_response::no_response();
 
             $subqs[$stemid] = $responses;
         }

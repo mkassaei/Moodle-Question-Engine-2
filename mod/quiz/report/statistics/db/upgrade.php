@@ -66,5 +66,16 @@ function xmldb_quizreport_statistics_upgrade($oldversion) {
         $result = $result && delete_records('quiz_statistics');
     }
 
+    if ($result && $oldversion < 2010062200) {
+
+    /// Changing nullability of field aid on table quiz_question_response_stats to null
+        $table = new XMLDBTable('quiz_question_response_stats');
+        $field = new XMLDBField('aid');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, null, 'subqid');
+
+    /// Launch change of nullability for field aid
+        $result = $result && change_field_notnull($table, $field);
+    }
+
     return $result;
 }

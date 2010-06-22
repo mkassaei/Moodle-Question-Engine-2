@@ -63,17 +63,11 @@ class qtype_truefalse_test extends UnitTestCase {
         $q->options->answers[1] = (object) array('fraction' => 1);
         $q->options->answers[2] = (object) array('fraction' => 0);
 
-        $responses = $this->qtype->get_possible_responses($q);
-
-        $this->assertEqual(1, count($responses));
-
-        $response = reset($responses);
-        $this->assertEqual(2, count($response));
-
-        $this->assertEqual(0, $response[0]->fraction);
-        $this->assertEqual(get_string('false', 'qtype_truefalse'), $response[0]->responseclass);
-
-        $this->assertEqual(1, $response[1]->fraction);
-        $this->assertEqual(get_string('true', 'qtype_truefalse'), $response[1]->responseclass);
+        $this->assertEqual(array(
+            $q->id => array(
+                0 => new question_possible_response(get_string('false', 'qtype_truefalse'), 0),
+                1 => new question_possible_response(get_string('true', 'qtype_truefalse'), 1),
+                null => question_possible_response::no_response()),
+        ), $this->qtype->get_possible_responses($q));
     }
 }
