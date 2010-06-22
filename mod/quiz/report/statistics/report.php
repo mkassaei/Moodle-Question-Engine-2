@@ -620,7 +620,8 @@ class quiz_statistics_report extends quiz_default_report {
         $quizstats->allattemptsavg = $allattempts->total / $allattempts->countrecs;
 
         // Recalculate sql again this time possibly including test for first attempt.
-        list($fromqa, $whereqa, $qaparams) = quiz_statistics_attempts_sql($quizid, $currentgroup, $groupstudents, $useallattempts);
+        list($fromqa, $whereqa, $qaparams) = quiz_statistics_attempts_sql(
+                $quizid, $currentgroup, $groupstudents, $useallattempts);
 
         // Median
         if ($s % 2 == 0) {
@@ -909,7 +910,8 @@ class quiz_statistics_report extends quiz_default_report {
         }
 
         // Find the number of attempts since the cached statistics were computed.
-        list($fromqa, $whereqa, $qaparams) = quiz_statistics_attempts_sql($quizid, $currentgroup, $groupstudents, $useallattempts);
+        list($fromqa, $whereqa, $qaparams) = quiz_statistics_attempts_sql(
+                $quizid, $currentgroup, $groupstudents, $useallattempts, true);
         $count = count_records_sql("
                 SELECT COUNT(1)
                 FROM $fromqa
@@ -1008,7 +1010,7 @@ class quiz_statistics_report extends quiz_default_report {
 }
 
 function quiz_statistics_attempts_sql($quizid, $currentgroup, $groupstudents,
-        $allattempts = true, $includeungraded = true) {
+        $allattempts = true, $includeungraded = false) {
     global $CFG;
 
     $fromqa = "{$CFG->prefix}quiz_attempts quiza ";
@@ -1040,7 +1042,7 @@ function quiz_statistics_attempts_sql($quizid, $currentgroup, $groupstudents,
  * @param string $whereqa from quiz_statistics_attempts_sql.
  */
 function quiz_statistics_qubaids_condition($quizid, $currentgroup, $groupstudents,
-        $allattempts = true, $includeungraded = true) {
+        $allattempts = true, $includeungraded = false) {
     list($fromqa, $whereqa) = quiz_statistics_attempts_sql($quizid, $currentgroup,
             $groupstudents, $allattempts, $includeungraded);
     return new qubaid_join($fromqa, 'quiza.uniqueid', $whereqa);
