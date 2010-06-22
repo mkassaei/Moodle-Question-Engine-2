@@ -39,5 +39,17 @@ class question_reportlib_test extends UnitTestCase {
         $this->assertEqual($indexed[101][3][0]->response, '');
         $this->assertEqual($indexed[101][3][0]->grade, 3);
     }
+
+        function test_quiz_report_scale_summarks_as_percentage() {
+            $quiz = new stdClass;
+            $quiz->sumgrades = 10;
+            $quiz->decimalpoints = 2;
+
+            $this->assertEqual('12.34567%',
+                    quiz_report_scale_summarks_as_percentage(1.234567, $quiz, false));
+            $this->assertEqual('12.35%',
+                    quiz_report_scale_summarks_as_percentage(1.234567, $quiz, true));
+            $this->assertEqual('-',
+                    quiz_report_scale_summarks_as_percentage('-', $quiz, true));
+        }
 }
-?>
