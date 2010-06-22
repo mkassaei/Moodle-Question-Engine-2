@@ -590,5 +590,13 @@ abstract class quiz_attempt_report_table extends table_sql {
             $this->lateststeps = $this->load_question_latest_steps($qubaids);
         }
     }
+
+    public function get_sort_columns() {
+        // Add attemptid as a final tie-break to the sort. This ensures that
+        // Attempts by the same student appear in order when just sorting by name.
+        $sortcolumns = parent::get_sort_columns();
+        $sortcolumns['quiza.id'] = SORT_ASC;
+        return $sortcolumns;
+    }
 }
 
