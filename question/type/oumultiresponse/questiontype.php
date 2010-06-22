@@ -244,6 +244,17 @@ class qtype_oumultiresponse extends question_type {
         return $numright / count($questiondata->options->answers);
     }
 
+    function get_possible_responses($questiondata) {
+        $parts = array();
+
+        foreach ($questiondata->options->answers as $aid => $answer) {
+            $parts[$aid] = array($aid =>
+                    new question_possible_response($answer->answer, $answer->fraction));
+        }
+
+        return $parts;
+    }
+
     function import_from_xml($data, $question, $format, $extra=null) {
         if (!isset($data['@']['type']) || $data['@']['type'] != 'oumultiresponse') {
             return false;

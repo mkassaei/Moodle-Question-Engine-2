@@ -118,36 +118,21 @@ class qtype_ddwtos_test extends UnitTestCase {
 
     public function test_get_possible_responses() {
         $q = $this->get_test_question_data();
-        $responses = $this->qtype->get_possible_responses($q);
 
-        $this->assertEqual(3, count($responses));
-
-        $response = array_shift($responses);
-        $this->assertEqual(2, count($response));
-
-        $this->assertEqual(1, $response[1]->fraction);
-        $this->assertEqual('quick', $response[1]->responseclass);
-
-        $this->assertEqual(0, $response[2]->fraction);
-        $this->assertEqual('slow', $response[2]->responseclass);
-
-        $response = array_shift($responses);
-        $this->assertEqual(2, count($response));
-
-        $this->assertEqual(1, $response[1]->fraction);
-        $this->assertEqual('fox', $response[1]->responseclass);
-
-        $this->assertEqual(0, $response[2]->fraction);
-        $this->assertEqual('dog', $response[2]->responseclass);
-
-        $response = array_shift($responses);
-        $this->assertEqual(2, count($response));
-
-        $this->assertEqual(1, $response[1]->fraction);
-        $this->assertEqual('lazy', $response[1]->responseclass);
-
-        $this->assertEqual(0, $response[2]->fraction);
-        $this->assertEqual('assiduous', $response[2]->responseclass);
+        $this->assertEqual(array(
+            1 => array(
+                1 => new question_possible_response('quick', 1),
+                2 => new question_possible_response('slow', 0),
+                null => question_possible_response::no_response()),
+            2 => array(
+                1 => new question_possible_response('fox', 1),
+                2 => new question_possible_response('dog', 0),
+                null => question_possible_response::no_response()),
+            3 => array(
+                1 => new question_possible_response('lazy', 1),
+                2 => new question_possible_response('assiduous', 0),
+                null => question_possible_response::no_response()),
+        ), $this->qtype->get_possible_responses($q));
     }
 
     public function test_xml_import() {
