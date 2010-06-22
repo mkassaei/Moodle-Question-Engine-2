@@ -559,6 +559,10 @@ class qbehaviour_walkthrough_test_base extends UnitTestCase {
         return new PatternExpectation('/' . preg_quote(get_string('triesremaining', 'qbehaviour_interactive', $n)) . '/');
     }
 
+    protected function get_invalid_answer_expectation() {
+        return new PatternExpectation('/' . preg_quote(get_string('invalidanswer', 'question')) . '/');
+    }
+
     protected function get_contains_try_again_button_expectation($enabled = null) {
         $expectedattributes = array(
             'type' => 'submit',

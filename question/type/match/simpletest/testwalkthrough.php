@@ -293,7 +293,7 @@ class qtype_match_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_select_expectation('sub3', $choices, null, true),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
-                $this->get_tries_remaining_expectation(3),
+                $this->get_invalid_answer_expectation(),
                 $this->get_no_hint_visible_expectation());
 
         // Now submit the right answer.
