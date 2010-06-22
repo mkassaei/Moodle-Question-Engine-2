@@ -159,25 +159,28 @@ class quiz_statistics_report extends quiz_default_report {
             // Overall report, then the analysis of each question.
             $this->download_quiz_info_table($quizinfo);
 
-            $this->output_quiz_structure_analysis_table($s, $questions, $subquestions);
+            if ($s) {
+                $this->output_quiz_structure_analysis_table($s, $questions, $subquestions);
 
-            if ($this->table->is_downloading() == 'xhtml') {
-                $this->output_statistics_graph($quizstats->id, $s);
-            }
+                if ($this->table->is_downloading() == 'xhtml') {
+                    $this->output_statistics_graph($quizstats->id, $s);
+                }
 
-            foreach ($questions as $question) {
-                if (question_bank::get_qtype($question->qtype, false)->can_analyse_responses()) {
-                    $this->output_individual_question_response_analysis(
-                            $question, $reporturl, $quizstats);
-
-                } else if (!empty($question->_stats->subquestions)) {
-                    $subitemstodisplay = explode(',', $question->_stats->subquestions);
-                    foreach ($subitemstodisplay as $subitemid) {
+                foreach ($questions as $question) {
+                    if (question_bank::get_qtype($question->qtype, false)->can_analyse_responses()) {
                         $this->output_individual_question_response_analysis(
-                                $subquestions[$subitemid], $reporturl, $quizstats);
+                                $question, $reporturl, $quizstats);
+
+                    } else if (!empty($question->_stats->subquestions)) {
+                        $subitemstodisplay = explode(',', $question->_stats->subquestions);
+                        foreach ($subitemstodisplay as $subitemid) {
+                            $this->output_individual_question_response_analysis(
+                                    $subquestions[$subitemid], $reporturl, $quizstats);
+                        }
                     }
                 }
             }
+
             $this->table->export_class_instance()->finish_document();
 
         } else if ($qnumber) {
@@ -222,9 +225,11 @@ class quiz_statistics_report extends quiz_default_report {
             echo $this->output_caching_info($quizstats, $quiz->id, $currentgroup, $groupstudents, $useallattempts, $reporturl);
             echo $this->everything_download_options();
             $this->output_quiz_info_table($quizinfo);
-            print_heading(get_string('quizstructureanalysis', 'quiz_statistics'));
-            $this->output_quiz_structure_analysis_table($s, $questions, $subquestions);
-            $this->output_statistics_graph($quizstats->id, $s);
+            if ($s) {
+                print_heading(get_string('quizstructureanalysis', 'quiz_statistics'));
+                $this->output_quiz_structure_analysis_table($s, $questions, $subquestions);
+                $this->output_statistics_graph($quizstats->id, $s);
+            }
         }
 
         return true;
@@ -447,7 +452,8 @@ class quiz_statistics_report extends quiz_default_report {
             }
 
             $quizinfo[get_string($property, 'quiz_statistics',
-                    $this->using_attempts_string($quizstats->allattempts))] = $formattedvalue;
+                    $this->using_attempts_string(!empty($quizstats->allattempts)))] =
+                    $formattedvalue;
         }
 
         return $quizinfo;
@@ -823,10 +829,10 @@ class quiz_statistics_report extends quiz_default_report {
             list($s, $quizstats, $qstats) = $this->compute_stats($quiz->id,
                     $currentgroup, $nostudentsingroup, $useallattempts, $groupstudents, $questions);
 
-            $questions = $qstats->questions;
-            $subquestions = $qstats->subquestions;
-
             if ($s) {
+                $questions = $qstats->questions;
+                $subquestions = $qstats->subquestions;
+
                 $quizstatisticsid = $this->cache_stats($quiz->id, $currentgroup,
                         $quizstats, $questions, $subquestions);
 

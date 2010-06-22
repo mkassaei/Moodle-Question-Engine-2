@@ -133,6 +133,10 @@ class quiz_statistics_response_analyser {
      */
     protected function add_data_from_one_attempt(question_attempt $qa) {
         $partresponses = $qa->classify_response();
+        if (!is_array($partresponses)) {
+            print_object($this->question);
+            print_object($partresponses);
+        }
         foreach ($partresponses as $subpartid => $partresponse) {
             if (!isset($this->responses[$subpartid][$partresponse->responseclassid][$partresponse->response])) {
                 $resp = new stdClass;
