@@ -719,7 +719,8 @@ class quiz_attempt {
      * @return string the formatted grade, to the number of decimal places specified by the quiz.
      */
     public function get_question_status($qnumber) {
-        return $this->quba->get_question_attempt($qnumber)->get_state_string();
+        return $this->quba->get_question_attempt($qnumber)->get_state_string(
+                $this->get_review_options()->correctness);
     }
 
     /**
@@ -1040,7 +1041,8 @@ abstract class quiz_nav_panel_base {
         $html = '<div class="qn_buttons">' . "\n";
         foreach ($this->attemptobj->get_question_numbers() as $qnumber) {
             $qa = $this->attemptobj->get_question_attempt($qnumber);
-            $html .= $this->get_question_button($qa, $qa->get_question()->_number) . "\n" .
+            $html .= $this->get_question_button($qa, $qa->get_question()->_number,
+                    $this->options->correctness) . "\n" .
                     $this->get_button_update_script($qa) . "\n";
         }
         $html .= "</div>\n";
@@ -1057,7 +1059,7 @@ abstract class quiz_nav_panel_base {
                 array($this->get_button_id($qa), $qa->get_number_in_usage()), true);
     }
 
-    abstract protected function get_question_button(question_attempt $qa, $number);
+    abstract protected function get_question_button(question_attempt $qa, $number, $showcorrectness);
 
     abstract protected function get_end_bits();
 
@@ -1071,9 +1073,9 @@ abstract class quiz_nav_panel_base {
         return $output;
     }
 
-    protected function get_question_state_classes(question_attempt $qa) {
+    protected function get_question_state_classes(question_attempt $qa, $showcorrectness) {
         // The current status of the question.
-        $classes = $qa->get_state()->get_state_class();
+        $classes = $qa->get_state()->get_state_class($showcorrectness);
 
         // Plus a marker for the current page.
         if ($qa->get_question()->_page == $this->page) {
@@ -1100,11 +1102,12 @@ abstract class quiz_nav_panel_base {
 }
 
 class quiz_attempt_nav_panel extends quiz_nav_panel_base {
-    protected function get_question_button(question_attempt $qa, $number) {
+    protected function get_question_button(question_attempt $qa, $number, $showcorrectness) {
         $questionsonpage = $this->attemptobj->get_question_numbers($qa->get_question()->_page);
         $output = '<input type="submit" name="gotopage' . $qa->get_question()->_page .
                 '" value="' . $number . '" class="qnbutton ' .
-                $this->get_question_state_classes($qa) . '" id="' . $this->get_button_id($qa) . '" />';
+                $this->get_question_state_classes($qa, $showcorrectness) .
+                '" id="' . $this->get_button_id($qa) . '" />';
         if ($qa->get_number_in_usage() != reset($questionsonpage)) {
             $output .= print_js_call('quiz_init_nav_button_scroll_down',
                     array($this->get_button_id($qa), $qa->get_number_in_usage()), true);
@@ -1122,11 +1125,12 @@ class quiz_attempt_nav_panel extends quiz_nav_panel_base {
 }
 
 class quiz_review_nav_panel extends quiz_nav_panel_base {
-    protected function get_question_button(question_attempt $qa, $number) {
-        $strstate = $qa->get_state_string();
+    protected function get_question_button(question_attempt $qa, $number, $showcorrectness) {
+        $strstate = $qa->get_state_string($showcorrectness);
         return '<a href="' . $this->attemptobj->review_url($qa->get_number_in_usage()) .
-                '" class="qnbutton ' . $this->get_question_state_classes($qa) . '" id="' .
-                $this->get_button_id($qa) . '" title="' . $strstate . '">' . $number . '<span class="accesshide">(' . $strstate . '</span></a>';
+                '" class="qnbutton ' . $this->get_question_state_classes($qa, $showcorrectness) .
+                '" id="' . $this->get_button_id($qa) . '" title="' . $strstate . '">' .
+                $number . '<span class="accesshide">(' . $strstate . '</span></a>';
     }
 
     protected function get_end_bits() {

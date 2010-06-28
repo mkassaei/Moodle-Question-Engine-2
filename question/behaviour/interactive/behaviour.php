@@ -111,10 +111,10 @@ class qbehaviour_interactive extends question_behaviour_with_save {
         return parent::get_expected_qt_data();
     }
 
-    public function get_state_string() {
+    public function get_state_string($showcorrectness) {
         $state = $this->qa->get_state();
         if (!$state->is_active() || $state == question_state::$invalid) {
-            return parent::get_state_string();
+            return parent::get_state_string($showcorrectness);
         }
 
         if ($this->is_try_again_state()) {

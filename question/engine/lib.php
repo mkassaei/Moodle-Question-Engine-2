@@ -274,22 +274,30 @@ class question_display_options {
     public $clearwrong = false;
 
     /**
-     * Not really used withing the question engine (at least at the moment.)
-     * The only way to not show the response the student entered is to not display
-     * the question in its current state at all. (This is how this field is
-     * used in the quiz at the moment.)
-     * @var integer {@link question_display_options::HIDDEN} or
-     * {@link question_display_options::VISIBLE}
-     */
-    public $responses = self::VISIBLE;
-
-    /**
      * Should the one-line summary of the current state of the question that
      * appears by the question number be shown?
      * @var integer {@link question_display_options::HIDDEN} or
      * {@link question_display_options::VISIBLE}
      */
     public $correctness = self::VISIBLE;
+
+    /**
+     * The the mark and/or the maximum available mark for this question be visible?
+     * @var integer {@link question_display_options::HIDDEN},
+     * {@link question_display_options::MAX_ONLY} or {@link question_display_options::MARK_AND_MAX}
+     */
+    public $marks = self::MARK_AND_MAX;
+
+    /** @var number of decimal places to use when formatting marks for output. */
+    public $markdp = 2;
+
+    /**
+     * Should the flag this question UI element be visible, and if so, should the
+     * flag state be changable?
+     * @var integer {@link question_display_options::HIDDEN},
+     * {@link question_display_options::VISIBLE} or {@link question_display_options::EDITABLE}
+     */
+    public $flags = self::VISIBLE;
 
     /**
      * Should the specific feedback be visible.
@@ -323,16 +331,6 @@ class question_display_options {
     public $correctresponse = self::VISIBLE;
 
     /**
-     * The the mark and/or the maximum available mark for this question be visible?
-     * @var integer {@link question_display_options::HIDDEN},
-     * {@link question_display_options::MAX_ONLY} or {@link question_display_options::MARK_AND_MAX}
-     */
-    public $marks = self::MARK_AND_MAX;
-
-    /** @var number of decimal places to use when formatting marks for output. */
-    public $markdp = 2;
-
-    /**
      * Should the manually added marker's comment be visible. Should the link for
      * adding/editing the comment be there.
      * @var integer {@link question_display_options::HIDDEN},
@@ -354,14 +352,6 @@ class question_display_options {
      * {@link question_display_options::VISIBLE}
      */
     public $history = self::HIDDEN;
-
-    /**
-     * Should the flag this question UI element be visible, and if so, should the
-     * flag state be changable?
-     * @var integer {@link question_display_options::HIDDEN},
-     * {@link question_display_options::VISIBLE} or {@link question_display_options::EDITABLE}
-     */
-    public $flags = self::VISIBLE;
 
     /**
      * Initialise an instance of this class from the kind of bitmask values stored
@@ -1527,10 +1517,12 @@ class question_attempt {
     }
 
     /**
+     * @param boolean $showcorrectness Whether right/partial/wrong states should
+     * be distinguised.
      * @return string A brief textual description of the current state.
      */
-    public function get_state_string() {
-        return $this->behaviour->get_state_string();
+    public function get_state_string($showcorrectness) {
+        return $this->behaviour->get_state_string($showcorrectness);
     }
 
     /**

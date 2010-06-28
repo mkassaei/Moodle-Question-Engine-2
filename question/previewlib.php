@@ -35,6 +35,11 @@ class preview_options_form extends moodleform {
     public function definition() {
         $mform = $this->_form;
 
+        $hiddenofvisible = array(
+            question_display_options::HIDDEN => get_string('notshown', 'question'),
+            question_display_options::VISIBLE => get_string('shown', 'question'),
+        );
+
         $mform->addElement('header', 'optionsheader', get_string('changeoptions', 'question'));
 
         $mform->addElement('select', 'behaviour', get_string('howquestionsbehave', 'question'),
@@ -44,25 +49,27 @@ class preview_options_form extends moodleform {
         $mform->addElement('text', 'maxmark', get_string('markedoutof', 'question'), array('size' => '5'));
         $mform->setType('maxmark', PARAM_NUMBER);
 
+        $mform->addElement('select', 'correctness', get_string('whethercorrect', 'question'), $hiddenofvisible);
+
+        $marksoptions = array(
+            question_display_options::HIDDEN => get_string('notshown', 'question'),
+            question_display_options::MAX_ONLY => get_string('showmaxmarkonly', 'question'),
+            question_display_options::MARK_AND_MAX => get_string('showmarkandmax', 'question'),
+        );
+        $mform->addElement('select', 'marks', get_string('marks', 'question'), $marksoptions);
+
         $mform->addElement('select', 'markdp', get_string('decimalplacesingrades', 'question'),
                 question_engine::get_dp_options());
 
-        $mform->addElement('selectyesno', 'feedback', get_string('specificfeedbackvisible', 'question'));
+        $mform->addElement('select', 'feedback', get_string('specificfeedback', 'question'), $hiddenofvisible);
 
-        $mform->addElement('selectyesno', 'generalfeedback', get_string('generalfeedbackvisible', 'question'));
+        $mform->addElement('select', 'generalfeedback', get_string('generalfeedback', 'question'), $hiddenofvisible);
 
-        $mform->addElement('selectyesno', 'correctresponse', get_string('correctresponsevisible', 'question'));
+        $mform->addElement('select', 'correctresponse', get_string('rightanswer', 'question'), $hiddenofvisible);
 
-        $marksoptions = array(
-            question_display_options::HIDDEN => get_string('no'),
-            question_display_options::MAX_ONLY => get_string('maxmarkonly', 'question'),
-            question_display_options::MARK_AND_MAX => get_string('markandmax', 'question'),
-        );
-        $mform->addElement('select', 'marks', get_string('marksvisible', 'question'), $marksoptions);
+        $mform->addElement('select', 'history', get_string('responsehistory', 'question'), $hiddenofvisible);
 
-        $mform->addElement('selectyesno', 'history', get_string('responsehistoryvisible', 'question'));
-
-        $mform->addElement('submit', 'submit', get_string('restartwiththeseoptions', 'question'));
+        $mform->addElement('submit', 'submit', get_string('restartwiththeseoptions', 'question'), $hiddenofvisible);
     }
 }
 

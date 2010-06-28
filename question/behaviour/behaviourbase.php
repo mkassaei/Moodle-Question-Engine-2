@@ -282,10 +282,12 @@ abstract class question_behaviour {
      * Generate a brief textual description of the current state of the question,
      * normally displayed under the question number.
      *
+     * @param boolean $showcorrectness Whether right/partial/wrong states should
+     * be distinguised.
      * @return string a brief summary of the current state of the qestion attempt.
      */
-    public function get_state_string() {
-        return $this->qa->get_state()->default_string();
+    public function get_state_string($showcorrectness) {
+        return $this->qa->get_state()->default_string($showcorrectness);
     }
 
     abstract public function summarise_action(question_attempt_step $step);

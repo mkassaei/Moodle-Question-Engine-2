@@ -48,11 +48,12 @@ if (!$category = get_record("question_categories", "id", $question->category)) {
 }
 
 $displaysettings = array(
+    'correctness' => question_display_options::VISIBLE,
+    'marks' => question_display_options::MARK_AND_MAX,
     'markdp' => $CFG->quiz_decimalpoints,
     'feedback' => question_display_options::VISIBLE,
     'generalfeedback' => question_display_options::VISIBLE,
     'correctresponse' => question_display_options::VISIBLE,
-    'marks' => question_display_options::MARK_AND_MAX,
     'history' => question_display_options::HIDDEN
 );
 

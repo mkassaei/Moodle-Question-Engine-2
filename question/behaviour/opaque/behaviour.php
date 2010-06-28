@@ -48,11 +48,11 @@ class qbehaviour_opaque extends question_behaviour {
         return 'qtype_opaque_question';
     }
 
-    public function get_state_string() {
+    public function get_state_string($showcorrectness) {
         $state = $this->qa->get_state();
         $omstate = $this->qa->get_last_behaviour_var('_statestring');
         if ($state->is_finished()) {
-            return $state->default_string();
+            return $state->default_string($showcorrectness);
         } else if ($omstate) {
             return $omstate;
         } else {

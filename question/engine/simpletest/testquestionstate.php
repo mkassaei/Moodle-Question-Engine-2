@@ -27,6 +27,7 @@
 
 
 require_once(dirname(__FILE__) . '/../lib.php');
+require_once($CFG->libdir . '/questionlib.php');
 
 class question_state_test extends UnitTestCase {
     public function test_is_active() {

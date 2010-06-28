@@ -465,7 +465,7 @@ abstract class quiz_attempt_report_table extends table_sql {
             $feedbackimg = question_get_feedback_image($stepdata->fraction);
         }
 
-        $output = '<span class="que"><span class="' . $state->get_state_class() . '">' .
+        $output = '<span class="que"><span class="' . $state->get_state_class(true) . '">' .
                 $data . " $feedbackimg $flag</span></span>";
 
         $output = link_to_popup_window('/mod/quiz/reviewquestion.php?attempt=' .

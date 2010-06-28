@@ -62,7 +62,7 @@ class qbehaviour_adaptive extends question_behaviour_with_save {
         }
     }
 
-    public function get_state_string() {
+    public function get_state_string($showcorrectness) {
         $state = $this->qa->get_state();
 
         $laststep = $this->qa->get_last_step();
@@ -71,7 +71,7 @@ class qbehaviour_adaptive extends question_behaviour_with_save {
                     $laststep->get_behaviour_var('_rawfraction'));
         }
 
-        return $state->default_string();
+        return $state->default_string($showcorrectness);
     }
 
     public function process_action(question_attempt_pending_step $pendingstep) {
