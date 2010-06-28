@@ -616,7 +616,7 @@ function question_preview_url($questionid, $preferredbehaviour, $maxmark, $displ
                 '&markdp=' . $displayoptions->markdp .
                 '&feedback=' . (bool) $displayoptions->feedback .
                 '&generalfeedback=' . (bool) $displayoptions->generalfeedback .
-                '&correctresponse=' . (bool) $displayoptions->correctresponse .
+                '&rightanswer=' . (bool) $displayoptions->rightanswer .
                 '&history=' . (bool) $displayoptions->history;
 }
 

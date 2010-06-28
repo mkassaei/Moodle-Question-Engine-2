@@ -42,7 +42,7 @@ class qbehaviour_manualgraded extends question_behaviour_with_save {
         if ($this->qa->get_state()->is_finished()) {
             $options->readonly = true;
             $options->feedback = question_display_options::HIDDEN;
-            $options->correctresponse = question_display_options::HIDDEN;
+            $options->rightanswer = question_display_options::HIDDEN;
 
         } else {
             $options->hide_all_feedback();

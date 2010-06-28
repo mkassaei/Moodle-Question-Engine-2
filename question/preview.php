@@ -53,7 +53,7 @@ $displaysettings = array(
     'markdp' => $CFG->quiz_decimalpoints,
     'feedback' => question_display_options::VISIBLE,
     'generalfeedback' => question_display_options::VISIBLE,
-    'correctresponse' => question_display_options::VISIBLE,
+    'rightanswer' => question_display_options::VISIBLE,
     'history' => question_display_options::HIDDEN
 );
 

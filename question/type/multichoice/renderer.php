@@ -90,7 +90,7 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_overall_feedba
                     html_writer::tag('label', $this->number_in_style($value, $question->answernumbering) .
                         $question->format_text($ans->answer), array('for' => $inputattributes['id']));
 
-            if (($options->feedback || $options->correctresponse) && $response !== -1) {
+            if (($options->feedback || $options->rightanswer) && $response !== -1) {
                 $feedbackimg[] = question_get_feedback_image($this->is_right($ans), $isselected && $options->feedback);
             } else {
                 $feedbackimg[] = '';
@@ -104,7 +104,7 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_overall_feedba
                 $feedback[] = '';
             }
             $class = 'r' . ($value % 2);
-            if ($options->correctresponse && $ans->fraction > 0) {
+            if ($options->rightanswer && $ans->fraction > 0) {
                 $class .= ' ' . question_get_feedback_class($this->is_right($ans));
             }
             $classes[] = $class;

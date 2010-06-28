@@ -328,7 +328,7 @@ class question_display_options {
      * @var integer {@link question_display_options::HIDDEN} or
      * {@link question_display_options::VISIBLE}
      */
-    public $correctresponse = self::VISIBLE;
+    public $rightanswer = self::VISIBLE;
 
     /**
      * Should the manually added marker's comment be visible. Should the link for
@@ -368,19 +368,19 @@ class question_display_options {
         $this->feedback = ($bitmask & QUIZ_REVIEW_FEEDBACK) != 0;
         $this->generalfeedback = ($bitmask & QUIZ_REVIEW_GENERALFEEDBACK) != 0;
         $this->marks = self::MARK_AND_MAX * (($bitmask & QUIZ_REVIEW_SCORES) != 0);
-        $this->correctresponse = ($bitmask & QUIZ_REVIEW_ANSWERS) != 0;
+        $this->rightanswer = ($bitmask & QUIZ_REVIEW_ANSWERS) != 0;
     }
 
     /**
      * Set all the feedback-related fields {@link $feedback}, {@link generalfeedback},
-     * {@link correctresponse} and {@link manualcomment} to
+     * {@link rightanswer} and {@link manualcomment} to
      * {@link question_display_options::HIDDEN}.
      */
     public function hide_all_feedback() {
         $this->feedback = self::HIDDEN;
         $this->numpartscorrect = self::HIDDEN;
         $this->generalfeedback = self::HIDDEN;
-        $this->correctresponse = self::HIDDEN;
+        $this->rightanswer = self::HIDDEN;
         $this->manualcomment = self::HIDDEN;
     }
 

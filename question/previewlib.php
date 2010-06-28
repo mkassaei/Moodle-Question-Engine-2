@@ -65,7 +65,7 @@ class preview_options_form extends moodleform {
 
         $mform->addElement('select', 'generalfeedback', get_string('generalfeedback', 'question'), $hiddenofvisible);
 
-        $mform->addElement('select', 'correctresponse', get_string('rightanswer', 'question'), $hiddenofvisible);
+        $mform->addElement('select', 'rightanswer', get_string('rightanswer', 'question'), $hiddenofvisible);
 
         $mform->addElement('select', 'history', get_string('responsehistory', 'question'), $hiddenofvisible);
 

@@ -83,7 +83,7 @@ class qtype_truefalse_renderer extends qtype_renderer {
         }
         $truefeedbackimg = '';
         $falsefeedbackimg = '';
-        if (($options->feedback || $options->correctresponse) && $response !== '') {
+        if (($options->feedback || $options->rightanswer) && $response !== '') {
             $truefeedbackimg = question_get_feedback_image($response, $truechecked && $options->feedback);
             $falsefeedbackimg = question_get_feedback_image(!$response, $falsechecked && $options->feedback);
         }
