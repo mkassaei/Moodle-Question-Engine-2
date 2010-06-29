@@ -1271,6 +1271,68 @@ function quiz_check_safe_browser() {
 
 
 /**
+ * An extension of question_display_options that includes the extra options used
+ * by the quiz.
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class mod_quiz_display_options extends question_display_options {
+    /**#@+
+     * @var integer bits used to indicate various times in relation to a
+     * quiz attempt.
+     */
+    const DURING =            0x10000;
+    const IMMEDIATELY_AFTER = 0x01000;
+    const LATER_WHILE_OPEN =  0x00100;
+    const AFTER_CLOSE =       0x00010;
+    /**#@-*/
+
+    /**
+     * @var boolean if this is false, then the student is not allowed to review
+     * anything about the attempt.
+     */
+    public $reviewattempt = true;
+
+    /**
+     * @var boolean if this is false, then the student is not allowed to review
+     * anything about the attempt.
+     */
+    public $overallfeedback = self::VISIBLE;
+
+    /**
+     * Set up the various options from the quiz settings, and a time constant.
+     * @param stdClass $quiz the quiz settings.
+     * @param integer $one of the {@link DURING}, {@link IMMEDIATELY_AFTER},
+     * {@link LATER_WHILE_OPEN} or {@link AFTER_CLOSE} constants.
+     */
+    public function set_from_quiz_options($quiz, $when) {
+        $this->reviewattempt = $this->extract($quiz->reviewattempt, $when, true, false);
+        $this->correctness = $this->extract($quiz->reviewcorrectness, $when);
+        $this->marks = $this->extract($quiz->reviewmarks, $when, self::MARK_AND_MAX);
+        $this->feedback = $this->extract($quiz->reviewspecificfeedback, $when);
+        $this->generalfeedback = $this->extract($quiz->reviewgeneralfeedback, $when);
+        $this->rightanswer = $this->extract($quiz->reviewrightanswer, $when);
+        $this->overallfeedback = $this->extract($quiz->reviewoverallfeedback, $when);
+
+        if ($quiz->questiondecimalpoints != -1) {
+            $this->markdp = $quiz->questiondecimalpoints;
+        } else {
+            $this->markdp = $quiz->decimalpoints;
+        }
+    }
+
+    protected function extract($bitmask, $bit, $whenset = self::VISIBLE, $whennotset = self::HIDDEN) {
+        if ($bitmask & $bit) {
+            return $whenset;
+        } else {
+            return $whennotset;
+        }
+    }
+}
+
+
+/**
  * A {@link qubaid_condition} for finding all the question usages belonging to
  * a particular quiz.
  *

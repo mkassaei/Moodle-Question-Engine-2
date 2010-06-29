@@ -354,24 +354,6 @@ class question_display_options {
     public $history = self::HIDDEN;
 
     /**
-     * Initialise an instance of this class from the kind of bitmask values stored
-     * in the quiz.review fields in the databas.
-     *
-     * This function probably does not belong here.
-     *
-     * @param integer $bitmask a review options bitmask from the quiz module.
-     */
-    public function set_review_options($bitmask) {
-        global $CFG;
-        require_once($CFG->dirroot . '/mod/quiz/lib.php');
-        $this->responses = ($bitmask & QUIZ_REVIEW_RESPONSES) != 0;
-        $this->feedback = ($bitmask & QUIZ_REVIEW_FEEDBACK) != 0;
-        $this->generalfeedback = ($bitmask & QUIZ_REVIEW_GENERALFEEDBACK) != 0;
-        $this->marks = self::MARK_AND_MAX * (($bitmask & QUIZ_REVIEW_SCORES) != 0);
-        $this->rightanswer = ($bitmask & QUIZ_REVIEW_ANSWERS) != 0;
-    }
-
-    /**
      * Set all the feedback-related fields {@link $feedback}, {@link generalfeedback},
      * {@link rightanswer} and {@link manualcomment} to
      * {@link question_display_options::HIDDEN}.
