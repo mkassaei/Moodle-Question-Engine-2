@@ -771,6 +771,9 @@ function quiz_print_recent_mod_activity($activity, $courseid, $detail, $modnames
 function quiz_process_options($quiz) {
     global $CFG;
     require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+    require_once($CFG->libdir . '/questionlib.php');
+
+    $quiz->timemodified = time();
 
     $quiz->timemodified = time();
 
