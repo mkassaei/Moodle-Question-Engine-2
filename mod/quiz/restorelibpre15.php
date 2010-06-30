@@ -1277,23 +1277,46 @@
             $quiz->questions = quiz_repaginate($quiz->questions, $quiz->questionsperpage);
 
             //Calculate the new review field contents (logic extracted from upgrade)
-            $review = (QUIZ_REVIEW_IMMEDIATELY & (QUIZ_REVIEW_RESPONSES + QUIZ_REVIEW_SCORES));
+            $quiz->reviewattempt =
+                    mod_quiz_display_options::DURING |
+                    mod_quiz_display_options::IMMEDIATELY_AFTER;
+            $quiz->reviewmarks =
+                    mod_quiz_display_options::DURING |
+                    mod_quiz_display_options::IMMEDIATELY_AFTER;
+            $quiz->reviewspecificfeedback = 0;
+            $quiz->reviewrightanswer = 0;
+
             if ($quiz->feedback) {
-                $review += (QUIZ_REVIEW_IMMEDIATELY & QUIZ_REVIEW_FEEDBACK);
+                $quiz->reviewspecificfeedback |=
+                        mod_quiz_display_options::DURING |
+                        mod_quiz_display_options::IMMEDIATELY_AFTER;
             }
             if ($quiz->correctanswers) {
-                $review += (QUIZ_REVIEW_IMMEDIATELY & QUIZ_REVIEW_ANSWERS);
+                $quiz->reviewrightanswer |=
+                        mod_quiz_display_options::DURING |
+                        mod_quiz_display_options::IMMEDIATELY_AFTER;
             }
+
             if ($quiz->review & 1) {
-                $review += QUIZ_REVIEW_CLOSED;
+                $quiz->reviewattempt |= mod_quiz_display_options::LATER_WHILE_OPEN;
+                $quiz->reviewmarks |= mod_quiz_display_options::LATER_WHILE_OPEN;
+                $quiz->reviewspecificfeedback |= mod_quiz_display_options::LATER_WHILE_OPEN;
+                $quiz->reviewrightanswer |= mod_quiz_display_options::LATER_WHILE_OPEN;
             }
+
             if ($quiz->review & 2) {
-                $review += QUIZ_REVIEW_OPEN;
+                $quiz->reviewattempt |= mod_quiz_display_options::AFTER_CLOSE;
+                $quiz->reviewmarks |= mod_quiz_display_options::AFTER_CLOSE;
+                $quiz->reviewspecificfeedback |= mod_quiz_display_options::AFTER_CLOSE;
+                $quiz->reviewrightanswer |= mod_quiz_display_options::AFTER_CLOSE;
             }
-            $quiz->review = $review;
+
+            $quiz->reviewcorrectness = $quiz->reviewmarks;
+            $quiz->reviewgeneralfeedback = $quiz->reviewspecificfeedback;
+            $quiz->reviewoverallfeedback = $quiz->reviewspecificfeedback;
 
             //The structure is equal to the db, so insert the quiz
-            $newid = insert_record ("quiz",$quiz);
+            $newid = insert_record('quiz', $quiz);
 
             //Do some output
             if (!defined('RESTORE_SILENTLY')) {

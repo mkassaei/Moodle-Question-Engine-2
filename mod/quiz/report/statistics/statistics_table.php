@@ -84,7 +84,7 @@ class quiz_report_statistics_table extends flexible_table {
         $columns[] = 's';
         $headers[] = get_string('attempts', 'quiz_statistics');
 
-        if ($s>1) {
+        if ($s > 1) {
             $columns[] = 'facility';
             $headers[] = get_string('facility', 'quiz_statistics');
 

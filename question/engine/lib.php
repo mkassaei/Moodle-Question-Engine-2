@@ -347,6 +347,13 @@ class question_display_options {
     public $manualcommentlink = null;
 
     /**
+     * Used in places like the question history table, to show a link to review
+     * this question in a certain state. If blank, a link is not shown.
+     * @var string base URL for a review question script.
+     */
+    public $questionreviewlink = null;
+
+    /**
      * Should the history of previous question states table be visible?
      * @var integer {@link question_display_options::HIDDEN} or
      * {@link question_display_options::VISIBLE}
@@ -682,6 +689,16 @@ class question_usage_by_activity {
      */
     public function get_question_state($qnumber) {
         return $this->get_question_attempt($qnumber)->get_state();
+    }
+
+    /**
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param boolean $showcorrectness Whether right/partial/wrong states should
+     * be distinguised.
+     * @return string A brief textual description of the current state.
+     */
+    public function get_question_state_string($qnumber, $showcorrectness) {
+        return $this->get_question_attempt($qnumber)->get_state_string($showcorrectness);
     }
 
     /**

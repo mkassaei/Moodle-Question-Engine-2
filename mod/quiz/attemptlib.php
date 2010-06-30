@@ -593,7 +593,7 @@ class quiz_attempt {
      */
     public function check_review_capability() {
         if (!$this->has_capability('mod/quiz:viewreports')) {
-            if ($this->get_review_options()->quizstate == QUIZ_STATE_IMMEDIATELY) {
+            if ($this->get_attempt_state() == mod_quiz_display_options::IMMEDIATELY_AFTER) {
                 $this->require_capability('mod/quiz:attempt');
             } else {
                 $this->require_capability('mod/quiz:reviewmyattempts');
@@ -602,36 +602,32 @@ class quiz_attempt {
     }
 
     /**
-     * Wrapper that calls quiz_get_reviewoptions with the appropriate arguments.
-     *
-     * @return question_display_options the review options for this user on this attempt.
+     * @return integer one of the mod_quiz_display_options::DURING,
+     *      IMMEDIATELY_AFTER, LATER_WHILE_OPEN or AFTER_CLOSE constants.
      */
-    public function get_review_options() {
-        if (is_null($this->reviewoptions)) {
-            $this->reviewoptions = quiz_get_reviewoptions($this->get_quiz(), $this->attempt, $this->quizobj->get_context());
-        }
-        return $this->reviewoptions;
+    public function get_attempt_state() {
+        return quiz_attempt_state($this->get_quiz(), $this->attempt);
     }
 
     /**
-     * Wrapper that calls get_render_options with the appropriate arguments.
-     *
-     * @return question_display_options the render options for this user on this attempt.
-     */
-    public function get_render_options() {
-        return quiz_get_renderoptions($this->get_quiz(), $this->attempt, $this->quizobj->get_context());
-    }
-
-    /**
-     * Wrapper that calls get_render_options with the appropriate arguments.
+     * Wrapper that the correct mod_quiz_display_options for this quiz at the
+     * moment.
      *
      * @return question_display_options the render options for this user on this attempt.
      */
     public function get_display_options($reviewing) {
         if ($reviewing) {
-            return $this->get_review_options();
+            if (is_null($this->reviewoptions)) {
+                $this->reviewoptions = quiz_get_reviewoptions($this->get_quiz(),
+                        $this->attempt, $this->quizobj->get_context());
+            }
+            return $this->reviewoptions;
+
         } else {
-            return $this->get_render_options();
+            $options = mod_quiz_display_options::make_from_quiz($this->get_quiz(),
+                    mod_quiz_display_options::DURING);
+            $options->flags = quiz_get_flag_option($this->attempt, $this->quizobj->get_context());
+            return $options;
         }
     }
 
@@ -716,29 +712,31 @@ class quiz_attempt {
      * You must previously have called load_question_states to load the state data about this question.
      *
      * @param integer $qnumber the number used to identify this question within this attempt.
+     * @param boolean $showcorrectness Whether right/partial/wrong states should
+     * be distinguised.
      * @return string the formatted grade, to the number of decimal places specified by the quiz.
      */
-    public function get_question_status($qnumber) {
-        return $this->quba->get_question_attempt($qnumber)->get_state_string(
-                $this->get_review_options()->correctness);
+    public function get_question_status($qnumber, $showcorrectness) {
+        return $this->quba->get_question_state_string($qnumber, $showcorrectness);
     }
 
     /**
-     * Return the grade obtained on a particular question, if the user is permitted to see it.
-     * You must previously have called load_question_states to load the state data about this question.
+     * Return the grade obtained on a particular question.
+     * You must previously have called load_question_states to load the state
+     * data about this question.
      *
      * @param integer $qnumber the number used to identify this question within this attempt.
      * @return string the formatted grade, to the number of decimal places specified by the quiz.
      */
     public function get_question_score($qnumber) {
-        $options = $this->get_render_options();
-        if ($options->scores < question_display_options::MARK_AND_MAX) {
-            return '';
-        }
-
         return quiz_format_question_grade($this->get_quiz(), $this->quba->get_question_mark($qnumber));
     }
 
+    /**
+     * Get the time of the most recent action performed on a question.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @return integer timestamp.
+     */
     public function get_question_action_time($qnumber) {
         return $this->quba->get_question_action_time($qnumber);
     }
@@ -884,7 +882,7 @@ class quiz_attempt {
      * @param string $thispageurl the URL of the page this question is being printed on.
      */
     public function render_question_for_commenting($qnumber) {
-        $options = $this->get_review_options();
+        $options = $this->get_display_options(true);
         $options->hide_all_feedback();
         $options->manualcomment = question_display_options::EDITABLE;
         return $this->quba->render_question($qnumber, $options, $this->quba->get_question($qnumber)->_number);
@@ -896,7 +894,7 @@ class quiz_attempt {
     }
 
     public function print_navigation_panel($panelclass, $page) {
-        $panel = new $panelclass($this, $this->get_review_options(), $page);
+        $panel = new $panelclass($this, $this->get_display_options(true), $page);
         $panel->display();
     }
 
@@ -979,7 +977,7 @@ class quiz_attempt {
         $a->attempt = $this->get_attempt_number();
 
         question_print_comment_fields($this->quba->get_question_attempt($qnumber),
-                $prefix, $this->get_review_options()->markdp,
+                $prefix, $this->get_display_options(true)->markdp,
                 get_string('gradingattempt', 'quiz_grading', $a));
     }
 

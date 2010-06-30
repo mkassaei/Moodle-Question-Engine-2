@@ -75,7 +75,6 @@
             $quiz->attemptonlast = backup_todb($info['MOD']['#']['ATTEMPTONLAST']['0']['#']);
             $quiz->grademethod = backup_todb($info['MOD']['#']['GRADEMETHOD']['0']['#']);
             $quiz->decimalpoints = backup_todb($info['MOD']['#']['DECIMALPOINTS']['0']['#']);
-            $quiz->review = backup_todb($info['MOD']['#']['REVIEW']['0']['#']);
             $quiz->questionsperpage = backup_todb($info['MOD']['#']['QUESTIONSPERPAGE']['0']['#']);
             $quiz->shufflequestions = backup_todb($info['MOD']['#']['SHUFFLEQUESTIONS']['0']['#']);
             $quiz->shuffleanswers = backup_todb($info['MOD']['#']['SHUFFLEANSWERS']['0']['#']);
@@ -90,6 +89,77 @@
             $quiz->popup = backup_todb($info['MOD']['#']['POPUP']['0']['#']);
             $quiz->delay1 = isset($info['MOD']['#']['DELAY1']['0']['#'])?backup_todb($info['MOD']['#']['DELAY1']['0']['#']):'';
             $quiz->delay2 = isset($info['MOD']['#']['DELAY2']['0']['#'])?backup_todb($info['MOD']['#']['DELAY2']['0']['#']):'';
+
+            if (array_key_exists($info['MOD']['#']['REVIEWATTEMPTS'])) {
+                // Backup from the new question engine.
+                $quiz->reviewattempt = backup_todb($info['MOD']['#']['REVIEWATTEMPT']['0']['#']);
+                $quiz->reviewcorrectness = backup_todb($info['MOD']['#']['REVIEWCORRECTNESS']['0']['#']);
+                $quiz->reviewmarks = backup_todb($info['MOD']['#']['REVIEWMARKS']['0']['#']);
+                $quiz->reviewspecificfeedback = backup_todb($info['MOD']['#']['REVIEWSPECIFICFEEDBACK']['0']['#']);
+                $quiz->reviewgeneralfeedback = backup_todb($info['MOD']['#']['REVIEWGENERALFEEDBACK']['0']['#']);
+                $quiz->reviewrightanswer = backup_todb($info['MOD']['#']['REVIEWTIGHTANSWER']['0']['#']);
+                $quiz->reviewoverallfeedback = backup_todb($info['MOD']['#']['REVIEWOVERALLFEEDBACK']['0']['#']);
+
+            } else {
+                require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+
+                define('QUIZ_OLD_IMMEDIATELY', 0x3c003f);
+                define('QUIZ_OLD_OPEN',        0x3c00fc0);
+                define('QUIZ_OLD_CLOSED',      0x3c03f000);
+
+                define('QUIZ_OLD_RESPONSES',       1*0x1041); // Show responses
+                define('QUIZ_OLD_SCORES',          2*0x1041); // Show scores
+                define('QUIZ_OLD_FEEDBACK',        4*0x1041); // Show question feedback
+                define('QUIZ_OLD_ANSWERS',         8*0x1041); // Show correct answers
+                define('QUIZ_OLD_SOLUTIONS',      16*0x1041); // Show solutions
+                define('QUIZ_OLD_GENERALFEEDBACK',32*0x1041); // Show question general feedback
+                define('QUIZ_OLD_OVERALLFEEDBACK', 1*0x4440000); // Show quiz overall feedback
+
+                $oldreview = backup_todb($info['MOD']['#']['REVIEW']['0']['#']);
+                // Old-style ackup.
+                $quiz->reviewattempt = 
+                        mod_quiz_display_options::DURING |
+                        ($oldreview & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_RESPONSES ? mod_quiz_display_options::IMMEDIATELY_AFTER : 0) |
+                        ($oldreview & QUIZ_OLD_OPEN & QUIZ_OLD_RESPONSES ? mod_quiz_display_options::LATER_WHILE_OPEN : 0) |
+                        ($oldreview & QUIZ_OLD_CLOSED & QUIZ_OLD_RESPONSES ? mod_quiz_display_options::AFTER_CLOSE : 0);
+
+                $quiz->reviewcorrectness =
+                        mod_quiz_display_options::DURING |
+                        ($oldreview & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_SCORES ? mod_quiz_display_options::IMMEDIATELY_AFTER : 0) |
+                        ($oldreview & QUIZ_OLD_OPEN & QUIZ_OLD_SCORES ? mod_quiz_display_options::LATER_WHILE_OPEN : 0) |
+                        ($oldreview & QUIZ_OLD_CLOSED & QUIZ_OLD_SCORES ? mod_quiz_display_options::AFTER_CLOSE : 0);
+
+                $quiz->reviewmarks =
+                        mod_quiz_display_options::DURING |
+                        ($oldreview & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_SCORES ? mod_quiz_display_options::IMMEDIATELY_AFTER : 0) |
+                        ($oldreview & QUIZ_OLD_OPEN & QUIZ_OLD_SCORES ? mod_quiz_display_options::LATER_WHILE_OPEN : 0) |
+                        ($oldreview & QUIZ_OLD_CLOSED & QUIZ_OLD_SCORES ? mod_quiz_display_options::AFTER_CLOSE : 0);
+
+                $quiz->reviewspecificfeedback =
+                        ($oldreview & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_FEEDBACK ? mod_quiz_display_options::DURING : 0) |
+                        ($oldreview & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_FEEDBACK ? mod_quiz_display_options::IMMEDIATELY_AFTER : 0) |
+                        ($oldreview & QUIZ_OLD_OPEN & QUIZ_OLD_FEEDBACK ? mod_quiz_display_options::LATER_WHILE_OPEN : 0) |
+                        ($oldreview & QUIZ_OLD_CLOSED & QUIZ_OLD_FEEDBACK ? mod_quiz_display_options::AFTER_CLOSE : 0);
+
+                $quiz->reviewgeneralfeedback =
+                        ($oldreview & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_GENERALFEEDBACK ? mod_quiz_display_options::DURING : 0) |
+                        ($oldreview & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_GENERALFEEDBACK ? mod_quiz_display_options::IMMEDIATELY_AFTER : 0) |
+                        ($oldreview & QUIZ_OLD_OPEN & QUIZ_OLD_GENERALFEEDBACK ? mod_quiz_display_options::LATER_WHILE_OPEN : 0) |
+                        ($oldreview & QUIZ_OLD_CLOSED & QUIZ_OLD_GENERALFEEDBACK ? mod_quiz_display_options::AFTER_CLOSE : 0);
+
+                $quiz->reviewrightanswer =
+                        ($oldreview & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_ANSWERS ? mod_quiz_display_options::DURING : 0) |
+                        ($oldreview & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_ANSWERS ? mod_quiz_display_options::IMMEDIATELY_AFTER : 0) |
+                        ($oldreview & QUIZ_OLD_OPEN & QUIZ_OLD_ANSWERS ? mod_quiz_display_options::LATER_WHILE_OPEN : 0) |
+                        ($oldreview & QUIZ_OLD_CLOSED & QUIZ_OLD_ANSWERS ? mod_quiz_display_options::AFTER_CLOSE : 0);
+
+                $quiz->reviewoverallfeedback =
+                        0 |
+                        ($oldreview & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_OVERALLFEEDBACK ? mod_quiz_display_options::IMMEDIATELY_AFTER : 0) |
+                        ($oldreview & QUIZ_OLD_OPEN & QUIZ_OLD_OVERALLFEEDBACK ? mod_quiz_display_options::LATER_WHILE_OPEN : 0) |
+                        ($oldreview & QUIZ_OLD_CLOSED & QUIZ_OLD_OVERALLFEEDBACK ? mod_quiz_display_options::AFTER_CLOSE : 0);
+            }
+
             //We have to recode the questions field (a list of questions id and pagebreaks)
             $quiz->questions = quiz_recode_layout($quiz->questions, $restore);
 

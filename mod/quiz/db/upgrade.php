@@ -68,19 +68,24 @@ function xmldb_quiz_upgrade($oldversion=0) {
 
     // Separate control for when overall feedback is displayed, independant of the question feedback settings.
     if ($result && $oldversion < 2007072600) {
+        define('QUIZ_FEEDBACK_MASK', 4*0x1041);
+        define('QUIZ_OVERALLFEEDBACK_MASK', 1*0x4440000);
+        define('QUIZ_REVIEW_IMMEDIATELY_MASK', 0x3c003f);
+        define('QUIZ_REVIEW_OPEN_MASK', 0x3c00fc0);
+        define('QUIZ_REVIEW_CLOSED_MASK', 0x3c03f000);
 
         // Adjust the quiz review options so that overall feedback is displayed whenever feedback is.
         $result = $result && execute_sql('UPDATE ' . $CFG->prefix . 'quiz SET review = ' .
-                sql_bitor(sql_bitand('review', sql_bitnot(QUIZ_REVIEW_OVERALLFEEDBACK)),
-                sql_bitor(sql_bitand('review', QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_IMMEDIATELY) . ' * 65536',
-                sql_bitor(sql_bitand('review', QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_OPEN) . ' * 16384',
-                          sql_bitand('review', QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_CLOSED) . ' * 4096'))));
+                sql_bitor(sql_bitand('review', sql_bitnot(QUIZ_OVERALLFEEDBACK_MASK)),
+                sql_bitor(sql_bitand('review', QUIZ_FEEDBACK_MASK & QUIZ_REVIEW_IMMEDIATELY_MASK) . ' * 65536',
+                sql_bitor(sql_bitand('review', QUIZ_FEEDBACK_MASK & QUIZ_REVIEW_OPEN_MASK) . ' * 16384',
+                          sql_bitand('review', QUIZ_FEEDBACK_MASK & QUIZ_REVIEW_CLOSED_MASK) . ' * 4096'))));
 
         // Same adjustment to the defaults for new quizzes.
-        $result = $result && set_config('quiz_review', ($CFG->quiz_review & ~QUIZ_REVIEW_OVERALLFEEDBACK) |
-                (($CFG->quiz_review & QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_IMMEDIATELY) << 16) |
-                (($CFG->quiz_review & QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_OPEN) << 14) |
-                (($CFG->quiz_review & QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_CLOSED) << 12));
+        $result = $result && set_config('quiz_review', ($CFG->quiz_review & ~QUIZ_OVERALLFEEDBACK_MASK) |
+                (($CFG->quiz_review & QUIZ_FEEDBACK_MASK & QUIZ_REVIEW_IMMEDIATELY_MASK) << 16) |
+                (($CFG->quiz_review & QUIZ_FEEDBACK_MASK & QUIZ_REVIEW_OPEN_MASK) << 14) |
+                (($CFG->quiz_review & QUIZ_FEEDBACK_MASK & QUIZ_REVIEW_CLOSED_MASK) << 12));
     }
 
 //===== 1.9.0 upgrade line ======//
@@ -468,6 +473,318 @@ function xmldb_quiz_upgrade($oldversion=0) {
 
         // quiz savepoint reached
         upgrade_mod_savepoint($result, 2008000117, 'quiz');
+    }
+
+// Update the quiz from the old single review column to seven new columns.
+
+    if ($result && $oldversion < 2008000200) {
+
+        // Define field reviewattempt to be added to quiz
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('reviewattempt');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '6', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'review');
+
+        // Launch add field reviewattempt
+        $result = $result && add_field($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000200, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000201) {
+
+        // Define field reviewattempt to be added to quiz
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('reviewcorrectness');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '6', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'reviewattempt');
+
+        // Launch add field reviewattempt
+        $result = $result && add_field($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000201, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000202) {
+
+        // Define field reviewattempt to be added to quiz
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('reviewmarks');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '6', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'reviewcorrectness');
+
+        // Launch add field reviewattempt
+        $result = $result && add_field($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000202, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000203) {
+
+        // Define field reviewattempt to be added to quiz
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('reviewspecificfeedback');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '6', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'reviewmarks');
+
+        // Launch add field reviewattempt
+        $result = $result && add_field($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000203, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000204) {
+
+        // Define field reviewattempt to be added to quiz
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('reviewgeneralfeedback');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '6', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'reviewspecificfeedback');
+
+        // Launch add field reviewattempt
+        $result = $result && add_field($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000204, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000205) {
+
+        // Define field reviewattempt to be added to quiz
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('reviewrightanswer');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '6', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'reviewgeneralfeedback');
+
+        // Launch add field reviewattempt
+        $result = $result && add_field($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000205, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000206) {
+
+        // Define field reviewattempt to be added to quiz
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('reviewoverallfeedback');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '6', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'reviewrightanswer');
+
+        // Launch add field reviewattempt
+        $result = $result && add_field($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000206, 'quiz');
+    }
+
+    define('QUIZ_NEW_DURING',            0x10000);
+    define('QUIZ_NEW_IMMEDIATELY_AFTER', 0x01000);
+    define('QUIZ_NEW_LATER_WHILE_OPEN',  0x00100);
+    define('QUIZ_NEW_AFTER_CLOSE',       0x00010);
+
+    define('QUIZ_OLD_IMMEDIATELY', 0x3c003f);
+    define('QUIZ_OLD_OPEN',        0x3c00fc0);
+    define('QUIZ_OLD_CLOSED',      0x3c03f000);
+
+    define('QUIZ_OLD_RESPONSES',       1*0x1041); // Show responses
+    define('QUIZ_OLD_SCORES',          2*0x1041); // Show scores
+    define('QUIZ_OLD_FEEDBACK',        4*0x1041); // Show question feedback
+    define('QUIZ_OLD_ANSWERS',         8*0x1041); // Show correct answers
+    define('QUIZ_OLD_SOLUTIONS',      16*0x1041); // Show solutions
+    define('QUIZ_OLD_GENERALFEEDBACK',32*0x1041); // Show question general feedback
+    define('QUIZ_OLD_OVERALLFEEDBACK', 1*0x4440000); // Show quiz overall feedback
+
+    // Copy the old review settings
+    if ($result && $oldversion < 2008000210) {
+        $result = $result && execute_sql("
+            UPDATE {$CFG->prefix}quiz
+            SET reviewattempt = " . sql_bitor(sql_bitor(
+                    QUIZ_NEW_DURING,
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_RESPONSES) .
+                        ' <> 0 THEN ' . QUIZ_NEW_IMMEDIATELY_AFTER . ' ELSE 0 END'), sql_bitor(
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_OPEN & QUIZ_OLD_RESPONSES) .
+                        ' <> 0 THEN ' . QUIZ_NEW_LATER_WHILE_OPEN . ' ELSE 0 END',
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_CLOSED & QUIZ_OLD_RESPONSES) .
+                        ' <> 0 THEN ' . QUIZ_NEW_AFTER_CLOSE . ' ELSE 0 END')) . "
+        ");
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000210, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000211) {
+        $result = $result && execute_sql("
+            UPDATE {$CFG->prefix}quiz
+            SET reviewcorrectness = " . sql_bitor(sql_bitor(
+                    QUIZ_NEW_DURING,
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_SCORES) .
+                        ' <> 0 THEN ' . QUIZ_NEW_IMMEDIATELY_AFTER . ' ELSE 0 END'), sql_bitor(
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_OPEN & QUIZ_OLD_SCORES) .
+                        ' <> 0 THEN ' . QUIZ_NEW_LATER_WHILE_OPEN . ' ELSE 0 END',
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_CLOSED & QUIZ_OLD_SCORES) .
+                        ' <> 0 THEN ' . QUIZ_NEW_AFTER_CLOSE . ' ELSE 0 END')) . "
+        ");
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000211, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000212) {
+        $result = $result && execute_sql("
+            UPDATE {$CFG->prefix}quiz
+            SET reviewmarks = " . sql_bitor(sql_bitor(
+                    QUIZ_NEW_DURING,
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_SCORES) .
+                        ' <> 0 THEN ' . QUIZ_NEW_IMMEDIATELY_AFTER . ' ELSE 0 END'), sql_bitor(
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_OPEN & QUIZ_OLD_SCORES) .
+                        ' <> 0 THEN ' . QUIZ_NEW_LATER_WHILE_OPEN . ' ELSE 0 END',
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_CLOSED & QUIZ_OLD_SCORES) .
+                        ' <> 0 THEN ' . QUIZ_NEW_AFTER_CLOSE . ' ELSE 0 END')) . "
+        ");
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000212, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000213) {
+        $result = $result && execute_sql("
+            UPDATE {$CFG->prefix}quiz
+            SET reviewspecificfeedback = " . sql_bitor(sql_bitor(
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_FEEDBACK) .
+                        ' <> 0 THEN ' . QUIZ_NEW_DURING . ' ELSE 0 END',
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_FEEDBACK) .
+                        ' <> 0 THEN ' . QUIZ_NEW_IMMEDIATELY_AFTER . ' ELSE 0 END'), sql_bitor(
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_OPEN & QUIZ_OLD_FEEDBACK) .
+                        ' <> 0 THEN ' . QUIZ_NEW_LATER_WHILE_OPEN . ' ELSE 0 END',
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_CLOSED & QUIZ_OLD_FEEDBACK) .
+                        ' <> 0 THEN ' . QUIZ_NEW_AFTER_CLOSE . ' ELSE 0 END')) . "
+        ");
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000213, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000214) {
+        $result = $result && execute_sql("
+            UPDATE {$CFG->prefix}quiz
+            SET reviewgeneralfeedback = " . sql_bitor(sql_bitor(
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_GENERALFEEDBACK) .
+                        ' <> 0 THEN ' . QUIZ_NEW_DURING . ' ELSE 0 END',
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_GENERALFEEDBACK) .
+                        ' <> 0 THEN ' . QUIZ_NEW_IMMEDIATELY_AFTER . ' ELSE 0 END'), sql_bitor(
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_OPEN & QUIZ_OLD_GENERALFEEDBACK) .
+                        ' <> 0 THEN ' . QUIZ_NEW_LATER_WHILE_OPEN . ' ELSE 0 END',
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_CLOSED & QUIZ_OLD_GENERALFEEDBACK) .
+                        ' <> 0 THEN ' . QUIZ_NEW_AFTER_CLOSE . ' ELSE 0 END')) . "
+        ");
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000214, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000215) {
+        $result = $result && execute_sql("
+            UPDATE {$CFG->prefix}quiz
+            SET reviewrightanswer = " . sql_bitor(sql_bitor(
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_ANSWERS) .
+                        ' <> 0 THEN ' . QUIZ_NEW_DURING . ' ELSE 0 END',
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_ANSWERS) .
+                        ' <> 0 THEN ' . QUIZ_NEW_IMMEDIATELY_AFTER . ' ELSE 0 END'), sql_bitor(
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_OPEN & QUIZ_OLD_ANSWERS) .
+                        ' <> 0 THEN ' . QUIZ_NEW_LATER_WHILE_OPEN . ' ELSE 0 END',
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_CLOSED & QUIZ_OLD_ANSWERS) .
+                        ' <> 0 THEN ' . QUIZ_NEW_AFTER_CLOSE . ' ELSE 0 END')) . "
+        ");
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000215, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000216) {
+        $result = $result && execute_sql("
+            UPDATE {$CFG->prefix}quiz
+            SET reviewoverallfeedback = " . sql_bitor(sql_bitor(
+                    0,
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_OVERALLFEEDBACK) .
+                        ' <> 0 THEN ' . QUIZ_NEW_IMMEDIATELY_AFTER . ' ELSE 0 END'), sql_bitor(
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_OPEN & QUIZ_OLD_OVERALLFEEDBACK) .
+                        ' <> 0 THEN ' . QUIZ_NEW_LATER_WHILE_OPEN . ' ELSE 0 END',
+                    'CASE WHEN ' . sql_bitand('review', QUIZ_OLD_CLOSED & QUIZ_OLD_OVERALLFEEDBACK) .
+                        ' <> 0 THEN ' . QUIZ_NEW_AFTER_CLOSE . ' ELSE 0 END')) . "
+        ");
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000216, 'quiz');
+    }
+
+    // And, do the same for the defaults
+    if ($result && $oldversion < 2008000217) {
+        if (empty($CFG->quiz_review)) {
+            $CFG->quiz_review = 0;
+        }
+
+        set_config('quiz_reviewattempt',
+                QUIZ_NEW_DURING |
+                ($CFG->quiz_review & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_RESPONSES ? QUIZ_NEW_IMMEDIATELY_AFTER : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_OPEN & QUIZ_OLD_RESPONSES ? QUIZ_NEW_LATER_WHILE_OPEN : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_CLOSED & QUIZ_OLD_RESPONSES ? QUIZ_NEW_AFTER_CLOSE : 0));
+
+        set_config('quiz_reviewcorrectness',
+                QUIZ_NEW_DURING |
+                ($CFG->quiz_review & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_SCORES ? QUIZ_NEW_IMMEDIATELY_AFTER : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_OPEN & QUIZ_OLD_SCORES ? QUIZ_NEW_LATER_WHILE_OPEN : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_CLOSED & QUIZ_OLD_SCORES ? QUIZ_NEW_AFTER_CLOSE : 0));
+
+        set_config('quiz_reviewmarks',
+                QUIZ_NEW_DURING |
+                ($CFG->quiz_review & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_SCORES ? QUIZ_NEW_IMMEDIATELY_AFTER : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_OPEN & QUIZ_OLD_SCORES ? QUIZ_NEW_LATER_WHILE_OPEN : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_CLOSED & QUIZ_OLD_SCORES ? QUIZ_NEW_AFTER_CLOSE : 0));
+
+        set_config('quiz_reviewspecificfeedback',
+                ($CFG->quiz_review & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_FEEDBACK ? QUIZ_NEW_DURING : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_FEEDBACK ? QUIZ_NEW_IMMEDIATELY_AFTER : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_OPEN & QUIZ_OLD_FEEDBACK ? QUIZ_NEW_LATER_WHILE_OPEN : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_CLOSED & QUIZ_OLD_FEEDBACK ? QUIZ_NEW_AFTER_CLOSE : 0));
+
+        set_config('quiz_reviewgeneralfeedback',
+                ($CFG->quiz_review & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_GENERALFEEDBACK ? QUIZ_NEW_DURING : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_GENERALFEEDBACK ? QUIZ_NEW_IMMEDIATELY_AFTER : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_OPEN & QUIZ_OLD_GENERALFEEDBACK ? QUIZ_NEW_LATER_WHILE_OPEN : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_CLOSED & QUIZ_OLD_GENERALFEEDBACK ? QUIZ_NEW_AFTER_CLOSE : 0));
+
+        set_config('quiz_reviewrightanswer',
+                ($CFG->quiz_review & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_ANSWERS ? QUIZ_NEW_DURING : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_ANSWERS ? QUIZ_NEW_IMMEDIATELY_AFTER : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_OPEN & QUIZ_OLD_ANSWERS ? QUIZ_NEW_LATER_WHILE_OPEN : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_CLOSED & QUIZ_OLD_ANSWERS ? QUIZ_NEW_AFTER_CLOSE : 0));
+
+        set_config('quiz_reviewoverallfeedback',
+                0 |
+                ($CFG->quiz_review & QUIZ_OLD_IMMEDIATELY & QUIZ_OLD_OVERALLFEEDBACK ? QUIZ_NEW_IMMEDIATELY_AFTER : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_OPEN & QUIZ_OLD_OVERALLFEEDBACK ? QUIZ_NEW_LATER_WHILE_OPEN : 0) |
+                ($CFG->quiz_review & QUIZ_OLD_CLOSED & QUIZ_OLD_OVERALLFEEDBACK ? QUIZ_NEW_AFTER_CLOSE : 0));
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000217, 'quiz');
+    }
+
+    // Finally drop the old column
+    if ($result && $oldversion < 2008000220) {
+        // Define field review to be dropped from quiz
+        $table = new XMLDBTable('quiz');
+        $field = new XMLDBField('review');
+
+        // Launch drop field review
+        $result = $result && drop_field($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000220, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000221) {
+        unset_config('quiz_review');
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000221, 'quiz');
     }
 
     commit_sql();

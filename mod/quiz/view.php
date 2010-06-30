@@ -192,13 +192,13 @@ if ($attempts) {
     print_heading(get_string('summaryofattempts', 'quiz'));
 
     // Work out which columns we need, taking account what data is available in each attempt.
-    list($someoptions, $alloptions) = quiz_get_combined_reviewoptions($quiz, $attempts, $context);
+    list($someoptions, $alloptions) = quiz_get_combined_reviewoptions($quiz, $attempts);
 
     $attemptcolumn = $quiz->attempts != 1;
 
-    $gradecolumn = $someoptions->scores && quiz_has_grades($quiz);
+    $gradecolumn = $someoptions->marks && quiz_has_grades($quiz);
     $markcolumn = $gradecolumn && ($quiz->grade != $quiz->sumgrades);
-    $overallstats = $alloptions->scores;
+    $overallstats = $alloptions->marks;
 
     $feedbackcolumn = quiz_has_feedback($quiz) && $alloptions->overallfeedback;
 
@@ -273,7 +273,7 @@ if ($attempts) {
         $row[] = $datecompleted;
 
         if ($markcolumn && $attempt->timefinish > 0) {
-            if ($attemptoptions->scores) {
+            if ($attemptoptions->marks) {
                 $row[] = quiz_format_grade($quiz, $attempt->sumgrades);
             } else {
                 $row[] = '';
@@ -284,7 +284,7 @@ if ($attempts) {
         $attemptgrade = quiz_rescale_grade($attempt->sumgrades, $quiz, false);
 
         if ($gradecolumn) {
-            if ($attemptoptions->scores && $attempt->timefinish > 0) {
+            if ($attemptoptions->marks && $attempt->timefinish > 0) {
                 $formattedgrade = quiz_format_grade($quiz, $attemptgrade);
                 // highlight the highest grade if appropriate
                 if ($overallstats && !$attempt->preview && $numattempts > 1 && !is_null($mygrade) &&

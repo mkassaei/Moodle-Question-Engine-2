@@ -7,9 +7,9 @@ Integrate new code into the quiz reports (7d)
 √   overview 2d
 √   responses 1d
 √   manual grading 1d
-    statistics
+√   statistics
 √       statistics computation and display
-        response analysis 2d
+√       response analysis 2d
 √   delete unused code from reportlib.php
 √   check formatting by question or quiz decimal points
 √   delete obsolete get_all_responses method.
@@ -27,11 +27,11 @@ Incorporate other OU-specific quiz customisations into this code (8d)
 √           fix import/export hack
 √       ddwtos 1d
 √           fix import/export hack
-    Changes to preserve
+√   Changes to preserve
 √       adaptive mode / overall feedback import-export refactoring 1d
 √          answers???
-        new correctness review option on the editing form/db/backup and restore/config/defaults 0.5d
-        new 'during the attempt' review option period 0.5d
+√       new correctness review option on the editing form/db/backup and restore/config/defaults 0.5d
+√       new 'during the attempt' review option period 0.5d
 √       display of question history on the review page
 √       count-back scoring for ou-multiresponse, drag-and-drop, and matching question types.
 √       matching question, add overall feedback fields (check lang file) 1d

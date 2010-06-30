@@ -42,7 +42,7 @@ $attemptobj->check_review_capability();
 
 // Create an object to manage all the other (non-roles) access rules.
 $accessmanager = $attemptobj->get_access_manager(time());
-$options = $attemptobj->get_review_options();
+$options = $attemptobj->get_display_options(true);
 
 // Permissions checks for normal users who do not have quiz:viewreports capability.
 if (!$attemptobj->has_capability('mod/quiz:viewreports')) {
@@ -55,9 +55,9 @@ if (!$attemptobj->has_capability('mod/quiz:viewreports')) {
         throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'notyourattempt');
     }
     // Can't review unless Students may review -> Responses option is turned on.
-    if (!$options->responses) {
+    if (!$options->attempt) {
         $accessmanager->back_to_view_page($attemptobj->is_preview_user(),
-                $accessmanager->cannot_review_message($options));
+                $accessmanager->cannot_review_message($attemptobj->get_attempt_state()));
     }
 }
 
@@ -185,7 +185,7 @@ if (!empty($overtime)) {
 
 // Show scores (if the user is allowed to see scores at the moment).
 $grade = quiz_rescale_grade($attempt->sumgrades, $quiz, false);
-if ($options->scores && quiz_has_grades($quiz)) {
+if ($options->marks && quiz_has_grades($quiz)) {
 
     if (!$attempt->timefinish) {
         $rows[] = '<tr><th scope="row" class="cell">' . get_string('grade') . '</th><td class="cell">' .

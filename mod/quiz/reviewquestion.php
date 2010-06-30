@@ -51,9 +51,9 @@ if (!$attemptobj->has_capability('mod/quiz:viewreports')) {
         close_window_button();
     }
     // Can't review unless Students may review -> Responses option is turned on.
-    if (!$options->responses) {
+    if (!$options->attempt) {
         $accessmanager = $attemptobj->get_access_manager(time());
-        notify($accessmanager->cannot_review_message($attemptobj->get_review_options()));
+        notify($accessmanager->cannot_review_message($attemptobj->get_attempt_state()));
         close_window_button();
     }
 }
