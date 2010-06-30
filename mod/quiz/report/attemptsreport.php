@@ -53,14 +53,14 @@ abstract class quiz_attempt_report extends quiz_default_report {
             return $this->showgrades;
         }
 
-        $fakeattempt = new stdClass();
-        $fakeattempt->preview = false;
-        $fakeattempt->timefinish = $quiz->timeopen;
-        $fakeattempt->userid = 0;
-        $fakeattempt->id = 0;
+        if ($quiz->timeclose && time() > $quiz->timeclose) {
+            $when = mod_quiz_display_options::AFTER_CLOSE;
+        } else {
+            $when = mod_quiz_display_options::LATER_WHILE_OPEN;
+        }
+        $reviewoptions = mod_quiz_display_options::make_from_quiz($quiz, $when);
 
-        $reviewoptions = quiz_get_reviewoptions($quiz, $fakeattempt, $this->context);
-        $this->showgrades = quiz_has_grades($quiz) && $reviewoptions->scores;
+        $this->showgrades = quiz_has_grades($quiz) && $reviewoptions->marks;
         return $this->showgrades;
     }
 
@@ -465,7 +465,7 @@ abstract class quiz_attempt_report_table extends table_sql {
             $feedbackimg = question_get_feedback_image($stepdata->fraction);
         }
 
-        $output = '<span class="que"><span class="' . $state->get_state_class() . '">' .
+        $output = '<span class="que"><span class="' . $state->get_state_class(true) . '">' .
                 $data . " $feedbackimg $flag</span></span>";
 
         $output = link_to_popup_window('/mod/quiz/reviewquestion.php?attempt=' .

@@ -141,12 +141,12 @@
             // Grade and feedback.
             $bestgrade = quiz_get_best_grade($quiz, $USER->id);
             $attempts = quiz_get_user_attempts($quiz->id, $USER->id, 'all');
-            list($someoptions, $alloptions) = quiz_get_combined_reviewoptions($quiz, $attempts, $context);
+            list($someoptions, $alloptions) = quiz_get_combined_reviewoptions($quiz, $attempts);
 
             $grade = '';
             $feedback = '';
             if ($quiz->grade && !is_null($bestgrade)) {
-                if ($alloptions->scores) {
+                if ($alloptions->marks) {
                     $grade = "$bestgrade / $quiz->grade";
                 }
                 if ($alloptions->overallfeedback) {

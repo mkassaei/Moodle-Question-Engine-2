@@ -261,18 +261,22 @@ abstract class question_state {
      * {@link question_behaviour::get_state_string()}. However, behaviours
      * sometimes change this default string for soemthing more specific.
      *
+     * @param boolean $showcorrectness Whether right/partial/wrong states should
+     * be distinguised, or just treated as 'complete'.
      * @return string the name of a string that can be looked up in the 'question'
      *      lang pack, or used as a CSS class name, etc.
      */
-    public abstract function get_state_class();
+    public abstract function get_state_class($showcorrectness);
 
     /**
      * The result of doing get_string on the result of {@link get_state_class()}.
      *
+     * @param boolean $showcorrectness Whether right/partial/wrong states should
+     * be distinguised.
      * @return string a string from the lang pack that can be used in the UI.
      */
-    public function default_string() {
-        return get_string($this->get_state_class(), 'question');
+    public function default_string($showcorrectness) {
+        return get_string($this->get_state_class($showcorrectness), 'question');
     }
 }
 
@@ -287,7 +291,7 @@ class question_state_notstarted extends question_state {
     public function is_finished() {
         return false;
     }
-    public function get_state_class() {
+    public function get_state_class($showcorrectness) {
         throw new Exception('Unexpected question state.');
     }
 }
@@ -295,7 +299,7 @@ class question_state_unprocessed extends question_state {
     public function is_finished() {
         return false;
     }
-    public function get_state_class() {
+    public function get_state_class($showcorrectness) {
         throw new Exception('Unexpected question state.');
     }
 }
@@ -306,7 +310,7 @@ class question_state_todo extends question_state {
     public function is_finished() {
         return false;
     }
-    public function get_state_class() {
+    public function get_state_class($showcorrectness) {
         return 'notyetanswered';
     }
 }
@@ -317,7 +321,7 @@ class question_state_invalid extends question_state {
     public function is_finished() {
         return false;
     }
-    public function get_state_class() {
+    public function get_state_class($showcorrectness) {
         return 'invalidanswer';
     }
 }
@@ -328,12 +332,12 @@ class question_state_complete extends question_state {
     public function is_finished() {
         return false;
     }
-    public function get_state_class() {
+    public function get_state_class($showcorrectness) {
         return 'answersaved';
     }
 }
 class question_state_needsgrading extends question_state {
-    public function get_state_class() {
+    public function get_state_class($showcorrectness) {
         return 'requiresgrading';
     }
     public function corresponding_commented_state($fraction) {
@@ -341,7 +345,7 @@ class question_state_needsgrading extends question_state {
     }
 }
 class question_state_finished extends question_state {
-    public function get_state_class() {
+    public function get_state_class($showcorrectness) {
         return 'complete';
     }
     public function corresponding_commented_state($fraction) {
@@ -355,7 +359,7 @@ class question_state_gaveup extends question_state {
     public function get_feedback_class() {
         return 'incorrect';
     }
-    public function get_state_class() {
+    public function get_state_class($showcorrectness) {
         return 'notanswered';
     }
     public function corresponding_commented_state($fraction) {
@@ -370,8 +374,12 @@ abstract class question_state_graded extends question_state {
     public function is_graded() {
         return true;
     }
-    public function get_state_class() {
-        return $this->get_feedback_class();
+    public function get_state_class($showcorrectness) {
+        if ($showcorrectness) {
+            return $this->get_feedback_class();
+        } else {
+            return 'complete';
+        }
     }
     public function corresponding_commented_state($fraction) {
         return self::manually_graded_state_for_fraction($fraction);

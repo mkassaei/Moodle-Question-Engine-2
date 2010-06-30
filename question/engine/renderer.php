@@ -138,12 +138,8 @@ class core_question_renderer extends renderer_base {
      * @return HTML fragment.
      */
     protected function status(question_attempt $qa, qbehaviour_renderer $behaviouroutput, question_display_options $options) {
-        if ($options->correctness) {
-            return html_writer::tag('div', $qa->get_state_string(),
-                    array('class' => 'state'));
-        } else {
-            return '';
-        }
+        return html_writer::tag('div', $qa->get_state_string($options->correctness),
+                array('class' => 'state'));
     }
 
     /**
@@ -330,7 +326,7 @@ class core_question_renderer extends renderer_base {
                 $stepno,
                 userdate($step->get_timecreated(), get_string('strftimedatetimeshort')),
                 $qa->summarise_action($step),
-                $step->get_state()->default_string(),
+                $step->get_state()->default_string(true),
             );
 
             if ($options->marks >= question_display_options::MARK_AND_MAX) {

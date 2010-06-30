@@ -110,9 +110,9 @@ abstract class qtype_renderer extends renderer_base {
                     array('class' => 'generalfeedback'));
         }
 
-        if ($options->correctresponse) {
+        if ($options->rightanswer) {
             $output .= html_writer::nonempty_tag('div', $this->correct_response($qa),
-                    array('class' => 'correctresponse'));
+                    array('class' => 'rightanswer'));
         }
 
         return $output;

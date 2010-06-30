@@ -259,7 +259,13 @@
         fwrite ($bf,full_tag("ATTEMPTONLAST",4,false,$quiz->attemptonlast));
         fwrite ($bf,full_tag("GRADEMETHOD",4,false,$quiz->grademethod));
         fwrite ($bf,full_tag("DECIMALPOINTS",4,false,$quiz->decimalpoints));
-        fwrite ($bf,full_tag("REVIEW",4,false,$quiz->review));
+        fwrite ($bf,full_tag("REVIEWATTEMPT",4,false,$quiz->reviewattempt));
+        fwrite ($bf,full_tag("REVIEWCORRECTNESS",4,false,$quiz->reviewcorrectness));
+        fwrite ($bf,full_tag("REVIEWMARKS",4,false,$quiz->reviewmarks));
+        fwrite ($bf,full_tag("REVIEWSPECIFICFEEDBACK",4,false,$quiz->reviewspecificfeedback));
+        fwrite ($bf,full_tag("REVIEWGENERALFEEDBACK",4,false,$quiz->reviewgeneralfeedback));
+        fwrite ($bf,full_tag("REVIEWTIGHTANSWER",4,false,$quiz->reviewrightanswer));
+        fwrite ($bf,full_tag("REVIEWOVERALLFEEDBACK",4,false,$quiz->reviewoverallfeedback));
         fwrite ($bf,full_tag("QUESTIONSPERPAGE",4,false,$quiz->questionsperpage));
         fwrite ($bf,full_tag("SHUFFLEQUESTIONS",4,false,$quiz->shufflequestions));
         fwrite ($bf,full_tag("SHUFFLEANSWERS",4,false,$quiz->shuffleanswers));

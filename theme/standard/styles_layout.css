@@ -2661,7 +2661,7 @@ body.notes .notesgroup {
 }
 .que .specificfeedback,
 .que .generalfeedback,
-.que .correctresponse,
+.que .rightanswer,
 .que .im-feedback,
 .que .feedback,
 .que p {
@@ -3947,7 +3947,7 @@ table.quizreviewsummary td.cell {
 
 #mod-quiz-mod #reviewoptionshdr .fitem {
   float: left;
-  width: 30%;
+  width: 23%;
   margin-left: 10px;
   clear: none;
 }

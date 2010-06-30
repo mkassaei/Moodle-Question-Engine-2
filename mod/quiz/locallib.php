@@ -52,15 +52,6 @@ define("QUIZ_ATTEMPTFIRST", "3");
 define("QUIZ_ATTEMPTLAST",  "4");
 /**#@-*/
 
-/**#@+
- * Constants to describe the various states a quiz attempt can be in.
- */
-define('QUIZ_STATE_DURING', 'during');
-define('QUIZ_STATE_IMMEDIATELY', 'immedately');
-define('QUIZ_STATE_OPEN', 'open');
-define('QUIZ_STATE_CLOSED', 'closed');
-define('QUIZ_STATE_TEACHERACCESS', 'teacheraccess'); // State only relevant if you are in a studenty role.
-/**#@-*/
 
 /**
  * We show the countdown timer if there is less than this amount of time left before the
@@ -836,12 +827,8 @@ function quiz_question_preview_button($quiz, $question, $label = false) {
     }
 
     // Get the appropriate display options.
-    $fakeattempt = new stdClass;
-    $fakeattempt->userid = $USER->id;
-    // CONTEXT_SYSTEM here is a hack. It is only used to work out whether to display
-    // the flags, and the flags are never shown in question preview anyway.
-    $displayoptions = quiz_get_renderoptions($quiz, $fakeattempt,
-            get_context_instance(CONTEXT_SYSTEM));
+    $displayoptions = mod_quiz_display_options::make_from_quiz($quiz,
+            mod_quiz_display_options::DURING);
 
     // Work out the correcte preview URL.
     $url = question_preview_url($question->id, $quiz->preferredbehaviour,
@@ -879,113 +866,61 @@ function quiz_get_flag_option($attempt, $context) {
 }
 
 /**
- * Determine render options
- *
- * @param int $reviewoptions
- * @param object $state
+ * Work out what state this quiz attempt is in.
+ * @param object $quiz the quiz settings
+ * @param object $attempt the quiz_attempt database row.
+ * @return integer one of the mod_quiz_display_options::DURING,
+ *      IMMEDIATELY_AFTER, LATER_WHILE_OPEN or AFTER_CLOSE constants.
  */
-function quiz_get_renderoptions($quiz, $attempt, $context) {
-    $options = new question_display_options();
-
-    // Show the question in readonly (review) mode if the question is in
-    // the closed state
-    $options->readonly = false;
-
-    $options->flags = quiz_get_flag_option($attempt, $context);
-
-    if ($quiz->questiondecimalpoints == -1) {
-        $options->markdp = $quiz->decimalpoints;
+function quiz_attempt_state($quiz, $attempt) {
+    if ($attempt->timefinish == 0) {
+        return mod_quiz_display_options::DURING;
+    } else if (time() < $attempt->timefinish + 120) {
+        return mod_quiz_display_options::IMMEDIATELY_AFTER;
+    } else if (!$quiz->timeclose || time() < $quiz->timeclose) {
+        return mod_quiz_display_options::LATER_WHILE_OPEN;
     } else {
-        $options->markdp = $quiz->questiondecimalpoints;
+        return mod_quiz_display_options::AFTER_CLOSE;
     }
-
-    // Show feedback once the question has been graded (if allowed by the quiz)
-    $options->feedback = $quiz->review & QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_IMMEDIATELY;
-
-    // Show correct responses in readonly mode if the quiz allows it
-    $options->correct_responses = $quiz->review & QUIZ_REVIEW_ANSWERS & QUIZ_REVIEW_IMMEDIATELY;
-
-    // Show general feedback if the question has been graded and the quiz allows it.
-    $options->generalfeedback = $quiz->review & QUIZ_REVIEW_GENERALFEEDBACK & QUIZ_REVIEW_IMMEDIATELY;
-
-    // Show overallfeedback once the attempt is over.
-    $options->overallfeedback = false;
-
-    // Always show responses and scores
-    $options->responses = true;
-    $options->scores = true;
-    $options->quizstate = QUIZ_STATE_DURING;
-
-    return $options;
 }
 
 /**
- * Determine review options
+ * The the appropraite mod_quiz_display_options object for this attempt at this
+ * quiz right now.
  *
  * @param object $quiz the quiz instance.
  * @param object $attempt the attempt in question.
  * @param $context the roles and permissions context,
  *          normally the context for the quiz module instance.
  *
- * @return question_display_options an object with boolean fields responses, scores, feedback,
- *          correct_responses, solutions and general feedback
+ * @return mod_quiz_display_options
  */
 function quiz_get_reviewoptions($quiz, $attempt, $context) {
-    $options = new question_display_options();
+    $options = mod_quiz_display_options::make_from_quiz($quiz, quiz_attempt_state($quiz, $attempt));
 
     $options->readonly = true;
-
     $options->flags = quiz_get_flag_option($attempt, $context);
-
-    if ($quiz->questiondecimalpoints == -1) {
-        $options->markdp = $quiz->decimalpoints;
-    } else {
-        $options->markdp = $quiz->questiondecimalpoints;
-    }
-
-    // Provide the links to the question review and comment script
     $options->questionreviewlink = '/mod/quiz/reviewquestion.php?attempt=' . $attempt->id;
 
     // Show a link to the comment box only for closed attempts
-    if ($attempt->timefinish && !is_null($context) && has_capability('mod/quiz:grade', $context)) {
+    if ($attempt->timefinish && !$attempt->preview && !is_null($context) &&
+            has_capability('mod/quiz:grade', $context)) {
         $options->manualcomment = question_display_options::VISIBLE;
         $options->manualcommentlink = '/mod/quiz/comment.php?attempt=' . $attempt->id;
     }
 
-    if (!is_null($context) && has_capability('mod/quiz:viewreports', $context) &&
-            has_capability('moodle/grade:viewhidden', $context) && !$attempt->preview) {
+    if (!is_null($context) && !$attempt->preview && has_capability('mod/quiz:viewreports', $context) &&
+            has_capability('moodle/grade:viewhidden', $context)) {
         // People who can see reports and hidden grades should be shown everything,
         // except during preview when teachers want to see what students see.
-        $options->responses = question_display_options::VISIBLE;
-        $options->scores = question_display_options::VISIBLE;
+        $options->attempt = question_display_options::VISIBLE;
+        $options->correctness = question_display_options::VISIBLE;
+        $options->marks = question_display_options::MARK_AND_MAX;
         $options->feedback = question_display_options::VISIBLE;
-        $options->correct_responses = question_display_options::VISIBLE;
-        $options->solutions = question_display_options::HIDDEN;
         $options->generalfeedback = question_display_options::VISIBLE;
+        $options->rightanswer = question_display_options::VISIBLE;
         $options->overallfeedback = question_display_options::VISIBLE;
-        $options->quizstate = QUIZ_STATE_TEACHERACCESS;
         $options->history = question_display_options::VISIBLE;
-    } else {
-        // Work out the state of the attempt ...
-        if (((time() - $attempt->timefinish) < 120) || $attempt->timefinish==0) {
-            $quiz_state_mask = QUIZ_REVIEW_IMMEDIATELY;
-            $options->quizstate = QUIZ_STATE_IMMEDIATELY;
-        } else if (!$quiz->timeclose or time() < $quiz->timeclose) {
-            $quiz_state_mask = QUIZ_REVIEW_OPEN;
-            $options->quizstate = QUIZ_STATE_OPEN;
-        } else {
-            $quiz_state_mask = QUIZ_REVIEW_CLOSED;
-            $options->quizstate = QUIZ_STATE_CLOSED;
-        }
-
-        // ... and hence extract the appropriate review options.
-        $options->responses = ($quiz->review & $quiz_state_mask & QUIZ_REVIEW_RESPONSES) ? 1 : 0;
-        $options->scores = ($quiz->review & $quiz_state_mask & QUIZ_REVIEW_SCORES) ? 1 : 0;
-        $options->feedback = ($quiz->review & $quiz_state_mask & QUIZ_REVIEW_FEEDBACK) ? 1 : 0;
-        $options->correct_responses = ($quiz->review & $quiz_state_mask & QUIZ_REVIEW_ANSWERS) ? 1 : 0;
-        $options->solutions = ($quiz->review & $quiz_state_mask & QUIZ_REVIEW_SOLUTIONS) ? 1 : 0;
-        $options->generalfeedback = ($quiz->review & $quiz_state_mask & QUIZ_REVIEW_GENERALFEEDBACK) ? 1 : 0;
-        $options->overallfeedback = $attempt->timefinish && ($quiz->review & $quiz_state_mask & QUIZ_REVIEW_OVERALLFEEDBACK);
     }
 
     return $options;
@@ -993,7 +928,7 @@ function quiz_get_reviewoptions($quiz, $attempt, $context) {
 
 /**
  * Combines the review options from a number of different quiz attempts.
- * Returns an array of two ojects, so he suggested way of calling this
+ * Returns an array of two ojects, so the suggested way of calling this
  * funciton is:
  * list($someoptions, $alloptions) = quiz_get_combined_reviewoptions(...)
  *
@@ -1006,8 +941,8 @@ function quiz_get_reviewoptions($quiz, $attempt, $context) {
  *          at least one of the attempts, the other showing which options are true
  *          for all attempts.
  */
-function quiz_get_combined_reviewoptions($quiz, $attempts, $context=null) {
-    $fields = array('readonly', 'scores', 'feedback', 'correct_responses', 'solutions', 'generalfeedback', 'overallfeedback');
+function quiz_get_combined_reviewoptions($quiz, $attempts) {
+    $fields = array('marks', 'feedback', 'generalfeedback', 'rightanswer', 'overallfeedback');
     $someoptions = new stdClass;
     $alloptions = new stdClass;
     foreach ($fields as $field) {
@@ -1015,7 +950,8 @@ function quiz_get_combined_reviewoptions($quiz, $attempts, $context=null) {
         $alloptions->$field = true;
     }
     foreach ($attempts as $attempt) {
-        $attemptoptions = quiz_get_reviewoptions($quiz, $attempt, $context);
+        $attemptoptions = mod_quiz_display_options::make_from_quiz($quiz,
+                quiz_attempt_state($quiz, $attempt));
         foreach ($fields as $field) {
             $someoptions->$field = $someoptions->$field || $attemptoptions->$field;
             $alloptions->$field = $alloptions->$field && $attemptoptions->$field;
@@ -1267,6 +1203,73 @@ function quiz_send_notification_emails($course, $quiz, $attempt, $context, $cm) 
  */
 function quiz_check_safe_browser() {
     return strpos($_SERVER['HTTP_USER_AGENT'], "SEB") !== false;
+}
+
+
+/**
+ * An extension of question_display_options that includes the extra options used
+ * by the quiz.
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class mod_quiz_display_options extends question_display_options {
+    /**#@+
+     * @var integer bits used to indicate various times in relation to a
+     * quiz attempt.
+     */
+    const DURING =            0x10000;
+    const IMMEDIATELY_AFTER = 0x01000;
+    const LATER_WHILE_OPEN =  0x00100;
+    const AFTER_CLOSE =       0x00010;
+    /**#@-*/
+
+    /**
+     * @var boolean if this is false, then the student is not allowed to review
+     * anything about the attempt.
+     */
+    public $attempt = true;
+
+    /**
+     * @var boolean if this is false, then the student is not allowed to review
+     * anything about the attempt.
+     */
+    public $overallfeedback = self::VISIBLE;
+
+    /**
+     * Set up the various options from the quiz settings, and a time constant.
+     * @param stdClass $quiz the quiz settings.
+     * @param integer $one of the {@link DURING}, {@link IMMEDIATELY_AFTER},
+     * {@link LATER_WHILE_OPEN} or {@link AFTER_CLOSE} constants.
+     * @return mod_quiz_display_options set up appropriately.
+     */
+    public static function make_from_quiz($quiz, $when) {
+        $options = new self();
+
+        $options->attempt = self::extract($quiz->reviewattempt, $when, true, false);
+        $options->correctness = self::extract($quiz->reviewcorrectness, $when);
+        $options->marks = self::extract($quiz->reviewmarks, $when, self::MARK_AND_MAX);
+        $options->feedback = self::extract($quiz->reviewspecificfeedback, $when);
+        $options->generalfeedback = self::extract($quiz->reviewgeneralfeedback, $when);
+        $options->rightanswer = self::extract($quiz->reviewrightanswer, $when);
+        $options->overallfeedback = self::extract($quiz->reviewoverallfeedback, $when);
+
+        if ($quiz->questiondecimalpoints != -1) {
+            $options->markdp = $quiz->questiondecimalpoints;
+        } else {
+            $options->markdp = $quiz->decimalpoints;
+        }
+
+        return $options;
+    }
+
+    protected static function extract($bitmask, $bit, $whenset = self::VISIBLE, $whennotset = self::HIDDEN) {
+        if ($bitmask & $bit) {
+            return $whenset;
+        } else {
+            return $whennotset;
+        }
+    }
 }
 
 

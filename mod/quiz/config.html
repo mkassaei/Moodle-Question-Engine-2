@@ -37,8 +37,14 @@
     if (!isset($form->shuffleanswers)) {
         $form->shuffleanswers = $CFG->quiz_shuffleanswers;
     }
-    if (!isset($form->review)) {
-        $form->review = $CFG->quiz_review;
+    $fields = array('attempt', 'correctness', 'marks', 'specificfeedback',
+            'generalfeedback', 'rightanswer', 'overallfeedback');
+    foreach ($fields as $field) {
+        $cfgfield = 'quiz_review' . $field;
+        $formfield = 'review' . $field;
+        if (!isset($form->$formfield)) {
+            $form->$formfield = $CFG->$cfgfield;
+        }
     }
     if (!isset($form->showuserpicture)) {
         $form->showuserpicture = $CFG->quiz_showuserpicture;

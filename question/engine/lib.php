@@ -274,22 +274,30 @@ class question_display_options {
     public $clearwrong = false;
 
     /**
-     * Not really used withing the question engine (at least at the moment.)
-     * The only way to not show the response the student entered is to not display
-     * the question in its current state at all. (This is how this field is
-     * used in the quiz at the moment.)
-     * @var integer {@link question_display_options::HIDDEN} or
-     * {@link question_display_options::VISIBLE}
-     */
-    public $responses = self::VISIBLE;
-
-    /**
      * Should the one-line summary of the current state of the question that
      * appears by the question number be shown?
      * @var integer {@link question_display_options::HIDDEN} or
      * {@link question_display_options::VISIBLE}
      */
     public $correctness = self::VISIBLE;
+
+    /**
+     * The the mark and/or the maximum available mark for this question be visible?
+     * @var integer {@link question_display_options::HIDDEN},
+     * {@link question_display_options::MAX_ONLY} or {@link question_display_options::MARK_AND_MAX}
+     */
+    public $marks = self::MARK_AND_MAX;
+
+    /** @var number of decimal places to use when formatting marks for output. */
+    public $markdp = 2;
+
+    /**
+     * Should the flag this question UI element be visible, and if so, should the
+     * flag state be changable?
+     * @var integer {@link question_display_options::HIDDEN},
+     * {@link question_display_options::VISIBLE} or {@link question_display_options::EDITABLE}
+     */
+    public $flags = self::VISIBLE;
 
     /**
      * Should the specific feedback be visible.
@@ -320,17 +328,7 @@ class question_display_options {
      * @var integer {@link question_display_options::HIDDEN} or
      * {@link question_display_options::VISIBLE}
      */
-    public $correctresponse = self::VISIBLE;
-
-    /**
-     * The the mark and/or the maximum available mark for this question be visible?
-     * @var integer {@link question_display_options::HIDDEN},
-     * {@link question_display_options::MAX_ONLY} or {@link question_display_options::MARK_AND_MAX}
-     */
-    public $marks = self::MARK_AND_MAX;
-
-    /** @var number of decimal places to use when formatting marks for output. */
-    public $markdp = 2;
+    public $rightanswer = self::VISIBLE;
 
     /**
      * Should the manually added marker's comment be visible. Should the link for
@@ -349,6 +347,13 @@ class question_display_options {
     public $manualcommentlink = null;
 
     /**
+     * Used in places like the question history table, to show a link to review
+     * this question in a certain state. If blank, a link is not shown.
+     * @var string base URL for a review question script.
+     */
+    public $questionreviewlink = null;
+
+    /**
      * Should the history of previous question states table be visible?
      * @var integer {@link question_display_options::HIDDEN} or
      * {@link question_display_options::VISIBLE}
@@ -356,41 +361,15 @@ class question_display_options {
     public $history = self::HIDDEN;
 
     /**
-     * Should the flag this question UI element be visible, and if so, should the
-     * flag state be changable?
-     * @var integer {@link question_display_options::HIDDEN},
-     * {@link question_display_options::VISIBLE} or {@link question_display_options::EDITABLE}
-     */
-    public $flags = self::VISIBLE;
-
-    /**
-     * Initialise an instance of this class from the kind of bitmask values stored
-     * in the quiz.review fields in the databas.
-     *
-     * This function probably does not belong here.
-     *
-     * @param integer $bitmask a review options bitmask from the quiz module.
-     */
-    public function set_review_options($bitmask) {
-        global $CFG;
-        require_once($CFG->dirroot . '/mod/quiz/lib.php');
-        $this->responses = ($bitmask & QUIZ_REVIEW_RESPONSES) != 0;
-        $this->feedback = ($bitmask & QUIZ_REVIEW_FEEDBACK) != 0;
-        $this->generalfeedback = ($bitmask & QUIZ_REVIEW_GENERALFEEDBACK) != 0;
-        $this->marks = self::MARK_AND_MAX * (($bitmask & QUIZ_REVIEW_SCORES) != 0);
-        $this->correctresponse = ($bitmask & QUIZ_REVIEW_ANSWERS) != 0;
-    }
-
-    /**
      * Set all the feedback-related fields {@link $feedback}, {@link generalfeedback},
-     * {@link correctresponse} and {@link manualcomment} to
+     * {@link rightanswer} and {@link manualcomment} to
      * {@link question_display_options::HIDDEN}.
      */
     public function hide_all_feedback() {
         $this->feedback = self::HIDDEN;
         $this->numpartscorrect = self::HIDDEN;
         $this->generalfeedback = self::HIDDEN;
-        $this->correctresponse = self::HIDDEN;
+        $this->rightanswer = self::HIDDEN;
         $this->manualcomment = self::HIDDEN;
     }
 
@@ -710,6 +689,16 @@ class question_usage_by_activity {
      */
     public function get_question_state($qnumber) {
         return $this->get_question_attempt($qnumber)->get_state();
+    }
+
+    /**
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param boolean $showcorrectness Whether right/partial/wrong states should
+     * be distinguised.
+     * @return string A brief textual description of the current state.
+     */
+    public function get_question_state_string($qnumber, $showcorrectness) {
+        return $this->get_question_attempt($qnumber)->get_state_string($showcorrectness);
     }
 
     /**
@@ -1527,10 +1516,12 @@ class question_attempt {
     }
 
     /**
+     * @param boolean $showcorrectness Whether right/partial/wrong states should
+     * be distinguised.
      * @return string A brief textual description of the current state.
      */
-    public function get_state_string() {
-        return $this->behaviour->get_state_string();
+    public function get_state_string($showcorrectness) {
+        return $this->behaviour->get_state_string($showcorrectness);
     }
 
     /**

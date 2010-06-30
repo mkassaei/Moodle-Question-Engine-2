@@ -39,49 +39,11 @@ define('QUIZ_MAX_DECIMAL_OPTION', 5);
 define('QUIZ_MAX_Q_DECIMAL_OPTION', 7);
 /**#@-*/
 
-/**#@+
- * The different review options are stored in the bits of $quiz->review
- * These constants help to extract the options
- *
- * This is more of a mess than you might think necessary, because originally
- * it was though that 3x6 bits were enough, but then they ran out. PHP integers
- * are only reliably 32 bits signed, so the simplest solution was then to
- * add 4x3 more bits.
- */
-/**
- * The first 6 + 4 bits refer to the time immediately after the attempt
- */
-define('QUIZ_REVIEW_IMMEDIATELY', 0x3c003f);
-/**
- * the next 6 + 4 bits refer to the time after the attempt but while the quiz is open
- */
-define('QUIZ_REVIEW_OPEN',       0x3c00fc0);
-/**
- * the final 6 + 4 bits refer to the time after the quiz closes
- */
-define('QUIZ_REVIEW_CLOSED',    0x3c03f000);
-
-// within each group of 6 bits we determine what should be shown
-define('QUIZ_REVIEW_RESPONSES',       1*0x1041); // Show responses
-define('QUIZ_REVIEW_SCORES',          2*0x1041); // Show scores
-define('QUIZ_REVIEW_FEEDBACK',        4*0x1041); // Show question feedback
-define('QUIZ_REVIEW_ANSWERS',         8*0x1041); // Show correct answers
-// Some handling of worked solutions is already in the code but not yet fully supported
-// and not switched on in the user interface.
-define('QUIZ_REVIEW_SOLUTIONS',      16*0x1041); // Show solutions
-define('QUIZ_REVIEW_GENERALFEEDBACK',32*0x1041); // Show question general feedback
-define('QUIZ_REVIEW_OVERALLFEEDBACK', 1*0x4440000); // Show quiz overall feedback
-// ou-specific begins
-define('QUIZ_REVIEW_CORRECTNESS', 2*0x4440000); // Show correctness
-// ou-specific ends
-// Multipliers 2*0x4440000, 4*0x4440000 and 8*0x4440000 are still available
-/**#@-*/
-
 /**
  * If start and end date for the quiz are more than this many seconds apart
  * they will be represented by two separate events in the calendar
  */
-define("QUIZ_MAX_EVENT_LENGTH", 5*24*60*60);   // 5 days maximum
+define('QUIZ_MAX_EVENT_LENGTH', 5*24*60*60); // 5 days maximum
 
 /// FUNCTIONS ///////////////////////////////////////////////////////////////////
 
@@ -481,12 +443,14 @@ function quiz_grade_item_update($quiz, $grades=NULL) {
 2/ If the quiz is set to not show scores at either of those times, create the grade_item as hidden.
 3/ If the quiz is set to show scores, create the grade_item visible.
 */
-    if (!($quiz->review & QUIZ_REVIEW_SCORES & QUIZ_REVIEW_CLOSED)
-    and !($quiz->review & QUIZ_REVIEW_SCORES & QUIZ_REVIEW_OPEN)) {
+    $openreviewoptions = mod_quiz_display_options::make_from_quiz($quiz,
+            mod_quiz_display_options::LATER_WHILE_OPEN);
+    $closedreviewoptions = mod_quiz_display_options::make_from_quiz($quiz,
+            mod_quiz_display_options::AFTER_CLOSE);
+    if (!$openreviewoptions->marks && !$closedreviewoptions->marks) {
         $params['hidden'] = 1;
 
-    } else if ( ($quiz->review & QUIZ_REVIEW_SCORES & QUIZ_REVIEW_CLOSED)
-           and !($quiz->review & QUIZ_REVIEW_SCORES & QUIZ_REVIEW_OPEN)) {
+    } else if (!$openreviewoptions->marks && $closedreviewoptions->marks) {
         if ($quiz->timeclose) {
             $params['hidden'] = $quiz->timeclose;
         } else {
@@ -752,7 +716,7 @@ function quiz_get_recent_mod_activity(&$activities, &$index, $timestart,
 
         $tmpactivity->content->attemptid = $attempt->id;
         $tmpactivity->content->attempt   = $attempt->attempt;
-        if ($hasgrades && $options->scores) {
+        if ($hasgrades && $options->marks) {
             $tmpactivity->content->sumgrades = round($attempt->sumgrades, $quiz->decimalpoints);
             $tmpactivity->content->maxgrade  = round($quiz->sumgrades, $quiz->decimalpoints);
         } else {
@@ -816,7 +780,13 @@ function quiz_print_recent_mod_activity($activity, $courseid, $detail, $modnames
  *
  * @param object $quiz The variables set on the form.
  */
-function quiz_process_options(&$quiz) {
+function quiz_process_options($quiz) {
+    global $CFG;
+    require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+    require_once($CFG->libdir . '/questionlib.php');
+
+    $quiz->timemodified = time();
+
     $quiz->timemodified = time();
 
     // Quiz name.
@@ -889,115 +859,39 @@ function quiz_process_options(&$quiz) {
         $quiz->feedbackboundarycount = $numboundaries;
     }
 
-    // Settings that get combined to go into the review column.
+    // Combing the individual settings into the review columns.
+    $quiz->reviewattempt = quiz_review_option_form_to_db($quiz, 'attempt');
+    $quiz->reviewcorrectness = quiz_review_option_form_to_db($quiz, 'correctness');
+    $quiz->reviewmarks = quiz_review_option_form_to_db($quiz, 'marks');
+    $quiz->reviewspecificfeedback = quiz_review_option_form_to_db($quiz, 'specificfeedback');
+    $quiz->reviewgeneralfeedback = quiz_review_option_form_to_db($quiz, 'generalfeedback');
+    $quiz->reviewrightanswer = quiz_review_option_form_to_db($quiz, 'rightanswer');
+    $quiz->reviewoverallfeedback = quiz_review_option_form_to_db($quiz, 'overallfeedback');
+}
+
+/**
+ * Helper function for {@link quiz_process_options()}.
+ * @param object $fromform the sumbitted form date.
+ * @param string $field one of the review option field names.
+ */
+function quiz_review_option_form_to_db($fromform, $field) {
+    static $times = array(
+        'during' => mod_quiz_display_options::DURING,
+        'immediately' => mod_quiz_display_options::IMMEDIATELY_AFTER,
+        'open' => mod_quiz_display_options::LATER_WHILE_OPEN,
+        'closed' => mod_quiz_display_options::AFTER_CLOSE,
+    );
+
     $review = 0;
-    if (isset($quiz->responsesimmediately)) {
-        $review += (QUIZ_REVIEW_RESPONSES & QUIZ_REVIEW_IMMEDIATELY);
-        unset($quiz->responsesimmediately);
-    }
-    if (isset($quiz->responsesopen)) {
-        $review += (QUIZ_REVIEW_RESPONSES & QUIZ_REVIEW_OPEN);
-        unset($quiz->responsesopen);
-    }
-    if (isset($quiz->responsesclosed)) {
-        $review += (QUIZ_REVIEW_RESPONSES & QUIZ_REVIEW_CLOSED);
-        unset($quiz->responsesclosed);
+    foreach ($times as $whenname => $when) {
+        $fieldname = $field . $whenname;
+        if (isset($fromform->$fieldname)) {
+            $review |= $when;
+            unset($fromform->$fieldname);
+        }
     }
 
-    if (isset($quiz->scoreimmediately)) {
-        $review += (QUIZ_REVIEW_SCORES & QUIZ_REVIEW_IMMEDIATELY);
-        unset($quiz->scoreimmediately);
-    }
-    if (isset($quiz->scoreopen)) {
-        $review += (QUIZ_REVIEW_SCORES & QUIZ_REVIEW_OPEN);
-        unset($quiz->scoreopen);
-    }
-    if (isset($quiz->scoreclosed)) {
-        $review += (QUIZ_REVIEW_SCORES & QUIZ_REVIEW_CLOSED);
-        unset($quiz->scoreclosed);
-    }
-
-// ou-specific begins
-    if (isset($quiz->correctnessimmediately)) {
-        $review += (QUIZ_REVIEW_CORRECTNESS & QUIZ_REVIEW_IMMEDIATELY);
-        unset($quiz->correctnessimmediately);
-    }
-    if (isset($quiz->correctnessopen)) {
-        $review += (QUIZ_REVIEW_CORRECTNESS & QUIZ_REVIEW_OPEN);
-        unset($quiz->correctnessopen);
-    }
-    if (isset($quiz->correctnessclosed)) {
-        $review += (QUIZ_REVIEW_CORRECTNESS & QUIZ_REVIEW_CLOSED);
-        unset($quiz->correctnessclosed);
-    }
-// ou-specific endss
-
-    if (isset($quiz->feedbackimmediately)) {
-        $review += (QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_IMMEDIATELY);
-        unset($quiz->feedbackimmediately);
-    }
-    if (isset($quiz->feedbackopen)) {
-        $review += (QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_OPEN);
-        unset($quiz->feedbackopen);
-    }
-    if (isset($quiz->feedbackclosed)) {
-        $review += (QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_CLOSED);
-        unset($quiz->feedbackclosed);
-    }
-
-    if (isset($quiz->answersimmediately)) {
-        $review += (QUIZ_REVIEW_ANSWERS & QUIZ_REVIEW_IMMEDIATELY);
-        unset($quiz->answersimmediately);
-    }
-    if (isset($quiz->answersopen)) {
-        $review += (QUIZ_REVIEW_ANSWERS & QUIZ_REVIEW_OPEN);
-        unset($quiz->answersopen);
-    }
-    if (isset($quiz->answersclosed)) {
-        $review += (QUIZ_REVIEW_ANSWERS & QUIZ_REVIEW_CLOSED);
-        unset($quiz->answersclosed);
-    }
-
-    if (isset($quiz->solutionsimmediately)) {
-        $review += (QUIZ_REVIEW_SOLUTIONS & QUIZ_REVIEW_IMMEDIATELY);
-        unset($quiz->solutionsimmediately);
-    }
-    if (isset($quiz->solutionsopen)) {
-        $review += (QUIZ_REVIEW_SOLUTIONS & QUIZ_REVIEW_OPEN);
-        unset($quiz->solutionsopen);
-    }
-    if (isset($quiz->solutionsclosed)) {
-        $review += (QUIZ_REVIEW_SOLUTIONS & QUIZ_REVIEW_CLOSED);
-        unset($quiz->solutionsclosed);
-    }
-
-    if (isset($quiz->generalfeedbackimmediately)) {
-        $review += (QUIZ_REVIEW_GENERALFEEDBACK & QUIZ_REVIEW_IMMEDIATELY);
-        unset($quiz->generalfeedbackimmediately);
-    }
-    if (isset($quiz->generalfeedbackopen)) {
-        $review += (QUIZ_REVIEW_GENERALFEEDBACK & QUIZ_REVIEW_OPEN);
-        unset($quiz->generalfeedbackopen);
-    }
-    if (isset($quiz->generalfeedbackclosed)) {
-        $review += (QUIZ_REVIEW_GENERALFEEDBACK & QUIZ_REVIEW_CLOSED);
-        unset($quiz->generalfeedbackclosed);
-    }
-
-    if (isset($quiz->overallfeedbackimmediately)) {
-        $review += (QUIZ_REVIEW_OVERALLFEEDBACK & QUIZ_REVIEW_IMMEDIATELY);
-        unset($quiz->overallfeedbackimmediately);
-    }
-    if (isset($quiz->overallfeedbackopen)) {
-        $review += (QUIZ_REVIEW_OVERALLFEEDBACK & QUIZ_REVIEW_OPEN);
-        unset($quiz->overallfeedbackopen);
-    }
-    if (isset($quiz->overallfeedbackclosed)) {
-        $review += (QUIZ_REVIEW_OVERALLFEEDBACK & QUIZ_REVIEW_CLOSED);
-        unset($quiz->overallfeedbackclosed);
-    }
-
-    $quiz->review = $review;
+    return $review;
 }
 
 /**

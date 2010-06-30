@@ -70,7 +70,7 @@ function xmldb_qtype_ddwtos_upgrade($oldversion=0) {
 
     if ($result && $oldversion < 2010042800) {
 
-    /// Rename field correctresponsesfeedback on table question_ddwtos to NEWNAMEGOESHERE
+    /// Rename field correctresponsesfeedback on table question_ddwtos to shownumcorrect
         $table = new XMLDBTable('question_ddwtos');
         $field = new XMLDBField('correctresponsesfeedback');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'incorrectfeedback');

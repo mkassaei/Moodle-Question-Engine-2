@@ -613,11 +613,12 @@ function question_preview_url($questionid, $preferredbehaviour, $maxmark, $displ
     return $CFG->wwwroot . '/question/preview.php?id=' . $questionid .
                 '&behaviour=' . $preferredbehaviour .
                 '&maxmark=' . $maxmark .
+                '&correctness=' . $displayoptions->correctness .
+                '&marks=' . $displayoptions->marks .
                 '&markdp=' . $displayoptions->markdp .
                 '&feedback=' . (bool) $displayoptions->feedback .
                 '&generalfeedback=' . (bool) $displayoptions->generalfeedback .
-                '&correctresponse=' . (bool) $displayoptions->correctresponse .
-                '&marks=' . $displayoptions->marks .
+                '&rightanswer=' . (bool) $displayoptions->rightanswer .
                 '&history=' . (bool) $displayoptions->history;
 }
 

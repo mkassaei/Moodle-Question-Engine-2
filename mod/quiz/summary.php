@@ -57,6 +57,8 @@ if (!$attemptobj->is_preview_user() && $messages) {
 }
 $accessmanager->do_password_check($attemptobj->is_preview_user());
 
+$displayoptions = $attemptobj->get_display_options(false);
+
 /// Log this page view.
 add_to_log($attemptobj->get_courseid(), 'quiz', 'view summary', 'summary.php?attempt=' . $attemptobj->get_attemptid(),
         $attemptobj->get_quizid(), $attemptobj->get_cmid());
@@ -94,8 +96,8 @@ $table->class = 'generaltable quizsummaryofattempt';
 $table->head = array(get_string('question', 'quiz'), get_string('status', 'quiz'));
 $table->align = array('left', 'left');
 $table->size = array('', '');
-$scorescolumn = $attemptobj->get_review_options()->scores;
-if ($scorescolumn) {
+$markscolumn = $displayoptions->marks;
+if ($markscolumn) {
     $table->head[] = get_string('marks', 'quiz');
     $table->align[] = 'left';
     $table->size[] = '';
@@ -115,8 +117,8 @@ foreach ($qnumbers as $qnumber) {
     }
     $row = array('<a href="' . $attemptobj->attempt_url($qnumber) . '">' .
             $attemptobj->get_question_number($qnumber) . $flag . '</a>',
-            $attemptobj->get_question_status($qnumber));
-    if ($scorescolumn) {
+            $attemptobj->get_question_status($qnumber, $displayoptions->correctness));
+    if ($markscolumn) {
         $row[] = $attemptobj->get_question_score($qnumber);
     }
     $table->data[] = $row;

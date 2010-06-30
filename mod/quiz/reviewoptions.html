@@ -13,93 +13,42 @@
 <td align="left">
   <table>
     <tr>
+      <td align="left"><b><?php print_string("reviewduring", "quiz") ?></b></td>
       <td align="left"><b><?php print_string("reviewimmediately", "quiz") ?></b></td>
       <td align="left"><b><?php print_string("reviewopen", "quiz") ?></b></td>
       <td align="left"><b><?php print_string("reviewclosed", "quiz") ?></b></td>
     </tr>
-    <tr>
+<?php
+$fields = array(
+    'attempt' => get_string('theattempt', 'quiz'),
+    'correctness' => get_string('whethercorrect', 'question'),
+    'marks' => get_string('marks', 'question'),
+    'specificfeedback' => get_string('specificfeedback', 'question'),
+    'generalfeedback' => get_string('generalfeedback', 'question'),
+    'rightanswer' => get_string('rightanswer', 'question'),
+    'overallfeedback' => get_string('overallfeedback', 'quiz'),
+);
+$times = array(
+    'during' => mod_quiz_display_options::DURING,
+    'immediately' => mod_quiz_display_options::IMMEDIATELY_AFTER,
+    'open' => mod_quiz_display_options::LATER_WHILE_OPEN,
+    'closed' => mod_quiz_display_options::AFTER_CLOSE,
+);
+foreach ($fields as $field => $string) {
+    $fieldname = 'review' . $field;
+    $current = $form->$fieldname;
+    echo "    <tr>\n";
+    foreach ($times as $whenname => $when) {
+?>
       <td align="left">
-        <input type="checkbox" name="responsesimmediately" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_RESPONSES & QUIZ_REVIEW_IMMEDIATELY) ? 'checked="checked"' : '' ?> />
-        <?php print_string('responses', 'quiz') ?>
+        <input type="checkbox" name="<?php echo $field . $whenname; ?>" value="1" <?php
+                echo ($form->$fieldname & $when) ? 'checked="checked"' : '' ?> />
+        <?php echo $string ?>
       </td>
-      <td align="left">
-        <input type="checkbox" name="responsesopen" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_RESPONSES & QUIZ_REVIEW_OPEN) ? 'checked="checked"' : '' ?> />
-        <?php print_string('responses', 'quiz') ?>
-      </td>
-      <td align="left">
-        <input type="checkbox" name="responsesclosed" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_RESPONSES & QUIZ_REVIEW_CLOSED) ? 'checked="checked"' : '' ?> />
-        <?php print_string('responses', 'quiz') ?>
-      </td>
-    </tr>
-    <tr>
-      <td align="left">
-        <input type="checkbox" name="answersimmediately" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_ANSWERS & QUIZ_REVIEW_IMMEDIATELY) ? 'checked="checked"' : '' ?> />
-        <?php print_string('answers', 'quiz') ?>
-      </td>
-      <td align="left">
-        <input type="checkbox" name="answersopen" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_ANSWERS & QUIZ_REVIEW_OPEN) ? 'checked="checked"' : '' ?> />
-        <?php print_string('answers', 'quiz') ?>
-      </td>
-      <td align="left">
-        <input type="checkbox" name="answersclosed" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_ANSWERS & QUIZ_REVIEW_CLOSED) ? 'checked="checked"' : '' ?> />
-        <?php print_string('answers', 'quiz') ?>
-      </td>
-    </tr>
-    <tr>
-      <td align="left">
-        <input type="checkbox" name="feedbackimmediately" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_IMMEDIATELY) ? 'checked="checked"' : '' ?> />
-        <?php print_string('feedback', 'quiz') ?>
-      </td>
-      <td align="left">
-        <input type="checkbox" name="feedbackopen" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_OPEN) ? 'checked="checked"' : '' ?> />
-        <?php print_string('feedback', 'quiz') ?>
-      </td>
-      <td align="left">
-        <input type="checkbox" name="feedbackclosed" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_FEEDBACK & QUIZ_REVIEW_CLOSED) ? 'checked="checked"' : '' ?> />
-        <?php print_string('feedback', 'quiz') ?>
-      </td>
-    </tr>
-    <tr>
-      <td align="left">
-        <input type="checkbox" name="generalfeedbackimmediately" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_GENERALFEEDBACK & QUIZ_REVIEW_IMMEDIATELY) ? 'checked="checked"' : '' ?> />
-        <?php print_string('generalfeedback', 'quiz') ?>
-      </td>
-      <td align="left">
-        <input type="checkbox" name="generalfeedbackopen" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_GENERALFEEDBACK & QUIZ_REVIEW_OPEN) ? 'checked="checked"' : '' ?> />
-        <?php print_string('generalfeedback', 'quiz') ?>
-      </td>
-      <td align="left">
-        <input type="checkbox" name="generalfeedbackclosed" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_GENERALFEEDBACK & QUIZ_REVIEW_CLOSED) ? 'checked="checked"' : '' ?> />
-        <?php print_string('generalfeedback', 'quiz') ?>
-      </td>
-    </tr>
-    <tr>
-      <td align="left">
-        <input type="checkbox" name="scoreimmediately" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_SCORES & QUIZ_REVIEW_IMMEDIATELY) ? 'checked="checked"' : '' ?> />
-        <?php print_string('scores', 'quiz') ?>
-      </td>
-      <td align="left">
-        <input type="checkbox" name="scoreopen" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_SCORES & QUIZ_REVIEW_OPEN) ? 'checked="checked"' : '' ?> />
-        <?php print_string('scores', 'quiz') ?>
-      </td>
-      <td align="left">
-        <input type="checkbox" name="scoreclosed" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_SCORES & QUIZ_REVIEW_CLOSED) ? 'checked="checked"' : '' ?> />
-        <?php print_string('scores', 'quiz') ?>
-      </td>
-    </tr>
-    <tr>
-      <td align="left">
-        <input type="checkbox" name="overallfeedbackimmediately" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_OVERALLFEEDBACK & QUIZ_REVIEW_IMMEDIATELY) ? 'checked="checked"' : '' ?> />
-        <?php print_string('overallfeedback', 'quiz') ?>
-      </td>
-      <td align="left">
-        <input type="checkbox" name="overallfeedbackopen" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_OVERALLFEEDBACK & QUIZ_REVIEW_OPEN) ? 'checked="checked"' : '' ?> />
-        <?php print_string('overallfeedback', 'quiz') ?>
-      </td>
-      <td align="">
-        <input type="checkbox" name="overallfeedbackclosed" value="Yes" <?php echo ($form->review & QUIZ_REVIEW_OVERALLFEEDBACK & QUIZ_REVIEW_CLOSED) ? 'checked="checked"' : '' ?> />
-        <?php print_string('overallfeedback', 'quiz') ?>
-      </td>
-    </tr>
+<?php
+    }
+    echo "    </tr>\n";
+}
+?>
   </table>
 </td>

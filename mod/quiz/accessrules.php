@@ -349,15 +349,19 @@ class quiz_access_manager {
      * @param object $attempt the attempt object
      * @return string some HTML, the $linktext either unmodified or wrapped in a link to the review page.
      */
-    public function make_review_link($attempt, $canpreview, $reviewoptions) {
+    public function make_review_link($attempt, $canpreview) {
         global $CFG;
 
     /// If review of responses is not allowed, or the attempt is still open, don't link.
         if (!$attempt->timefinish) {
             return '';
         }
-        if (!$reviewoptions->responses) {
-            $message = $this->cannot_review_message($reviewoptions, true);
+
+        $when = quiz_attempt_state($this->_quizobj->get_quiz(), $attempt);
+        $reviewoptions = mod_quiz_display_options::make_from_quiz($this->_quizobj->get_quiz(), $when);
+
+        if (!$reviewoptions->attempt) {
+            $message = $this->cannot_review_message($when, true);
             if ($message) {
                 return '<span class="noreviewmessage">' . $message . '</span>';
             } else {
@@ -377,14 +381,15 @@ class quiz_access_manager {
     }
 
     /**
-     * If $reviewoptions->responses is false, meaning that students can't review this
+     * If $reviewoptions->attempt is false, meaning that students can't review this
      * attempt at the moment, return an appropriate string explaining why.
      *
-     * @param object $reviewoptions as obtained from quiz_get_reviewoptions.
+     * @param integer $when One of the mod_quiz_display_options::DURING,
+     *      IMMEDIATELY_AFTER, LATER_WHILE_OPEN or AFTER_CLOSE constants.
      * @param boolean $short if true, return a shorter string.
      * @return string an appropraite message.
      */
-    public function cannot_review_message($reviewoptions, $short = false) {
+    public function cannot_review_message($when, $short = false) {
         $quiz = $this->_quizobj->get_quiz();
         if ($short) {
             $langstrsuffix = 'short';
@@ -393,10 +398,10 @@ class quiz_access_manager {
             $langstrsuffix = '';
             $dateformat = '';
         }
-        if ($reviewoptions->quizstate == QUIZ_STATE_IMMEDIATELY) {
+        if ($when == mod_quiz_display_options::DURING || $when == mod_quiz_display_options::IMMEDIATELY_AFTER) {
             return '';
-        } else if ($reviewoptions->quizstate == QUIZ_STATE_OPEN && $quiz->timeclose &&
-                    ($quiz->review & QUIZ_REVIEW_CLOSED & QUIZ_REVIEW_RESPONSES)) {
+        } else if ($when == mod_quiz_display_options::LATER_WHILE_OPEN &&
+                $quiz->timeclose && $quiz->reviewattempt & mod_quiz_display_options::AFTER_CLOSE) {
             return get_string('noreviewuntil' . $langstrsuffix, 'quiz', userdate($quiz->timeclose, $dateformat));
         } else {
             return get_string('noreview' . $langstrsuffix, 'quiz');
