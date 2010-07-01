@@ -88,7 +88,7 @@ print_heading(format_string($attemptobj->get_quiz_name()));
 if ($attemptobj->is_preview_user()) {
     $attemptobj->print_restart_preview_button();
 }
-print_heading($title);
+print_heading($title, '', 3);
 
 /// Prepare the summary table header
 $table->class = 'generaltable quizsummaryofattempt';
