@@ -67,7 +67,6 @@ class quiz_grading_report extends quiz_default_report {
         }
         $pagesize = optional_param('pagesize', self::DEFAULT_PAGE_SIZE, PARAM_INT);
         $page = optional_param('page', 0, PARAM_INT);
-        $shownames = optional_param('shownames', false, PARAM_BOOL);
         $order = optional_param('order', self::DEFAULT_ORDER, PARAM_ALPHA);
         if (!in_array($order, array('random', 'date', 'student'))) {
             $order = self::DEFAULT_ORDER;
@@ -77,7 +76,7 @@ class quiz_grading_report extends quiz_default_report {
         }
 
         // Assemble the options requried to reload this page.
-        $optparams = array('includeauto', 'page', 'shownames');
+        $optparams = array('includeauto', 'page');
         foreach ($optparams as $param) {
             if ($$param) {
                 $this->viewoptions[$param] = $$param;
@@ -93,6 +92,8 @@ class quiz_grading_report extends quiz_default_report {
         // Check permissions
         $this->context = get_context_instance(CONTEXT_MODULE, $cm->id);
         require_capability('mod/quiz:grade', $this->context);
+        $shownames = has_capability('quizreport/grading:viewstudentnames', $this->context);
+        $showidnumbers = has_capability('quizreport/grading:viewidnumber', $this->context);
 
         // Get the list of questions in this quiz.
         $this->questions = quiz_report_get_significant_questions($quiz);
@@ -121,8 +122,8 @@ class quiz_grading_report extends quiz_default_report {
             $this->display_index($includeauto);
 
         } else {
-            $this->display_grading_interface($qnumber, $questionid, $grade, $pagesize, $page,
-                    $shownames, $order);
+            $this->display_grading_interface($qnumber, $questionid, $grade,
+                    $pagesize, $page, $shownames, $showidnumbers, $order);
         }
         return true;
     }
@@ -166,7 +167,7 @@ class quiz_grading_report extends quiz_default_report {
         list($asql, $params) = get_in_or_equal($qubaids);
 
         $attemptsbyid = get_records_sql("
-            SELECT quiza.*, u.firstname, u.lastname
+            SELECT quiza.*, u.firstname, u.lastname, u.idnumber
             FROM {$CFG->prefix}quiz_attempts quiza
             JOIN {$CFG->prefix}user u ON u.id = quiza.userid
             WHERE quiza.uniqueid $asql AND quiza.timefinish <> 0 AND quiza.quiz = {$this->quiz->id}
@@ -314,7 +315,7 @@ class quiz_grading_report extends quiz_default_report {
     }
 
     protected function display_grading_interface($qnumber, $questionid, $grade,
-            $pagesize, $page, $shownames, $order) {
+            $pagesize, $page, $shownames, $showidnumbers, $order) {
 
         // Make sure there is something to do.
         $statecounts = $this->get_question_state_summary(array($qnumber));
@@ -357,7 +358,6 @@ class quiz_grading_report extends quiz_default_report {
         $settings = new stdClass;
         $settings->grade = $grade;
         $settings->pagesize = $pagesize;
-        $settings->shownames = $shownames;
         $settings->order = $order;
         $mform->set_data($settings);
 
@@ -405,11 +405,9 @@ END;
             $displayoptions->history = question_display_options::HIDDEN;
             $displayoptions->manualcomment = question_display_options::EDITABLE;
 
-            if ($shownames) {
-                $a = new stdClass;
-                $a->fullname = fullname($attempt);
-                $a->attempt = $attempt->attempt;
-                print_heading(get_string('gradingattempt', 'quiz_grading', $a), '', 4);
+            $heading = $this->get_question_heading($attempt, $shownames, $showidnumbers);
+            if ($heading) {
+                print_heading($heading, '', 4);
             }
             echo $quba->render_question($qnumber, $displayoptions, $this->questions[$qnumber]->number);
         }
@@ -418,6 +416,26 @@ END;
                 get_string('saveandnext', 'quiz_grading') . '" /></div>'.
             '</div></form>';
         use_html_editor();
+    }
+
+    protected function get_question_heading($attempt, $shownames, $showidnumbers) {
+        $a = new stdClass;
+        $a->attempt = $attempt->attempt;
+        $a->fullname = fullname($attempt);
+        $a->idnumber = $attempt->idnumber;
+
+        $showidnumbers &= !empty($attempt->idnumber);
+
+        if ($shownames && $showidnumbers) {
+            return get_string('gradingattemptwithidnumber', 'quiz_grading', $a);
+        } else if ($shownames) {
+            return get_string('gradingattempt', 'quiz_grading', $a);
+        } else if ($showidnumbers) {
+            $a->fullname = $attempt->idnumber;
+            return get_string('gradingattempt', 'quiz_grading', $a);
+        } else {
+            return '';
+        }
     }
 
     protected function validate_submitted_marks() {

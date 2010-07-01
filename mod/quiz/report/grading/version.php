@@ -16,11 +16,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Quiz statistics report version information.
+ * Quiz grading report version information.
  *
- * @package quiz_statistics
- * @copyright 2008 Jamie Pratt
+ * @package quiz_grading
+ * @copyright 2010 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$plugin->version  = 2010062200;
+$plugin->version  = 2010070100;
