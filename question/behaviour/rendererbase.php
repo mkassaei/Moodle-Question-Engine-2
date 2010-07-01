@@ -69,7 +69,7 @@ abstract class qbehaviour_renderer extends renderer_base {
 
     public function manual_comment_fields(question_attempt $qa, question_display_options $options) {
 
-        $commentfield = $qa->get_im_field_name('comment');
+        $commentfield = $qa->get_behaviour_field_name('comment');
 
         $comment = print_textarea(can_use_html_editor(), 10, 80, null, null, $commentfield, $qa->get_manual_comment(), 0, true);
         $comment = html_writer::tag('div', html_writer::tag('div',
@@ -80,30 +80,45 @@ abstract class qbehaviour_renderer extends renderer_base {
 
         $mark = '';
         if ($qa->get_max_mark()) {
+            $currentmark = $qa->get_current_manual_mark();
+            $maxmark = $qa->get_max_mark();
+
             $fieldsize = strlen($qa->format_max_mark($options->markdp)) - 1;
-            $markfield = $qa->get_im_field_name('mark');
+            $markfield = $qa->get_behaviour_field_name('mark');
 
             $attributes = array(
                 'type' => 'text',
                 'size' => $fieldsize,
                 'name' => $markfield,
-                'value' => $qa->format_mark($options->markdp),
+                'value' => $qa->format_fraction_as_mark($currentmark / $maxmark, $options->markdp),
             );
             $a = new stdClass;
             $a->max = $qa->format_max_mark($options->markdp);
             $a->mark = html_writer::empty_tag('input', $attributes);
 
-            $maxmark = html_writer::empty_tag('input', array(
+            $markrange = html_writer::empty_tag('input', array(
                 'type' => 'hidden',
-                'name' => $qa->get_im_field_name('maxmark'),
-                'value' => $qa->get_max_mark(),
+                'name' => $qa->get_behaviour_field_name('maxmark'),
+                'value' => $maxmark,
+            )) . html_writer::empty_tag('input', array(
+                'type' => 'hidden',
+                'name' => $qa->get_control_field_name('minfraction'),
+                'value' => $qa->get_min_fraction(),
             ));
+
+            $errorclass = '';
+            $error = '';
+            if ($currentmark > $maxmark || $currentmark < $maxmark * $qa->get_min_fraction()) {
+                $errorclass = ' error';
+                $error = html_writer::tag('span', get_string('manualgradeoutofrange', 'question'),
+                        array('class' => 'error')) . html_writer::empty_tag('br');
+            }
 
             $mark = html_writer::tag('div', html_writer::tag('div',
                     html_writer::tag('label', get_string('mark', 'question'), array('for' => $markfield)),
                     array('class' => 'fitemtitle')) .
-                    html_writer::tag('div', get_string('xoutofmax', 'question', $a) .
-                        $maxmark, array('class' => 'felement ftext')
+                    html_writer::tag('div', $error . get_string('xoutofmax', 'question', $a) .
+                        $markrange, array('class' => 'felement ftext' . $errorclass)
                     ), array('class' => 'fitem'));
             
         }
@@ -155,8 +170,8 @@ abstract class qbehaviour_renderer extends renderer_base {
     protected function submit_button(question_attempt $qa, question_display_options $options) {
         $attributes = array(
             'type' => 'submit',
-            'id' => $qa->get_im_field_name('submit'),
-            'name' => $qa->get_im_field_name('submit'),
+            'id' => $qa->get_behaviour_field_name('submit'),
+            'name' => $qa->get_behaviour_field_name('submit'),
             'value' => get_string('check', 'question'),
             'class' => 'submit btn',
         );

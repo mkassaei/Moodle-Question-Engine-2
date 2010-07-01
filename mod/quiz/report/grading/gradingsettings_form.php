@@ -66,8 +66,6 @@ class quiz_grading_settings extends moodleform {
         $mform->addElement('text', 'pagesize', get_string('questionsperpage', 'quiz_grading'), array('size' => 3));
         $mform->setType('pagesize', PARAM_INT);
 
-        $mform->addElement('selectyesno', 'shownames', get_string('showstudentnames', 'quiz_grading'));
-
         $orderoptions = array(
             'random' => get_string('randomly', 'quiz_grading'),
             'date' => get_string('bydate', 'quiz_grading'),

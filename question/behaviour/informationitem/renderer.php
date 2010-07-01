@@ -35,7 +35,7 @@ class qbehaviour_informationitem_renderer extends qbehaviour_renderer {
         // Hidden input to move the question into the complete state.
         return html_writer::empty_tag('input', array(
             'type' => 'hidden',
-            'name' => $qa->get_im_field_name('seen'),
+            'name' => $qa->get_behaviour_field_name('seen'),
             'value' => 1,
         ));
     }

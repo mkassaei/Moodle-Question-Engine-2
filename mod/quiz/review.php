@@ -132,7 +132,7 @@ print_heading($strreviewtitle);
 // Print the navigation panel in a left column.
 echo '<div id="left-column">';
 print_container_start();
-$attemptobj->print_navigation_panel('quiz_review_nav_panel', $page);
+$attemptobj->print_navigation_panel('quiz_review_nav_panel', $page, $showall);
 print_container_end();
 echo '</div>';
 

@@ -66,7 +66,7 @@ class qtype_multichoice_test extends UnitTestCase {
         $this->assertEqual(0.5, $this->qtype->get_random_guess_score($q));
     }
 
-    public function test_get_possible_responses() {
+    public function test_get_possible_responses_single() {
         $q = $this->get_test_question_data();
         $responses = $this->qtype->get_possible_responses($q);
 
@@ -74,10 +74,11 @@ class qtype_multichoice_test extends UnitTestCase {
             $q->id => array(
                 1 => new question_possible_response('frog', 1),
                 2 => new question_possible_response('toad', 0),
+                null => question_possible_response::no_response(),
             )), $this->qtype->get_possible_responses($q));
     }
 
-    public function test_get_possible_responses_mulit() {
+    public function test_get_possible_responses_multi() {
         $q = $this->get_test_question_data();
         $q->options->single = false;
 

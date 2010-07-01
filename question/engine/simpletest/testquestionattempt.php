@@ -81,8 +81,8 @@ class question_attempt_test extends UnitTestCase {
         $this->assertPattern('/_test$/', $name);
     }
 
-    public function test_get_im_field_name() {
-        $name = $this->qa->get_im_field_name('test');
+    public function test_get_behaviour_field_name() {
+        $name = $this->qa->get_behaviour_field_name('test');
         $this->assertPattern('/^' . preg_quote($this->qa->get_field_prefix()) . '/', $name);
         $this->assertPattern('/_-test$/', $name);
     }

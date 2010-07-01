@@ -3916,13 +3916,8 @@ body#question-preview .quemodname, body#question-preview .controls {
 #mod-quiz-comment .mform {
   width: 100%;
 }
-#mod-quiz-report .mform .felement,
-#mod-quiz-comment .mform .felement {
-  padding: 0;
-}
 #mod-quiz-report .mform fieldset,
 #mod-quiz-comment .mform fieldset {
-      padding: 0;
   margin: 0;
 }
 #mod-quiz-comment .que {

@@ -3916,6 +3916,10 @@ function get_capability_string($capabilityname) {
             $string = get_string($stringname, 'coursereport_'.$componentname);
         break;
 
+        case 'quizreport':
+            $string = get_string($stringname, 'quiz_'.$componentname);
+        break;
+
         default:
             $string = get_string($stringname);
         break;
@@ -3972,7 +3976,12 @@ function get_component_string($component, $contextlevel) {
         break;
 
         case CONTEXT_MODULE:
-            $string = get_string('modulename', basename($component));
+            if (preg_match('|^quizreport/([a-z_]*)|', $component, $matches)){
+                $langname = 'quiz_'.$matches[1];
+                $string = get_string($matches[1].':componentname', $langname);
+            } else {
+                $string = get_string('modulename', preg_replace('#(\w+_)#', '', basename($component)));
+            }
         break;
 
         case CONTEXT_BLOCK:

@@ -893,8 +893,8 @@ class quiz_attempt {
                 $this->quizobj->get_context(), $this->get_cm());
     }
 
-    public function print_navigation_panel($panelclass, $page) {
-        $panel = new $panelclass($this, $this->get_display_options(true), $page);
+    public function print_navigation_panel($panelclass, $page, $showall = false) {
+        $panel = new $panelclass($this, $this->get_display_options(true), $page, $showall);
         $panel->display();
     }
 
@@ -1028,11 +1028,15 @@ abstract class quiz_nav_panel_base {
     protected $options;
     /** @var integer */
     protected $page;
+    /** @var boolean */
+    protected $showall;
 
-    public function __construct(quiz_attempt $attemptobj, question_display_options $options, $page) {
+    public function __construct(quiz_attempt $attemptobj,
+            question_display_options $options, $page, $showall) {
         $this->attemptobj = $attemptobj;
         $this->options = $options;
         $this->page = $page;
+        $this->showall = $showall;
     }
 
     protected function get_question_buttons() {
@@ -1133,8 +1137,13 @@ class quiz_review_nav_panel extends quiz_nav_panel_base {
 
     protected function get_end_bits() {
         $accessmanager = $this->attemptobj->get_access_manager(time());
-        $html = '<a href="' . $this->attemptobj->review_url(0, 0, true) . '">' .
-                get_string('showall', 'quiz') . '</a>';
+        if ($this->attemptobj->get_num_pages() > 1) {
+            if ($this->showall) {
+                $html = '<a href="' . $this->attemptobj->review_url(0, 0, false) . '">' . get_string('showeachpage', 'quiz') . '</a>';
+            } else {
+                $html = '<a href="' . $this->attemptobj->review_url(0, 0, true) . '">' . get_string('showall', 'quiz') . '</a>';
+            }
+        }
         $html .= $accessmanager->print_finish_review_link($this->attemptobj->is_preview_user(), true);
         return $html;
     }

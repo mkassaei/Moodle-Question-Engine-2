@@ -246,7 +246,7 @@ class core_question_renderer extends renderer_base {
         $output = '';
         $output .= html_writer::empty_tag('input', array(
                 'type' => 'hidden',
-                'name' => $qa->get_field_prefix() . ':sequencecheck',
+                'name' => $qa->get_control_field_name('sequencecheck'),
                 'value' => $qa->get_num_steps()));
         $output .= $qtoutput->formulation_and_controls($qa, $options);
         if ($options->clearwrong) {

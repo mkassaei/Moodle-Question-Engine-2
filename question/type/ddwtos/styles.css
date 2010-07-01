@@ -1,60 +1,60 @@
-.qtext {
+.que.ddwtos .qtext {
     line-height:2em;
     margin-top: 1px;
     margin-bottom: 0.5em;
     display: block;
 }
 
-.answercontainer {
+.que.ddwtos .answercontainer {
     line-height: 2em;
     margin-bottom:1em;
     display: block;
 }
 
-.answertext {
+.que.ddwtos .answertext {
     padding-bottom: 0.5em;
 }
 
-.slot {
+.que.ddwtos .slot {
     display: inline-block;
     text-align: center;
     border: 1px solid #000000;
 }
-.player {
+.que.ddwtos .player {
     display: inline-block;
     text-align: center;
     cursor: move;
     border: 1px solid #000000;
 }
-.player.placed { /* Lets the focus rectangle be visible in IE. */
+.que.ddwtos .player.placed { /* Lets the focus rectangle be visible in IE. */
     background: transparent;
 }
 
-.readonly {
+.que.ddwtos .readonly {
     cursor: default;
 }
 
-.group1 {
+.que.ddwtos .group1 {
     background-color: #FFFFFF;
 }
-.group2 {
+.que.ddwtos .group2 {
     background-color: #DCDCDC;
 }
-.group3 {
+.que.ddwtos .group3 {
     background-color: #B0C4DE;
 }
-.group4 {
+.que.ddwtos .group4 {
     background-color: #D8BFD8;
 }
-.group5 {
+.que.ddwtos .group5 {
     background-color: #87CEFA;
 }
-.group6 {
+.que.ddwtos .group6 {
     background-color: #DAA520;
 }
-.group7 {
+.que.ddwtos .group7 {
     background-color: #FFD700;
 }
-.group8 {
+.que.ddwtos .group8 {
     background-color: #F0E68C;
 }

@@ -325,7 +325,7 @@ interface question_manually_gradable {
 
     /**
      * Categorise the student's response according to the categories defined by
-     * get_possible_responses
+     * get_possible_responses.
      * @param $response a response, as might be passed to {@link grade_response()}.
      * @return array subpartid => {@link question_classified_response} objects.
      *      returns an empty array if no analysis is possible.

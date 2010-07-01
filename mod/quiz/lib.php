@@ -1207,7 +1207,7 @@ function quiz_num_attempt_summary($quiz, $cm, $returnzero = false, $currentgroup
  * Returns all other caps used in module
  */
 function quiz_get_extra_capabilities() {
-    return array(
+    $caps = array(
         'moodle/site:accessallgroups',
         'moodle/question:add',
         'moodle/question:editall',
@@ -1221,6 +1221,9 @@ function quiz_get_extra_capabilities() {
         'moodle/question:viewall',
         'moodle/question:viewmine',
     );
+    $reportcaps = get_records_select_menu('capabilities', "name LIKE 'quizreport/%'",
+            'name', 'id,name');
+    return array_merge($caps, $reportcaps);
 }
 
 // ou-specific begins (until 2.0)

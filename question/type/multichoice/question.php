@@ -123,7 +123,7 @@ class qtype_multichoice_single_question extends qtype_multichoice_base {
     public function classify_response(array $response) {
         if (!array_key_exists('answer', $response) ||
                 !array_key_exists($response['answer'], $this->order)) {
-            return array(question_classified_response::no_response());
+            return array($this->id => question_classified_response::no_response());
         }
         $choiceid = $this->order[$response['answer']];
         $ans = $this->answers[$choiceid];
