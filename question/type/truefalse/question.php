@@ -60,10 +60,10 @@ class qtype_truefalse_question extends question_graded_automatically {
         }
         list($fraction) = $this->grade_response($response);
         if ($response['answer']) {
-            return array(new question_classified_response(1,
+            return array($this->id => new question_classified_response(1,
                     get_string('true', 'qtype_truefalse'), $fraction));
         } else {
-            return array(new question_classified_response(0,
+            return array($this->id => new question_classified_response(0,
                     get_string('false', 'qtype_truefalse'), $fraction));
         }
     }
