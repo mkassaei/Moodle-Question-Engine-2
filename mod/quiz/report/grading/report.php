@@ -101,7 +101,7 @@ class quiz_grading_report extends quiz_default_report {
         }
 
         // Process any submitted data.
-        if ($data = data_submitted() && confirm_sesskey()) {
+        if ($data = data_submitted() && confirm_sesskey() && $this->validate_submitted_marks()) {
             $this->process_submitted_data();
 
             redirect($this->grade_question_url($qnumber, $questionid, $grade, $page + 1));
@@ -402,6 +402,7 @@ END;
             $quba = question_engine::load_questions_usage_by_activity($qubaid);
             $displayoptions = quiz_get_reviewoptions($this->quiz, $attempt, $this->context);
             $displayoptions->hide_all_feedback();
+            $displayoptions->history = question_display_options::HIDDEN;
             $displayoptions->manualcomment = question_display_options::EDITABLE;
 
             if ($shownames) {
@@ -419,14 +420,43 @@ END;
         use_html_editor();
     }
 
+    protected function validate_submitted_marks() {
+
+        $qubaids = optional_param('qubaids', null, PARAM_SEQUENCE);
+        if (!$qubaids) {
+            return false;
+        }
+        $qubaids = clean_param(explode(',', $qubaids), PARAM_INT);
+
+        $qnumbers = optional_param('qnumbers', '', PARAM_SEQUENCE);
+        if (!$qnumbers) {
+            $qnumbers = array();
+        } else {
+            $qnumbers = explode(',', $qnumbers);
+        }
+
+        foreach ($qubaids as $qubaid) {
+            foreach ($qnumbers as $qnumber) {
+                $prefix = 'q' . $qubaid . ':' . $qnumber . '_';
+                $mark = optional_param($prefix . '-mark', null, PARAM_NUMBER);
+                $maxmark = optional_param($prefix . '-maxmark', null, PARAM_NUMBER);
+                $minfraction = optional_param($prefix . ':minfraction', null, PARAM_NUMBER);
+                if (!is_null($mark) && ($mark < $minfraction * $maxmark || $mark > $maxmark)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     protected function process_submitted_data() {
         $qubaids = optional_param('qubaids', null, PARAM_SEQUENCE);
-
         if (!$qubaids) {
             return;
         }
-        $qubaids = explode(',', $qubaids);
-        $qubaids = clean_param($qubaids, PARAM_INT);
+
+        $qubaids = clean_param(explode(',', $qubaids), PARAM_INT);
         $attempts = $this->load_attempts_by_usage_ids($qubaids);
 
         foreach ($qubaids as $qubaid) {

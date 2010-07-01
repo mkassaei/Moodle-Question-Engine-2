@@ -63,6 +63,7 @@ $string['invalidcontextinhasanyquestions'] = 'Invalid context passed to question
 $string['linkedfiledoesntexist'] = 'Linked file $a doesn\'t exist';
 $string['makechildof'] = "Make Child of '\$a'";
 $string['maketoplevelitem'] = 'Move to top level';
+$string['manualgradeoutofrange'] = 'This grade is outside the valid range.';
 $string['markedoutofmax'] = 'Marked out of $a';
 $string['markoutofmax'] = 'Mark $a->mark out of $a->max';
 $string['missingimportantcode'] = 'This question type is missing important code: $a.';

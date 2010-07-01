@@ -55,7 +55,7 @@ class qbehaviour_deferredcbm_renderer extends qbehaviour_renderer {
 
     public function controls(question_attempt $qa, question_display_options $options) {
         return html_writer::tag('div', get_string('howcertainareyou', 'qbehaviour_deferredcbm',
-                $this->certainly_choices($qa->get_im_field_name('certainty'),
+                $this->certainly_choices($qa->get_behaviour_field_name('certainty'),
                 $qa->get_last_behaviour_var('certainty'), $options->readonly)),
                 array('class' => 'certaintychoices'));
     }

@@ -361,8 +361,12 @@ abstract class question_behaviour {
         $laststep = $this->qa->get_last_step();
 
         if ($pendingstep->has_behaviour_var('mark')) {
-            $pendingstep->set_fraction($pendingstep->get_behaviour_var('mark') /
-                    $pendingstep->get_behaviour_var('maxmark'));
+            $fraction = $pendingstep->get_behaviour_var('mark') / $pendingstep->get_behaviour_var('maxmark');
+            if ($fraction > 1 || $fraction < $this->qa->get_min_fraction()) {
+                throw new coding_exception('Score out of range when processing ' .
+                        'a manual grading action.', $pendingstep);
+            }
+            $pendingstep->set_fraction($fraction);
         }
 
         $pendingstep->set_state($laststep->get_state()->

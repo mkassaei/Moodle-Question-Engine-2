@@ -931,14 +931,15 @@ class question_usage_by_activity {
     }
 
     /**
-     * 
-     * @param unknown_type $qnumber
-     * @return unknown_type
+     * Check that the sequence number, that detects weird things like the student
+     * clicking back, is OK.
+     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param array $submitteddata the submitted data that constitutes the action.
      */
     public function validate_sequence_number($qnumber, $postdata = null) {
         $qa = $this->get_question_attempt($qnumber);
         $sequencecheck = question_attempt::get_submitted_var(
-                $qa->get_field_prefix() . ':sequencecheck', PARAM_INT, $postdata);
+                $qa->get_control_field_name('sequencecheck'), PARAM_INT, $postdata);
         if (!is_null($sequencecheck) && $sequencecheck != $qa->get_num_steps()) {
             throw new question_out_of_sequence_exception($this->id, $qnumber, $postdata);
         }
@@ -1342,7 +1343,7 @@ class question_attempt {
      * @return string  The field name to use.
      */
     public function get_flag_field_name() {
-        return $this->get_field_prefix() . ':flagged';
+        return $this->get_control_field_name('flagged');
     }
 
     /**
@@ -1369,8 +1370,21 @@ class question_attempt {
      * @param $varname The short form of the variable name.
      * @return string  The field name to use.
      */
-    public function get_im_field_name($varname) {
+    public function get_behaviour_field_name($varname) {
         return $this->get_field_prefix() . '-' . $varname;
+    }
+
+    /**
+     * Get the name (in the sense a HTML name="" attribute, or a $_POST variable
+     * name) to use for a control variables belonging to this question_attempt.
+     *
+     * Examples are :sequencecheck and :flagged
+     *
+     * @param $varname The short form of the variable name.
+     * @return string  The field name to use.
+     */
+    public function get_control_field_name($varname) {
+        return $this->get_field_prefix() . ':' . $varname;
     }
 
     /**
@@ -1546,6 +1560,19 @@ class question_attempt {
      */
     public function get_mark() {
         return $this->fraction_to_mark($this->get_fraction());
+    }
+
+    /**
+     * @return number the current mark for this question.
+     * {@link get_fraction()} * {@link get_max_mark()}.
+     */
+    public function get_current_manual_mark() {
+        $mark = self::get_submitted_var($this->get_behaviour_field_name('mark'), PARAM_NUMBER);
+        if (is_null($mark)) {
+            return $this->get_mark();
+        } else {
+            return $mark;
+        }
     }
 
     /**
@@ -1780,7 +1807,7 @@ class question_attempt {
             $postdata = $_POST;
         }
 
-        $pattern = '/^' . preg_quote($this->get_field_prefix()) . '[^-]/';
+        $pattern = '/^' . preg_quote($this->get_field_prefix()) . '[^-:]/';
         $prefixlen = strlen($this->get_field_prefix());
 
         $submitteddata = array();

@@ -44,8 +44,8 @@ class qbehaviour_interactive_renderer extends qbehaviour_renderer {
 
         $attributes = array(
             'type' => 'submit',
-            'id' => $qa->get_im_field_name('tryagain'),
-            'name' => $qa->get_im_field_name('tryagain'),
+            'id' => $qa->get_behaviour_field_name('tryagain'),
+            'name' => $qa->get_behaviour_field_name('tryagain'),
             'value' => get_string('tryagain', 'qbehaviour_interactive'),
             'class' => 'submit btn',
         );
