@@ -207,7 +207,9 @@ class qbehaviour_manualgraded_walkthrough_test extends qbehaviour_walkthrough_te
         $this->check_current_mark(null);
         $this->check_current_output(
                 new PatternExpectation('/' . preg_quote('Actually, I am not sure any more.') . '/'));
-        $this->assertEqual(,
-                summarise_action($this->quba->get_question_attempt($this->qnumber)->get_last_step()));
+
+        $qa = $this->quba->get_question_attempt($this->qnumber);
+        $this->assertEqual('Commented: Actually, I am not sure any more.',
+                $qa->summarise_action($qa->get_last_step()));
     }
 }
