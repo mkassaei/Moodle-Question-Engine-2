@@ -312,5 +312,55 @@ class qtype_match_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_contains_correct_expectation(),
                 $this->get_no_hint_visible_expectation());
+    }
+
+    public function test_match_with_tricky_html_choices() {
+
+        // Create a matching question.
+        $m = test_question_maker::make_a_matching_question();
+        $m->stems = array(
+            1 => '(1, 2]',
+            2 => '[1, 2]',
+            3 => '[1, 2)',
+        );
+        $m->choices = array(
+            1 => '1 < x ≤ 2',
+            2 => '1 ≤ x ≤ 2',
+            3 => '1 ≤ x < 2',
+        );
+        $m->right = array(1 => 1, 2 => 2, 3 => 3);
+        $m->shufflestems = false;
+        $this->start_attempt_at_question($m, 'deferredfeedback', 3);
+
+        $choiceorder = $m->get_choice_order();
+        $orderforchoice = array_combine(array_values($choiceorder), array_keys($choiceorder));
+        $choices = array(0 => get_string('choose') . '...');
+        foreach ($choiceorder as $key => $choice) {
+            $choices[$key] = $m->choices[$choice];
         }
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_select_expectation('sub0', $choices, null, true),
+                $this->get_contains_select_expectation('sub1', $choices, null, true),
+                $this->get_contains_select_expectation('sub2', $choices, null, true),
+                $this->get_contains_question_text_expectation($m),
+                $this->get_does_not_contain_feedback_expectation());
+        $this->check_step_count(1);
+
+        $rightresponese = array('sub0' => $orderforchoice[1],
+                'sub1' => $orderforchoice[2], 'sub2' => $orderforchoice[3]);
+        $rightresponesesummary = '(1, 2] -> 1 < x ≤ 2; [1, 2] -> 1 ≤ x ≤ 2; [1, 2) -> 1 ≤ x < 2';
+
+        $this->process_submission($rightresponese);
+        $this->process_submission(array('-finish' => 1));
+
+        $this->assertEqual($rightresponesesummary, $m->summarise_response($rightresponese));
+
+        $this->displayoptions->history = 1;
+        $this->check_current_output(
+                new PatternExpectation('/' . preg_quote(htmlspecialchars($rightresponesesummary), '/') . '/'));
+    }
 }

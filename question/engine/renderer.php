@@ -325,7 +325,7 @@ class core_question_renderer extends renderer_base {
             $row = array(
                 $stepno,
                 userdate($step->get_timecreated(), get_string('strftimedatetimeshort')),
-                $qa->summarise_action($step),
+                s($qa->summarise_action($step)),
                 $step->get_state()->default_string(true),
             );
 

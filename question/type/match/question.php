@@ -79,7 +79,7 @@ class qtype_match_question extends question_graded_automatically_with_countback 
         }
         $choices = array();
         foreach ($this->choiceorder as $choiceid) {
-            $choices[] = html_to_text($this->format_text($this->choices[$choiceid]), 0);
+            $choices[] = $this->choices[$choiceid];
         }
         return $question . ' {' . implode('; ', $stems) . '} -> {' .
                 implode('; ', $choices) . '}';
@@ -90,8 +90,7 @@ class qtype_match_question extends question_graded_automatically_with_countback 
         foreach ($this->stemorder as $key => $stemid) {
             if (array_key_exists($this->field($key), $response) && $response[$this->field($key)]) {
                 $matches[] = html_to_text($this->format_text($this->stems[$stemid]), 0) . ' -> ' .
-                        html_to_text($this->format_text(
-                        $this->choices[$this->choiceorder[$response[$this->field($key)]]]), 0);
+                        $this->choices[$this->choiceorder[$response[$this->field($key)]]];
             }
         }
         if (empty($matches)) {
@@ -118,7 +117,7 @@ class qtype_match_question extends question_graded_automatically_with_countback 
             }
             $choice = $this->choices[$selectedchoices[$stemid]];
             $parts[$stemid] = new question_classified_response(
-                    $selectedchoices[$stemid], html_to_text($this->format_text($choice)),
+                    $selectedchoices[$stemid], $choice,
                     $selectedchoices[$stemid] == $this->right[$stemid]);
         }
         return $parts;
