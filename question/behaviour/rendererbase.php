@@ -90,8 +90,10 @@ abstract class qbehaviour_renderer extends renderer_base {
                 'type' => 'text',
                 'size' => $fieldsize,
                 'name' => $markfield,
-                'value' => $qa->format_fraction_as_mark($currentmark / $maxmark, $options->markdp),
             );
+            if (!is_null($currentmark)) {
+                $attributes['value'] = $qa->format_fraction_as_mark($currentmark / $maxmark, $options->markdp);
+            }
             $a = new stdClass;
             $a->max = $qa->format_max_mark($options->markdp);
             $a->mark = html_writer::empty_tag('input', $attributes);

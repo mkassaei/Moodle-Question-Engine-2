@@ -32,7 +32,7 @@ require_once(dirname(__FILE__) . '/../../../engine/simpletest/helpers.php');
 class qbehaviour_manualgraded_walkthrough_test extends qbehaviour_walkthrough_test_base {
     public function test_manual_graded_essay() {
 
-        // Create a true-false question with correct answer true.
+        // Create an essay question.
         $essay = test_question_maker::make_an_essay_question();
         $this->start_attempt_at_question($essay, 'deferredfeedback', 10);
 
@@ -139,5 +139,75 @@ class qbehaviour_manualgraded_walkthrough_test extends qbehaviour_walkthrough_te
             $this->get_does_not_contain_correctness_expectation(),
             $this->get_does_not_contain_specific_feedback_expectation(),
             new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
+    }
+
+    public function test_manual_graded_ignore_repeat_sumbission() {
+        // Create an essay question.
+        $essay = test_question_maker::make_an_essay_question();
+        $this->start_attempt_at_question($essay, 'deferredfeedback', 10);
+
+        // Check the right model is being used.
+        $this->assertEqual('manualgraded', $this->quba->
+                get_question_attempt($this->qnumber)->get_behaviour_name());
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+
+        // Simulate some data submitted by the student.
+        $this->process_submission(array('answer' => 'This is my wonderful essay!'));
+
+        // Verify.
+        $this->check_current_state(question_state::$complete);
+        $this->check_current_mark(null);
+
+        // Finish the attempt.
+        $this->quba->finish_all_questions();
+
+        // Verify.
+        $this->check_current_state(question_state::$needsgrading);
+        $this->check_current_mark(null);
+        $this->assertEqual('This is my wonderful essay!',
+                $this->quba->get_response_summary($this->qnumber));
+
+        // Process a blank manual comment. Ensure it does not change the state.
+        $numsteps = $this->get_step_count();
+        $this->manual_grade('', '');
+        $this->check_step_count($numsteps);
+        $this->check_current_state(question_state::$needsgrading);
+        $this->check_current_mark(null);
+
+        // Process a comment, but with the mark blank. Should be recorded, but
+        // not change the mark.
+        $this->manual_grade('I am not sure what grade to award.', '');
+        $this->check_step_count($numsteps + 1);
+        $this->check_current_state(question_state::$needsgrading);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                new PatternExpectation('/' . preg_quote('I am not sure what grade to award.') . '/'));
+
+        // Now grade it.
+        $this->manual_grade('Pretty good!', '9.00000');
+        $this->check_step_count($numsteps + 2);
+        $this->check_current_state(question_state::$mangrpartial);
+        $this->check_current_mark(9);
+        $this->check_current_output(
+                new PatternExpectation('/' . preg_quote('Pretty good!') . '/'));
+
+        // Process the same data again, and make sure it does not add a step.
+        $this->manual_grade('Pretty good!', '9.00000');
+        $this->check_step_count($numsteps + 2);
+        $this->check_current_state(question_state::$mangrpartial);
+        $this->check_current_mark(9);
+
+        // Now set the mark back to blank.
+        $this->manual_grade('Actually, I am not sure any more.', '');
+        $this->check_step_count($numsteps + 3);
+        $this->check_current_state(question_state::$needsgrading);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                new PatternExpectation('/' . preg_quote('Actually, I am not sure any more.') . '/'));
+        $this->assertEqual(,
+                summarise_action($this->quba->get_question_attempt($this->qnumber)->get_last_step()));
     }
 }

@@ -227,7 +227,9 @@ abstract class question_state {
      * @return integer one of the state constants.
      */
     public static function manually_graded_state_for_fraction($fraction) {
-        if ($fraction < 0.000001) {
+        if (is_null($fraction)) {
+            return self::$needsgrading;
+        } else if ($fraction < 0.000001) {
             return self::$mangrwrong;
         } else if ($fraction > 0.999999) {
             return self::$mangrright;

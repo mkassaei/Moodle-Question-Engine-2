@@ -181,7 +181,7 @@ abstract class question_behaviour {
 
         $vars = array('comment' => PARAM_RAW);
         if ($this->qa->get_max_mark()) {
-            $vars['mark'] = PARAM_NUMBER;
+            $vars['mark'] = question_attempt::PARAM_MARK;
             $vars['maxmark'] = PARAM_NUMBER;
         }
         return $vars;
@@ -305,6 +305,37 @@ abstract class question_behaviour {
     }
 
     /**
+     * Checks whether two manual grading actions are the same. That is, whether
+     * the comment, and the mark (if given) is the same.
+     *
+     * @param question_attempt_step $pendingstep contains the new responses.
+     * @return boolean whether the new response is the same as we already have.
+     */
+    protected function is_same_comment($pendingstep) {
+        $previouscomment = $this->qa->get_last_behaviour_var('comment');
+        $newcomment = $pendingstep->get_behaviour_var('comment');
+
+        if (is_null($previouscomment) && !html_is_blank($newcomment) ||
+                $previouscomment != $newcomment) {
+            return false;
+        }
+
+        // So, now we know the comment is the same, so check the mark, if present.
+        $previousfraction = $this->qa->get_fraction();
+        $newmark = $pendingstep->get_behaviour_var('mark');
+
+        if (is_null($previousfraction)) {
+            return is_null($newmark) || $newmark == '';
+        } else if (is_null($newmark) || $newmark == '') {
+            return false;
+        }
+
+        $newfraction = $newmark / $pendingstep->get_behaviour_var('maxmark');
+
+        return abs($newfraction - $previousfraction) < 0.0000001;
+    }
+
+    /**
      * The main entry point for processing an action.
      *
      * All the various operations that can be performed on a
@@ -358,18 +389,26 @@ abstract class question_behaviour {
      * @return boolean either {@link question_attempt::KEEP}
      */
     public function process_comment(question_attempt_pending_step $pendingstep) {
-        $laststep = $this->qa->get_last_step();
+        if (!$this->qa->get_state()->is_finished()) {
+            throw new coding_exception('Cannot manually grade a question before it is finshed.');
+        }
+
+        if ($this->is_same_comment($pendingstep)) {
+            return question_attempt::DISCARD;
+        }
 
         if ($pendingstep->has_behaviour_var('mark')) {
             $fraction = $pendingstep->get_behaviour_var('mark') / $pendingstep->get_behaviour_var('maxmark');
-            if ($fraction > 1 || $fraction < $this->qa->get_min_fraction()) {
+            if ($pendingstep->get_behaviour_var('mark') === '') {
+                $fraction = null;
+            } else if ($fraction > 1 || $fraction < $this->qa->get_min_fraction()) {
                 throw new coding_exception('Score out of range when processing ' .
                         'a manual grading action.', $pendingstep);
             }
             $pendingstep->set_fraction($fraction);
         }
 
-        $pendingstep->set_state($laststep->get_state()->
+        $pendingstep->set_state($this->qa->get_state()->
                 corresponding_commented_state($pendingstep->get_fraction()));
         return question_attempt::KEEP;
     }
@@ -403,12 +442,13 @@ abstract class question_behaviour {
         } else {
             $a->comment = '';
         }
-        if ($step->has_behaviour_var('mark')) {
-            $a->mark = $step->get_behaviour_var('mark') /
-                    $step->get_behaviour_var('maxmark') * $this->qa->get_max_mark();
-            return get_string('manuallygraded', 'question', $a);
+
+        $mark = $step->get_behaviour_var('mark');
+        if (is_null($mark) || $mark === '') {
+            return get_string('commented', 'question', $a->comment);
         } else {
-            return get_string('manuallygraded', 'question', $a->comment);
+            $a->mark = $mark / $step->get_behaviour_var('maxmark') * $this->qa->get_max_mark();
+            return get_string('manuallygraded', 'question', $a);
         }
     }
 
