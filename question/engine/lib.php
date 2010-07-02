@@ -1166,7 +1166,17 @@ class question_attempt_iterator implements Iterator, ArrayAccess {
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_attempt {
+    /**
+     * @var string this is a magic value that question types can return from
+     * {@link question_definition::get_expected_data()}.
+     */
     const USE_RAW_DATA = 'use raw data';
+
+    /**
+     * @var string special value used by manual grading because {@link PARAM_NUMBER}
+     * converts '' to 0.
+     */
+    const PARAM_MARK = 'parammark';
 
     /** @var integer if this attempts is stored in the question_attempts table, the id of that row. */
     protected $id = null;
@@ -1563,11 +1573,14 @@ class question_attempt {
     }
 
     /**
+     * This is used by the manual grading code, particularly in association with
+     * validation. If there is a mark submitted in the request, then use that,
+     * otherwise use the latest mark for this question.
      * @return number the current mark for this question.
      * {@link get_fraction()} * {@link get_max_mark()}.
      */
     public function get_current_manual_mark() {
-        $mark = self::get_submitted_var($this->get_behaviour_field_name('mark'), PARAM_NUMBER);
+        $mark = self::get_submitted_var($this->get_behaviour_field_name('mark'), question_attempt::PARAM_MARK);
         if (is_null($mark)) {
             return $this->get_mark();
         } else {
@@ -1766,6 +1779,16 @@ class question_attempt {
      * @return mixed the requested value.
      */
     public static function get_submitted_var($name, $type, $postdata = null) {
+        // Special case to work around PARAM_NUMBER converting '' to 0.
+        if ($type == self::PARAM_MARK) {
+            $mark = self::get_submitted_var($name, PARAM_TRIM, $postdata);
+            if ($mark === '') {
+                return $mark;
+            } else {
+                return self::get_submitted_var($name, PARAM_NUMBER, $postdata);
+            }
+        }
+
         if (is_null($postdata)) {
             $var = optional_param($name, null, $type);
         } else if (array_key_exists($name, $postdata)) {

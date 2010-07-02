@@ -123,6 +123,10 @@ class question_state_test extends UnitTestCase {
                 question_state::$manfinished->corresponding_commented_state(null));
         $this->assertEqual(question_state::$mangaveup,
                 question_state::$mangaveup->corresponding_commented_state(null));
+        $this->assertEqual(question_state::$needsgrading,
+                question_state::$mangrright->corresponding_commented_state(null));
+        $this->assertEqual(question_state::$needsgrading,
+                question_state::$mangrright->corresponding_commented_state(null));
 
         $this->assertEqual(question_state::$mangrwrong,
                 question_state::$gaveup->corresponding_commented_state(0));
