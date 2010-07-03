@@ -98,15 +98,15 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
             $gradeaverages = array();
         }
         foreach ($this->questions as $question) {
-            if (isset($gradeaverages[$question->qnumber])) {
-                $record = $gradeaverages[$question->qnumber];
+            if (isset($gradeaverages[$question->slot])) {
+                $record = $gradeaverages[$question->slot];
                 $record->grade = quiz_rescale_grade($record->averagefraction * $question->maxmark, $this->quiz, false);
             } else {
                 $record = new stdClass;
                 $record->grade = null;
                 $record->numaveraged = 0;
             }
-            $row['qsgrade' . $question->qnumber] = $this->format_average($record, true);
+            $row['qsgrade' . $question->slot] = $this->format_average($record, true);
         }
         return $row;
     }
@@ -183,12 +183,12 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
             $newsumgrade = 0;
             $oldsumgrade = 0;
             foreach ($this->questions as $question) {
-                if (isset($this->regradedqs[$attempt->usageid][$question->qnumber])) {
-                    $newsumgrade += $this->regradedqs[$attempt->usageid][$question->qnumber]->newfraction * $question->maxmark;
-                    $oldsumgrade += $this->regradedqs[$attempt->usageid][$question->qnumber]->oldfraction * $question->maxmark;
+                if (isset($this->regradedqs[$attempt->usageid][$question->slot])) {
+                    $newsumgrade += $this->regradedqs[$attempt->usageid][$question->slot]->newfraction * $question->maxmark;
+                    $oldsumgrade += $this->regradedqs[$attempt->usageid][$question->slot]->oldfraction * $question->maxmark;
                 } else {
-                    $newsumgrade += $this->lateststeps[$attempt->usageid][$question->qnumber]->fraction * $question->maxmark;
-                    $oldsumgrade += $this->lateststeps[$attempt->usageid][$question->qnumber]->fraction * $question->maxmark;
+                    $newsumgrade += $this->lateststeps[$attempt->usageid][$question->slot]->fraction * $question->maxmark;
+                    $oldsumgrade += $this->lateststeps[$attempt->usageid][$question->slot]->fraction * $question->maxmark;
                 }
             }
             $newsumgrade = quiz_rescale_grade($newsumgrade, $this->quiz);
@@ -215,13 +215,13 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
         if (!preg_match('/^qsgrade(\d+)$/', $colname, $matches)) {
             return NULL;
         }
-        $qnumber = $matches[1];
-        $question = $this->questions[$qnumber];
-        if (!isset($this->lateststeps[$attempt->usageid][$qnumber])) {
+        $slot = $matches[1];
+        $question = $this->questions[$slot];
+        if (!isset($this->lateststeps[$attempt->usageid][$slot])) {
             return '-';
         }
 
-        $stepdata = $this->lateststeps[$attempt->usageid][$qnumber];
+        $stepdata = $this->lateststeps[$attempt->usageid][$slot];
         $state = question_state::get($stepdata->state);
 
         if (is_null($stepdata->fraction)) {
@@ -238,19 +238,19 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
             return $grade;
         }
 
-        if (isset($this->regradedqs[$attempt->usageid][$qnumber])) {
+        if (isset($this->regradedqs[$attempt->usageid][$slot])) {
             $gradefromdb = $grade;
             $newgrade = quiz_rescale_grade(
-                    $this->regradedqs[$attempt->usageid][$qnumber]->newfraction * $question->maxmark,
+                    $this->regradedqs[$attempt->usageid][$slot]->newfraction * $question->maxmark,
                     $this->quiz, 'question');
             $oldgrade = quiz_rescale_grade(
-                    $this->regradedqs[$attempt->usageid][$qnumber]->oldfraction * $question->maxmark,
+                    $this->regradedqs[$attempt->usageid][$slot]->oldfraction * $question->maxmark,
                     $this->quiz, 'question');
 
             $grade = '<del>'.$oldgrade.'</del><br />' . $newgrade;
         }
 
-        return $this->make_review_link($grade, $attempt, $qnumber);
+        return $this->make_review_link($grade, $attempt, $slot);
     }
 
     public function col_regraded($attempt) {
@@ -274,8 +274,8 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
         return false;
     }
 
-    protected function get_required_latest_state_fields($qnumber, $alias) {
-        return "$alias.fraction * $alias.maxmark AS qsgrade$qnumber";
+    protected function get_required_latest_state_fields($slot, $alias) {
+        return "$alias.fraction * $alias.maxmark AS qsgrade$slot";
     }
 
     public function query_db($pagesize, $useinitialsbar = true) {
@@ -310,7 +310,7 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
 
     /**
      * Get all the questions in all the attempts being displayed that need regrading.
-     * @return array A two dimensional array $questionusageid => $qnumber => $regradeinfo.
+     * @return array A two dimensional array $questionusageid => $slot => $regradeinfo.
      */
     protected function get_regraded_questions() {
         $qubaids = $this->get_qubaids_condition();
@@ -319,6 +319,6 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
         if (empty($regradedqs)) {
             $regradedqs = array();
         }
-        return quiz_report_index_by_keys($regradedqs, array('questionusageid', 'numberinusage'));
+        return quiz_report_index_by_keys($regradedqs, array('questionusageid', 'slot'));
     }
 }

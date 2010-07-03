@@ -137,9 +137,9 @@ function quiz_add_quiz_question($id, &$quiz) {
 function quiz_update_question_instance($grade, $questionid, $quiz) {
     $instance = get_record('quiz_question_instances', 'quiz', $quiz->id,
             'question', $questionid);
-    $qnumber = quiz_get_qnumber_for_question($quiz, $questionid);
+    $slot = quiz_get_slot_for_question($quiz, $questionid);
 
-    if (!$instance || !$qnumber) {
+    if (!$instance || !$slot) {
         throw new coding_exception('Attempt to change the grade of a quesion not in the quiz.');
     }
 
@@ -152,7 +152,7 @@ function quiz_update_question_instance($grade, $questionid, $quiz) {
     update_record('quiz_question_instances', $instance);
 
     question_engine::set_max_mark_in_attempts(new quibaid_for_quiz($quiz->id),
-            $qnumber, $grade);
+            $slot, $grade);
 }
 
 /**

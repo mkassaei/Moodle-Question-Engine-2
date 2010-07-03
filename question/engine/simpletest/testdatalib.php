@@ -33,7 +33,7 @@ class qubaid_condition_test extends UnitTestCase {
     protected function check_typical_question_attempts_query(qubaid_condition $qubaids, $expectedsql) {
         $sql = "SELECT qa.id, qa.maxmark
             FROM {$qubaids->from_question_attempts('qa')}
-            WHERE {$qubaids->where()} AND qa.numberinusage = 1";
+            WHERE {$qubaids->where()} AND qa.slot = 1";
         $this->assertEqual($expectedsql, $sql);
     }
 
@@ -51,7 +51,7 @@ class qubaid_condition_test extends UnitTestCase {
         $this->check_typical_question_attempts_query($qubaids,
                 "SELECT qa.id, qa.maxmark
             FROM {$CFG->prefix}question_attempts_new qa
-            WHERE qa.questionusageid = '1' AND qa.numberinusage = 1");
+            WHERE qa.questionusageid = '1' AND qa.slot = 1");
     }
 
     public function test_qubaid_list_several_join() {
@@ -60,7 +60,7 @@ class qubaid_condition_test extends UnitTestCase {
         $this->check_typical_question_attempts_query($qubaids,
                 "SELECT qa.id, qa.maxmark
             FROM {$CFG->prefix}question_attempts_new qa
-            WHERE qa.questionusageid IN ('1','3','7') AND qa.numberinusage = 1");
+            WHERE qa.questionusageid IN ('1','3','7') AND qa.slot = 1");
     }
 
     public function test_qubaid_join() {
@@ -71,7 +71,7 @@ class qubaid_condition_test extends UnitTestCase {
                 "SELECT qa.id, qa.maxmark
             FROM {$CFG->prefix}other_table ot
                 JOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = ot.usageid
-            WHERE ot.id = 1 AND qa.numberinusage = 1");
+            WHERE ot.id = 1 AND qa.slot = 1");
     }
 
     public function test_qubaid_join_no_where_join() {
@@ -82,7 +82,7 @@ class qubaid_condition_test extends UnitTestCase {
                 "SELECT qa.id, qa.maxmark
             FROM {$CFG->prefix}other_table ot
                 JOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = ot.usageid
-            WHERE 1 = 1 AND qa.numberinusage = 1");
+            WHERE 1 = 1 AND qa.slot = 1");
     }
 
     public function test_qubaid_list_one_in() {

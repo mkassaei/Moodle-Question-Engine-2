@@ -93,10 +93,10 @@ class qtype_oumultiresponse_walkthrough_test extends qbehaviour_walkthrough_test
                 $this->get_contains_hint_expectation('Hint 1'),
                 $this->get_contains_num_parts_correct(0),
                 $this->get_contains_standard_incorrect_overall_feedback_expectation(),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'choice0'),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'choice1'),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'choice2'),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'choice3'));
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice0'),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice1'),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice2'),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice3'));
 
         // Do try again.
         $this->process_submission(array('-tryagain' => 1));
@@ -135,10 +135,10 @@ class qtype_oumultiresponse_walkthrough_test extends qbehaviour_walkthrough_test
                 $this->get_contains_hint_expectation('Hint 2'),
                 $this->get_contains_num_parts_correct(1),
                 $this->get_contains_standard_partiallycorrect_overall_feedback_expectation(),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'choice0', '1'),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'choice1'),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'choice2'),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'choice3'));
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice0', '1'),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice1'),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice2'),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice3'));
 
         // Do try again.
         $this->process_submission(array('choice0' => '1', '-tryagain' => 1));
@@ -222,9 +222,9 @@ class qtype_oumultiresponse_walkthrough_test extends qbehaviour_walkthrough_test
                 new PatternExpectation('/' . preg_quote(get_string('toomanyselected', 'qtype_multichoice')) . '/'),
                 new NoPatternExpectation('/Three is odd/'),
                 $this->get_contains_standard_partiallycorrect_overall_feedback_expectation(),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'choice0'),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'choice1'),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'choice2'),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'choice3'));
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice0'),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice1'),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice2'),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice3'));
     }
 }

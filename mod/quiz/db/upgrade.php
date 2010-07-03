@@ -787,6 +787,20 @@ function xmldb_quiz_upgrade($oldversion=0) {
         upgrade_mod_savepoint($result, 2008000221, 'quiz');
     }
 
+    if ($result && $oldversion < 2008000500) {
+
+        // Rename field slot on table question_attempts_new to slot
+        $table = new XMLDBTable('question_attempts_new');
+        $field = new XMLDBField('numberinusage');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null, 'questionusageid');
+
+        // Launch rename field slot
+        $result = $result && rename_field($table, $field, 'slot');
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000500, 'quiz');
+    }
+
     commit_sql();
 
     return $result;

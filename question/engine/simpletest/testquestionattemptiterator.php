@@ -38,11 +38,11 @@ class question_attempt_iterator_test extends UnitTestCase {
                 get_context_instance(CONTEXT_SYSTEM));
         $this->quba->set_preferred_behaviour('deferredfeedback');
 
-        $qnumber = $this->quba->add_question(test_question_maker::make_a_description_question());
-        $this->qas[$qnumber] = $this->quba->get_question_attempt($qnumber);
+        $slot = $this->quba->add_question(test_question_maker::make_a_description_question());
+        $this->qas[$slot] = $this->quba->get_question_attempt($slot);
 
-        $qnumber = $this->quba->add_question(test_question_maker::make_a_description_question());
-        $this->qas[$qnumber] = $this->quba->get_question_attempt($qnumber);
+        $slot = $this->quba->add_question(test_question_maker::make_a_description_question());
+        $this->qas[$slot] = $this->quba->get_question_attempt($slot);
 
         $this->iterator = $this->quba->get_attempt_iterator();
     }

@@ -57,7 +57,7 @@ class quiz_grading_report extends quiz_default_report {
         $this->course = $course;
 
         // Get the URL options.
-        $qnumber = optional_param('qnumber', null, PARAM_INT);
+        $slot = optional_param('slot', null, PARAM_INT);
         $questionid = optional_param('qid', null, PARAM_INT);
         $grade = optional_param('grade', null, PARAM_ALPHA);
 
@@ -97,7 +97,7 @@ class quiz_grading_report extends quiz_default_report {
 
         // Get the list of questions in this quiz.
         $this->questions = quiz_report_get_significant_questions($quiz);
-        if ($qnumber && !array_key_exists($qnumber, $this->questions)) {
+        if ($slot && !array_key_exists($slot, $this->questions)) {
             throw new moodle_exception('unknownquestion', 'quiz_grading');
         }
 
@@ -105,7 +105,7 @@ class quiz_grading_report extends quiz_default_report {
         if ($data = data_submitted() && confirm_sesskey() && $this->validate_submitted_marks()) {
             $this->process_submitted_data();
 
-            redirect($this->grade_question_url($qnumber, $questionid, $grade, $page + 1));
+            redirect($this->grade_question_url($slot, $questionid, $grade, $page + 1));
         }
 
         // Get the group, and the list of significant users.
@@ -118,11 +118,11 @@ class quiz_grading_report extends quiz_default_report {
         $this->print_header_and_tabs($cm, $course, $quiz, 'grading');
 
         // What sort of page to display?
-        if (!$qnumber) {
+        if (!$slot) {
             $this->display_index($includeauto);
 
         } else {
-            $this->display_grading_interface($qnumber, $questionid, $grade,
+            $this->display_grading_interface($slot, $questionid, $grade,
                     $pagesize, $page, $shownames, $showidnumbers, $order);
         }
         return true;
@@ -213,15 +213,15 @@ class quiz_grading_report extends quiz_default_report {
     }
 
     /**
-     * @param integer $qnumber
+     * @param integer $slot
      * @param integer $questionid
      * @param string $grade
      * @param mixed $page = true, link to current page. false = omit page.
      *      number = link to specific page.
      */
-    protected function grade_question_url($qnumber, $questionid, $grade, $page = true) {
+    protected function grade_question_url($slot, $questionid, $grade, $page = true) {
 
-        $url = $this->base_url() . '&qnumber=' . $qnumber . '&qid=' . $questionid .
+        $url = $this->base_url() . '&slot=' . $slot . '&qid=' . $questionid .
                 '&grade=' . $grade;
 
         $options = $this->viewoptions;
@@ -242,7 +242,7 @@ class quiz_grading_report extends quiz_default_report {
         $result = $counts->$type;
         if ($counts->$type > 0) {
             $result .= ' <a class="gradetheselink" href="' .
-                    $this->grade_question_url($counts->qnumber, $counts->questionid, $type) .
+                    $this->grade_question_url($counts->slot, $counts->questionid, $type) .
                     '">' . get_string($gradestring, 'quiz_grading') . '</a>';
         }
         return $result;
@@ -275,7 +275,7 @@ class quiz_grading_report extends quiz_default_report {
 
             $row = array();
 
-            $row[] = $this->questions[$counts->qnumber]->number;
+            $row[] = $this->questions[$counts->slot]->number;
 
             $row[] = format_string($counts->name);
 
@@ -314,11 +314,11 @@ class quiz_grading_report extends quiz_default_report {
         print_table($table);
     }
 
-    protected function display_grading_interface($qnumber, $questionid, $grade,
+    protected function display_grading_interface($slot, $questionid, $grade,
             $pagesize, $page, $shownames, $showidnumbers, $order) {
 
         // Make sure there is something to do.
-        $statecounts = $this->get_question_state_summary(array($qnumber));
+        $statecounts = $this->get_question_state_summary(array($slot));
 
         $counts = null;
         foreach ($statecounts as $record) {
@@ -338,14 +338,14 @@ class quiz_grading_report extends quiz_default_report {
         }
 
         list($qubaids, $count) = $this->get_usage_ids_where_question_in_state(
-                $grade, $qnumber, $questionid, $order, $page, $pagesize);
+                $grade, $slot, $questionid, $order, $page, $pagesize);
         $attempts = $this->load_attempts_by_usage_ids($qubaids);
 
         // Prepare the form.
         $hidden = array(
             'id' => $this->cm->id,
             'mode' => 'grading',
-            'qnumber' => $qnumber,
+            'slot' => $slot,
             'qid' => $questionid,
             'page' => $page,
         );
@@ -365,7 +365,7 @@ class quiz_grading_report extends quiz_default_report {
         echo question_engine::initialise_js();
 
         $a = new stdClass;
-        $a->number = $this->questions[$qnumber]->number;
+        $a->number = $this->questions[$slot]->number;
         $a->questionname = format_string($counts->name);
         print_heading(get_string('gradingquestionx', 'quiz_grading', $a));
         echo '<p class="mdl-align"><a href="' . $this->list_questions_url() .
@@ -382,7 +382,7 @@ class quiz_grading_report extends quiz_default_report {
 
         if ($count > $pagesize && $order != 'random') {
             print_paging_bar($count, $page, $pagesize,
-                    $this->grade_question_url($qnumber, $questionid, $grade, false) . '&');
+                    $this->grade_question_url($slot, $questionid, $grade, false) . '&');
         }
 
         // Display the form with one section for each attempt.
@@ -390,10 +390,10 @@ class quiz_grading_report extends quiz_default_report {
         $sesskey = sesskey();
         $qubaidlist = implode(',', $qubaids);
         echo <<<END
-<form method="post" action="{$this->grade_question_url($qnumber, $questionid, $grade, $page)}" class="mform" id="manualgradingform">
+<form method="post" action="{$this->grade_question_url($slot, $questionid, $grade, $page)}" class="mform" id="manualgradingform">
 <div>
 <input type="hidden" name="qubaids" value="$qubaidlist" />
-<input type="hidden" name="qnumbers" value="$qnumber" />
+<input type="hidden" name="slots" value="$slot" />
 <input type="hidden" name="sesskey" value="$sesskey" />
 END;
 
@@ -409,7 +409,7 @@ END;
             if ($heading) {
                 print_heading($heading, '', 4);
             }
-            echo $quba->render_question($qnumber, $displayoptions, $this->questions[$qnumber]->number);
+            echo $quba->render_question($slot, $displayoptions, $this->questions[$slot]->number);
         }
 
         echo '<div class="mdl-align"><input type="submit" value="' .
@@ -446,16 +446,16 @@ END;
         }
         $qubaids = clean_param(explode(',', $qubaids), PARAM_INT);
 
-        $qnumbers = optional_param('qnumbers', '', PARAM_SEQUENCE);
-        if (!$qnumbers) {
-            $qnumbers = array();
+        $slots = optional_param('slots', '', PARAM_SEQUENCE);
+        if (!$slots) {
+            $slots = array();
         } else {
-            $qnumbers = explode(',', $qnumbers);
+            $slots = explode(',', $slots);
         }
 
         foreach ($qubaids as $qubaid) {
-            foreach ($qnumbers as $qnumber) {
-                $prefix = 'q' . $qubaid . ':' . $qnumber . '_';
+            foreach ($slots as $slot) {
+                $prefix = 'q' . $qubaid . ':' . $slot . '_';
                 $mark = optional_param($prefix . '-mark', null, PARAM_NUMBER);
                 $maxmark = optional_param($prefix . '-maxmark', null, PARAM_NUMBER);
                 $minfraction = optional_param($prefix . ':minfraction', null, PARAM_NUMBER);
@@ -489,21 +489,21 @@ END;
      * Load information about the number of attempts at various questions in each
      * summarystate.
      *
-     * The results are returned as an two dimensional array $qubaid => $qnumber => $dataobject
+     * The results are returned as an two dimensional array $qubaid => $slot => $dataobject
      *
-     * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
-     * @return array The array keys are qnumber,qestionid. The values are objects with
-     * fields $qnumber, $questionid, $inprogress, $name, $needsgrading, $autograded,
+     * @param array $slots A list of slots for the questions you want to konw about.
+     * @return array The array keys are slot,qestionid. The values are objects with
+     * fields $slot, $questionid, $inprogress, $name, $needsgrading, $autograded,
      * $manuallygraded and $all.
      */
-    protected function get_question_state_summary($qnumbers) {
+    protected function get_question_state_summary($slots) {
         $dm = new question_engine_data_mapper();
         return $dm->load_questions_usages_question_state_summary(
-                $this->get_qubaids_condition(), $qnumbers);
+                $this->get_qubaids_condition(), $slots);
     }
 
     /**
-     * Get a list of usage ids where the question with qnumber $qnumber, and optionally
+     * Get a list of usage ids where the question with slot $slot, and optionally
      * also with question id $questionid, is in summary state $summarystate. Also
      * return the total count of such states.
      *
@@ -511,7 +511,7 @@ END;
      * $limitnum. A special value 'random' can be passed as $orderby, in which case
      * $limitfrom is ignored.
      *
-     * @param integer $qnumber The qnumber for the questions you want to konw about.
+     * @param integer $slot The slot for the questions you want to konw about.
      * @param integer $questionid (optional) Only return attempts that were of this specific question.
      * @param string $summarystate 'all', 'needsgrading', 'autograded' or 'manuallygraded'.
      * @param string $orderby 'random', 'date' or 'student'.
@@ -519,7 +519,7 @@ END;
      *      Ignored if $orderby = random or $pagesize is null.
      * @param integer $pagesize implements paging of the results. null = all.
      */
-    function get_usage_ids_where_question_in_state($summarystate, $qnumber,
+    function get_usage_ids_where_question_in_state($summarystate, $slot,
             $questionid = null, $orderby = 'random', $page = 0, $pagesize = null) {
         global $CFG;
         $dm = new question_engine_data_mapper();
@@ -545,6 +545,6 @@ END;
         }
 
         return $dm->load_questions_usages_where_question_in_state($qubaids, $summarystate,
-                $qnumber, $questionid, $orderby, $limitfrom, $pagesize);
+                $slot, $questionid, $orderby, $limitfrom, $pagesize);
     }
 }

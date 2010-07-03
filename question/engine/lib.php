@@ -110,16 +110,16 @@ abstract class question_engine {
     }
 
     /**
-     * Change the maxmark for the question_attempt with number in usage $qnumber
+     * Change the maxmark for the question_attempt with number in usage $slot
      * for all the specified question_attempts.
      * @param qubaid_condition $qubaids Selects which usages are updated.
-     * @param integer $qnumber the number is usage to affect.
+     * @param integer $slot the number is usage to affect.
      * @param number $newmaxmark the new max mark to set.
      */
     public static function set_max_mark_in_attempts(qubaid_condition $qubaids,
-            $qnumber, $newmaxmark) {
+            $slot, $newmaxmark) {
         $dm = new question_engine_data_mapper();
-        $dm->set_max_mark_in_attempts($qubaids, $qnumber, $newmaxmark);
+        $dm->set_max_mark_in_attempts($qubaids, $slot, $newmaxmark);
     }
 
     /**
@@ -473,12 +473,12 @@ abstract class question_flags {
 
 
 class question_out_of_sequence_exception extends moodle_exception {
-    function __construct($qubaid, $qnumber, $postdata) {
+    function __construct($qubaid, $slot, $postdata) {
         if ($postdata == null) {
             $postdata = data_submitted();
         }
         parent::__construct('submissionoutofsequence', 'question', '', null,
-                "QUBAid: $qubaid, qnumber: $qnumber, post date: " . print_r($postdata, true));
+                "QUBAid: $qubaid, slot: $slot, post date: " . print_r($postdata, true));
     }
 }
 
@@ -492,7 +492,7 @@ class question_out_of_sequence_exception extends moodle_exception {
  * It is basically a collection of {@question_attempt} objects.
  *
  * The questions being attempted as part of this usage are identified by an integer
- * that is passed into many of the methods as $qnumber. ($question->id is not
+ * that is passed into many of the methods as $slot. ($question->id is not
  * used so that the same question can be used more than once in an attempt.)
  *
  * Normally, calling code should be able to do everything it needs to be calling
@@ -622,11 +622,11 @@ class question_usage_by_activity {
 
     /**
      * Get the question_definition for a question in this attempt.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @return question_definition the requested question object.
      */
-    public function get_question($qnumber) {
-        return $this->get_question_attempt($qnumber)->get_question();
+    public function get_question($slot) {
+        return $this->get_question_attempt($slot)->get_question();
     }
 
     /** @return array all the identifying numbers of all the questions in this usage. */
@@ -661,11 +661,11 @@ class question_usage_by_activity {
      * Check whether $number actually corresponds to a question attempt that is
      * part of this usage. Throws an exception if not.
      *
-     * @param integer $qnumber a number allegedly identifying a question within this usage.
+     * @param integer $slot a number allegedly identifying a question within this usage.
      */
-    protected function check_qnumber($qnumber) {
-        if (!array_key_exists($qnumber, $this->questionattempts)) {
-            throw new exception("There is no question_attempt number $qnumber in this attempt.");
+    protected function check_slot($slot) {
+        if (!array_key_exists($slot, $this->questionattempts)) {
+            throw new exception("There is no question_attempt number $slot in this attempt.");
         }
     }
 
@@ -674,74 +674,74 @@ class question_usage_by_activity {
      * that {@link question_attempt} objects should be considered part of the inner
      * workings of the question engine, and should not, if possible, be accessed directly.
      *
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @return question_attempt the corresponding {@link question_attempt} object.
      */
-    public function get_question_attempt($qnumber) {
-        $this->check_qnumber($qnumber);
-        return $this->questionattempts[$qnumber];
+    public function get_question_attempt($slot) {
+        $this->check_slot($slot);
+        return $this->questionattempts[$slot];
     }
 
     /**
      * Get the current state of the attempt at a question.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @return question_state.
      */
-    public function get_question_state($qnumber) {
-        return $this->get_question_attempt($qnumber)->get_state();
+    public function get_question_state($slot) {
+        return $this->get_question_attempt($slot)->get_state();
     }
 
     /**
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @param boolean $showcorrectness Whether right/partial/wrong states should
      * be distinguised.
      * @return string A brief textual description of the current state.
      */
-    public function get_question_state_string($qnumber, $showcorrectness) {
-        return $this->get_question_attempt($qnumber)->get_state_string($showcorrectness);
+    public function get_question_state_string($slot, $showcorrectness) {
+        return $this->get_question_attempt($slot)->get_state_string($showcorrectness);
     }
 
     /**
      * Get the time of the most recent action performed on a question.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @return integer timestamp.
      */
-    public function get_question_action_time($qnumber) {
-        return $this->get_question_attempt($qnumber)->get_last_action_time();
+    public function get_question_action_time($slot) {
+        return $this->get_question_attempt($slot)->get_last_action_time();
     }
 
     /**
      * Get the current fraction awarded for the attempt at a question.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @return number|null The current fraction for this question, or null if one has
      * not been assigned yet.
      */
-    public function get_question_fraction($qnumber) {
-        return $this->get_question_attempt($qnumber)->get_fraction();
+    public function get_question_fraction($slot) {
+        return $this->get_question_attempt($slot)->get_fraction();
     }
 
     /**
      * Get the current mark awarded for the attempt at a question.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @return number|null The current mark for this question, or null if one has
      * not been assigned yet.
      */
-    public function get_question_mark($qnumber) {
-        return $this->get_question_attempt($qnumber)->get_mark();
+    public function get_question_mark($slot) {
+        return $this->get_question_attempt($slot)->get_mark();
     }
 
     /**
      * Get the maximum mark possible for the attempt at a question.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @return number the available marks for this question.
      */
-    public function get_question_max_mark($qnumber) {
-        return $this->get_question_attempt($qnumber)->get_max_mark();
+    public function get_question_max_mark($slot) {
+        return $this->get_question_attempt($slot)->get_max_mark();
     }
 
     /**
      * Get the current mark awarded for the attempt at a question.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @return number|null The current mark for this question, or null if one has
      * not been assigned yet.
      */
@@ -759,61 +759,61 @@ class question_usage_by_activity {
     /**
      * @return string a simple textual summary of the question that was asked.
      */
-    public function get_question_summary($qnumber) {
-        return $this->get_question_attempt($qnumber)->get_question_summary();
+    public function get_question_summary($slot) {
+        return $this->get_question_attempt($slot)->get_question_summary();
     }
 
     /**
      * @return string a simple textual summary of response given.
      */
-    public function get_response_summary($qnumber) {
-        return $this->get_question_attempt($qnumber)->get_response_summary();
+    public function get_response_summary($slot) {
+        return $this->get_question_attempt($slot)->get_response_summary();
     }
 
     /**
      * @return string a simple textual summary of the correct resonse.
      */
-    public function get_right_answer_summary($qnumber) {
-        return $this->get_question_attempt($qnumber)->get_right_answer_summary();
+    public function get_right_answer_summary($slot) {
+        return $this->get_question_attempt($slot)->get_right_answer_summary();
     }
 
     /**
      * Get the {@link core_question_renderer}, in collaboration with appropriate
      * {@link qbehaviour_renderer} and {@link qtype_renderer} subclasses, to generate the
      * HTML to display this question.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @param question_display_options $options controls how the question is rendered.
      * @param string|null $number The question number to display. 'i' is a special
      *      value that gets displayed as Information. Null means no number is displayed.
      * @return string HTML fragment representing the question.
      */
-    public function render_question($qnumber, $options, $number = null) {
-        return $this->get_question_attempt($qnumber)->render($options, $number);
+    public function render_question($slot, $options, $number = null) {
+        return $this->get_question_attempt($slot)->render($options, $number);
     }
 
     /**
      * Generate any bits of HTML that needs to go in the <head> tag when this question
      * is displayed in the body.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @return string HTML fragment.
      */
-    public function render_question_head_html($qnumber) {
-        return $this->get_question_attempt($qnumber)->render_head_html();
+    public function render_question_head_html($slot) {
+        return $this->get_question_attempt($slot)->render_head_html();
     }
 
     /**
      * Like {@link render_question()} but displays the question at the past step
      * indicated by $seq, rather than showing the latest step.
      *
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @param integer $seq the seq number of the past state to display.
      * @param question_display_options $options controls how the question is rendered.
      * @param string|null $number The question number to display. 'i' is a special
      *      value that gets displayed as Information. Null means no number is displayed.
      * @return string HTML fragment representing the question.
      */
-    public function render_question_at_step($qnumber, $seq, $options, $number = null) {
-        return $this->get_question_attempt($qnumber)->render_at_step($seq, $options, $number, $this->preferredbehaviour);
+    public function render_question_at_step($slot, $seq, $options, $number = null) {
+        return $this->get_question_attempt($slot)->render_at_step($seq, $options, $number, $this->preferredbehaviour);
     }
 
     /**
@@ -826,28 +826,28 @@ class question_usage_by_activity {
      * @param integer $questionattemptid The id of the question_attempt to extract.
      * @return question_attempt The newly constructed question_attempt_step.
      */
-    public function replace_loaded_question_attempt_info($qnumber, $qa) {
-        $this->check_qnumber($qnumber);
-        $this->questionattempts[$qnumber] = $qa;
+    public function replace_loaded_question_attempt_info($slot, $qa) {
+        $this->check_slot($slot);
+        $this->questionattempts[$slot] = $qa;
     }
 
     /**
      * You should probably not use this method in code outside the question engine.
      * The main reason for exposing it was for the benefit of unit tests.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @return string return the prefix that is pre-pended to field names in the HTML
      * that is output.
      */
-    public function get_field_prefix($qnumber) {
-        return $this->get_question_attempt($qnumber)->get_field_prefix();
+    public function get_field_prefix($slot) {
+        return $this->get_question_attempt($slot)->get_field_prefix();
     }
 
     /**
      * Start the attempt at a question that has been added to this usage.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      */
-    public function start_question($qnumber) {
-        $qa = $this->get_question_attempt($qnumber);
+    public function start_question($slot) {
+        $qa = $this->get_question_attempt($slot);
         $qa->start($this->preferredbehaviour);
         $this->observer->notify_attempt_modified($qa);
     }
@@ -866,12 +866,12 @@ class question_usage_by_activity {
      * Start the attempt at a question, starting from the point where the previous
      * question_attempt $oldqa had reached. This is used by the quiz 'Each attempt
      * builds on last' mode.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @param question_attempt $oldqa a previous attempt at this quetsion that
      *      defines the starting point.
      */
-    public function start_question_based_on($qnumber, question_attempt $oldqa) {
-        $qa = $this->get_question_attempt($qnumber);
+    public function start_question_based_on($slot, question_attempt $oldqa) {
+        $qa = $this->get_question_attempt($slot);
         $qa->start_based_on($oldqa);
         $this->observer->notify_attempt_modified($qa);
     }
@@ -879,7 +879,7 @@ class question_usage_by_activity {
     /**
      * Process all the question actions in the current request.
      *
-     * If there is a parameter qnumbers included in the post data, then only
+     * If there is a parameter slots included in the post data, then only
      * those question numbers will be processed, otherwise all questions in this
      * useage will be.
      *
@@ -890,18 +890,18 @@ class question_usage_by_activity {
      * instead of the data from $_POST.
      */
     public function process_all_actions($timestamp = null, $postdata = null) {
-        $qnumbers = question_attempt::get_submitted_var('qnumbers', PARAM_SEQUENCE, $postdata);
-        if (is_null($qnumbers)) {
-            $qnumbers = $this->get_question_numbers();
-        } else if (!$qnumbers) {
-            $qnumbers = array();
+        $slots = question_attempt::get_submitted_var('slots', PARAM_SEQUENCE, $postdata);
+        if (is_null($slots)) {
+            $slots = $this->get_question_numbers();
+        } else if (!$slots) {
+            $slots = array();
         } else {
-            $qnumbers = explode(',', $qnumbers);
+            $slots = explode(',', $slots);
         }
-        foreach ($qnumbers as $qnumber) {
-            $this->validate_sequence_number($qnumber, $postdata);
-            $submitteddata = $this->extract_responses($qnumber, $postdata);
-            $this->process_action($qnumber, $submitteddata, $timestamp);
+        foreach ($slots as $slot) {
+            $this->validate_sequence_number($slot, $postdata);
+            $submitteddata = $this->extract_responses($slot, $postdata);
+            $this->process_action($slot, $submitteddata, $timestamp);
         }
         $this->update_question_flags($postdata);
     }
@@ -910,22 +910,22 @@ class question_usage_by_activity {
      * Get the submitted data from the current request that belongs to this
      * particular question.
      *
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @param $postdata optional, only intended for testing. Use this data
      * instead of the data from $_POST.
      * @return array submitted data specific to this question.
      */
-    public function extract_responses($qnumber, $postdata = null) {
-        return $this->get_question_attempt($qnumber)->get_submitted_data($postdata);
+    public function extract_responses($slot, $postdata = null) {
+        return $this->get_question_attempt($slot)->get_submitted_data($postdata);
     }
 
     /**
      * Process a specific action on a specific question.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @param $submitteddata the submitted data that constitutes the action.
      */
-    public function process_action($qnumber, $submitteddata, $timestamp = null) {
-        $qa = $this->get_question_attempt($qnumber);
+    public function process_action($slot, $submitteddata, $timestamp = null) {
+        $qa = $this->get_question_attempt($slot);
         $qa->process_action($submitteddata, $timestamp);
         $this->observer->notify_attempt_modified($qa);
     }
@@ -933,15 +933,15 @@ class question_usage_by_activity {
     /**
      * Check that the sequence number, that detects weird things like the student
      * clicking back, is OK.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @param array $submitteddata the submitted data that constitutes the action.
      */
-    public function validate_sequence_number($qnumber, $postdata = null) {
-        $qa = $this->get_question_attempt($qnumber);
+    public function validate_sequence_number($slot, $postdata = null) {
+        $qa = $this->get_question_attempt($slot);
         $sequencecheck = question_attempt::get_submitted_var(
                 $qa->get_control_field_name('sequencecheck'), PARAM_INT, $postdata);
         if (!is_null($sequencecheck) && $sequencecheck != $qa->get_num_steps()) {
-            throw new question_out_of_sequence_exception($this->id, $qnumber, $postdata);
+            throw new question_out_of_sequence_exception($this->id, $slot, $postdata);
         }
     }
     /**
@@ -965,11 +965,11 @@ class question_usage_by_activity {
     /**
      * Get the correct response to a particular question. Passing the results of
      * this method to {@link process_action()} will probably result in full marks.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @return array that constitutes a correct response to this question.
      */
-    public function get_correct_response($qnumber) {
-        return $this->get_question_attempt($qnumber)->get_correct_response();
+    public function get_correct_response($slot) {
+        return $this->get_question_attempt($slot)->get_correct_response();
     }
 
     /**
@@ -983,10 +983,10 @@ class question_usage_by_activity {
      * After the active phase is over, the only changes possible are things like
      * manual grading, or changing the flag state.
      *
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      */
-    public function finish_question($qnumber, $timestamp = null) {
-        $qa = $this->get_question_attempt($qnumber);
+    public function finish_question($slot, $timestamp = null) {
+        $qa = $this->get_question_attempt($slot);
         $qa->finish($timestamp);
         $this->observer->notify_attempt_modified($qa);
     }
@@ -1004,13 +1004,13 @@ class question_usage_by_activity {
 
     /**
      * Perform a manual grading action on a question attempt.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @param string $comment the comment being added to the question attempt.
      * @param number $mark the mark that is being assigned. Can be null to just
      * add a comment.
      */
-    public function manual_grade($qnumber, $comment, $mark) {
-        $qa = $this->get_question_attempt($qnumber);
+    public function manual_grade($slot, $comment, $mark) {
+        $qa = $this->get_question_attempt($slot);
         $qa->manual_grade($comment, $mark);
         $this->observer->notify_attempt_modified($qa);
     }
@@ -1018,11 +1018,11 @@ class question_usage_by_activity {
     /**
      * Regrade a question in this usage. This replays the sequence of submitted
      * actions to recompute the outcomes.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @param $newmaxmark (optional) if given, will change the max mark while regrading.
      */
-    public function regrade_question($qnumber, $newmaxmark = null) {
-        $oldqa = $this->get_question_attempt($qnumber);
+    public function regrade_question($slot, $newmaxmark = null) {
+        $oldqa = $this->get_question_attempt($slot);
         if (is_null($newmaxmark)) {
             $newmaxmark = $oldqa->get_max_mark();
         }
@@ -1034,7 +1034,7 @@ class question_usage_by_activity {
         $newqa->set_database_id($oldqa->get_database_id());
         $newqa->regrade($oldqa);
 
-        $this->questionattempts[$qnumber] = $newqa;
+        $this->questionattempts[$slot] = $newqa;
         $this->observer->notify_attempt_modified($newqa);
     }
 
@@ -1042,8 +1042,8 @@ class question_usage_by_activity {
      * Regrade all the questions in this usage (without changing their max mark).
      */
     public function regrade_all_questions() {
-        foreach ($this->questionattempts as $qnumber => $notused) {
-            $this->regrade_question($qnumber);
+        foreach ($this->questionattempts as $slot => $notused) {
+            $this->regrade_question($slot);
         }
     }
 
@@ -1072,8 +1072,8 @@ class question_usage_by_activity {
 
         $quba->observer = new question_engine_unit_of_work($quba);
 
-        while ($record && $record->qubaid == $qubaid && !is_null($record->numberinusage)) {
-            $quba->questionattempts[$record->numberinusage] =
+        while ($record && $record->qubaid == $qubaid && !is_null($record->slot)) {
+            $quba->questionattempts[$record->slot] =
                     question_attempt::load_from_records($records,
                     $record->questionattemptid, $quba->observer,
                     $quba->get_preferred_behaviour());
@@ -1103,7 +1103,7 @@ class question_attempt_iterator implements Iterator, ArrayAccess {
     /** @var question_usage_by_activity that we are iterating over. */
     protected $quba;
     /** @var array of question numbers. */
-    protected $qnumbers;
+    protected $slots;
 
     /**
      * To create an instance of this class, use {@link question_usage_by_activity::get_attempt_iterator()}.
@@ -1111,41 +1111,41 @@ class question_attempt_iterator implements Iterator, ArrayAccess {
      */
     public function __construct(question_usage_by_activity $quba) {
         $this->quba = $quba;
-        $this->qnumbers = $quba->get_question_numbers();
+        $this->slots = $quba->get_question_numbers();
         $this->rewind();
     }
 
     /** @return question_attempt_step */
     public function current() {
-        return $this->offsetGet(current($this->qnumbers));
+        return $this->offsetGet(current($this->slots));
     }
     /** @return integer */
     public function key() {
-        return current($this->qnumbers);
+        return current($this->slots);
     }
     public function next() {
-        next($this->qnumbers);
+        next($this->slots);
     }
     public function rewind() {
-        reset($this->qnumbers);
+        reset($this->slots);
     }
     /** @return boolean */
     public function valid() {
-        return current($this->qnumbers) !== false;
+        return current($this->slots) !== false;
     }
 
     /** @return boolean */
-    public function offsetExists($qnumber) {
-        return in_array($qnumber, $this->qnumbers);
+    public function offsetExists($slot) {
+        return in_array($slot, $this->slots);
     }
     /** @return question_attempt_step */
-    public function offsetGet($qnumber) {
-        return $this->quba->get_question_attempt($qnumber);
+    public function offsetGet($slot) {
+        return $this->quba->get_question_attempt($slot);
     }
-    public function offsetSet($qnumber, $value) {
+    public function offsetSet($slot, $value) {
         throw new Exception('You are only allowed read-only access to question_attempt::states through a question_attempt_step_iterator. Cannot set.');
     }
-    public function offsetUnset($qnumber) {
+    public function offsetUnset($slot) {
         throw new Exception('You are only allowed read-only access to question_attempt::states through a question_attempt_step_iterator. Cannot unset.');
     }
 }
@@ -1185,7 +1185,7 @@ class question_attempt {
     protected $usageid;
 
     /** @var integer the number used to identify this question_attempt within the usage. */
-    protected $numberinusage = null;
+    protected $slot = null;
 
     /**
      * @var question_behaviour the behaviour controlling this attempt.
@@ -1277,15 +1277,15 @@ class question_attempt {
     /**
      * Set the number used to identify this question_attempt within the usage.
      * For internal use only.
-     * @param integer $qnumber
+     * @param integer $slot
      */
-    public function set_number_in_usage($qnumber) {
-        $this->numberinusage = $qnumber;
+    public function set_number_in_usage($slot) {
+        $this->slot = $slot;
     }
 
     /** @return integer the number used to identify this question_attempt within the usage. */
     public function get_number_in_usage() {
-        return $this->numberinusage;
+        return $this->slot;
     }
 
     /**
@@ -1408,7 +1408,7 @@ class question_attempt {
      * @return string  The field name to use.
      */
     public function get_field_prefix() {
-        return 'q' . $this->usageid . ':' . $this->numberinusage . '_';
+        return 'q' . $this->usageid . ':' . $this->slot . '_';
     }
 
     /**
@@ -2031,7 +2031,7 @@ class question_attempt {
 
         $qa = new question_attempt($question, $record->questionusageid, null, $record->maxmark + 0);
         $qa->set_database_id($record->questionattemptid);
-        $qa->set_number_in_usage($record->numberinusage);
+        $qa->set_number_in_usage($record->slot);
         $qa->minfraction = $record->minfraction + 0;
         $qa->set_flagged($record->flagged);
         $qa->questionsummary = $record->questionsummary;
@@ -2093,7 +2093,7 @@ class question_attempt_with_restricted_history extends question_attempt {
         // This should be a straight copy of all the remaining fields.
         $this->id = $baseqa->id;
         $this->usageid = $baseqa->usageid;
-        $this->numberinusage = $baseqa->numberinusage;
+        $this->slot = $baseqa->slot;
         $this->question = $baseqa->question;
         $this->maxmark = $baseqa->maxmark;
         $this->minfraction = $baseqa->minfraction;
@@ -2127,7 +2127,7 @@ class question_attempt_with_restricted_history extends question_attempt {
     public function set_flagged($flagged) {
         coding_exception('Cannot modify a question_attempt_with_restricted_history.');
     }
-    public function set_number_in_usage($qnumber) {
+    public function set_number_in_usage($slot) {
         coding_exception('Cannot modify a question_attempt_with_restricted_history.');
     }
     public function set_question_summary($questionsummary) {

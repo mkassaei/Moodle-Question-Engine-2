@@ -83,9 +83,9 @@ function quiz_report_unindex($datum) {
 }
 
 /**
- * Get the qnumbers of real questions (not descriptions) in this quiz, in order.
+ * Get the slots of real questions (not descriptions) in this quiz, in order.
  * @param object $quiz the quiz.
- * @return array of qnumber => $question object with fields ->qnumber, ->id, ->maxmark, ->number, ->length. 
+ * @return array of slot => $question object with fields ->slot, ->id, ->maxmark, ->number, ->length. 
  */
 function quiz_report_get_significant_questions($quiz) {
     global $CFG;
@@ -106,24 +106,24 @@ WHERE
     length > 0
 ");
 
-    $qsbyqnumber = array();
+    $qsbyslot = array();
     $number = 1;
     foreach (explode(',', $questionids) as $key => $id) {
         if (!array_key_exists($id, $questions)) {
             continue;
         }
 
-        $qnumber = $key + 1;
+        $slot = $key + 1;
         $question = $questions[$id];
-        $question->qnumber = $qnumber;
+        $question->slot = $slot;
         $question->number = $number;
 
-        $qsbyqnumber[$qnumber] = $question;
+        $qsbyslot[$slot] = $question;
 
         $number += $question->length;
     }
 
-    return $qsbyqnumber;
+    return $qsbyslot;
 }
 
 /**

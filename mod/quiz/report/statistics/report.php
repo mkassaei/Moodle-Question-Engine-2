@@ -59,7 +59,7 @@ class quiz_statistics_report extends quiz_default_report {
         $recalculate = optional_param('recalculate', 0, PARAM_BOOL);
         // A qid paramter indicates we should display the detailed analysis of a question.
         $qid = optional_param('qid', 0, PARAM_INT);
-        $qnumber = optional_param('qnumber', 0, PARAM_INT);
+        $slot = optional_param('slot', 0, PARAM_INT);
 
         $pageoptions = array();
         $pageoptions['id'] = $cm->id;
@@ -135,7 +135,7 @@ class quiz_statistics_report extends quiz_default_report {
         foreach ($questions as $qno => $question) {
             $q = $fullquestions[$question->id];
             $q->maxmark = $question->maxmark;
-            $q->qnumber = $qno;
+            $q->slot = $qno;
             $q->number = $question->number;
             $questions[$qno] = $q;
         }
@@ -183,15 +183,15 @@ class quiz_statistics_report extends quiz_default_report {
 
             $this->table->export_class_instance()->finish_document();
 
-        } else if ($qnumber) {
+        } else if ($slot) {
             // Report on an individual question indexed by position.
-            if (!isset($questions[$qnumber])) {
+            if (!isset($questions[$slot])) {
                 print_error('questiondoesnotexist', 'question');
             }
 
-            $this->output_individual_question_data($quiz, $questions[$qnumber]);
+            $this->output_individual_question_data($quiz, $questions[$slot]);
             $this->output_individual_question_response_analysis(
-                    $questions[$qnumber], $reporturl, $quizstats);
+                    $questions[$slot], $reporturl, $quizstats);
 
             // Back to overview link.
             print_box('<a href="' . $reporturl->out() . '">' .
@@ -757,8 +757,8 @@ class quiz_statistics_report extends quiz_default_report {
 
         $subquestionstats = array();
         foreach ($questionstats as $stat) {
-            if ($stat->qnumber) {
-                $questions[$stat->qnumber]->_stats = $stat;
+            if ($stat->slot) {
+                $questions[$stat->slot]->_stats = $stat;
             } else {
                 $subquestionstats[$stat->questionid] = $stat;
             }

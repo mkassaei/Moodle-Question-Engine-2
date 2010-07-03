@@ -72,8 +72,8 @@ if ($previewid) {
         print_error('notyourpreview', 'question');
     }
     $quba = question_engine::load_questions_usage_by_activity($previewid);
-    $qnumber = $quba->get_first_question_number();
-    $usedquestion = $quba->get_question($qnumber);
+    $slot = $quba->get_first_question_number();
+    $usedquestion = $quba->get_question($slot);
     if ($usedquestion->id != $question->id) {
         print_error('questionidmismatch', 'question');
     }
@@ -86,7 +86,7 @@ if ($previewid) {
     $quba = question_engine::make_questions_usage_by_activity('core_question_preview',
             get_context_instance_by_id($category->contextid));
     $quba->set_preferred_behaviour($behaviour);
-    $qnumber = $quba->add_question($question, $maxmark);
+    $slot = $quba->add_question($question, $maxmark);
     $quba->start_all_questions();
     question_engine::save_questions_usage_by_activity($quba);
 
@@ -105,7 +105,7 @@ foreach ($displaysettings as $setting => $default) {
 $optionsform = new preview_options_form($actionurl);
 $currentoptions = clone($displayoptions);
 $currentoptions->behaviour = $quba->get_preferred_behaviour();
-$currentoptions->maxmark = $quba->get_question_max_mark($qnumber);
+$currentoptions->maxmark = $quba->get_question_max_mark($slot);
 $optionsform->set_data($currentoptions);
 
 // Process change of settings, if that was requested.
@@ -118,11 +118,11 @@ if ($newoptions = $optionsform->get_submitted_data()) {
 if (data_submitted() && confirm_sesskey()) {
     if (optional_param('restart', false, PARAM_BOOL)) {
         restart_preview($previewid, $question->id, $quba->get_preferred_behaviour(),
-                $quba->get_question_max_mark($qnumber), $displayoptions);
+                $quba->get_question_max_mark($slot), $displayoptions);
 
     } else if (optional_param('fill', null, PARAM_BOOL)) {
-        $correctresponse = $quba->get_correct_response($qnumber);
-        $quba->process_action($qnumber, $correctresponse);
+        $correctresponse = $quba->get_correct_response($slot);
+        $quba->process_action($slot, $correctresponse);
         question_engine::save_questions_usage_by_activity($quba);
         redirect($actionurl);
 
@@ -151,7 +151,7 @@ if ($question->length) {
 $restartdisabled = '';
 $finishdisabled = '';
 $filldisabled = '';
-if ($quba->get_question_state($qnumber)->is_finished()) {
+if ($quba->get_question_state($slot)->is_finished()) {
     $finishdisabled = ' disabled="disabled"';
     $filldisabled = ' disabled="disabled"';
 }
@@ -160,7 +160,7 @@ if (!$previewid) {
 }
 // Output
 $title = get_string('previewquestion', 'question', format_string($question->name));
-$headtags = question_engine::initialise_js() . $quba->render_question_head_html($qnumber);
+$headtags = question_engine::initialise_js() . $quba->render_question_head_html($slot);
 print_header($title, '', '', '', $headtags);
 print_heading($title);
 
@@ -169,14 +169,14 @@ echo '<form method="post" action="' . s($actionurl) .
         '" enctype="multipart/form-data" id="responseform">', "\n";
 print_js_call('question_init_form', array('responseform'));
 echo '<input type="hidden" name="sesskey" value="' . sesskey() . '" />', "\n";
-echo '<input type="hidden" name="qnumbers" value="' . $qnumber . '" />', "\n";
+echo '<input type="hidden" name="slots" value="' . $slot . '" />', "\n";
 
 // Output the question.
-echo $quba->render_question($qnumber, $displayoptions, $displaynumber);
+echo $quba->render_question($slot, $displayoptions, $displaynumber);
 
 echo '<p class="notifytiny">' . get_string('behaviourbeingused', 'question',
         question_engine::get_behaviour_name(
-        $quba->get_question_attempt($qnumber)->get_behaviour_name())) . '</p>';
+        $quba->get_question_attempt($slot)->get_behaviour_name())) . '</p>';
 // Finish the question form.
 echo '<div id="previewcontrols" class="controls">';
 echo '<input type="submit" name="restart"' . $restartdisabled .

@@ -405,9 +405,9 @@ class quiz_attempt {
     // Number the questions.
     private function number_questions() {
         $number = 1;
-        foreach ($this->pagelayout as $page => $qnumbers) {
-            foreach ($qnumbers as $qnumber) {
-                $question = $this->quba->get_question($qnumber);
+        foreach ($this->pagelayout as $page => $slots) {
+            foreach ($slots as $slot) {
+                $question = $this->quba->get_question($slot);
                 if ($question->length > 0) {
                     $question->_number = $number;
                     $number += $question->length;
@@ -660,64 +660,64 @@ class quiz_attempt {
 
     /**
      * Get the question_attempt object for a particular question in this attempt.
-     * @param integer $qnumber the number used to identify this question within this attempt.
+     * @param integer $slot the number used to identify this question within this attempt.
      * @return question_attempt 
      */
-    public function get_question_attempt($qnumber) {
-        return $this->quba->get_question_attempt($qnumber);
+    public function get_question_attempt($slot) {
+        return $this->quba->get_question_attempt($slot);
     }
 
     /**
      * Is a particular question in this attempt a real question, or something like a description.
-     * @param integer $qnumber the number used to identify this question within this attempt.
+     * @param integer $slot the number used to identify this question within this attempt.
      * @return boolean whether that question is a real question.
      */
-    public function is_real_question($qnumber) {
-        return $this->quba->get_question($qnumber)->length != 0;
+    public function is_real_question($slot) {
+        return $this->quba->get_question($slot)->length != 0;
     }
 
     /**
      * Is a particular question in this attempt a real question, or something like a description.
-     * @param integer $qnumber the number used to identify this question within this attempt.
+     * @param integer $slot the number used to identify this question within this attempt.
      * @return boolean whether that question is a real question.
      */
-    public function is_question_flagged($qnumber) {
-        return $this->quba->get_question_attempt($qnumber)->is_flagged();
+    public function is_question_flagged($slot) {
+        return $this->quba->get_question_attempt($slot)->is_flagged();
     }
 
     /**
      * Return the grade obtained on a particular question, if the user is permitted to see it.
      * You must previously have called load_question_states to load the state data about this question.
      *
-     * @param integer $qnumber the number used to identify this question within this attempt.
+     * @param integer $slot the number used to identify this question within this attempt.
      * @return string the formatted grade, to the number of decimal places specified by the quiz.
      */
-    public function get_question_number($qnumber) {
-        return $this->quba->get_question($qnumber)->_number;
+    public function get_question_number($slot) {
+        return $this->quba->get_question($slot)->_number;
     }
 
     /**
      * Return the grade obtained on a particular question, if the user is permitted to see it.
      * You must previously have called load_question_states to load the state data about this question.
      *
-     * @param integer $qnumber the number used to identify this question within this attempt.
+     * @param integer $slot the number used to identify this question within this attempt.
      * @return string the formatted grade, to the number of decimal places specified by the quiz.
      */
-    public function get_question_name($qnumber) {
-        return $this->quba->get_question($qnumber)->name;
+    public function get_question_name($slot) {
+        return $this->quba->get_question($slot)->name;
     }
 
     /**
      * Return the grade obtained on a particular question, if the user is permitted to see it.
      * You must previously have called load_question_states to load the state data about this question.
      *
-     * @param integer $qnumber the number used to identify this question within this attempt.
+     * @param integer $slot the number used to identify this question within this attempt.
      * @param boolean $showcorrectness Whether right/partial/wrong states should
      * be distinguised.
      * @return string the formatted grade, to the number of decimal places specified by the quiz.
      */
-    public function get_question_status($qnumber, $showcorrectness) {
-        return $this->quba->get_question_state_string($qnumber, $showcorrectness);
+    public function get_question_status($slot, $showcorrectness) {
+        return $this->quba->get_question_state_string($slot, $showcorrectness);
     }
 
     /**
@@ -725,20 +725,20 @@ class quiz_attempt {
      * You must previously have called load_question_states to load the state
      * data about this question.
      *
-     * @param integer $qnumber the number used to identify this question within this attempt.
+     * @param integer $slot the number used to identify this question within this attempt.
      * @return string the formatted grade, to the number of decimal places specified by the quiz.
      */
-    public function get_question_score($qnumber) {
-        return quiz_format_question_grade($this->get_quiz(), $this->quba->get_question_mark($qnumber));
+    public function get_question_score($slot) {
+        return quiz_format_question_grade($this->get_quiz(), $this->quba->get_question_mark($slot));
     }
 
     /**
      * Get the time of the most recent action performed on a question.
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      * @return integer timestamp.
      */
-    public function get_question_action_time($qnumber) {
-        return $this->quba->get_question_action_time($qnumber);
+    public function get_question_action_time($slot) {
+        return $this->quba->get_question_action_time($slot);
     }
 
     // URLs related to this attempt ========================================================
@@ -757,10 +757,10 @@ class quiz_attempt {
      * to jump to a particuar question on the page.
      * @return string the URL to continue this attempt.
      */
-    public function attempt_url($qnumber = 0, $page = -1) {
+    public function attempt_url($slot = 0, $page = -1) {
         global $CFG;
         return $CFG->wwwroot . '/mod/quiz/attempt.php?attempt=' . $this->attempt->id .
-                $this->page_and_question_fragment($qnumber, $page);
+                $this->page_and_question_fragment($slot, $page);
     }
 
     /**
@@ -789,10 +789,10 @@ class quiz_attempt {
      * @param $otherattemptid if given, link to another attempt, instead of the one we represent.
      * @return string the URL to review this attempt.
      */
-    public function review_url($qnumber = 0, $page = -1, $showall = false) {
+    public function review_url($slot = 0, $page = -1, $showall = false) {
         global $CFG;
         return $CFG->wwwroot . '/mod/quiz/review.php?attempt=' . $this->attempt->id .
-                $this->page_and_question_fragment($qnumber, $page, $showall);
+                $this->page_and_question_fragment($slot, $page, $showall);
     }
 
     // Bits of content =====================================================================
@@ -818,15 +818,15 @@ class quiz_attempt {
             $page = 'all';
         }
         $result = '';
-        foreach ($this->get_question_numbers($page) as $qnumber) {
-            $result .= $this->quba->render_question_head_html($qnumber);
+        foreach ($this->get_question_numbers($page) as $slot) {
+            $result .= $this->quba->render_question_head_html($slot);
         }
         $result .= question_engine::initialise_js();
         return $result;
     }
 
-    public function get_question_html_head_contributions($qnumber) {
-        return $this->quba->render_question_head_html($qnumber) .
+    public function get_question_html_head_contributions($slot) {
+        return $this->quba->render_question_head_html($slot) .
                 question_engine::initialise_js();
     }
 
@@ -852,10 +852,10 @@ class quiz_attempt {
      * @param string $thispageurl the URL of the page this question is being printed on.
      * @return string HTML for the question in its current state.
      */
-    public function render_question($qnumber, $reviewing, $thispageurl = '') {
-        return $this->quba->render_question($qnumber,
+    public function render_question($slot, $reviewing, $thispageurl = '') {
+        return $this->quba->render_question($slot,
                 $this->get_display_options($reviewing),
-                $this->quba->get_question($qnumber)->_number);
+                $this->quba->get_question($slot)->_number);
     }
 
     /**
@@ -868,10 +868,10 @@ class quiz_attempt {
      * @param string $thispageurl the URL of the page this question is being printed on.
      * @return string HTML for the question in its current state.
      */
-    public function render_question_at_step($qnumber, $seq, $reviewing, $thispageurl = '') {
-        return $this->quba->render_question_at_step($qnumber, $seq,
+    public function render_question_at_step($slot, $seq, $reviewing, $thispageurl = '') {
+        return $this->quba->render_question_at_step($slot, $seq,
                 $this->get_display_options($reviewing),
-                $this->quba->get_question($qnumber)->_number);
+                $this->quba->get_question($slot)->_number);
     }
 
     /**
@@ -881,11 +881,11 @@ class quiz_attempt {
      * @param boolean $reviewing is the being printed on an attempt or a review page.
      * @param string $thispageurl the URL of the page this question is being printed on.
      */
-    public function render_question_for_commenting($qnumber) {
+    public function render_question_for_commenting($slot) {
         $options = $this->get_display_options(true);
         $options->hide_all_feedback();
         $options->manualcomment = question_display_options::EDITABLE;
-        return $this->quba->render_question($qnumber, $options, $this->quba->get_question($qnumber)->_number);
+        return $this->quba->render_question($slot, $options, $this->quba->get_question($slot)->_number);
     }
 
     public function quiz_send_notification_emails() {
@@ -969,14 +969,14 @@ class quiz_attempt {
         }
     }
 
-    public function question_print_comment_fields($qnumber, $prefix) {
+    public function question_print_comment_fields($slot, $prefix) {
         // Work out a nice title.
         $student = get_record('user', 'id', $this->get_userid());
         $a = new object();
         $a->fullname = fullname($student, true);
         $a->attempt = $this->get_attempt_number();
 
-        question_print_comment_fields($this->quba->get_question_attempt($qnumber),
+        question_print_comment_fields($this->quba->get_question_attempt($slot),
                 $prefix, $this->get_display_options(true)->markdp,
                 get_string('gradingattempt', 'quiz_grading', $a));
     }
@@ -990,10 +990,10 @@ class quiz_attempt {
      * @param boolean $showall
      * @return string bit to add to the end of a URL.
      */
-    private function page_and_question_fragment($qnumber, $page, $showall = false) {
+    private function page_and_question_fragment($slot, $page, $showall = false) {
         if ($page == -1) {
-            if ($qnumber) {
-                $page = $this->quba->get_question($qnumber)->_page;
+            if ($slot) {
+                $page = $this->quba->get_question($slot)->_page;
             } else {
                 $page = 0;
             }
@@ -1002,8 +1002,8 @@ class quiz_attempt {
             $page = 0;
         }
         $fragment = '';
-        if ($qnumber && $qnumber != reset($this->pagelayout[$page])) {
-            $fragment = '#q' . $qnumber;
+        if ($slot && $slot != reset($this->pagelayout[$page])) {
+            $fragment = '#q' . $slot;
         }
         $param = '';
         if ($showall) {
@@ -1041,8 +1041,8 @@ abstract class quiz_nav_panel_base {
 
     protected function get_question_buttons() {
         $html = '<div class="qn_buttons">' . "\n";
-        foreach ($this->attemptobj->get_question_numbers() as $qnumber) {
-            $qa = $this->attemptobj->get_question_attempt($qnumber);
+        foreach ($this->attemptobj->get_question_numbers() as $slot) {
+            $qa = $this->attemptobj->get_question_attempt($slot);
             $html .= $this->get_question_button($qa, $qa->get_question()->_number,
                     $this->options->correctness) . "\n" .
                     $this->get_button_update_script($qa) . "\n";

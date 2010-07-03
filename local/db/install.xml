@@ -19,9 +19,9 @@
     <TABLE NAME="question_attempts_new" COMMENT="Each row here corresponds to an attempt at one question, as part of a question_usage. A question_attempt will have some question_attempt_steps" PREVIOUS="question_usages" NEXT="question_attempt_steps">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="questionusageid"/>
-        <FIELD NAME="questionusageid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="Foreign key, references question_usages.id" PREVIOUS="id" NEXT="numberinusage"/>
-        <FIELD NAME="numberinusage" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="Used to number the questions in one attempt sequentially." PREVIOUS="questionusageid" NEXT="behaviour"/>
-        <FIELD NAME="behaviour" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="The name of the question behaviour that is managing this question attempt." PREVIOUS="numberinusage" NEXT="questionid"/>
+        <FIELD NAME="questionusageid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="Foreign key, references question_usages.id" PREVIOUS="id" NEXT="slot"/>
+        <FIELD NAME="slot" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="Used to number the questions in one attempt sequentially." PREVIOUS="questionusageid" NEXT="behaviour"/>
+        <FIELD NAME="behaviour" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="The name of the question behaviour that is managing this question attempt." PREVIOUS="slot" NEXT="questionid"/>
         <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="The id of the question being attempted. Foreign key references question.id." PREVIOUS="behaviour" NEXT="maxmark"/>
         <FIELD NAME="maxmark" TYPE="number" LENGTH="12" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" ENUM="false" DECIMALS="7" COMMENT="The grade this question is marked out of in this attempt." PREVIOUS="questionid" NEXT="minfraction"/>
         <FIELD NAME="minfraction" TYPE="number" LENGTH="12" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" DECIMALS="7" COMMENT="Some questions can award negative marks. This indicates the most negative mark that can be awarded, on the faction scale where the maximum positive mark is 1." PREVIOUS="maxmark" NEXT="flagged"/>
@@ -37,7 +37,7 @@
         <KEY NAME="questionusageid" TYPE="foreign" FIELDS="questionusageid" REFTABLE="question_usages" REFFIELDS="id" PREVIOUS="questionid"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="questionusageid-numberinusage" UNIQUE="true" FIELDS="questionusageid, numberinusage"/>
+        <INDEX NAME="questionusageid-numberinusage" UNIQUE="true" FIELDS="questionusageid, slot"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="question_attempt_steps" COMMENT="Stores one step in in a question attempt. As well as the data here, the step will have some data in the question_attempt_step_data table." PREVIOUS="question_attempts_new" NEXT="question_attempt_step_data">

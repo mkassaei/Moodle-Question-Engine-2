@@ -4,7 +4,7 @@
 question_flag_changer = {
     flag_state_listeners: new Object(),
 
-    init_flag: function(checkboxid, postdata, qnumber) {
+    init_flag: function(checkboxid, postdata, slot) {
         // Create a hidden input - you can't just repurpose the old checkbox, IE
         // does not cope - and put it in place of the checkbox.
         var checkbox = document.getElementById(checkboxid + 'checkbox');
@@ -16,7 +16,7 @@ question_flag_changer = {
         input.name = checkbox.name;
         input.value = checkbox.checked ? 1 : 0;
         input.ajaxpostdata = postdata;
-        input.qnumber = qnumber;
+        input.slot = slot;
 
         // Create an image input to replace the img tag.
         var image = document.createElement('input');
@@ -67,8 +67,8 @@ question_flag_changer = {
         }
     },
 
-    add_flag_state_listener: function(qnumber, listener) {
-        var key = 'q' + qnumber;
+    add_flag_state_listener: function(slot, listener) {
+        var key = 'q' + slot;
         if (!question_flag_changer.flag_state_listeners.hasOwnProperty(key)) {
             question_flag_changer.flag_state_listeners[key] = [];
         }
@@ -76,8 +76,8 @@ question_flag_changer = {
     },
 
     fire_state_changed: function(input) {
-        var qnumber = input.qnumber;
-        var key = 'q' + qnumber;
+        var slot = input.slot;
+        var key = 'q' + slot;
         if (!question_flag_changer.flag_state_listeners.hasOwnProperty(key)) {
             return;
         }
@@ -92,16 +92,16 @@ question_flag_changer = {
  * Initialise a question submit button. This saves the scroll position and
  * sets the fragment on the form submit URL so the page reloads in the right place.
  * @param id the id of the button in the HTML.
- * @param qnumber the number of the question_attempt within the usage.
+ * @param slot the number of the question_attempt within the usage.
  */
-function question_init_submit_button(id, qnumber) {
+function question_init_submit_button(id, slot) {
     var button = document.getElementById(id);
     YAHOO.util.Event.addListener(button, 'click', function(e) {
         var scrollpos = document.getElementById('scrollpos');
         if (scrollpos) {
             scrollpos.value = YAHOO.util.Dom.getDocumentScrollTop();
         }
-        button.form.action = button.form.action + '#q' + qnumber;
+        button.form.action = button.form.action + '#q' + slot;
     });
 }
 

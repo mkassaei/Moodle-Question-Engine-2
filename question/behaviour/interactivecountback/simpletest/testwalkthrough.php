@@ -52,7 +52,7 @@ class qbehaviour_interactivecountback_walkthrough_test extends qbehaviour_walkth
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->assertEqual('interactivecountback',
-                $this->quba->get_question_attempt($this->qnumber)->get_behaviour_name());
+                $this->quba->get_question_attempt($this->slot)->get_behaviour_name());
         $this->check_current_output(
                 $this->get_contains_select_expectation('sub0', $choices, null, true),
                 $this->get_contains_select_expectation('sub1', $choices, null, true),
@@ -85,15 +85,15 @@ class qbehaviour_interactivecountback_walkthrough_test extends qbehaviour_walkth
                 $this->get_contains_hint_expectation('This is the first hint'),
                 $this->get_contains_num_parts_correct(2),
                 $this->get_contains_standard_partiallycorrect_overall_feedback_expectation(),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'sub0', $orderforchoice[1]),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'sub3', $orderforchoice[1]),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'sub1'),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'sub2'));
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'sub0', $orderforchoice[1]),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'sub3', $orderforchoice[1]),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'sub1'),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'sub2'));
 
         // Check that extract responses will return the reset data.
-        $prefix = $this->quba->get_field_prefix($this->qnumber);
+        $prefix = $this->quba->get_field_prefix($this->slot);
         $this->assertEqual(array('sub0' => 1),
-                $this->quba->extract_responses($this->qnumber, array($prefix . 'sub0' => 1)));
+                $this->quba->extract_responses($this->slot, array($prefix . 'sub0' => 1)));
 
         // Do try again.
         $this->process_submission(array('sub0' => $orderforchoice[1], 'sub3' => $orderforchoice[1], '-tryagain' => 1));

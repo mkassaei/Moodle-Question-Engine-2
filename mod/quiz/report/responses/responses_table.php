@@ -97,19 +97,19 @@ class quiz_report_responses_table extends quiz_attempt_report_table {
         return $gradehtml;
     }
 
-    public function data_col($qnumber, $field, $attempt) {
+    public function data_col($slot, $field, $attempt) {
         global $CFG;
 
         if ($attempt->usageid == 0) {
             return '-';
         }
 
-        $question = $this->questions[$qnumber];
-        if (!isset($this->lateststeps[$attempt->usageid][$qnumber])) {
+        $question = $this->questions[$slot];
+        if (!isset($this->lateststeps[$attempt->usageid][$slot])) {
             return '-';
         }
 
-        $stepdata = $this->lateststeps[$attempt->usageid][$qnumber];
+        $stepdata = $this->lateststeps[$attempt->usageid][$slot];
 
         if (is_null($stepdata->$field)) {
             $summary = '-';
@@ -121,7 +121,7 @@ class quiz_report_responses_table extends quiz_attempt_report_table {
             return $summary;
         }
 
-        return $this->make_review_link($summary, $attempt, $qnumber);
+        return $this->make_review_link($summary, $attempt, $slot);
     }
 
     public function other_cols($colname, $attempt) {
@@ -151,13 +151,13 @@ class quiz_report_responses_table extends quiz_attempt_report_table {
     }
 
     /**
-     * Get any fields that might be needed when sorting on date for a particular qnumber.
-     * @param integer $qnumber the qnumber for the column we want.
-     * @param string $alias the table alias for latest state information relating to that qnumber.
+     * Get any fields that might be needed when sorting on date for a particular slot.
+     * @param integer $slot the slot for the column we want.
+     * @param string $alias the table alias for latest state information relating to that slot.
      */
-    protected function get_required_latest_state_fields($qnumber, $alias) {
-        return "$alias.questionsummary AS question$qnumber,
-                $alias.rightanswer AS right$qnumber,
-                $alias.responsesummary AS response$qnumber";
+    protected function get_required_latest_state_fields($slot, $alias) {
+        return "$alias.questionsummary AS question$slot,
+                $alias.rightanswer AS right$slot,
+                $alias.responsesummary AS response$slot";
     }
 }

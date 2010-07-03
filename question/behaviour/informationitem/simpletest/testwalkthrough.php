@@ -41,7 +41,7 @@ class qbehaviour_informationitem_walkthrough_test extends qbehaviour_walkthrough
         $this->check_current_mark(null);
         $this->check_current_output($this->get_contains_question_text_expectation($description),
                 new ContainsTagWithAttributes('input', array('type' => 'hidden',
-                'name' => $this->quba->get_field_prefix($this->qnumber) . '-seen', 'value' => 1)),
+                'name' => $this->quba->get_field_prefix($this->slot) . '-seen', 'value' => 1)),
                 $this->get_does_not_contain_feedback_expectation());
 
         // Process a submission indicating this question has been seen.

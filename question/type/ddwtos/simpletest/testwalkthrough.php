@@ -33,7 +33,7 @@ require_once($CFG->dirroot . '/question/type/ddwtos/simpletest/helper.php');
 class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
 
     protected function get_contains_drop_box_expectation($place, $group, $readonly) {
-        $qa = $this->quba->get_question_attempt($this->qnumber);
+        $qa = $this->quba->get_question_attempt($this->slot);
 
         $readonlyclass = '';
         if ($readonly) {
@@ -65,9 +65,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_drop_box_expectation('p1', 1, false),
                 $this->get_contains_drop_box_expectation('p2', 2, false),
                 $this->get_contains_drop_box_expectation('p3', 3, false),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', ''),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_tries_remaining_expectation(3),
@@ -83,9 +83,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_drop_box_expectation('p1', 1, false),
                 $this->get_contains_drop_box_expectation('p2', 2, false),
                 $this->get_contains_drop_box_expectation('p3', 3, false),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '2'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', '2'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', '2'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', '2'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', '2'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', '2'),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_correctness_expectation(),
                 $this->get_does_not_contain_feedback_expectation(),
@@ -118,9 +118,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_drop_box_expectation('p1', 1, false),
                 $this->get_contains_drop_box_expectation('p2', 2, false),
                 $this->get_contains_drop_box_expectation('p3', 3, false),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '2'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', '2'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', '2'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', '2'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', '2'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', '2'),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_correctness_expectation(),
                 $this->get_does_not_contain_feedback_expectation(),
@@ -163,9 +163,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_drop_box_expectation('p1', 1, false),
                 $this->get_contains_drop_box_expectation('p2', 2, false),
                 $this->get_contains_drop_box_expectation('p3', 3, false),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', ''),
                 $this->get_does_not_contain_feedback_expectation());
 
         // Save a partial answer.
@@ -178,9 +178,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_drop_box_expectation('p1', 1, false),
                 $this->get_contains_drop_box_expectation('p2', 2, false),
                 $this->get_contains_drop_box_expectation('p3', 3, false),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', '2'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', '2'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', ''),
                 $this->get_does_not_contain_correctness_expectation(),
                 $this->get_does_not_contain_feedback_expectation());
 
@@ -194,9 +194,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_drop_box_expectation('p1', 1, false),
                 $this->get_contains_drop_box_expectation('p2', 2, false),
                 $this->get_contains_drop_box_expectation('p3', 3, false),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', '1'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', '1'),
                 $this->get_does_not_contain_correctness_expectation(),
                 $this->get_does_not_contain_feedback_expectation());
 
@@ -237,9 +237,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_drop_box_expectation('p1', 1, false),
                 $this->get_contains_drop_box_expectation('p2', 2, false),
                 $this->get_contains_drop_box_expectation('p3', 3, false),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', ''),
                 $this->get_does_not_contain_correctness_expectation(),
                 $this->get_does_not_contain_feedback_expectation());
         $this->check_step_count(1);
@@ -254,9 +254,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_drop_box_expectation('p1', 1, false),
                 $this->get_contains_drop_box_expectation('p2', 2, false),
                 $this->get_contains_drop_box_expectation('p3', 3, false),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', ''),
                 $this->get_does_not_contain_correctness_expectation(),
                 $this->get_does_not_contain_feedback_expectation());
         $this->check_step_count(1);
@@ -287,9 +287,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_drop_box_expectation('p1', 1, false),
                 $this->get_contains_drop_box_expectation('p2', 2, false),
                 $this->get_contains_drop_box_expectation('p3', 3, false),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', ''),
                 $this->get_does_not_contain_correctness_expectation(),
                 $this->get_does_not_contain_feedback_expectation());
 
@@ -303,9 +303,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_drop_box_expectation('p1', 1, false),
                 $this->get_contains_drop_box_expectation('p2', 2, false),
                 $this->get_contains_drop_box_expectation('p3', 3, false),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', ''),
                 $this->get_does_not_contain_correctness_expectation(),
                 $this->get_does_not_contain_feedback_expectation());
 
@@ -337,14 +337,14 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->assertEqual('interactivecountback',
-                $this->quba->get_question_attempt($this->qnumber)->get_behaviour_name());
+                $this->quba->get_question_attempt($this->slot)->get_behaviour_name());
         $this->check_current_output(
                 $this->get_contains_drop_box_expectation('p1', 1, false),
                 $this->get_contains_drop_box_expectation('p2', 2, false),
                 $this->get_contains_drop_box_expectation('p3', 3, false),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', ''),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_tries_remaining_expectation(3),
@@ -368,14 +368,14 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_hint_expectation('This is the first hint'),
                 $this->get_contains_num_parts_correct(2),
                 $this->get_contains_standard_partiallycorrect_overall_feedback_expectation(),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', '1'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''));
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', ''));
 
         // Check that extract responses will return the reset data.
-        $prefix = $this->quba->get_field_prefix($this->qnumber);
+        $prefix = $this->quba->get_field_prefix($this->slot);
         $this->assertEqual(array('p1' => '1', 'p2' => '1'),
-                $this->quba->extract_responses($this->qnumber, array($prefix . 'p1' => '1', $prefix . 'p2' => '1', '-tryagain' => 1)));
+                $this->quba->extract_responses($this->slot, array($prefix . 'p1' => '1', $prefix . 'p2' => '1', '-tryagain' => 1)));
 
         // Do try again.
         $this->process_submission(array('p1' => '1', 'p2' => '1', '-tryagain' => 1));
@@ -387,9 +387,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_drop_box_expectation('p1', 1, false),
                 $this->get_contains_drop_box_expectation('p2', 2, false),
                 $this->get_contains_drop_box_expectation('p3', 3, false),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', '1'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', ''),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_try_again_button_expectation(),
                 $this->get_does_not_contain_correctness_expectation(),
@@ -414,9 +414,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_hint_expectation('This is the second hint'),
                 $this->get_contains_num_parts_correct(2),
                 $this->get_contains_standard_partiallycorrect_overall_feedback_expectation(),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', '1'));
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', '1'));
 
         // Do try again.
         $this->process_submission(array('p1' => '1', 'p3' => '1', '-tryagain' => 1));
@@ -428,9 +428,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_drop_box_expectation('p1', 1, false),
                 $this->get_contains_drop_box_expectation('p2', 2, false),
                 $this->get_contains_drop_box_expectation('p3', 3, false),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', '1'),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_try_again_button_expectation(),
                 $this->get_does_not_contain_correctness_expectation(),
@@ -454,9 +454,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_no_hint_visible_expectation(),
                 $this->get_does_not_contain_num_parts_correct(),
                 $this->get_contains_standard_correct_overall_feedback_expectation(),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', '1'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', '1'),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', '1'));
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', '1'));
     }
 
     public function test_interactive_correct_no_submit() {
@@ -477,9 +477,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_drop_box_expectation('p1', 1, false),
                 $this->get_contains_drop_box_expectation('p2', 2, false),
                 $this->get_contains_drop_box_expectation('p3', 3, false),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', ''),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_tries_remaining_expectation(3),
@@ -528,9 +528,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_drop_box_expectation('p1', 1, false),
                 $this->get_contains_drop_box_expectation('p2', 2, false),
                 $this->get_contains_drop_box_expectation('p3', 3, false),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p1', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p2', ''),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . 'p3', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', ''),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', ''),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_tries_remaining_expectation(3),

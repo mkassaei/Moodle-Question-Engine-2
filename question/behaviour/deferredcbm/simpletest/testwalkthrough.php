@@ -137,7 +137,7 @@ class qbehaviour_deferredcbm_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_output($this->get_contains_correct_expectation(),
                 $this->get_contains_cbm_radio_expectation(1, false, true));
         $this->assertEqual(get_string('true', 'qtype_truefalse') . ' [' . question_cbm::get_string(1) . ']',
-                $this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_response_summary($this->slot));
     }
 
     public function test_deferred_cbm_truefalse_default_certainty() {
@@ -159,7 +159,7 @@ class qbehaviour_deferredcbm_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->quba->finish_all_questions();
 
         // Verify.
-        $qa = $this->quba->get_question_attempt($this->qnumber);
+        $qa = $this->quba->get_question_attempt($this->slot);
         $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(0.6666667);
         $this->check_current_output($this->get_contains_correct_expectation(),
@@ -167,7 +167,7 @@ class qbehaviour_deferredcbm_walkthrough_test extends qbehaviour_walkthrough_tes
                 new PatternExpectation('/' . preg_quote(get_string('assumingcertainty', 'qbehaviour_deferredcbm',
                     question_cbm::get_string($qa->get_last_behaviour_var('_assumedcertainty')))) . '/'));
         $this->assertEqual(get_string('true', 'qtype_truefalse'),
-                $this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_response_summary($this->slot));
     }
 
     public function test_deferredcbm_resume_multichoice_single() {
@@ -190,20 +190,20 @@ class qbehaviour_deferredcbm_walkthrough_test extends qbehaviour_walkthrough_tes
                 $this->get_contains_cbm_radio_expectation(2, false, true),
                 $this->get_contains_incorrect_expectation());
         $this->assertEqual('A [' . question_cbm::get_string(question_cbm::HIGH) . ']',
-                $this->quba->get_right_answer_summary($this->qnumber));
+                $this->quba->get_right_answer_summary($this->slot));
         $this->assertPattern('/' . preg_quote($mc->questiontext) . '/',
-                $this->quba->get_question_summary($this->qnumber));
+                $this->quba->get_question_summary($this->slot));
         $this->assertPattern('/(B|C) \[' . preg_quote(question_cbm::get_string(2)) . '\]/',
-                $this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_response_summary($this->slot));
 
         // Save the old attempt.
-        $oldqa = $this->quba->get_question_attempt($this->qnumber);
+        $oldqa = $this->quba->get_question_attempt($this->slot);
 
         // Reinitialise.
         $this->setUp();
         $this->quba->set_preferred_behaviour('deferredcbm');
-        $this->qnumber = $this->quba->add_question($mc, 3);
-        $this->quba->start_question_based_on($this->qnumber, $oldqa);
+        $this->slot = $this->quba->add_question($mc, 3);
+        $this->quba->start_question_based_on($this->slot, $oldqa);
 
         // Verify.
         $this->check_current_state(question_state::$todo);
@@ -214,10 +214,10 @@ class qbehaviour_deferredcbm_walkthrough_test extends qbehaviour_walkthrough_tes
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_does_not_contain_correctness_expectation());
         $this->assertEqual('A [' . question_cbm::get_string(question_cbm::HIGH) . ']',
-                $this->quba->get_right_answer_summary($this->qnumber));
+                $this->quba->get_right_answer_summary($this->slot));
         $this->assertPattern('/' . preg_quote($mc->questiontext) . '/',
-                $this->quba->get_question_summary($this->qnumber));
-        $this->assertNull($this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_question_summary($this->slot));
+        $this->assertNull($this->quba->get_response_summary($this->slot));
 
         // Now get it right.
         $this->process_submission(array('answer' => $rightindex, '-certainty' => 3));
@@ -231,7 +231,7 @@ class qbehaviour_deferredcbm_walkthrough_test extends qbehaviour_walkthrough_tes
                 $this->get_contains_cbm_radio_expectation(3, false, true),
                 $this->get_contains_correct_expectation());
         $this->assertPattern('/(A) \[' . preg_quote(question_cbm::get_string(3)) . '\]/',
-                $this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_response_summary($this->slot));
     }
 
     public function test_deferred_cbm_truefalse_no_certainty_feedback_when_not_answered() {

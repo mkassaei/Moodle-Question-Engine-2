@@ -76,7 +76,7 @@ class qbehaviour_immediatefeedback_walkthrough_test extends qbehaviour_walkthrou
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
                 $this->get_contains_correct_expectation());
         $this->assertEqual('A',
-                $this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_response_summary($this->slot));
 
         $numsteps = $this->get_step_count();
 
@@ -162,7 +162,7 @@ class qbehaviour_immediatefeedback_walkthrough_test extends qbehaviour_walkthrou
                 $this->get_does_not_contain_correctness_expectation(),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_contains_validation_error_expectation());
-        $this->assertNull($this->quba->get_response_summary($this->qnumber));
+        $this->assertNull($this->quba->get_response_summary($this->slot));
     
         // Finish the attempt.
         $this->quba->finish_all_questions();
@@ -232,6 +232,6 @@ class qbehaviour_immediatefeedback_walkthrough_test extends qbehaviour_walkthrou
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
                 $this->get_contains_incorrect_expectation());
         $this->assertPattern('/B|C/',
-                $this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_response_summary($this->slot));
     }
 }

@@ -1,4 +1,4 @@
-qnumber,id,number,category,parent,name,questiontext,questiontextformat,image,generalfeedback,defaultgrade,penalty,qtype,length,stamp,version,hidden,timecreated,timemodified,createdby,modifiedby,maxmark
+slot,id,number,category,parent,name,questiontext,questiontextformat,image,generalfeedback,defaultgrade,penalty,qtype,length,stamp,version,hidden,timecreated,timemodified,createdby,modifiedby,maxmark
 1,1,1,5,0,questionessay-11,What is the purpose of life?,0,,General feedback,1,0,essay,1,localhost+080922073527+WeUaUK,localhost+080922073527+qxLjv1,0,1222068927,0,2,NULL,1
 2,2,2,5,0,questionessay-17,What is the purpose of life?,0,,General feedback,1,0,essay,1,localhost+080922073527+pvCseX,localhost+080922073527+mzy6tY,0,1222068927,0,2,NULL,1
 3,3,3,5,0,questionessay-6,What is the purpose of life?,0,,General feedback,1,0,essay,1,localhost+080922073527+Cr3gDO,localhost+080922073527+hnxfTy,0,1222068927,0,2,NULL,1

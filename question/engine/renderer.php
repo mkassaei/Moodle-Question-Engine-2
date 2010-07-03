@@ -316,7 +316,7 @@ class core_question_renderer extends renderer_base {
                 $rowclass = 'current';
             } else if (!empty($options->questionreviewlink)) {
                 $stepno = link_to_popup_window($options->questionreviewlink .
-                        '&amp;qnumber=' . $qa->get_number_in_usage() .
+                        '&amp;slot=' . $qa->get_number_in_usage() .
                         '&step=' . $i, 'reviewquestion', $stepno, 450, 650,
                         get_string('reviewresponse', 'quiz'), 'none', true);
             }

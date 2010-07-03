@@ -315,7 +315,7 @@ class qbehaviour_walkthrough_test_base extends UnitTestCase {
     /** @var question_usage_by_activity */
     protected $quba;
     /** @var unknown_type integer */
-    protected $qnumber;
+    protected $slot;
 
     public function setUp() {
         $this->displayoptions = new question_display_options();
@@ -330,31 +330,31 @@ class qbehaviour_walkthrough_test_base extends UnitTestCase {
 
     protected function start_attempt_at_question($question, $preferredbehaviour, $maxmark = null) {
         $this->quba->set_preferred_behaviour($preferredbehaviour);
-        $this->qnumber = $this->quba->add_question($question, $maxmark);
+        $this->slot = $this->quba->add_question($question, $maxmark);
         $this->quba->start_all_questions();
     }
     protected function process_submission($data) {
-        $this->quba->process_action($this->qnumber, $data);
+        $this->quba->process_action($this->slot, $data);
     }
 
     protected function manual_grade($comment, $mark) {
-        $this->quba->manual_grade($this->qnumber, $comment, $mark);
+        $this->quba->manual_grade($this->slot, $comment, $mark);
     }
 
     protected function check_current_state($state) {
-        $this->assertEqual($this->quba->get_question_state($this->qnumber), $state, 'Questions is in the wrong state: %s.');
+        $this->assertEqual($this->quba->get_question_state($this->slot), $state, 'Questions is in the wrong state: %s.');
     }
 
     protected function check_current_mark($mark) {
         if (is_null($mark)) {
-            $this->assertNull($this->quba->get_question_mark($this->qnumber));
+            $this->assertNull($this->quba->get_question_mark($this->slot));
         } else {
             if ($mark == 0) {
                 // PHP will think a null mark and a mark of 0 are equal,
                 // so explicity check not null in this case.
-                $this->assertNotNull($this->quba->get_question_mark($this->qnumber));
+                $this->assertNotNull($this->quba->get_question_mark($this->slot));
             }
-            $this->assertWithinMargin($mark, $this->quba->get_question_mark($this->qnumber),
+            $this->assertWithinMargin($mark, $this->quba->get_question_mark($this->slot),
                     0.000001, 'Expected mark and actual mark differ: %s.');
         }
     }
@@ -363,14 +363,14 @@ class qbehaviour_walkthrough_test_base extends UnitTestCase {
      * @param $condition one or more Expectations. (users varargs).
      */
     protected function check_current_output() {
-        $html = $this->quba->render_question($this->qnumber, $this->displayoptions);
+        $html = $this->quba->render_question($this->slot, $this->displayoptions);
         foreach (func_get_args() as $condition) {
             $this->assert($condition, $html);
         }
     }
 
     protected function get_question_attempt() {
-        return $this->quba->get_question_attempt($this->qnumber);
+        return $this->quba->get_question_attempt($this->slot);
     }
 
     protected function get_step_count() {
@@ -467,7 +467,7 @@ class qbehaviour_walkthrough_test_base extends UnitTestCase {
 
     protected function get_contains_mc_checkbox_expectation($index, $enabled = null, $checked = null) {
         return $this->get_contains_checkbox_expectation(array(
-                'name' => $this->quba->get_field_prefix($this->qnumber) . $index,
+                'name' => $this->quba->get_field_prefix($this->slot) . $index,
                 'value' => 1,
                 ), $enabled, $checked);
     }
@@ -491,7 +491,7 @@ class qbehaviour_walkthrough_test_base extends UnitTestCase {
 
     protected function get_contains_mc_radio_expectation($index, $enabled = null, $checked = null) {
         return $this->get_contains_radio_expectation(array(
-                'name' => $this->quba->get_field_prefix($this->qnumber) . 'answer',
+                'name' => $this->quba->get_field_prefix($this->slot) . 'answer',
                 'value' => $index,
                 ), $enabled, $checked);
     }
@@ -514,21 +514,21 @@ class qbehaviour_walkthrough_test_base extends UnitTestCase {
 
     protected function get_contains_tf_true_radio_expectation($enabled = null, $checked = null) {
         return $this->get_contains_radio_expectation(array(
-                'name' => $this->quba->get_field_prefix($this->qnumber) . 'answer',
+                'name' => $this->quba->get_field_prefix($this->slot) . 'answer',
                 'value' => 1,
                 ), $enabled, $checked);
     }
 
     protected function get_contains_tf_false_radio_expectation($enabled = null, $checked = null) {
         return $this->get_contains_radio_expectation(array(
-                'name' => $this->quba->get_field_prefix($this->qnumber) . 'answer',
+                'name' => $this->quba->get_field_prefix($this->slot) . 'answer',
                 'value' => 0,
                 ), $enabled, $checked);
     }
 
     protected function get_contains_cbm_radio_expectation($certainty, $enabled = null, $checked = null) {
         return $this->get_contains_radio_expectation(array(
-                'name' => $this->quba->get_field_prefix($this->qnumber) . '-certainty',
+                'name' => $this->quba->get_field_prefix($this->slot) . '-certainty',
                 'value' => $certainty,
                 ), $enabled, $checked);
     }
@@ -552,7 +552,7 @@ class qbehaviour_walkthrough_test_base extends UnitTestCase {
 
     protected function get_contains_submit_button_expectation($enabled = null) {
         return $this->get_contains_button_expectation(
-                $this->quba->get_field_prefix($this->qnumber) . '-submit', null, $enabled);
+                $this->quba->get_field_prefix($this->slot) . '-submit', null, $enabled);
     }
 
     protected function get_tries_remaining_expectation($n) {
@@ -566,7 +566,7 @@ class qbehaviour_walkthrough_test_base extends UnitTestCase {
     protected function get_contains_try_again_button_expectation($enabled = null) {
         $expectedattributes = array(
             'type' => 'submit',
-            'name' => $this->quba->get_field_prefix($this->qnumber) . '-tryagain',
+            'name' => $this->quba->get_field_prefix($this->slot) . '-tryagain',
         );
         $forbiddenattributes = array();
         if ($enabled === true) {
@@ -579,12 +579,12 @@ class qbehaviour_walkthrough_test_base extends UnitTestCase {
 
     protected function get_does_not_contain_try_again_button_expectation() {
         return new NoPatternExpectation('/name="' .
-                $this->quba->get_field_prefix($this->qnumber) . '-tryagain"/');
+                $this->quba->get_field_prefix($this->slot) . '-tryagain"/');
     }
 
     protected function get_contains_select_expectation($name, $choices,
             $selected = null, $enabled = null) {
-        $fullname = $this->quba->get_field_prefix($this->qnumber) . $name;
+        $fullname = $this->quba->get_field_prefix($this->slot) . $name;
         return new ContainsSelectExpectation($fullname, $choices, $selected, $enabled);
     }
 

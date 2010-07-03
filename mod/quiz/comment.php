@@ -28,7 +28,7 @@ require_once('../../config.php');
 require_once('locallib.php');
 
 $attemptid = required_param('attempt', PARAM_INT); // attempt id
-$qnumber = required_param('qnumber', PARAM_INT); // question number in attempt
+$slot = required_param('slot', PARAM_INT); // question number in attempt
 
 $attemptobj = quiz_attempt::create($attemptid);
 
@@ -42,17 +42,17 @@ require_login($attemptobj->get_courseid(), false, $attemptobj->get_cm());
 $attemptobj->require_capability('mod/quiz:grade');
 
 // Load the questions and states.
-//$attemptobj->load_questions($qnumber);
-//$attemptobj->load_question_states($qnumber);
+//$attemptobj->load_questions($slot);
+//$attemptobj->load_question_states($slot);
 
 // Log this action.
 add_to_log($attemptobj->get_courseid(), 'quiz', 'manualgrade', 'comment.php?attempt=' .
-        $attemptobj->get_attemptid() . '&qnumber=' . $qnumber,
+        $attemptobj->get_attemptid() . '&slot=' . $slot,
         $attemptobj->get_quizid(), $attemptobj->get_cmid());
 
 // Print the page header
 print_header();
-print_heading(format_string($attemptobj->get_question_name($qnumber)));
+print_heading(format_string($attemptobj->get_question_name($slot)));
 
 // Process any data that was submitted.
 if ((data_submitted()) && confirm_sesskey()) {
@@ -67,12 +67,12 @@ if ((data_submitted()) && confirm_sesskey()) {
 
 // Print the comment form.
 echo '<form method="post" class="mform" id="manualgradingform" action="' . $CFG->wwwroot . '/mod/quiz/comment.php">';
-echo $attemptobj->render_question_for_commenting($qnumber);
+echo $attemptobj->render_question_for_commenting($slot);
 ?>
 <div>
     <input type="hidden" name="attempt" value="<?php echo $attemptobj->get_attemptid(); ?>" />
-    <input type="hidden" name="qnumber" value="<?php echo $qnumber; ?>" />
-    <input type="hidden" name="qnumbers" value="<?php echo $qnumber; ?>" />
+    <input type="hidden" name="slot" value="<?php echo $slot; ?>" />
+    <input type="hidden" name="slots" value="<?php echo $slot; ?>" />
     <input type="hidden" name="sesskey" value="<?php echo sesskey(); ?>" />
 </div>
 <fieldset class="hidden">

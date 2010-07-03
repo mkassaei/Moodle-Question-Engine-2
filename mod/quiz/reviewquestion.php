@@ -29,7 +29,7 @@ require_once(dirname(__FILE__) . '/../../config.php');
 require_once('locallib.php');
 
 $attemptid = required_param('attempt', PARAM_INT); // attempt id
-$qnumber = required_param('qnumber', PARAM_INT); // question number in usage
+$slot = required_param('slot', PARAM_INT); // question number in usage
 $seq = optional_param('step', null, PARAM_INT); // sequence number
 
 $attemptobj = quiz_attempt::create($attemptid);
@@ -60,7 +60,7 @@ if (!$attemptobj->has_capability('mod/quiz:viewreports')) {
 
 // Work out the base URL of this page.
 $baseurl = 'reviewquestion.php?attempt=' .
-        $attemptobj->get_attemptid() . '&amp;qnumber=' . $qnumber;
+        $attemptobj->get_attemptid() . '&amp;slot=' . $slot;
 $currenturl = $baseurl;
 if (!is_null($seq)) {
     $currenturl .= '&seq=' . $seq;
@@ -75,7 +75,7 @@ $baseurl = $CFG->wwwroot . '/mod/quiz/' . $baseurl;
 $currenturl = $CFG->wwwroot . '/mod/quiz/' . $currenturl;
 
 // Print the page header
-$headtags = $attemptobj->get_question_html_head_contributions($qnumber);
+$headtags = $attemptobj->get_question_html_head_contributions($slot);
 print_header('', '', '', '', $headtags);
 
 echo '<div id="overDiv" style="position:absolute; visibility:hidden; z-index:1000;"></div>'; // for overlib
@@ -100,7 +100,7 @@ $rows[] = '<tr><th scope="row" class="cell">' . get_string('modulename', 'quiz')
 // Question name.
 $rows[] = '<tr><th scope="row" class="cell">' . get_string('question', 'quiz') .
         '</th><td class="cell">' . format_string(
-        $attemptobj->get_question_name($qnumber)) . '</td></tr>';
+        $attemptobj->get_question_name($slot)) . '</td></tr>';
 
 // Other attempts at the quiz.
 if ($attemptobj->has_capability('mod/quiz:viewreports')) {
@@ -112,7 +112,7 @@ if ($attemptobj->has_capability('mod/quiz:viewreports')) {
 }
 
 // Timestamp of this action.
-$timestamp = $attemptobj->get_question_action_time($qnumber);
+$timestamp = $attemptobj->get_question_action_time($slot);
 if ($timestamp) {
     $rows[] = '<tr><th scope="row" class="cell">' . get_string('completedon', 'quiz') .
             '</th><td class="cell">' . userdate($timestamp) . '</td></tr>';
@@ -127,9 +127,9 @@ if (!empty($rows)) {
 
 // Print the question in the requested state.
 if (!is_null($seq)) {
-    echo $attemptobj->render_question_at_step($qnumber, $seq, true, $currenturl);
+    echo $attemptobj->render_question_at_step($slot, $seq, true, $currenturl);
 } else {
-    echo $attemptobj->render_question($qnumber, true, $currenturl);
+    echo $attemptobj->render_question($slot, true, $currenturl);
 }
 
 // Finish the page

@@ -38,7 +38,7 @@ class qbehaviour_manualgraded_walkthrough_test extends qbehaviour_walkthrough_te
 
         // Check the right model is being used.
         $this->assertEqual('manualgraded', $this->quba->
-                get_question_attempt($this->qnumber)->get_behaviour_name());
+                get_question_attempt($this->slot)->get_behaviour_name());
 
         // Check the initial state.
         $this->check_current_state(question_state::$todo);
@@ -54,7 +54,7 @@ class qbehaviour_manualgraded_walkthrough_test extends qbehaviour_walkthrough_te
         $this->check_current_mark(null);
         $this->check_current_output(
                 new ContainsTagWithAttribute('textarea', 'name',
-                $this->quba->get_question_attempt($this->qnumber)->get_qt_field_name('answer')),
+                $this->quba->get_question_attempt($this->slot)->get_qt_field_name('answer')),
                 $this->get_does_not_contain_feedback_expectation());
 
         // Process the same data again, check it does not create a new step.
@@ -78,7 +78,7 @@ class qbehaviour_manualgraded_walkthrough_test extends qbehaviour_walkthrough_te
         $this->check_current_state(question_state::$needsgrading);
         $this->check_current_mark(null);
         $this->assertEqual('This is my wonderful essay!',
-                $this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_response_summary($this->slot));
 
         // Process a manual comment.
         $this->manual_grade('Not good enough!', 10);
@@ -90,7 +90,7 @@ class qbehaviour_manualgraded_walkthrough_test extends qbehaviour_walkthrough_te
                 new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
 
         // Now change the max mark for the question and regrade.
-        $this->quba->regrade_question($this->qnumber, 1);
+        $this->quba->regrade_question($this->slot, 1);
 
         // Verify.
         $this->check_current_state(question_state::$mangrright);
@@ -148,7 +148,7 @@ class qbehaviour_manualgraded_walkthrough_test extends qbehaviour_walkthrough_te
 
         // Check the right model is being used.
         $this->assertEqual('manualgraded', $this->quba->
-                get_question_attempt($this->qnumber)->get_behaviour_name());
+                get_question_attempt($this->slot)->get_behaviour_name());
 
         // Check the initial state.
         $this->check_current_state(question_state::$todo);
@@ -168,7 +168,7 @@ class qbehaviour_manualgraded_walkthrough_test extends qbehaviour_walkthrough_te
         $this->check_current_state(question_state::$needsgrading);
         $this->check_current_mark(null);
         $this->assertEqual('This is my wonderful essay!',
-                $this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_response_summary($this->slot));
 
         // Process a blank manual comment. Ensure it does not change the state.
         $numsteps = $this->get_step_count();
@@ -208,7 +208,7 @@ class qbehaviour_manualgraded_walkthrough_test extends qbehaviour_walkthrough_te
         $this->check_current_output(
                 new PatternExpectation('/' . preg_quote('Actually, I am not sure any more.') . '/'));
 
-        $qa = $this->quba->get_question_attempt($this->qnumber);
+        $qa = $this->quba->get_question_attempt($this->slot);
         $this->assertEqual('Commented: Actually, I am not sure any more.',
                 $qa->summarise_action($qa->get_last_step()));
     }

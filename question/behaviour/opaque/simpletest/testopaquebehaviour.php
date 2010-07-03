@@ -59,7 +59,7 @@ class qbehaviour_opaque_test extends qbehaviour_walkthrough_test_base {
     public function test_wrong_three_times() {
         $q = $this->make_standard_om_question();
         $this->start_attempt_at_question($q, 'interactive');
-        $qa = $this->quba->get_question_attempt($this->qnumber);
+        $qa = $this->quba->get_question_attempt($this->slot);
 
         // Check the initial state.
         $this->check_current_state(question_state::$todo);
@@ -135,10 +135,10 @@ class qbehaviour_opaque_test extends qbehaviour_walkthrough_test_base {
     public function test_right_first_time() {
         $q = $this->make_standard_om_question();
         $this->start_attempt_at_question($q, 'interactive');
-        $qa = $this->quba->get_question_attempt($this->qnumber);
+        $qa = $this->quba->get_question_attempt($this->slot);
 
         // Work out right answer (yuck!)
-        $html = $this->quba->render_question($this->qnumber, $this->displayoptions);
+        $html = $this->quba->render_question($this->slot, $this->displayoptions);
         preg_match('/(0\.5|2\.0|3\.0) metres/', $html, $matches);
         $scale = $matches[1];
         preg_match('/Patio|Summer House|Flowerbed|Vegetable Plot|Pond/', $html, $matches);
@@ -175,10 +175,10 @@ class qbehaviour_opaque_test extends qbehaviour_walkthrough_test_base {
     public function test_different_max() {
         $q = $this->make_standard_om_question();
         $this->start_attempt_at_question($q, 'interactive', 6.0);
-        $qa = $this->quba->get_question_attempt($this->qnumber);
+        $qa = $this->quba->get_question_attempt($this->slot);
 
         // Work out right answer (yuck!)
-        $html = $this->quba->render_question($this->qnumber, $this->displayoptions);
+        $html = $this->quba->render_question($this->slot, $this->displayoptions);
         preg_match('/(0\.5|2\.0|3\.0) metres/', $html, $matches);
         $scale = $matches[1];
         preg_match('/Patio|Summer House|Flowerbed|Vegetable Plot|Pond/', $html, $matches);

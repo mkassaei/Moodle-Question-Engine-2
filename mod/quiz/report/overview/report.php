@@ -259,9 +259,9 @@ class quiz_overview_report extends quiz_attempt_report {
             $this->add_time_columns($columns, $headers);
 
             if ($detailedmarks) {
-                foreach ($questions as $qnumber => $question) {
+                foreach ($questions as $slot => $question) {
                     // Ignore questions of zero length
-                    $columns[] = 'qsgrade' . $qnumber;
+                    $columns[] = 'qsgrade' . $slot;
                     $header = get_string('qbrief', 'quiz', $question->number);
                     if (!$table->is_downloading()) {
                         $header .= '<br />';
@@ -318,29 +318,29 @@ class quiz_overview_report extends quiz_attempt_report {
      *
      * @param object $attempt the quiz attempt to regrade.
      * @param boolean $dryrun if true, do a pretend regrade, otherwise do it for real.
-     * @param array $qnumbers if null, regrade all questoins, otherwise, just regrade
-     *      the quetsions with those qnumbers.
+     * @param array $slots if null, regrade all questoins, otherwise, just regrade
+     *      the quetsions with those slots.
      */
-    protected function regrade_attempt($attempt, $dryrun = false, $qnumbers = null) {
+    protected function regrade_attempt($attempt, $dryrun = false, $slots = null) {
         begin_sql();
 
         $quba = question_engine::load_questions_usage_by_activity($attempt->uniqueid);
 
-        if (is_null($qnumbers)) {
-            $qnumbers = $quba->get_question_numbers();
+        if (is_null($slots)) {
+            $slots = $quba->get_question_numbers();
         }
 
-        foreach ($qnumbers as $qnumber) {
+        foreach ($slots as $slot) {
             $qqr = new stdClass;
-            $qqr->oldfraction = $quba->get_question_fraction($qnumber);
+            $qqr->oldfraction = $quba->get_question_fraction($slot);
 
-            $quba->regrade_question($qnumber);
+            $quba->regrade_question($slot);
 
-            $qqr->newfraction = $quba->get_question_fraction($qnumber);
+            $qqr->newfraction = $quba->get_question_fraction($slot);
 
             if (abs($qqr->oldfraction - $qqr->newfraction) > 1e-7) {
                 $qqr->questionusageid = $quba->get_id();
-                $qqr->numberinusage = $qnumber;
+                $qqr->slot = $slot;
                 $qqr->regraded = empty($dryrun);
                 $qqr->timemodified = time();
                 insert_record('quiz_question_regrade', $qqr, false);
@@ -414,7 +414,7 @@ class quiz_overview_report extends quiz_attempt_report {
         }
 
         $toregrade = get_records_sql("
-                SELECT quiza.uniqueid, qqr.numberinusage
+                SELECT quiza.uniqueid, qqr.slot
                 FROM {$CFG->prefix}quiz_attempts quiza
                 JOIN {$CFG->prefix}quiz_question_regrade qqr ON qqr.questionusageid = quiza.uniqueid
                 WHERE $where");
@@ -425,7 +425,7 @@ class quiz_overview_report extends quiz_attempt_report {
 
         $attemptquestions = array();
         foreach ($toregrade as $row) {
-            $attemptquestions[$row->uniqueid][] = $row->numberinusage;
+            $attemptquestions[$row->uniqueid][] = $row->slot;
         }
         $attempts = get_records_list('quiz_attempts', 'uniqueid', implode(',', array_keys($attemptquestions)));
 

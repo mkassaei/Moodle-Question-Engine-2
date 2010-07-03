@@ -77,7 +77,7 @@ if ($quizstatistics->groupid && !in_array($quizstatistics->groupid, array_keys($
 // Load the rest of the required data.
 $questions = quiz_report_get_significant_questions($quiz);
 $questionstatistics = get_records_select('quiz_question_statistics',
-        "quizstatisticsid = $quizstatistics->id AND qnumber IS NOT NULL");
+        "quizstatisticsid = $quizstatistics->id AND slot IS NOT NULL");
 
 // Create the graph, and set the basic options.
 $graph = new graph(800,600);
@@ -118,7 +118,7 @@ foreach (array_keys($fieldstoplot) as $fieldtoplot) {
 
 // Fill in the data for each question.
 foreach ($questionstatistics as $questionstatistic) {
-    $number = $questions[$questionstatistic->qnumber]->number;
+    $number = $questions[$questionstatistic->slot]->number;
     $xdata[$number] = $number;
 
     foreach ($fieldstoplot as $fieldtoplot => $notused) {

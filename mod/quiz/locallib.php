@@ -1011,12 +1011,12 @@ function quiz_clean_layout($layout, $removeemptypages = false) {
 }
 
 /**
- * Get the qnumber for a question with a particular id.
+ * Get the slot for a question with a particular id.
  * @param object $quiz the quiz settings.
  * @param integer $questionid the of a question in the quiz.
- * @return integer the corresponding qnumber. Null if the question is not in the quiz.
+ * @return integer the corresponding slot. Null if the question is not in the quiz.
  */
-function quiz_get_qnumber_for_question($quiz, $questionid) {
+function quiz_get_slot_for_question($quiz, $questionid) {
     $questionids = quiz_questions_in_quiz($quiz->questions);
     foreach (explode(',', $questionids) as $key => $id) {
         if ($id == $questionid) {
