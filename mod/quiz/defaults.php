@@ -4,7 +4,13 @@
 // It defines default values for any important configuration variables
 
    $defaults = array (
-       'quiz_review' => 0xffffff,
+       'quiz_reviewattempt' => 0x11110,
+       'quiz_reviewcorrectness' => 0x11110,
+       'quiz_reviewmarks' => 0x11110,
+       'quiz_reviewspecificfeedback' => 0x11110,
+       'quiz_reviewgeneralfeedback' => 0x11110,
+       'quiz_reviewrightanswer' => 0x11110,
+       'quiz_reviewoverallfeedback' => 0x11110,
        'quiz_attemptonlast' => 0,
        'quiz_attempts' => 0,
        'quiz_grademethod' => '',
