@@ -52,6 +52,11 @@ function xmldb_quizreport_statistics_upgrade($oldversion) {
 
     if ($result && $oldversion < 2010032401) {
 
+    /// Delete all cached data
+        $result = $result && delete_records('quiz_question_response_stats');
+        $result = $result && delete_records('quiz_question_statistics');
+        $result = $result && delete_records('quiz_statistics');
+
     /// Rename field maxgrade on table quiz_question_statistics to maxmark
         $table = new XMLDBTable('quiz_question_statistics');
         $field = new XMLDBField('maxgrade');
@@ -59,11 +64,6 @@ function xmldb_quizreport_statistics_upgrade($oldversion) {
 
     /// Launch rename field maxmark
         $result = $result && rename_field($table, $field, 'maxmark');
-
-    /// Delete all cached data
-        $result = $result && delete_records('quiz_question_response_stats');
-        $result = $result && delete_records('quiz_question_statistics');
-        $result = $result && delete_records('quiz_statistics');
     }
 
     if ($result && $oldversion < 2010062200) {
@@ -86,6 +86,17 @@ function xmldb_quizreport_statistics_upgrade($oldversion) {
 
     /// Launch rename field slot
         $result = $result && rename_field($table, $field, 'slot');
+    }
+
+    if ($result && $oldversion < 2010070301) {
+
+    /// Changing type of field maxmark on table quiz_question_statistics to number
+        $table = new XMLDBTable('quiz_question_statistics');
+        $field = new XMLDBField('maxmark');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', XMLDB_UNSIGNED, null, null, null, null, null, 'subquestions');
+
+    /// Launch change of type for field maxmark
+        $result = $result && change_field_type($table, $field);
     }
 
     return $result;
