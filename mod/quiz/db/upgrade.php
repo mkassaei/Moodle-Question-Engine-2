@@ -843,6 +843,20 @@ function xmldb_quiz_upgrade($oldversion=0) {
         upgrade_mod_savepoint($result, 2008000503, 'quiz');
     }
 
+    if ($result && $oldversion < 2008000504) {
+
+        // Changing type of field fraction on table question_answers to (12, 7)
+        $table = new XMLDBTable('question_answers');
+        $field = new XMLDBField('fraction');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, null, null, '0.3333333', 'defaultmark');
+
+        // Launch change of type for field penalty
+        $result = $result && change_field_type($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000504, 'quiz');
+    }
+
     commit_sql();
 
     return $result;
