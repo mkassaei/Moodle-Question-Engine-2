@@ -769,7 +769,7 @@ class quiz_statistics_report extends quiz_default_report {
             $subquestions = question_load_questions($subqstofetch);
             foreach ($subquestions as $subqid => $subq) {
                 $subquestions[$subqid]->_stats = $subquestionstats[$subqid];
-                $subquestions[$subqid]->maxmark = $subq->defaultgrade;
+                $subquestions[$subqid]->maxmark = $subq->defaultmark;
             }
         }
 

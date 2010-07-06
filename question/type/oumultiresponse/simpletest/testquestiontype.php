@@ -160,7 +160,7 @@ class qtype_oumultiresponse_test extends UnitTestCase {
         $expectedq->questiontext = 'Which are the odd numbers?';
         $expectedq->questiontextformat = FORMAT_HTML;
         $expectedq->generalfeedback = 'General feedback.';
-        $expectedq->defaultgrade = 6;
+        $expectedq->defaultmark = 6;
         $expectedq->length = 1;
         $expectedq->penalty = 0.3333333;
 
@@ -274,7 +274,7 @@ class qtype_oumultiresponse_test extends UnitTestCase {
         $expectedq->questiontext = '<p>OUMR question.</p><p>Right answers are eighta and eightb.</p>';
         $expectedq->questiontextformat = FORMAT_HTML;
         $expectedq->generalfeedback = 'General feedback.';
-        $expectedq->defaultgrade = 1;
+        $expectedq->defaultmark = 1;
         $expectedq->length = 1;
         $expectedq->penalty = 0.3333333;
 
@@ -310,7 +310,7 @@ class qtype_oumultiresponse_test extends UnitTestCase {
         $qdata->questiontext = 'Which are the odd numbers?';
         $qdata->questiontextformat = FORMAT_HTML;
         $qdata->generalfeedback = 'General feedback.';
-        $qdata->defaultgrade = 6;
+        $qdata->defaultmark = 6;
         $qdata->length = 1;
         $qdata->penalty = 0.3333333;
         $qdata->hidden = 0;

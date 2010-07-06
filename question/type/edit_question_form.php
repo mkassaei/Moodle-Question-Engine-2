@@ -127,11 +127,11 @@ class question_edit_form extends moodleform {
         $mform->setHelpButton('questiontext', array(array('questiontext', get_string('questiontext', 'quiz'), 'quiz'), 'richtext'), false, 'editorhelpbutton');
         $mform->addElement('format', 'questiontextformat', get_string('format'));
 
-        $mform->addElement('text', 'defaultgrade', get_string('defaultgrade', 'quiz'),
+        $mform->addElement('text', 'defaultmark', get_string('defaultmark', 'quiz'),
                 array('size' => 3));
-        $mform->setType('defaultgrade', PARAM_INT);
-        $mform->setDefault('defaultgrade', 1);
-        $mform->addRule('defaultgrade', null, 'required', null, 'client');
+        $mform->setType('defaultmark', PARAM_INT);
+        $mform->setDefault('defaultmark', 1);
+        $mform->addRule('defaultmark', null, 'required', null, 'client');
 
         $mform->addElement('htmleditor', 'generalfeedback', get_string('generalfeedback', 'quiz'),
                 array('rows' => 10, 'course' => $this->coursefilesid));

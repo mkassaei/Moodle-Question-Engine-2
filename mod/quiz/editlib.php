@@ -113,12 +113,12 @@ function quiz_add_quiz_question($id, &$quiz) {
 
     // update question grades
     $questionrecord = get_record("question", "id", $id);
-    $quiz->grades[$id] = $questionrecord->defaultgrade;
+    $quiz->grades[$id] = $questionrecord->defaultmark;
 
     $instance = new stdClass;
     $instance->quiz = $quiz->id;
     $instance->question = $id;
-    $instance->grade = $questionrecord->defaultgrade;
+    $instance->grade = $questionrecord->defaultmark;
     insert_record("quiz_question_instances", $instance);
 
     return true;

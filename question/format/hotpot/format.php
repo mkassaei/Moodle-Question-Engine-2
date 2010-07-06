@@ -183,7 +183,7 @@ class qformat_hotpot extends qformat_default {
                         $wrapped = new stdClass();
                         $wrapped->qtype = SHORTANSWER;
                         $wrapped->usecase = 0;
-                        $wrapped->defaultgrade = $defaultgrade;
+                        $wrapped->defaultmark = $defaultgrade;
                         $wrapped->questiontextformat = 0;
                         $wrapped->answer = array();
                         $wrapped->fraction = array();
@@ -228,7 +228,7 @@ class qformat_hotpot extends qformat_default {
 
             if ($q) {
                 // define total grade for this exercise
-                $question->defaultgrade = $gap_count * $defaultgrade;
+                $question->defaultmark = $gap_count * $defaultgrade;
 
                 // add this cloze as a single question object
                 $questions[] = $question;
@@ -311,7 +311,7 @@ class qformat_hotpot extends qformat_default {
                 }
                 $p++;
             }
-            $question->defaultgrade = $match_count * $defaultgrade;
+            $question->defaultmark = $match_count * $defaultgrade;
             $questions[] = $question;
             $x++;
         }
@@ -367,7 +367,7 @@ class qformat_hotpot extends qformat_default {
                 $answer = $this->hotpot_prepare_str($xml->xml_value($tags, $exercise."['alternate'][$a]['#']"));
                 $a++;
             }
-            $question->defaultgrade = $segment_count * $defaultgrade;
+            $question->defaultmark = $segment_count * $defaultgrade;
             $questions[] = $question;
             $x++;
         }
@@ -393,7 +393,7 @@ class qformat_hotpot extends qformat_default {
                     $question->usecase = 0; // Ignore case
                     $question->image = "";  // No images with this format
                 }
-                $question->defaultgrade = $defaultgrade;
+                $question->defaultmark = $defaultgrade;
                 $question->name = $this->hotpot_get_title($xml, $q, true);
 
                 $text = $xml->xml_value($tags, $question_record."['question'][0]['#']");

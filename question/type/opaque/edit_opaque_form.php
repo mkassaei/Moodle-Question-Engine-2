@@ -25,10 +25,10 @@ class question_edit_opaque_form extends question_edit_form {
         $mform->removeElement('questiontext');
         $mform->removeElement('questiontextformat');
         $mform->removeElement('generalfeedback');
-        $mform->removeElement('defaultgrade');
-        $mform->addElement('hidden', 'defaultgrade');
-        $mform->setType('defaultgrade', PARAM_INT);
-        $mform->setDefault('defaultgrade', 1);
+        $mform->removeElement('defaultmark');
+        $mform->addElement('hidden', 'defaultmark');
+        $mform->setType('defaultmark', PARAM_INT);
+        $mform->setDefault('defaultmark', 1);
     }
     
     /**
@@ -90,7 +90,7 @@ class question_edit_opaque_form extends question_edit_form {
             } else if (!isset($metadata['questionmetadata']['#']['scoring'][0]['#']['marks'][0]['#'])) {
                 $errors['remoteid'] = get_string('maxgradenotreturned');
             } else {
-                $this->_defaultgrade = $metadata['questionmetadata']['#']['scoring'][0]['#']['marks'][0]['#'];
+                $this->_defaultmark = $metadata['questionmetadata']['#']['scoring'][0]['#']['marks'][0]['#'];
             }
         }
 
@@ -98,11 +98,11 @@ class question_edit_opaque_form extends question_edit_form {
     }
 
     function get_data($slashed=true) {
-        // We override get_data to to add the defaultgrade, which was determined during validation,
+        // We override get_data to to add the defaultmark, which was determined during validation,
         // to the data that is returned.
         $data = parent::get_data($slashed);
-        if (is_object($data) && isset($this->_defaultgrade)) {
-            $data->defaultgrade = $this->_defaultgrade;
+        if (is_object($data) && isset($this->_defaultmark)) {
+            $data->defaultmark = $this->_defaultmark;
         }
         return $data;
     }

@@ -83,7 +83,7 @@ class test_question_maker {
     }
 
     /**
-     * Makes a truefalse question with correct ansewer true, defaultgrade 1.
+     * Makes a truefalse question with correct answer true, defaultmark 1.
      * @return qtype_truefalse_question
      */
     public static function make_a_truefalse_question() {
@@ -105,7 +105,7 @@ class test_question_maker {
 
     /**
      * Makes a multichoice question with choices 'A', 'B' and 'C' shuffled. 'A'
-     * is correct, defaultgrade 1.
+     * is correct, defaultmark 1.
      * @return qtype_multichoice_single_question
      */
     public static function make_a_multichoice_single_question() {
@@ -131,7 +131,7 @@ class test_question_maker {
 
     /**
      * Makes a multichoice question with choices 'A', 'B', 'C' and 'D' shuffled.
-     * 'A' and 'C' is correct, defaultgrade 1.
+     * 'A' and 'C' is correct, defaultmark 1.
      * @return qtype_multichoice_multi_question
      */
     public static function make_a_multichoice_multi_question() {
@@ -161,7 +161,7 @@ class test_question_maker {
     /**
      * Makes a matching question to classify 'Dog', 'Frog', 'Toad' and 'Cat' as
      * 'Mammal', 'Amphibian' or 'Insect'.
-     * Defaultgrade 1. Stems are shuffled by default.
+     * defaultmark 1. Stems are shuffled by default.
      * @return qtype_match_question
      */
     public static function make_a_matching_question() {
@@ -189,7 +189,7 @@ class test_question_maker {
 
     /**
      * Makes a shortanswer question with correct ansewer 'frog', partially
-     * correct answer 'toad' and defaultgrade 1.
+     * correct answer 'toad' and defaultmark 1.
      * @return qtype_shortanswer_question
      */
     public static function make_a_shortanswer_question() {
@@ -236,7 +236,7 @@ class test_question_maker {
     }
 
     /**
-     * Makes a truefalse question with correct ansewer true, defaultgrade 1.
+     * Makes a truefalse question with correct ansewer true, defaultmark 1.
      * @return qtype_essay_question
      */
     public static function make_an_essay_question() {
@@ -253,7 +253,7 @@ class test_question_maker {
     }
 
     /**
-     * Makes a truefalse question with correct ansewer true, defaultgrade 1.
+     * Makes a truefalse question with correct ansewer true, defaultmark 1.
      * @return question_truefalse
      */
     public static function make_a_description_question() {

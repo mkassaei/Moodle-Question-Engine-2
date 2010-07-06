@@ -159,7 +159,7 @@ class qformat_xml extends qformat_default {
         }
         $qo->generalfeedback = $this->getpath($question,
                 array('#', 'generalfeedback', 0, '#', 'text', 0, '#'), $qo->generalfeedback, true);
-        $qo->defaultgrade = $this->getpath($question, array('#', 'defaultgrade', 0, '#'), $qo->defaultgrade);
+        $qo->defaultmark = $this->getpath($question, array('#', 'defaultgrade', 0, '#'), $qo->defaultmark);
         $qo->penalty = $this->getpath($question, array('#', 'penalty', 0, '#'), $qo->penalty);
 
         // Fix problematic rounding from old files:
@@ -427,7 +427,7 @@ class qformat_xml extends qformat_default {
         $qo = $this->import_headers($question);
         // header parts particular to shortanswer
         $qo->qtype = DESCRIPTION;
-        $qo->defaultgrade = 0;
+        $qo->defaultmark = 0;
         $qo->length = 0;
         return $qo;
     }
@@ -878,7 +878,7 @@ class qformat_xml extends qformat_default {
             $expout .= "    <generalfeedback>\n";
             $expout .= $generalfeedback;
             $expout .= "    </generalfeedback>\n";
-            $expout .= "    <defaultgrade>{$question->defaultgrade}</defaultgrade>\n";
+            $expout .= "    <defaultgrade>{$question->defaultmark}</defaultgrade>\n";
             $expout .= "    <penalty>{$question->penalty}</penalty>\n";
             $expout .= "    <hidden>{$question->hidden}</hidden>\n";
 

@@ -325,7 +325,7 @@
             $question->questiontextformat = backup_todb($que_info['#']['QUESTIONTEXTFORMAT']['0']['#']);
             $question->image = backup_todb($que_info['#']['IMAGE']['0']['#']);
             $question->generalfeedback = backup_todb_optional_field($que_info, 'GENERALFEEDBACK', '');
-            $question->defaultgrade = backup_todb($que_info['#']['DEFAULTGRADE']['0']['#']);
+            $question->defaultmark = backup_todb($que_info['#']['DEFAULTGRADE']['0']['#']);
             $question->penalty = backup_todb($que_info['#']['PENALTY']['0']['#']);
             $question->qtype = backup_todb($que_info['#']['QTYPE']['0']['#']);
             $question->length = backup_todb($que_info['#']['LENGTH']['0']['#']);

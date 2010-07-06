@@ -284,7 +284,7 @@ class qtype_truefalse extends question_type {
 
         $form->questiontext = "This question is really stupid";
         $form->penalty = 1;
-        $form->defaultgrade = 1;
+        $form->defaultmark = 1;
         $form->correctanswer = 0;
         $form->feedbacktrue = array('Can you justify such a hasty judgment?');
         $form->feedbackfalse = array('Wisdom has spoken!');

@@ -189,7 +189,7 @@
             $question->questiontext = backup_todb($que_info['#']['QUESTIONTEXT']['0']['#']);
             $question->questiontextformat = backup_todb($que_info['#']['QUESTIONTEXTFORMAT']['0']['#']);
             $question->image = backup_todb($que_info['#']['IMAGE']['0']['#']);
-            $question->defaultgrade = backup_todb($que_info['#']['DEFAULTGRADE']['0']['#']);
+            $question->defaultmark = backup_todb($que_info['#']['DEFAULTGRADE']['0']['#']);
             if (isset($que_info['#']['PENALTY']['0']['#'])) { //Only if it's set, to apply DB default else.
                 $question->penalty = backup_todb($que_info['#']['PENALTY']['0']['#']);
             }
@@ -993,7 +993,7 @@
             $question->parent             = $parentquestion->id;
             $question->name               = $parentquestion->name;
             $question->questiontextformat = $parentquestion->questiontextformat;
-            $question->defaultgrade       = $multianswer->norm;
+            $question->defaultmark        = $multianswer->norm;
             $question->penalty            = $parentquestion->penalty;
             $question->qtype              = $multianswer->answertype;
             $question->version            = $parentquestion->version;

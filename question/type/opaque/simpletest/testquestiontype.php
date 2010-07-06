@@ -150,7 +150,7 @@ class qtype_opaque_test extends UnitTestCase {
         $expectedq->questiontext = '';
         $expectedq->questiontextformat = FORMAT_MOODLE;
         $expectedq->generalfeedback = '';
-        $expectedq->defaultgrade = 3;
+        $expectedq->defaultmark = 3;
         $expectedq->length = 1;
         $expectedq->penalty = 0;
 
@@ -218,7 +218,7 @@ class qtype_opaque_test extends UnitTestCase {
         $expectedq->questiontext = '';
         $expectedq->questiontextformat = FORMAT_MOODLE;
         $expectedq->generalfeedback = '';
-        $expectedq->defaultgrade = 3;
+        $expectedq->defaultmark = 3;
         $expectedq->length = 1;
         $expectedq->penalty = 0;
 
@@ -251,7 +251,7 @@ class qtype_opaque_test extends UnitTestCase {
         $qdata->questiontext = '';
         $qdata->questiontextformat = FORMAT_MOODLE;
         $qdata->generalfeedback = '';
-        $qdata->defaultgrade = 3;
+        $qdata->defaultmark = 3;
         $qdata->length = 1;
         $qdata->penalty = 0;
         $qdata->hidden = 0;

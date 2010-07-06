@@ -20,9 +20,9 @@ class question_edit_description_form extends question_edit_form {
      */
     protected function definition_inner($mform) {
         // We don't need this default element.
-        $mform->removeElement('defaultgrade');
-        $mform->addElement('hidden', 'defaultgrade', 0);
-        $mform->setType('defaultgrade', PARAM_RAW);
+        $mform->removeElement('defaultmark');
+        $mform->addElement('hidden', 'defaultmark', 0);
+        $mform->setType('defaultmark', PARAM_RAW);
     }
 
     public function qtype() {

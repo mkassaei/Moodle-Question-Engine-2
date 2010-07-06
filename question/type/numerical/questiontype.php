@@ -426,7 +426,7 @@ class qtype_numerical extends question_type {
         $form->questiontext = "What is 674 * 36?";
         $form->generalfeedback = "Thank you";
         $form->penalty = 0.3333333;
-        $form->defaultgrade = 1;
+        $form->defaultmark = 1;
         $form->noanswers = 3;
         $form->answer = array('24264', '24264', '1');
         $form->tolerance = array(10, 100, 0);

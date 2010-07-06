@@ -209,7 +209,7 @@ class qtype_shortanswer extends question_type {
         $form->generalfeedback = "Congratulations, you may have solved my biggest problem!";
         $form->penalty = 0.3333333;
         $form->usecase = false;
-        $form->defaultgrade = 1;
+        $form->defaultmark = 1;
         $form->noanswers = 3;
         $form->answer = array('42', 'who cares?', 'Be happy');
         $form->fraction = array(1, 0.6, 0.8);
