@@ -89,5 +89,27 @@ function xmldb_quizreport_overview_upgrade($oldversion) {
         $result = $result && rename_field($table, $field, 'oldfraction');
     }
 
+    if ($result && $oldversion < 2010040606) {
+
+    /// Changing precision of field oldfraction on table quiz_question_regrade to (12, 7)
+        $table = new XMLDBTable('quiz_question_regrade');
+        $field = new XMLDBField('oldfraction');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, null, null, null, 'newfraction');
+
+    /// Launch change of precision for field oldfraction
+        $result = $result && change_field_precision($table, $field);
+    }
+
+    if ($result && $oldversion < 2010040607) {
+
+    /// Changing precision of field newfraction on table quiz_question_regrade to (12, 7)
+        $table = new XMLDBTable('quiz_question_regrade');
+        $field = new XMLDBField('newfraction');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, null, null, null, 'slot');
+
+    /// Launch change of precision for field newfraction
+        $result = $result && change_field_precision($table, $field);
+    }
+
     return $result;
 }
