@@ -787,6 +787,76 @@ function xmldb_quiz_upgrade($oldversion=0) {
         upgrade_mod_savepoint($result, 2008000221, 'quiz');
     }
 
+    if ($result && $oldversion < 2008000500) {
+
+        // Rename field slot on table question_attempts_new to slot
+        $table = new XMLDBTable('question_attempts_new');
+        $field = new XMLDBField('numberinusage');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null, 'questionusageid');
+
+        // Launch rename field slot
+        $result = $result && rename_field($table, $field, 'slot');
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000500, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000501) {
+
+        // Rename field defaultgrade on table question to defaultmark
+        $table = new XMLDBTable('question');
+        $field = new XMLDBField('defaultgrade');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '1', 'generalfeedback');
+
+        // Launch rename field defaultmark
+        $result = $result && rename_field($table, $field, 'defaultmark');
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000501, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000502) {
+
+        // Changing type of field defaultmark on table question to (12, 7)
+        $table = new XMLDBTable('question');
+        $field = new XMLDBField('defaultmark');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '1', 'generalfeedback');
+
+        // Launch change of type for field defaultmark
+        $result = $result && change_field_type($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000502, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000503) {
+
+        // Changing type of field penalty on table question to (12, 7)
+        $table = new XMLDBTable('question');
+        $field = new XMLDBField('penalty');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, null, null, '0.3333333', 'defaultmark');
+
+        // Launch change of type for field penalty
+        $result = $result && change_field_type($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000503, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000504) {
+
+        // Changing type of field fraction on table question_answers to (12, 7)
+        $table = new XMLDBTable('question_answers');
+        $field = new XMLDBField('fraction');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, null, null, '0.3333333', 'defaultmark');
+
+        // Launch change of type for field penalty
+        $result = $result && change_field_type($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000504, 'quiz');
+    }
+
     commit_sql();
 
     return $result;

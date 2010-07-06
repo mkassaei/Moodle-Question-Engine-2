@@ -151,19 +151,19 @@ if (!($quiz->attemptonlast && $lastattempt)) {
     $oldquba = question_engine::load_questions_usage_by_activity($lastattempt->uniqueid);
 
     $oldnumberstonew = array();
-    foreach ($oldquba->get_attempt_iterator() as $oldqnumber => $oldqa) {
-        $newqnumber = $quba->add_question($oldqa->get_question(), $oldqa->get_max_mark());
+    foreach ($oldquba->get_attempt_iterator() as $oldslot => $oldqa) {
+        $newslot = $quba->add_question($oldqa->get_question(), $oldqa->get_max_mark());
 
-        $quba->start_question_based_on($newqnumber, $oldqa);
+        $quba->start_question_based_on($newslot, $oldqa);
 
-        $oldnumberstonew[$oldqnumber] = $newqnumber;
+        $oldnumberstonew[$oldslot] = $newslot;
     }
 
     // Update attempt layout.
     $newlayout = array();
-    foreach (explode(',', $lastattempt->layout) as $oldqnumber) {
-        if ($oldqnumber != 0) {
-            $newlayout[] = $oldnumberstonew[$oldqnumber];
+    foreach (explode(',', $lastattempt->layout) as $oldslot) {
+        if ($oldslot != 0) {
+            $newlayout[] = $oldnumberstonew[$oldslot];
         } else {
             $newlayout[] = 0;
         }

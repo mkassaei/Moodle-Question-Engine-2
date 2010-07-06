@@ -54,10 +54,10 @@ class quiz_statistics_question_stats {
         $this->s = $s;
         $this->summarksavg = $summarksavg;
 
-        foreach ($questions as $qnumber => $question) {
+        foreach ($questions as $slot => $question) {
             $question->_stats = $this->make_blank_question_stats();
             $question->_stats->questionid = $question->id;
-            $question->_stats->qnumber = $qnumber;
+            $question->_stats->slot = $slot;
         }
 
         $this->questions = $questions;
@@ -68,7 +68,7 @@ class quiz_statistics_question_stats {
      */
     protected function make_blank_question_stats() {
         $stats = new stdClass;
-        $stats->qnumber = null;
+        $stats->slot = null;
         $stats->s = 0;
         $stats->totalmarks = 0;
         $stats->totalothermarks = 0;
@@ -107,7 +107,7 @@ class quiz_statistics_question_stats {
                     qas.id,
                     quiza.sumgrades,
                     qa.questionid,
-                    qa.numberinusage,
+                    qa.slot,
                     qa.maxmark,
                     qas.fraction * qa.maxmark as mark
 
@@ -119,7 +119,7 @@ class quiz_statistics_question_stats {
                 JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
 
                 WHERE
-                    qa.numberinusage $qsql AND
+                    qa.slot $qsql AND
                     $whereqa");
 
         if ($this->lateststeps === false) {
@@ -135,10 +135,10 @@ class quiz_statistics_question_stats {
         // Compute the statistics of position, and for random questions, work
         // out which questions appear in which positions.
         foreach ($this->lateststeps as $step) {
-            $this->initial_steps_walker($step, $this->questions[$step->numberinusage]->_stats);
+            $this->initial_steps_walker($step, $this->questions[$step->slot]->_stats);
 
             // If this is a random question what is the real item being used?
-            if ($step->questionid != $this->questions[$step->numberinusage]->id) {
+            if ($step->questionid != $this->questions[$step->slot]->id) {
                 if (!isset($subquestionstats[$step->questionid])) {
                     $subquestionstats[$step->questionid] = $this->make_blank_question_stats();
                     $subquestionstats[$step->questionid]->questionid = $step->questionid;
@@ -154,11 +154,11 @@ class quiz_statistics_question_stats {
                 $this->initial_steps_walker($step,
                         $subquestionstats[$step->questionid], false);
 
-                $number = $this->questions[$step->numberinusage]->number;
+                $number = $this->questions[$step->slot]->number;
                 $subquestionstats[$step->questionid]->usedin[$number] = $number;
 
-                $randomselectorstring = $this->questions[$step->numberinusage]->category .
-                        '/' . $this->questions[$step->numberinusage]->questiontext;
+                $randomselectorstring = $this->questions[$step->slot]->category .
+                        '/' . $this->questions[$step->slot]->questiontext;
                 if (!isset($this->randomselectors[$randomselectorstring])) {
                     $this->randomselectors[$randomselectorstring] = array();
                 }
@@ -199,7 +199,7 @@ class quiz_statistics_question_stats {
         // $question and $nextquestion available, but apart from that it is
         // foreach ($this->questions as $qid => $question) {
         reset($this->questions);
-        while (list($qnumber, $question) = each($this->questions)) {
+        while (list($slot, $question) = each($this->questions)) {
             $nextquestion = current($this->questions);
             $question->_stats->allattempts = $this->allattempts;
             $question->_stats->positions = $question->number;
@@ -225,16 +225,16 @@ class quiz_statistics_question_stats {
         // Go through the records one more time
         foreach ($this->lateststeps as $step) {
             $this->secondary_steps_walker($step,
-                    $this->questions[$step->numberinusage]->_stats);
+                    $this->questions[$step->slot]->_stats);
 
-            if ($this->questions[$step->numberinusage]->qtype == 'random') {
+            if ($this->questions[$step->slot]->qtype == 'random') {
                 $this->secondary_steps_walker($step,
                         $this->subquestions[$step->questionid]->_stats);
             }
         }
 
         $sumofcovariancewithoverallmark = 0;
-        foreach ($this->questions as $qnumber => $question) {
+        foreach ($this->questions as $slot => $question) {
             $this->secondary_question_walker($question->_stats);
 
             $this->sumofmarkvariance += $question->_stats->markvariance;

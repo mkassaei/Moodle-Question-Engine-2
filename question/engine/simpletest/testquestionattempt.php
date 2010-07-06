@@ -246,7 +246,7 @@ class question_attempt_with_steps_test extends UnitTestCase {
 class question_attempt_db_test extends data_loading_method_test_base {
     public function test_load() {
         $records = testing_db_record_builder::build_db_records(array(
-            array('id', 'questionattemptid', 'questionusageid', 'numberinusage',
+            array('id', 'questionattemptid', 'questionusageid', 'slot',
                               'behaviour', 'questionid', 'maxmark', 'minfraction', 'flagged',
                                                                              'questionsummary', 'rightanswer', 'responsesummary', 'timemodified',
                                                                                                      'attemptstepid', 'sequencenumber', 'state', 'fraction',

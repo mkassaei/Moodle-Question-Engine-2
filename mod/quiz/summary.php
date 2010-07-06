@@ -105,21 +105,21 @@ if ($markscolumn) {
 $table->data = array();
 
 /// Get the summary info for each question.
-$qnumbers = $attemptobj->get_question_numbers();
-foreach ($qnumbers as $qnumber) {
-    if (!$attemptobj->is_real_question($qnumber)) {
+$slots = $attemptobj->get_question_numbers();
+foreach ($slots as $slot) {
+    if (!$attemptobj->is_real_question($slot)) {
         continue;
     }
     $flag = '';
-    if ($attemptobj->is_question_flagged($qnumber)) {
+    if ($attemptobj->is_question_flagged($slot)) {
         $flag = ' <img src="' . $CFG->pixpath . '/i/flagged.png" alt="' .
                 get_string('flagged', 'question') . '" class="questionflag" />';
     }
-    $row = array('<a href="' . $attemptobj->attempt_url($qnumber) . '">' .
-            $attemptobj->get_question_number($qnumber) . $flag . '</a>',
-            $attemptobj->get_question_status($qnumber, $displayoptions->correctness));
+    $row = array('<a href="' . $attemptobj->attempt_url($slot) . '">' .
+            $attemptobj->get_question_number($slot) . $flag . '</a>',
+            $attemptobj->get_question_status($slot, $displayoptions->correctness));
     if ($markscolumn) {
-        $row[] = $attemptobj->get_question_score($qnumber);
+        $row[] = $attemptobj->get_question_score($slot);
     }
     $table->data[] = $row;
 }
@@ -136,7 +136,7 @@ $options = array(
     'attempt' => $attemptobj->get_attemptid(),
     'finishattempt' => 1,
     'timeup' => 0,
-    'qnumbers' => '',
+    'slots' => '',
     'sesskey' => sesskey(),
 );
 print_single_button($attemptobj->processattempt_url(), $options, get_string('finishattempt', 'quiz'),

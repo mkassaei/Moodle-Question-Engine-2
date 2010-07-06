@@ -274,8 +274,8 @@ if ($showall) {
     $thispage = $page;
     $lastpage = $attemptobj->is_last_page($page);
 }
-foreach ($attemptobj->get_question_numbers($thispage) as $qnumber) {
-    echo $attemptobj->render_question($qnumber, true, $attemptobj->review_url($qnumber, $page, $showall));
+foreach ($attemptobj->get_question_numbers($thispage) as $slot) {
+    echo $attemptobj->render_question($slot, true, $attemptobj->review_url($slot, $page, $showall));
 }
 
 // Close form if we opened it.

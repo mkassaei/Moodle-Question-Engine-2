@@ -155,23 +155,23 @@ quiz_timer = {
 
 // Initialise initialise an on-click handler for navigation buttons that link to a
 // question that is not the first on a page.
-function quiz_init_nav_button_scroll_down(buttonid, qnumber) {
+function quiz_init_nav_button_scroll_down(buttonid, slot) {
     var button = document.getElementById(buttonid);
     YAHOO.util.Event.addListener(button, 'click', function(e) {
-        button.form.action = button.form.action + '#q' + qnumber;
+        button.form.action = button.form.action + '#q' + slot;
     });
 }
 
 // Initialise a button on the navigation panel.
-function quiz_init_nav_button(buttonid, qnumber) {
+function quiz_init_nav_button(buttonid, slot) {
     // Arrange to be notified if the flagged state changes.
     var button = document.getElementById(buttonid);
-    button.stateupdater = new quiz_nav_updater(button, qnumber);
+    button.stateupdater = new quiz_nav_updater(button, slot);
 }
 
-function quiz_nav_updater(element, qnumber) {
+function quiz_nav_updater(element, slot) {
     this.element = element;
-    question_flag_changer.add_flag_state_listener(qnumber, this);
+    question_flag_changer.add_flag_state_listener(slot, this);
 };
 
 quiz_nav_updater.prototype.flag_state_changed = function(newstate) {

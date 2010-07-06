@@ -21,8 +21,8 @@ class question_edit_multianswer_form extends question_edit_form {
         $question_type_names = question_type_menu();
         $mform->addRule('questiontext', null, 'required', null, 'client');
         
-        // Remove meaningless defaultgrade field.
-        $mform->removeElement('defaultgrade');
+        // Remove meaningless defaultmark field.
+        $mform->removeElement('defaultmark');
      
          // display the questions from questiontext;
         if  (  "" != optional_param('questiontext','', PARAM_RAW)) {

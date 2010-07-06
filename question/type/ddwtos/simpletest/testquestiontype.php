@@ -59,7 +59,7 @@ class qtype_ddwtos_test extends UnitTestCase {
         $dd->category = 0;
         $dd->parent = 0;
         $dd->questiontextformat = FORMAT_HTML;
-        $dd->defaultgrade = 1;
+        $dd->defaultmark = 1;
         $dd->penalty = 0.3333333;
         $dd->length = 1;
         $dd->stamp = make_unique_id_code();
@@ -195,7 +195,7 @@ class qtype_ddwtos_test extends UnitTestCase {
         $expectedq->questiontext = 'Put these in order: [[1]], [[2]], [[3]].';
         $expectedq->questiontextformat = FORMAT_MOODLE;
         $expectedq->generalfeedback = 'The answer is Alpha, Beta, Gamma.';
-        $expectedq->defaultgrade = 3;
+        $expectedq->defaultmark = 3;
         $expectedq->length = 1;
         $expectedq->penalty = 0.3333333;
 
@@ -344,7 +344,7 @@ class qtype_ddwtos_test extends UnitTestCase {
         $expectedq->questiontext = '<p>Drag and drop the words from the list below to fill the blank spaces and correctly complete the sentence.</p><p>At 25°C all aqueous basic solutions have [[1]] ion concentrations less than [[8]]<br />mol litre<sup>-1</sup> and pH values [[9]] than [[6]].</p><!--DONOTCLEAN-->';
         $expectedq->questiontextformat = FORMAT_HTML;
         $expectedq->generalfeedback = '<p>At 25 &#xB0;C all aqueous basic solutions have hydrogen ion concentrations less than 10<sup>&#x2212;7</sup> mol litre<sup>&#x2212;1</sup> and pH values greater than 7.</p><p>See Section 9 of S103 <em class=\"italic\">Discovering Science</em> Block 8.</p>';
-        $expectedq->defaultgrade = 1;
+        $expectedq->defaultmark = 1;
         $expectedq->length = 1;
         $expectedq->penalty = 0.3333333;
 
@@ -385,7 +385,7 @@ class qtype_ddwtos_test extends UnitTestCase {
         $qdata->questiontext = 'Put these in order: [[1]], [[2]], [[3]].';
         $qdata->questiontextformat = FORMAT_MOODLE;
         $qdata->generalfeedback = 'The answer is Alpha, Beta, Gamma.';
-        $qdata->defaultgrade = 3;
+        $qdata->defaultmark = 3;
         $qdata->length = 1;
         $qdata->penalty = 0.3333333;
         $qdata->hidden = 0;

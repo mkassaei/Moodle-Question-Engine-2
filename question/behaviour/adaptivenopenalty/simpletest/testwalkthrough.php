@@ -63,7 +63,7 @@ class qbehaviour_adaptivenopenalty_walkthrough_test extends qbehaviour_walkthrou
                 $this->get_contains_mc_radio_expectation(($wrongindex + 2) % 3, true, false),
                 $this->get_contains_incorrect_expectation());
         $this->assertPattern('/B|C/',
-                $this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_response_summary($this->slot));
 
         // Process a change of answer to the right one, but not sumbitted.
         $this->process_submission(array('answer' => $rightindex));
@@ -76,7 +76,7 @@ class qbehaviour_adaptivenopenalty_walkthrough_test extends qbehaviour_walkthrou
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
                 $this->get_contains_mc_radio_expectation(($rightindex + 2) % 3, true, false));
         $this->assertPattern('/B|C/',
-                $this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_response_summary($this->slot));
 
         // Now submit the right answer.
         $this->process_submission(array('answer' => $rightindex, '-submit' => 1));
@@ -90,7 +90,7 @@ class qbehaviour_adaptivenopenalty_walkthrough_test extends qbehaviour_walkthrou
                 $this->get_contains_mc_radio_expectation(($rightindex + 2) % 3, true, false),
                 $this->get_contains_correct_expectation());
         $this->assertEqual('A',
-                $this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_response_summary($this->slot));
 
         // Finish the attempt.
         $this->quba->finish_all_questions();

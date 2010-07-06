@@ -446,12 +446,12 @@ abstract class quiz_attempt_report_table extends table_sql {
      *
      * @param string $data HTML fragment. The text to make into the link.
      * @param object $attempt data for the row of the table being output. 
-     * @param integer $qnumber the number used to identify this question within this usage.
+     * @param integer $slot the number used to identify this question within this usage.
      */
-    public function make_review_link($data, $attempt, $qnumber) {
+    public function make_review_link($data, $attempt, $slot) {
         global $CFG;
 
-        $stepdata = $this->lateststeps[$attempt->usageid][$qnumber];
+        $stepdata = $this->lateststeps[$attempt->usageid][$slot];
         $state = question_state::get($stepdata->state);
 
         $flag = '';
@@ -469,7 +469,7 @@ abstract class quiz_attempt_report_table extends table_sql {
                 $data . " $feedbackimg $flag</span></span>";
 
         $output = link_to_popup_window('/mod/quiz/reviewquestion.php?attempt=' .
-                $attempt->attempt . '&amp;qnumber=' . $qnumber,
+                $attempt->attempt . '&amp;slot=' . $slot,
                 'reviewquestion', $output, 450, 650, get_string('reviewresponse', 'quiz'),
                 'none', true);
 
@@ -479,11 +479,11 @@ abstract class quiz_attempt_report_table extends table_sql {
     /**
      * Load information about the latest state of selected questions in selected attempts.
      *
-     * The results are returned as an two dimensional array $qubaid => $qnumber => $dataobject
+     * The results are returned as an two dimensional array $qubaid => $slot => $dataobject
      *
      * @param qubaid_condition $qubaids used to restrict which usages are included
      * in the query. See {@link qubaid_condition}.
-     * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
+     * @param array $slots A list of slots for the questions you want to konw about.
      * @return array of records. See the SQL in this function to see the fields available.
      */
     function load_question_latest_steps(qubaid_condition $qubaids) {
@@ -493,7 +493,7 @@ abstract class quiz_attempt_report_table extends table_sql {
 
         $lateststeps = array();
         foreach ($latesstepdata as $step) {
-            $lateststeps[$step->questionusageid][$step->numberinusage] = $step;
+            $lateststeps[$step->questionusageid][$step->slot] = $step;
         }
 
         return $lateststeps;
@@ -508,37 +508,37 @@ abstract class quiz_attempt_report_table extends table_sql {
 
     /**
      * Is this a column that depends on joining to the latest state information?
-     * If so, return the corresponding qnumber. If not, return false.
+     * If so, return the corresponding slot. If not, return false.
      * @param string $column a column name
-     * @return integer false if no, else a qnumber.
+     * @return integer false if no, else a slot.
      */
     protected function is_latest_step_column($column) {
         return false;
     }
 
     /**
-     * Get any fields that might be needed when sorting on date for a particular qnumber.
-     * @param integer $qnumber the qnumber for the column we want.
-     * @param string $alias the table alias for latest state information relating to that qnumber.
+     * Get any fields that might be needed when sorting on date for a particular slot.
+     * @param integer $slot the slot for the column we want.
+     * @param string $alias the table alias for latest state information relating to that slot.
      */
-    protected function get_required_latest_state_fields($qnumber, $alias) {
+    protected function get_required_latest_state_fields($slot, $alias) {
         return '';
     }
 
     /**
-     * Add the information about the latest state of the question with qnumber
-     * $qnumber to the query.
+     * Add the information about the latest state of the question with slot
+     * $slot to the query.
      *
      * The extra information is added as a join to a
-     * 'table' with alias qa$qnumber, with columns that are a union of
+     * 'table' with alias qa$slot, with columns that are a union of
      * the columns of the question_attempts and question_attempts_states tables.
      *
-     * @param integer $qnumber the question to add information for.
+     * @param integer $slot the question to add information for.
      */
-    protected function add_latest_state_join($qnumber) {
-        $alias = 'qa' . $qnumber;
+    protected function add_latest_state_join($slot) {
+        $alias = 'qa' . $slot;
 
-        $fields = $this->get_required_latest_state_fields($qnumber, $alias);
+        $fields = $this->get_required_latest_state_fields($slot, $alias);
         if (!$fields) {
             return;
         }
@@ -548,7 +548,7 @@ abstract class quiz_attempt_report_table extends table_sql {
 
         $this->sql->fields .= ",\n$fields";
         $this->sql->from .= "\nLEFT JOIN $inlineview ON " .
-                "$alias.questionusageid = quiza.uniqueid AND $alias.numberinusage = $qnumber";
+                "$alias.questionusageid = quiza.uniqueid AND $alias.slot = $slot";
     }
 
     /**
@@ -578,8 +578,8 @@ abstract class quiz_attempt_report_table extends table_sql {
 
     public function query_db($pagesize, $useinitialsbar=true) {
         foreach ($this->get_sort_columns() as $column => $notused) {
-            if ($qnumber = $this->is_latest_step_column($column)) {
-                $this->add_latest_state_join($qnumber);
+            if ($slot = $this->is_latest_step_column($column)) {
+                $this->add_latest_state_join($slot);
             }
         }
 

@@ -53,7 +53,7 @@ class qbehaviour_missing_test extends UnitTestCase {
 
     public function test_render_missing() {
         $records = testing_db_record_builder::build_db_records(array(
-            array('id', 'questionattemptid', 'questionusageid', 'numberinusage',
+            array('id', 'questionattemptid', 'questionusageid', 'slot',
                               'behaviour', 'questionid', 'maxmark', 'minfraction', 'flagged',
                                                                             'questionsummary', 'rightanswer', 'responsesummary', 'timemodified',
                                                                                                    'attemptstepid', 'sequencenumber', 'state', 'fraction',

@@ -41,12 +41,12 @@ function xmldb_quizreport_statistics_upgrade($oldversion) {
 
     if ($result && $oldversion < 2010032400) {
 
-    /// Define field qnumber to be added to quiz_question_statistics
+    /// Define field slot to be added to quiz_question_statistics
         $table = new XMLDBTable('quiz_question_statistics');
-        $field = new XMLDBField('qnumber');
+        $field = new XMLDBField('slot');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, null, 'questionid');
 
-    /// Launch add field qnumber
+    /// Launch add field slot
         $result = $result && add_field($table, $field);
     }
 
@@ -75,6 +75,17 @@ function xmldb_quizreport_statistics_upgrade($oldversion) {
 
     /// Launch change of nullability for field aid
         $result = $result && change_field_notnull($table, $field);
+    }
+
+    if ($result && $oldversion < 2010070300) {
+
+    /// Rename field qnumber on table quiz_question_statistics to slot
+        $table = new XMLDBTable('quiz_question_statistics');
+        $field = new XMLDBField('qnumber');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, null, 'questionid');
+
+    /// Launch rename field slot
+        $result = $result && rename_field($table, $field, 'slot');
     }
 
     return $result;

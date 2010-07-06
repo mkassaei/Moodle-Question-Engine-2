@@ -79,10 +79,10 @@ add_to_log($attemptobj->get_courseid(), 'quiz', 'continue attemp',
         $attemptobj->get_quizid(), $attemptobj->get_cmid());
 
 // Get the list of questions needed by this page.
-$qnumbers = $attemptobj->get_question_numbers($page);
+$slots = $attemptobj->get_question_numbers($page);
 
 // Check.
-if (empty($qnumbers)) {
+if (empty($slots)) {
     throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'noquestionsfound');
 }
 
@@ -160,8 +160,8 @@ print_container_start();
 echo skip_main_destination();
 
 // Print all the questions
-foreach ($qnumbers as $qnumber) {
-    echo $attemptobj->render_question($qnumber, false, $attemptobj->attempt_url($id, $page));
+foreach ($slots as $slot) {
+    echo $attemptobj->render_question($slot, false, $attemptobj->attempt_url($id, $page));
 }
 
 // Print a link to the next page.
@@ -184,8 +184,8 @@ echo '<input type="hidden" name="scrollpos" id="scrollpos" value="" />';
 // Add a hidden field with questionids. Do this at the end of the form, so
 // if you navigate before the form has finished loading, it does not wipe all
 // the student's answers.
-echo '<input type="hidden" name="qnumbers" value="' .
-        implode(',', $qnumbers) . "\" />\n";
+echo '<input type="hidden" name="slots" value="' .
+        implode(',', $slots) . "\" />\n";
 
 // End middle column.
 print_container_end();

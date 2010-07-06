@@ -186,8 +186,8 @@ class quiz_report_statistics_table extends flexible_table {
         $extraurlparam = '';
         if ($question->_stats->subquestion) {
             $extraurlparam = 'qid=' . $question->id;
-        } else if ($question->_stats->qnumber && $question->qtype != 'random') {
-            $extraurlparam = 'qnumber=' . $question->_stats->qnumber;
+        } else if ($question->_stats->slot && $question->qtype != 'random') {
+            $extraurlparam = 'slot=' . $question->_stats->slot;
         }
 
         if ($extraurlparam) {

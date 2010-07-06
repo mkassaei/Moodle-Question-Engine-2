@@ -42,10 +42,10 @@ class qbehaviour_deferredfeedback_walkthrough_test extends qbehaviour_walkthroug
         $this->check_current_output($this->get_contains_question_text_expectation($tf),
                 $this->get_does_not_contain_feedback_expectation());
         $this->assertEqual(get_string('true', 'qtype_truefalse'),
-                $this->quba->get_right_answer_summary($this->qnumber));
+                $this->quba->get_right_answer_summary($this->slot));
         $this->assertPattern('/' . preg_quote($tf->questiontext) . '/',
-                $this->quba->get_question_summary($this->qnumber));
-        $this->assertNull($this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_question_summary($this->slot));
+        $this->assertNull($this->quba->get_response_summary($this->slot));
 
         // Process a true answer and check the expected result.
         $this->process_submission(array('answer' => 1));
@@ -80,7 +80,7 @@ class qbehaviour_deferredfeedback_walkthrough_test extends qbehaviour_walkthroug
                 $this->get_contains_tf_true_radio_expectation(false, true),
                 new PatternExpectation('/class="r0 correct"/'));
         $this->assertEqual(get_string('true', 'qtype_truefalse'),
-                $this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_response_summary($this->slot));
 
         // Process a manual comment.
         $this->manual_grade('Not good enough!', 1);
@@ -175,13 +175,13 @@ class qbehaviour_deferredfeedback_walkthrough_test extends qbehaviour_walkthroug
                 $this->get_contains_incorrect_expectation());
 
         // Save the old attempt.
-        $oldqa = $this->quba->get_question_attempt($this->qnumber);
+        $oldqa = $this->quba->get_question_attempt($this->slot);
 
         // Reinitialise.
         $this->setUp();
         $this->quba->set_preferred_behaviour('deferredfeedback');
-        $this->qnumber = $this->quba->add_question($mc, 3);
-        $this->quba->start_question_based_on($this->qnumber, $oldqa);
+        $this->slot = $this->quba->add_question($mc, 3);
+        $this->quba->start_question_based_on($this->slot, $oldqa);
 
         // Verify.
         $this->check_current_state(question_state::$todo);

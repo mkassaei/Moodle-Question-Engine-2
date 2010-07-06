@@ -44,7 +44,7 @@ class qtype_description extends question_type {
     public function save_question($question, $form, $course) {
         // Make very sure that descriptions can'e be created with a grade of
         // anything other than 0.
-        $form->defaultgrade = 0;
+        $form->defaultmark = 0;
         return parent::save_question($question, $form, $course);
     }
 

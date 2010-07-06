@@ -65,14 +65,14 @@ class question_usage_by_activity_test extends UnitTestCase {
         $quba = question_engine::make_questions_usage_by_activity('unit_test', $context);
         $quba->set_preferred_behaviour('deferredfeedback');
         $tf = test_question_maker::make_a_truefalse_question();
-        $qnumber = $quba->add_question($tf);
+        $slot = $quba->add_question($tf);
 
         // Verify.
-        $this->assertEqual($qnumber, 1);
+        $this->assertEqual($slot, 1);
         $this->assertEqual('unit_test', $quba->get_owning_plugin());
         $this->assertIdentical($context, $quba->get_owning_context());
         $this->assertEqual($quba->question_count(), 1);
-        $this->assertEqual($quba->get_question_state($qnumber), question_state::$notstarted);
+        $this->assertEqual($quba->get_question_state($slot), question_state::$notstarted);
     }
 
     public function test_get_question() {
@@ -81,13 +81,13 @@ class question_usage_by_activity_test extends UnitTestCase {
                 get_context_instance(CONTEXT_SYSTEM));
         $quba->set_preferred_behaviour('deferredfeedback');
         $tf = test_question_maker::make_a_truefalse_question();
-        $qnumber = $quba->add_question($tf);
+        $slot = $quba->add_question($tf);
 
         // Exercise SUT and verify.
-        $this->assertIdentical($tf, $quba->get_question($qnumber));
+        $this->assertIdentical($tf, $quba->get_question($slot));
 
         $this->expectException();
-        $quba->get_question($qnumber + 1);
+        $quba->get_question($slot + 1);
     }
 
     public function test_extract_responses() {
@@ -96,11 +96,11 @@ class question_usage_by_activity_test extends UnitTestCase {
         $quba = question_engine::make_questions_usage_by_activity('unit_test',
                 get_context_instance(CONTEXT_SYSTEM));
         $quba->set_preferred_behaviour('deferredcbm');
-        $qnumber = $quba->add_question($tf);
+        $slot = $quba->add_question($tf);
         $quba->start_all_questions();
 
         // Prepare data to be submitted
-        $prefix = $quba->get_field_prefix($qnumber);
+        $prefix = $quba->get_field_prefix($slot);
         $answername = $prefix . 'answer';
         $certaintyname = $prefix . '-certainty';
         $getdata = array(
@@ -110,7 +110,7 @@ class question_usage_by_activity_test extends UnitTestCase {
         );
 
         // Exercise SUT
-        $submitteddata = $quba->extract_responses($qnumber, $getdata);
+        $submitteddata = $quba->extract_responses($slot, $getdata);
 
         // Verify.
         $this->assertEqual(array('answer' => 1, '-certainty' => 3), $submitteddata);
@@ -122,11 +122,11 @@ class question_usage_by_activity_test extends UnitTestCase {
         $quba = question_engine::make_questions_usage_by_activity('unit_test',
                 get_context_instance(CONTEXT_SYSTEM));
         $quba->set_preferred_behaviour('deferredcbm');
-        $qnumber = $quba->add_question($tf);
+        $slot = $quba->add_question($tf);
         $quba->start_all_questions();
 
         // Prepare data to be submitted
-        $prefix = $quba->get_field_prefix($qnumber);
+        $prefix = $quba->get_field_prefix($slot);
         $answername = $prefix . 'answer';
         $certaintyname = $prefix . '-certainty';
         $postdata = array(
@@ -137,7 +137,7 @@ class question_usage_by_activity_test extends UnitTestCase {
         );
 
         // Exercise SUT - no exception yet.
-        $quba->process_all_actions($qnumber, $postdata);
+        $quba->process_all_actions($slot, $postdata);
 
         $postdata = array(
             $answername => 1,
@@ -148,6 +148,6 @@ class question_usage_by_activity_test extends UnitTestCase {
 
         // Exercise SUT - now it should fail.
         $this->expectException('question_out_of_sequence_exception');
-        $quba->process_all_actions($qnumber, $postdata);
+        $quba->process_all_actions($slot, $postdata);
     }
 }

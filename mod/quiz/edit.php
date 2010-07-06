@@ -235,7 +235,7 @@
                                             // on whether to include questions in subcategories
             $form->questiontextformat = 0;
             $form->image = '';
-            $form->defaultgrade = 1;
+            $form->defaultmark = 1;
             $form->hidden = 1;
             for ($i = 0; $i < $randomcount; $i++) {
                 $form->category = "$category->id,$category->contextid";

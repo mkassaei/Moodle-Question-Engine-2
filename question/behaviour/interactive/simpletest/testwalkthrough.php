@@ -92,7 +92,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         // Check that, if we review in this state, the try again button is disabled.
         $displayoptions = new question_display_options();
         $displayoptions->readonly = true;
-        $html = $this->quba->render_question($this->qnumber, $displayoptions);
+        $html = $this->quba->render_question($this->slot, $displayoptions);
         $this->assert($this->get_contains_try_again_button_expectation(false), $html);
 
         // Do try again.
@@ -265,7 +265,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
                 new PatternExpectation('/' . preg_quote(get_string('notcomplete', 'qbehaviour_interactive')) . '/'),
                 $this->get_contains_hint_expectation('This is the first hint'));
         $this->assertEqual('newt',
-                $this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_response_summary($this->slot));
 
         // Try again.
         $this->process_submission(array('-tryagain' => 1));
@@ -305,7 +305,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
                 $this->get_does_not_contain_validation_error_expectation(),
                 $this->get_no_hint_visible_expectation());
         $this->assertEqual('frog',
-                $this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_response_summary($this->slot));
     }
 
     public function test_interactive_feedback_multichoice_multiple_reset() {
@@ -356,10 +356,10 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
                 $this->get_contains_hint_expectation('This is the first hint'),
                 $this->get_contains_num_parts_correct(1),
                 $this->get_contains_standard_incorrect_overall_feedback_expectation(),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . $right[0], '1'),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . $right[1]),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . $wrong[0]),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->qnumber) . $wrong[1]));
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . $right[0], '1'),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . $right[1]),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . $wrong[0]),
+                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . $wrong[1]));
 
         // Do try again.
         $this->process_submission(array($right[0] => 1, '-tryagain' => 1));

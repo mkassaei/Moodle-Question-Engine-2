@@ -501,7 +501,7 @@ class qformat_default {
 
         $question = new stdClass();
         $question->shuffleanswers = $CFG->quiz_shuffleanswers;
-        $question->defaultgrade = 1;
+        $question->defaultmark = 1;
         $question->image = "";
         $question->usecase = 0;
         $question->multiplier = array();

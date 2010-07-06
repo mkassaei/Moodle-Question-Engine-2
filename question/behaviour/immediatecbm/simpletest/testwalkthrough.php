@@ -50,10 +50,10 @@ class qbehaviour_immediatecbm_walkthrough_test extends qbehaviour_walkthrough_te
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation());
         $this->assertEqual('A [' . question_cbm::get_string(question_cbm::HIGH) . ']',
-                $this->quba->get_right_answer_summary($this->qnumber));
+                $this->quba->get_right_answer_summary($this->slot));
         $this->assertPattern('/' . preg_quote($mc->questiontext) . '/',
-                $this->quba->get_question_summary($this->qnumber));
-        $this->assertNull($this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_question_summary($this->slot));
+        $this->assertNull($this->quba->get_response_summary($this->slot));
 
         // Save the wrong answer.
         $this->process_submission(array('answer' => $wrongindex, '-certainty' => 1));
@@ -81,7 +81,7 @@ class qbehaviour_immediatecbm_walkthrough_test extends qbehaviour_walkthrough_te
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
                 $this->get_contains_correct_expectation());
         $this->assertEqual('A [' . question_cbm::get_string(2) . ']',
-                $this->quba->get_response_summary($this->qnumber));
+                $this->quba->get_response_summary($this->slot));
 
         $numsteps = $this->get_step_count();
 

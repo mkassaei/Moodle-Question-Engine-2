@@ -64,7 +64,7 @@ class question_engine_data_mapper {
     public function insert_question_attempt(question_attempt $qa) {
         $record = new stdClass;
         $record->questionusageid = $qa->get_usage_id();
-        $record->numberinusage = $qa->get_number_in_usage();
+        $record->slot = $qa->get_number_in_usage();
         $record->behaviour = addslashes($qa->get_behaviour_name());
         $record->questionid = $qa->get_question()->id;
         $record->maxmark = $qa->get_max_mark();
@@ -161,7 +161,7 @@ SELECT
     quba.preferredbehaviour,
     qa.id AS questionattemptid,
     qa.questionusageid,
-    qa.numberinusage,
+    qa.slot,
     qa.behaviour,
     qa.questionid,
     qa.maxmark,
@@ -218,7 +218,7 @@ SELECT
     quba.preferredbehaviour,
     qa.id AS questionattemptid,
     qa.questionusageid,
-    qa.numberinusage,
+    qa.slot,
     qa.behaviour,
     qa.questionid,
     qa.maxmark,
@@ -246,7 +246,7 @@ WHERE
     quba.id = $qubaid
 
 ORDER BY
-    qa.numberinusage,
+    qa.slot,
     qas.sequencenumber
     ");
 
@@ -262,20 +262,20 @@ ORDER BY
      *
      * @param qubaid_condition $qubaids used to restrict which usages are included
      * in the query. See {@link qubaid_condition}.
-     * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
+     * @param array $slots A list of slots for the questions you want to konw about.
      * @return array of records. See the SQL in this function to see the fields available.
      */
-    public function load_questions_usages_latest_steps(qubaid_condition $qubaids, $qnumbers) {
+    public function load_questions_usages_latest_steps(qubaid_condition $qubaids, $slots) {
         global $CFG;
 
-        list($qnumbertest, $params) = get_in_or_equal($qnumbers, SQL_PARAMS_NAMED, 'qnumber0000');
+        list($slottest, $params) = get_in_or_equal($slots, SQL_PARAMS_NAMED, 'slot0000');
 
         $records = get_records_sql("
 SELECT
     qas.id,
     qa.id AS questionattemptid,
     qa.questionusageid,
-    qa.numberinusage,
+    qa.slot,
     qa.behaviour,
     qa.questionid,
     qa.maxmark,
@@ -300,7 +300,7 @@ JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
 
 WHERE
     {$qubaids->where()} AND
-    qa.numberinusage $qnumbertest
+    qa.slot $slottest
         ");
 
         if (!$records) {
@@ -317,19 +317,19 @@ WHERE
      *
      * @param qubaid_condition $qubaids used to restrict which usages are included
      * in the query. See {@link qubaid_condition}.
-     * @param array $qnumbers A list of qnumbers for the questions you want to konw about.
-     * @return array The array keys are qnumber,qestionid. The values are objects with
-     * fields $qnumber, $questionid, $inprogress, $name, $needsgrading, $autograded,
+     * @param array $slots A list of slots for the questions you want to konw about.
+     * @return array The array keys are slot,qestionid. The values are objects with
+     * fields $slot, $questionid, $inprogress, $name, $needsgrading, $autograded,
      * $manuallygraded and $all.
      */
-    public function load_questions_usages_question_state_summary(qubaid_condition $qubaids, $qnumbers) {
+    public function load_questions_usages_question_state_summary(qubaid_condition $qubaids, $slots) {
         global $CFG;
 
-        list($qnumbertest, $params) = get_in_or_equal($qnumbers, SQL_PARAMS_NAMED, 'qnumber0000');
+        list($slottest, $params) = get_in_or_equal($slots, SQL_PARAMS_NAMED, 'slot0000');
 
         $rs = get_recordset_sql("
 SELECT
-    qa.numberinusage,
+    qa.slot,
     qa.questionid,
     q.name,
     CASE qas.state
@@ -346,17 +346,17 @@ JOIN {$CFG->prefix}question q ON q.id = qa.questionid
 
 WHERE
     {$qubaids->where()} AND
-    qa.numberinusage $qnumbertest
+    qa.slot $slottest
 
 GROUP BY
-    qa.numberinusage,
+    qa.slot,
     qa.questionid,
     q.name,
     q.id,
     summarystate
 
 ORDER BY 
-    qa.numberinusage,
+    qa.slot,
     qa.questionid,
     q.name,
     q.id
@@ -368,11 +368,11 @@ ORDER BY
 
         $results = array();
         while ($row = rs_fetch_next_record($rs)) {
-            $index = $row->numberinusage . ',' . $row->questionid;
+            $index = $row->slot . ',' . $row->questionid;
 
             if (!array_key_exists($index, $results)) {
                 $res = new stdClass;
-                $res->qnumber = $row->numberinusage;
+                $res->slot = $row->slot;
                 $res->questionid = $row->questionid;
                 $res->name = $row->name;
                 $res->inprogress = 0;
@@ -392,7 +392,7 @@ ORDER BY
     }
 
     /**
-     * Get a list of usage ids where the question with qnumber $qnumber, and optionally
+     * Get a list of usage ids where the question with slot $slot, and optionally
      * also with question id $questionid, is in summary state $summarystate. Also
      * return the total count of such states.
      *
@@ -402,7 +402,7 @@ ORDER BY
      *
      * @param qubaid_condition $qubaids used to restrict which usages are included
      * in the query. See {@link qubaid_condition}.
-     * @param integer $qnumber The qnumber for the questions you want to konw about.
+     * @param integer $slot The slot for the questions you want to konw about.
      * @param integer $questionid (optional) Only return attempts that were of this specific question.
      * @param string $summarystate the summary state of interest, or 'all'.
      * @param string $orderby the column to order by.
@@ -412,7 +412,7 @@ ORDER BY
      * @return array with two elements, an array of usage ids, and a count of the total number.
      */
     public function load_questions_usages_where_question_in_state(
-            qubaid_condition $qubaids, $summarystate, $qnumber, $questionid = null,
+            qubaid_condition $qubaids, $summarystate, $slot, $questionid = null,
             $orderby = 'random', $limitfrom = 0, $limitnum = null) {
         global $CFG;
 
@@ -453,7 +453,7 @@ JOIN {$CFG->prefix}question q ON q.id = qa.questionid
 
 WHERE
     {$qubaids->where()} AND
-    qa.numberinusage = $qnumber
+    qa.slot = $slot
     $extrawhere
 
 $sqlorderby
@@ -479,17 +479,17 @@ $sqlorderby
      * all its {@link question_attempt}s and all their steps.
      * @param qubaid_condition $qubaids used to restrict which usages are included
      * in the query. See {@link qubaid_condition}.
-     * @param array $qnumbers if null, load info for all quesitions, otherwise only
+     * @param array $slots if null, load info for all quesitions, otherwise only
      * load the averages for the specified questions.
      */
-    public function load_average_marks(qubaid_condition $qubaids, $qnumbers = null) {
+    public function load_average_marks(qubaid_condition $qubaids, $slots = null) {
         global $CFG;
 
-        if (!empty($qnumbers)) {
-            list($qnumbertest, $params) = get_in_or_equal($qnumbers, SQL_PARAMS_NAMED, 'qnumber0000');
-            $qnumberwhere = " AND qa.numberinusage $qnumbertest";
+        if (!empty($slots)) {
+            list($slottest, $params) = get_in_or_equal($slots, SQL_PARAMS_NAMED, 'slot0000');
+            $slotwhere = " AND qa.slot $slottest";
         } else {
-            $qnumberwhere = '';
+            $slotwhere = '';
         }
 
         list($statetest) = get_in_or_equal(array(
@@ -504,7 +504,7 @@ $sqlorderby
 
         $records = get_records_sql("
 SELECT
-    qa.numberinusage,
+    qa.slot,
     AVG(COALESCE(qas.fraction, 0)) AS averagefraction,
     COUNT(1) AS numaveraged
 
@@ -516,12 +516,12 @@ JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
 
 WHERE
     {$qubaids->where()}
-    $qnumberwhere
+    $slotwhere
     AND qas.state $statetest
 
-GROUP BY qa.numberinusage
+GROUP BY qa.slot
 
-ORDER BY qa.numberinusage
+ORDER BY qa.slot
         ");
 
         return $records;
@@ -543,7 +543,7 @@ SELECT
     quba.preferredbehaviour,
     qa.id AS questionattemptid,
     qa.questionusageid,
-    qa.numberinusage,
+    qa.slot,
     qa.behaviour,
     qa.questionid,
     qa.maxmark,
@@ -742,15 +742,15 @@ ORDER BY
     }
 
     /**
-     * Change the maxmark for the question_attempt with number in usage $qnumber
+     * Change the maxmark for the question_attempt with number in usage $slot
      * for all the specified question_attempts.
      * @param qubaid_condition $qubaids Selects which usages are updated.
-     * @param integer $qnumber the number is usage to affect.
+     * @param integer $slot the number is usage to affect.
      * @param number $newmaxmark the new max mark to set.
      */
-    public function set_max_mark_in_attempts(qubaid_condition $qubaids, $qnumber, $newmaxmark) {
+    public function set_max_mark_in_attempts(qubaid_condition $qubaids, $slot, $newmaxmark) {
         set_field_select('question_attempts_new', 'maxmark', $newmaxmark,
-                "questionusageid {$qubaids->usage_id_in()} AND numberinusage = $qnumber");
+                "questionusageid {$qubaids->usage_id_in()} AND slot = $slot");
     }
 
     /**
@@ -783,7 +783,7 @@ ORDER BY
                 SELECT
                     {$alias}qa.id AS questionattemptid,
                     {$alias}qa.questionusageid,
-                    {$alias}qa.numberinusage,
+                    {$alias}qa.slot,
                     {$alias}qa.behaviour,
                     {$alias}qa.questionid,
                     {$alias}qa.maxmark,
@@ -928,7 +928,7 @@ class question_engine_unit_of_work implements question_usage_observer {
  *
  * SELECT qa.id, qa.maxmark
  * FROM $qubaids->from_question_attempts('qa')
- * WHERE $qubaids->where() AND qa.numberinusage = 1
+ * WHERE $qubaids->where() AND qa.slot = 1
  *
  * @copyright 2010 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -1010,7 +1010,7 @@ class qubaid_list extends qubaid_condition {
  * SELECT qa.id, qa.maxmark
  * FROM $from
  * JOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = $usageidcolumn
- * WHERE $where AND qa.numberinusage = 1
+ * WHERE $where AND qa.slot = 1
  *
  * where $from, $usageidcolumn and $where are the arguments to the constructor.
  *

@@ -139,7 +139,7 @@ SELECT
     quba.preferredbehaviour,
     qa.id AS questionattemptid,
     qa.questionusageid,
-    qa.numberinusage,
+    qa.slot,
     qa.behaviour,
     qa.questionid,
     qa.maxmark,
@@ -167,7 +167,7 @@ WHERE
     quba.id = 1
 
 ORDER BY
-    qa.numberinusage,
+    qa.slot,
     qas.sequencenumber
 
 
@@ -198,7 +198,7 @@ COMMENT ON TABLE git_question_usages IS 'This table\'s main purpose it to assign
 CREATE TABLE git_question_attempts_new (
     id BIGSERIAL,
     questionusageid BIGINT NOT NULL,
-    numberinusage BIGINT NOT NULL,
+    slot BIGINT NOT NULL,
     behaviour VARCHAR(32) NOT NULL DEFAULT '',
     questionid BIGINT NOT NULL,
     maxmark NUMERIC(12,7) NOT NULL,
@@ -276,7 +276,7 @@ CREATE INDEX quesusag_con_ix ON question_usages (contextid);
 CREATE TABLE question_attempts_new (
     id BIGINT(10) unsigned NOT NULL auto_increment,
     questionusageid BIGINT(10) unsigned NOT NULL,
-    numberinusage BIGINT(10) unsigned NOT NULL,
+    slot BIGINT(10) unsigned NOT NULL,
     behaviour VARCHAR(32) NOT NULL DEFAULT '',
     questionid BIGINT(10) unsigned NOT NULL,
     maxmark NUMERIC(12,7) NOT NULL,
@@ -291,7 +291,7 @@ CONSTRAINT  PRIMARY KEY (id)
 
 ALTER TABLE question_attempts_new COMMENT='Each row here corresponds to an attempt at one question, as ';
 
-CREATE UNIQUE INDEX quesattenew_quenum_uix ON question_attempts_new (questionusageid, numberinusage);
+CREATE UNIQUE INDEX quesattenew_quenum_uix ON question_attempts_new (questionusageid, slot);
 
 CREATE INDEX quesattenew_que_ix ON question_attempts_new (questionid);
 

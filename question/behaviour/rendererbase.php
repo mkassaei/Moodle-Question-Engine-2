@@ -137,7 +137,7 @@ abstract class qbehaviour_renderer extends renderer_base {
         if ($options->manualcommentlink) {
             $strcomment = get_string('commentormark', 'question');
             $link = link_to_popup_window($options->manualcommentlink .
-                    '&amp;qnumber=' . $qa->get_number_in_usage(),
+                    '&amp;slot=' . $qa->get_number_in_usage(),
                     'commentquestion', $strcomment, 600, 800, $strcomment, 'none', true);
             $output .= html_writer::tag('div', $link, array('class' => 'commentlink'));
         }
