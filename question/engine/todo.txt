@@ -135,7 +135,7 @@ SELECT
     qasd.id,
     quba.id AS qubaid,
     quba.contextid,
-    quba.owningplugin,
+    quba.component,
     quba.preferredbehaviour,
     qa.id AS questionattemptid,
     qa.questionusageid,
@@ -159,7 +159,7 @@ SELECT
     qasd.value
 
 FROM git_question_usages quba
-LEFT JOIN git_question_attempts_new qa ON qa.questionusageid = quba.id
+LEFT JOIN git_question_attempts qa ON qa.questionusageid = quba.id
 LEFT JOIN git_question_attempt_steps qas ON qas.questionattemptid = qa.id
 LEFT JOIN git_question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
 
@@ -169,181 +169,6 @@ WHERE
 ORDER BY
     qa.slot,
     qas.sequencenumber
-
-
---------------------------------------------------------------------------------
-
--- Code to drop the database tables:
-
-DROP TABLE git_question_usages;
-DROP TABLE git_question_attempts_new;
-DROP TABLE git_question_attempt_steps;
-DROP TABLE git_question_attempt_step_data;
-DROP TABLE git_question_hints;
-
-
--- Code to create the database tables in Postgres:
-
-CREATE TABLE git_question_usages (
-    id BIGSERIAL,
-    contextid BIGINT NOT NULL,
-    owningplugin VARCHAR(255) NOT NULL DEFAULT '',
-    preferredbehaviour VARCHAR(32) NOT NULL DEFAULT '',
-CONSTRAINT git_quesusag_id2_pk PRIMARY KEY (id),
-CONSTRAINT git_quesusag_con_fk FOREIGN KEY (contextid) REFERENCES git_context (id)
-);
-
-COMMENT ON TABLE git_question_usages IS 'This table\'s main purpose it to assign a unique id to each attempt at a set of questions by some part of Moodle. A question usage is made up of a number of question_attempts.';
-
-CREATE TABLE git_question_attempts_new (
-    id BIGSERIAL,
-    questionusageid BIGINT NOT NULL,
-    slot BIGINT NOT NULL,
-    behaviour VARCHAR(32) NOT NULL DEFAULT '',
-    questionid BIGINT NOT NULL,
-    maxmark NUMERIC(12,7) NOT NULL,
-    minfraction NUMERIC(12,7) NOT NULL,
-    flagged SMALLINT NOT NULL DEFAULT 0,
-    questionsummary TEXT,
-    rightanswer TEXT,
-    responsesummary TEXT,
-    timemodified BIGINT NOT NULL,
-CONSTRAINT git_quesattenew_id2_pk PRIMARY KEY (id),
-CONSTRAINT git_quesattenew_que_fk FOREIGN KEY (questionid) REFERENCES git_question (id),
-CONSTRAINT git_quesattenew_que2_fk FOREIGN KEY (questionusageid) REFERENCES git_question_usages (id)
-);
-
-COMMENT ON TABLE git_question_attempts_new IS 'Each row here corresponds to an attempt at one question, as part of a question_usage. A question_attempt will have some question_attempt_steps';
-
-CREATE INDEX git_quesattenew_que2_ix ON git_question_attempts_new (questionusageid);
-
-CREATE TABLE git_question_attempt_steps (
-    id BIGSERIAL,
-    questionattemptid BIGINT NOT NULL,
-    sequencenumber BIGINT NOT NULL,
-    state VARCHAR(13) NOT NULL,
-    fraction NUMERIC(12,7),
-    timecreated BIGINT NOT NULL,
-    userid BIGINT,
-CONSTRAINT git_quesattestep_id2_pk PRIMARY KEY (id),
-CONSTRAINT git_quesattestep_que_fk FOREIGN KEY (questionattemptid) REFERENCES git_question_attempts_new (id),
-CONSTRAINT git_quesattestep_use_fk FOREIGN KEY (userid) REFERENCES git_user (id)
-);
-
-COMMENT ON TABLE git_question_attempt_steps IS 'Stores one step in in a question attempt. As well as the data here, the step will have some data in the question_attempt_step_data table.';
-
-CREATE TABLE git_question_attempt_step_data (
-    id BIGSERIAL,
-    attemptstepid BIGINT NOT NULL,
-    name VARCHAR(32) NOT NULL DEFAULT '',
-    value TEXT,
-CONSTRAINT git_quesattestepdata_id2_pk PRIMARY KEY (id),
-CONSTRAINT git_quesattestepdata_att_fk FOREIGN KEY (attemptstepid) REFERENCES git_question_attempt_steps (id)
-);
-
-COMMENT ON TABLE git_question_attempt_step_data IS 'Each question_attempt_step has an associative array of the data that was submitted by the user in the POST request. It can also contain extra data from the question type or behaviour to avoid re-computation. The convention is that names belon';
-
-CREATE TABLE git_question_hints (
-    id BIGSERIAL,
-    questionid BIGINT NOT NULL,
-    hint TEXT NOT NULL,
-    shownumcorrect SMALLINT,
-    clearwrong SMALLINT,
-    options VARCHAR(255),
-CONSTRAINT git_queshint_id_pk PRIMARY KEY (id),
-CONSTRAINT git_queshint_que_fk FOREIGN KEY (questionid) REFERENCES git_question (id)
-);
-
-COMMENT ON TABLE git_question_hints IS 'Stores the the part of the question definition that gives different feedback after each try in interactive and similar behaviours.';
-
-CREATE INDEX git_queshint_que_ix ON git_question_hints (questionid);
-
-
--- Code to create the database tables in MySQL:
-
-CREATE TABLE question_usages (
-    id BIGINT(10) unsigned NOT NULL auto_increment,
-    contextid BIGINT(10) unsigned NOT NULL,
-    owningplugin VARCHAR(255) NOT NULL DEFAULT '',
-    preferredbehaviour VARCHAR(32) NOT NULL DEFAULT '',
-CONSTRAINT  PRIMARY KEY (id)
-);
-
-ALTER TABLE question_usages COMMENT='This table\'s main purpose it to assign a unique id to each a';
-
-CREATE INDEX quesusag_con_ix ON question_usages (contextid);
-
-CREATE TABLE question_attempts_new (
-    id BIGINT(10) unsigned NOT NULL auto_increment,
-    questionusageid BIGINT(10) unsigned NOT NULL,
-    slot BIGINT(10) unsigned NOT NULL,
-    behaviour VARCHAR(32) NOT NULL DEFAULT '',
-    questionid BIGINT(10) unsigned NOT NULL,
-    maxmark NUMERIC(12,7) NOT NULL,
-    minfraction NUMERIC(12,7) unsigned NOT NULL,
-    flagged TINYINT(1) unsigned NOT NULL DEFAULT 0,
-    questionsummary TEXT,
-    rightanswer TEXT,
-    responsesummary TEXT,
-    timemodified BIGINT(10) unsigned NOT NULL,
-CONSTRAINT  PRIMARY KEY (id)
-);
-
-ALTER TABLE question_attempts_new COMMENT='Each row here corresponds to an attempt at one question, as ';
-
-CREATE UNIQUE INDEX quesattenew_quenum_uix ON question_attempts_new (questionusageid, slot);
-
-CREATE INDEX quesattenew_que_ix ON question_attempts_new (questionid);
-
-CREATE INDEX quesattenew_que2_ix ON question_attempts_new (questionusageid);
-
-CREATE TABLE question_attempt_steps (
-    id BIGINT(10) unsigned NOT NULL auto_increment,
-    questionattemptid BIGINT(10) unsigned NOT NULL,
-    sequencenumber BIGINT(10) unsigned NOT NULL,
-    state VARCHAR(13) NOT NULL,
-    fraction NUMERIC(12,7) DEFAULT NULL,
-    timecreated BIGINT(10) unsigned NOT NULL,
-    userid BIGINT(10) unsigned DEFAULT NULL,
-CONSTRAINT  PRIMARY KEY (id)
-);
-
-ALTER TABLE question_attempt_steps COMMENT='Stores one step in in a question attempt. As well as the dat';
-
-CREATE UNIQUE INDEX quesattestep_queseq_uix ON question_attempt_steps (questionattemptid, sequencenumber);
-
-CREATE INDEX quesattestep_que_ix ON question_attempt_steps (questionattemptid);
-
-CREATE INDEX quesattestep_use_ix ON question_attempt_steps (userid);
-
-CREATE TABLE question_attempt_step_data (
-    id BIGINT(10) unsigned NOT NULL auto_increment,
-    attemptstepid BIGINT(10) unsigned NOT NULL,
-    name VARCHAR(32) NOT NULL DEFAULT '',
-    value TEXT,
-CONSTRAINT  PRIMARY KEY (id)
-);
-
-ALTER TABLE question_attempt_step_data COMMENT='Each question_attempt_step has an associative array of the d';
-
-CREATE UNIQUE INDEX quesattestepdata_attnam_uix ON question_attempt_step_data (attemptstepid, name);
-
-CREATE INDEX quesattestepdata_att_ix ON question_attempt_step_data (attemptstepid);
-
-CREATE TABLE git_question_hints (
-    id BIGINT(10) unsigned NOT NULL auto_increment,
-    questionid BIGINT(10) unsigned NOT NULL,
-    hint TEXT NOT NULL,
-    shownumcorrect TINYINT(1) unsigned DEFAULT NULL,
-    clearwrong TINYINT(1) unsigned DEFAULT NULL,
-    options VARCHAR(255) DEFAULT NULL,
-CONSTRAINT  PRIMARY KEY (id)
-);
-
-ALTER TABLE git_question_hints COMMENT='Stores the the part of the question definition that gives di';
-
-CREATE INDEX git_queshint_que_ix ON git_question_hints (questionid);
-
 
 
 --------------------------------------------------------------------------------

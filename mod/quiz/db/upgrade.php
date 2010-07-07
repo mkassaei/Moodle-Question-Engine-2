@@ -310,23 +310,25 @@ function xmldb_quiz_upgrade($oldversion=0) {
     // Convert question_attempt_steps.state from int to char.
     if ($result && $oldversion < 2008000107) {
         $table = new XMLDBTable('question_attempt_steps');
-        $field = new XMLDBField('state');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '13', null, XMLDB_NOTNULL, null, null, null, null, 'sequencenumber');
-        $result = $result && change_field_type($table, $field);
+        if (table_exists($table)) {
+            $field = new XMLDBField('state');
+            $field->setAttributes(XMLDB_TYPE_CHAR, '13', null, XMLDB_NOTNULL, null, null, null, null, 'sequencenumber');
+            $result = $result && change_field_type($table, $field);
 
-        $result = $result && set_field('question_attempt_steps', 'state', 'todo', 'state', 1);
-        $result = $result && set_field('question_attempt_steps', 'state', 'complete', 'state', 2);
-        $result = $result && set_field('question_attempt_steps', 'state', 'needsgrading', 'state', 16);
-        $result = $result && set_field('question_attempt_steps', 'state', 'finished', 'state', 17);
-        $result = $result && set_field('question_attempt_steps', 'state', 'gaveup', 'state', 18);
-        $result = $result && set_field('question_attempt_steps', 'state', 'gradedwrong', 'state', 24);
-        $result = $result && set_field('question_attempt_steps', 'state', 'gradedpartial', 'state', 25);
-        $result = $result && set_field('question_attempt_steps', 'state', 'gradedright', 'state', 26);
-        $result = $result && set_field('question_attempt_steps', 'state', 'manfinished', 'state', 49);
-        $result = $result && set_field('question_attempt_steps', 'state', 'mangaveup', 'state', 50);
-        $result = $result && set_field('question_attempt_steps', 'state', 'mangrwrong', 'state', 56);
-        $result = $result && set_field('question_attempt_steps', 'state', 'mangrpartial', 'state', 57);
-        $result = $result && set_field('question_attempt_steps', 'state', 'mangrright', 'state', 58);
+            $result = $result && set_field('question_attempt_steps', 'state', 'todo', 'state', 1);
+            $result = $result && set_field('question_attempt_steps', 'state', 'complete', 'state', 2);
+            $result = $result && set_field('question_attempt_steps', 'state', 'needsgrading', 'state', 16);
+            $result = $result && set_field('question_attempt_steps', 'state', 'finished', 'state', 17);
+            $result = $result && set_field('question_attempt_steps', 'state', 'gaveup', 'state', 18);
+            $result = $result && set_field('question_attempt_steps', 'state', 'gradedwrong', 'state', 24);
+            $result = $result && set_field('question_attempt_steps', 'state', 'gradedpartial', 'state', 25);
+            $result = $result && set_field('question_attempt_steps', 'state', 'gradedright', 'state', 26);
+            $result = $result && set_field('question_attempt_steps', 'state', 'manfinished', 'state', 49);
+            $result = $result && set_field('question_attempt_steps', 'state', 'mangaveup', 'state', 50);
+            $result = $result && set_field('question_attempt_steps', 'state', 'mangrwrong', 'state', 56);
+            $result = $result && set_field('question_attempt_steps', 'state', 'mangrpartial', 'state', 57);
+            $result = $result && set_field('question_attempt_steps', 'state', 'mangrright', 'state', 58);
+        }
 
         // quiz savepoint reached
         upgrade_mod_savepoint($result, 2008000107, 'quiz');
@@ -395,13 +397,17 @@ function xmldb_quiz_upgrade($oldversion=0) {
     }
 
     if ($result && $oldversion < 2008000112) {
+        $table = new XMLDBTable('question_attempt_step_data');
+        if (table_exists($table)) {
 
-        // Chage im vars from !... to -... for validity reasons.
-        $result = $result && execute_sql("
-            UPDATE {$CFG->prefix}question_attempt_step_data
-            SET name = " . sql_concat("'-'", 'substring(name FROM 2)') . "
-            WHERE name LIKE '!%'
-        ");
+            // Chage im vars from !... to -... for validity reasons.
+            $result = $result && execute_sql("
+                UPDATE {$CFG->prefix}question_attempt_step_data
+                SET name = " . sql_concat("'-'", 'substring(name FROM 2)') . "
+                WHERE name LIKE '!%'
+            ");
+
+        }
 
         // quiz savepoint reached
         upgrade_mod_savepoint($result, 2008000112, 'quiz');
@@ -411,11 +417,13 @@ function xmldb_quiz_upgrade($oldversion=0) {
 
         // Rename field preferredmodel on table question_usages to preferredbehaviour.
         $table = new XMLDBTable('question_usages');
-        $field = new XMLDBField('preferredmodel');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null, null, null, 'owningplugin');
+        if (table_exists($table)) {
+            $field = new XMLDBField('preferredmodel');
+            $field->setAttributes(XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null, null, null, 'owningplugin');
 
-        // Launch rename field preferredbehaviour
-        $result = $result && rename_field($table, $field, 'preferredbehaviour');
+            // Launch rename field preferredbehaviour
+            $result = $result && rename_field($table, $field, 'preferredbehaviour');
+        }
 
         // quiz savepoint reached
         upgrade_mod_savepoint($result, 2008000113, 'quiz');
@@ -425,11 +433,13 @@ function xmldb_quiz_upgrade($oldversion=0) {
 
         // Rename field interactionmodel on table question_attempts to behaviour.
         $table = new XMLDBTable('question_attempts_new');
-        $field = new XMLDBField('interactionmodel');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null, null, null, 'owningplugin');
+        if (table_exists($table)) {
+            $field = new XMLDBField('interactionmodel');
+            $field->setAttributes(XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null, null, null, 'owningplugin');
 
-        // Launch rename field preferredbehaviour
-        $result = $result && rename_field($table, $field, 'behaviour');
+            // Launch rename field preferredbehaviour
+            $result = $result && rename_field($table, $field, 'behaviour');
+        }
 
         // quiz savepoint reached
         upgrade_mod_savepoint($result, 2008000114, 'quiz');
@@ -791,11 +801,13 @@ function xmldb_quiz_upgrade($oldversion=0) {
 
         // Rename field slot on table question_attempts_new to slot
         $table = new XMLDBTable('question_attempts_new');
-        $field = new XMLDBField('numberinusage');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null, 'questionusageid');
+        if (table_exists($table)) {
+            $field = new XMLDBField('numberinusage');
+            $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null, 'questionusageid');
 
-        // Launch rename field slot
-        $result = $result && rename_field($table, $field, 'slot');
+            // Launch rename field slot
+            $result = $result && rename_field($table, $field, 'slot');
+        }
 
         // quiz savepoint reached
         upgrade_mod_savepoint($result, 2008000500, 'quiz');
@@ -855,6 +867,57 @@ function xmldb_quiz_upgrade($oldversion=0) {
 
         // quiz savepoint reached
         upgrade_mod_savepoint($result, 2008000504, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000505) {
+        // If we already have the new tables, update their structure, and drop
+        // any old-style tables that are around. (If we don't have the new tables,
+        // we will create them in a minute.)
+
+        $table = new XMLDBTable('question_usages');
+        if (table_exists($table)) {
+            // Rename field owningplugin on table question_usages to component
+            $field = new XMLDBField('owningplugin');
+            $field->setAttributes(XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, null, 'contextid');
+            $result = $result && rename_field($table, $field, 'component');
+
+            // Drop any old tables.
+            $table = new XMLDBTable('question_attempts');
+            if (table_exists($table)) {
+                drop_table($table);
+            }
+            $table = new XMLDBTable('question_states');
+            if (table_exists($table)) {
+                drop_table($table);
+            }
+            $table = new XMLDBTable('question_sessions');
+            if (table_exists($table)) {
+                drop_table($table);
+            }
+
+        } else {
+            // Rename one of the old tables whose name clashes with a new table.
+            $table = new XMLDBTable('question_attempts');
+            if (table_exists($table)) {
+                $result = $result && rename_table($table, 'question_attempts_old');
+            }
+        }
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000505, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000506) {
+        // If we have previously installed the question_attempts_new table,
+        // rename it question_attempts.
+
+        $table = new XMLDBTable('question_attempts_new');
+        if (table_exists($table)) {
+            $result = $result && rename_table($table, 'question_attempts');
+        }
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000506, 'quiz');
     }
 
     commit_sql();

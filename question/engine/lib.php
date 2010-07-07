@@ -57,12 +57,12 @@ abstract class question_engine {
      * created in memory. If you want it to persist, you will need to call
      * {@link save_questions_usage_by_activity()}.
      *
-     * @param string $owningplugin the plugin creating this attempt. For example mod_quiz.
+     * @param string $component the plugin creating this attempt. For example mod_quiz.
      * @param object $context the context this usage belongs to.
      * @return question_usage_by_activity the newly created object.
      */
-    public static function make_questions_usage_by_activity($owningplugin, $context) {
-        return new question_usage_by_activity($owningplugin, $context);
+    public static function make_questions_usage_by_activity($component, $context) {
+        return new question_usage_by_activity($component, $context);
     }
 
     /**
@@ -523,7 +523,7 @@ class question_usage_by_activity {
     protected $context;
 
     /** @var string plugin name of the plugin this usage belongs to. */
-    protected $owningplugin;
+    protected $owningcomponent;
 
     /** @var array {@link question_attempt}s that make up this usage. */
     protected $questionattempts = array();
@@ -537,11 +537,11 @@ class question_usage_by_activity {
      * {@link question_engine::load_questions_usage_by_activity()} rather than
      * calling this constructor directly.
      *
-     * @param string $owningplugin the plugin creating this attempt. For example mod_quiz.
+     * @param string $component the plugin creating this attempt. For example mod_quiz.
      * @param object $context the context this usage belongs to.
      */
-    public function __construct($owningplugin, $context) {
-        $this->owningplugin = $owningplugin;
+    public function __construct($component, $context) {
+        $this->owningcomponent = $component;
         $this->context = $context;
         $this->observer = new question_usage_null_observer();
     }
@@ -566,8 +566,8 @@ class question_usage_by_activity {
     }
 
     /** @return string the name of the plugin that owns this attempt. */
-    public function get_owning_plugin() {
-        return $this->owningplugin;
+    public function get_owning_component() {
+        return $this->owningcomponent;
     }
 
     /** @return integer|string If this usage came from the database, then the id
@@ -1065,7 +1065,7 @@ class question_usage_by_activity {
             }
         }
 
-        $quba = new question_usage_by_activity($record->owningplugin,
+        $quba = new question_usage_by_activity($record->component,
             get_context_instance_by_id($record->contextid));
         $quba->set_id_from_database($record->qubaid);
         $quba->set_preferred_behaviour($record->preferredbehaviour);

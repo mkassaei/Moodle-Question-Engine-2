@@ -112,7 +112,7 @@ class quiz_statistics_question_stats {
                     qas.fraction * qa.maxmark as mark
 
                 FROM $fromqa
-                JOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = quiza.uniqueid
+                JOIN {$CFG->prefix}question_attempts qa ON qa.questionusageid = quiza.uniqueid
                 JOIN (
                     SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
                 ) lateststepid ON lateststepid.questionattemptid = qa.id
