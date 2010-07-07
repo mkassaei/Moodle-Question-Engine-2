@@ -42,7 +42,7 @@ class question_engine_data_mapper {
     public function insert_questions_usage_by_activity(question_usage_by_activity $quba) {
         $record = new stdClass;
         $record->contextid = $quba->get_owning_context()->id;
-        $record->owningplugin = addslashes($quba->get_owning_plugin());
+        $record->component = addslashes($quba->get_owning_component());
         $record->preferredbehaviour = addslashes($quba->get_preferred_behaviour());
 
         $newid = insert_record('question_usages', $record);
@@ -74,7 +74,7 @@ class question_engine_data_mapper {
         $record->rightanswer = addslashes($qa->get_right_answer_summary());
         $record->responsesummary = addslashes($qa->get_response_summary());
         $record->timemodified = time();
-        $record->id = insert_record('question_attempts_new', $record);
+        $record->id = insert_record('question_attempts', $record);
         if (!$record->id) {
             throw new Exception('Failed to save question_attempt ' . $qa->get_number_in_usage());
         }
@@ -180,7 +180,7 @@ SELECT
     qasd.name,
     qasd.value
 
-FROM {$CFG->prefix}question_attempts_new qa
+FROM {$CFG->prefix}question_attempts qa
 JOIN {$CFG->prefix}question_usages quba ON quba.id = qa.questionusageid
 LEFT JOIN {$CFG->prefix}question_attempt_steps qas ON qas.questionattemptid = qa.id
 LEFT JOIN {$CFG->prefix}question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
@@ -214,7 +214,7 @@ SELECT
     COALESCE(qasd.id, -1 * qas.id) AS id,
     quba.id AS qubaid,
     quba.contextid,
-    quba.owningplugin,
+    quba.component,
     quba.preferredbehaviour,
     qa.id AS questionattemptid,
     qa.questionusageid,
@@ -238,7 +238,7 @@ SELECT
     qasd.value
 
 FROM {$CFG->prefix}question_usages quba
-LEFT JOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = quba.id
+LEFT JOIN {$CFG->prefix}question_attempts qa ON qa.questionusageid = quba.id
 LEFT JOIN {$CFG->prefix}question_attempt_steps qas ON qas.questionattemptid = qa.id
 LEFT JOIN {$CFG->prefix}question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
 
@@ -602,7 +602,7 @@ ORDER BY
         $record = new stdClass;
         $record->id = $quba->get_id();
         $record->contextid = $quba->get_owning_context()->id;
-        $record->owningplugin = addslashes($quba->get_owning_plugin());
+        $record->component = addslashes($quba->get_owning_component());
         $record->preferredbehaviour = addslashes($quba->get_preferred_behaviour());
 
         if (!update_record('question_usages', $record)) {
@@ -626,7 +626,7 @@ ORDER BY
         $record->responsesummary = addslashes($qa->get_response_summary());
         $record->timemodified = time();
 
-        if (!update_record('question_attempts_new', $record)) {
+        if (!update_record('question_attempts', $record)) {
             throw new Exception('Failed to update question_attempt ' . $record->id);
         }
     }
@@ -642,16 +642,16 @@ ORDER BY
         global $CFG;
         delete_records_select('question_attempt_step_data', "attemptstepid IN (
                 SELECT qas.id
-                FROM {$CFG->prefix}question_attempts_new qa
+                FROM {$CFG->prefix}question_attempts qa
                 JOIN {$CFG->prefix}question_attempt_steps qas ON qas.questionattemptid = qa.id
                 JOIN {$CFG->prefix}question_usages ON qa.questionusageid = {$CFG->prefix}question_usages.id
                 WHERE $where)");
         delete_records_select('question_attempt_steps', "questionattemptid IN (
                 SELECT qa.id
-                FROM {$CFG->prefix}question_attempts_new qa
+                FROM {$CFG->prefix}question_attempts qa
                 JOIN {$CFG->prefix}question_usages ON qa.questionusageid = {$CFG->prefix}question_usages.id
                 WHERE $where)");
-        delete_records_select('question_attempts_new', "questionusageid IN (
+        delete_records_select('question_attempts', "questionusageid IN (
                 SELECT id
                 FROM {$CFG->prefix}question_usages
                 WHERE $where)");
@@ -684,8 +684,8 @@ ORDER BY
         $previews = get_records_sql_menu("
                 SELECT DISTINCT quba.id, 1
                 FROM {$CFG->prefix}question_usages quba
-                JOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = quba.id
-                WHERE quba.owningplugin = 'core_question_preview' AND
+                JOIN {$CFG->prefix}question_attempts qa ON qa.questionusageid = quba.id
+                WHERE quba.component = 'core_question_preview' AND
                     qa.questionid = '$questionid'");
         if (empty($previews)) {
             return;
@@ -703,12 +703,12 @@ ORDER BY
      * @param boolean $newstate the new state of the flag. true = flagged.
      */
     public function update_question_attempt_flag($qubaid, $questionid, $qaid, $newstate) {
-        if (!record_exists('question_attempts_new', 'id', $qaid, 
+        if (!record_exists('question_attempts', 'id', $qaid, 
                 'questionusageid', $qubaid, 'questionid', $questionid)) {
             throw new Exception('invalid ids');
         }
 
-        if (!set_field('question_attempts_new', 'flagged', $newstate, 'id', $qaid)) {
+        if (!set_field('question_attempts', 'flagged', $newstate, 'id', $qaid)) {
             throw new Exception('flag update failed');
         }
     }
@@ -749,7 +749,7 @@ ORDER BY
      * @param number $newmaxmark the new max mark to set.
      */
     public function set_max_mark_in_attempts(qubaid_condition $qubaids, $slot, $newmaxmark) {
-        set_field_select('question_attempts_new', 'maxmark', $newmaxmark,
+        set_field_select('question_attempts', 'maxmark', $newmaxmark,
                 "questionusageid {$qubaids->usage_id_in()} AND slot = $slot");
     }
 
@@ -768,7 +768,7 @@ ORDER BY
     public function sum_usage_marks_subquery($qubaid) {
         global $CFG;
         return "SELECT SUM(qa.maxmark * qas.fraction)
-            FROM {$CFG->prefix}question_attempts_new qa
+            FROM {$CFG->prefix}question_attempts qa
             JOIN (
                 SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
             ) lateststepid ON lateststepid.questionattemptid = qa.id
@@ -800,7 +800,7 @@ ORDER BY
                     {$alias}qas.timecreated,
                     {$alias}qas.userid
 
-                FROM {$CFG->prefix}question_attempts_new {$alias}qa
+                FROM {$CFG->prefix}question_attempts {$alias}qa
                 JOIN (
                     SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
                 ) {$alias}lateststepid ON {$alias}lateststepid.questionattemptid = {$alias}qa.id
@@ -937,7 +937,7 @@ abstract class qubaid_condition {
 
     /**
      * @return string the SQL that needs to go in the FROM clause when trying
-     * to select records from the 'question_attempts_new' table based on the
+     * to select records from the 'question_attempts' table based on the
      * qubaid_condition.
      */
     public abstract function from_question_attempts($alias);
@@ -977,7 +977,7 @@ class qubaid_list extends qubaid_condition {
     public function from_question_attempts($alias) {
         global $CFG;
         $this->columntotest = $alias . '.questionusageid';
-        return "{$CFG->prefix}question_attempts_new $alias";
+        return "{$CFG->prefix}question_attempts $alias";
     }
 
     public function where() {
@@ -1009,7 +1009,7 @@ class qubaid_list extends qubaid_condition {
  *
  * SELECT qa.id, qa.maxmark
  * FROM $from
- * JOIN {$CFG->prefix}question_attempts_new qa ON qa.questionusageid = $usageidcolumn
+ * JOIN {$CFG->prefix}question_attempts qa ON qa.questionusageid = $usageidcolumn
  * WHERE $where AND qa.slot = 1
  *
  * where $from, $usageidcolumn and $where are the arguments to the constructor.
@@ -1042,7 +1042,7 @@ class qubaid_join extends qubaid_condition {
     public function from_question_attempts($alias) {
         global $CFG;
         return "$this->from
-                JOIN {$CFG->prefix}question_attempts_new {$alias} ON " .
+                JOIN {$CFG->prefix}question_attempts {$alias} ON " .
                         "{$alias}.questionusageid = $this->usageidcolumn";
     }
 

@@ -69,7 +69,7 @@ class question_usage_by_activity_test extends UnitTestCase {
 
         // Verify.
         $this->assertEqual($slot, 1);
-        $this->assertEqual('unit_test', $quba->get_owning_plugin());
+        $this->assertEqual('unit_test', $quba->get_owning_component());
         $this->assertIdentical($context, $quba->get_owning_context());
         $this->assertEqual($quba->question_count(), 1);
         $this->assertEqual($quba->get_question_state($slot), question_state::$notstarted);
