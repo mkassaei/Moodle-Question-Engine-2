@@ -920,7 +920,170 @@ function xmldb_quiz_upgrade($oldversion=0) {
         upgrade_mod_savepoint($result, 2008000506, 'quiz');
     }
 
+    if ($result && $oldversion < 2008000507) {
+        $table = new XMLDBTable('question_attempts_old');
+        if (table_exists($table)) {
+            // Rename to create the question_usages table.
+            $result = $result && rename_table($table, 'question_usages');
+
+            // Rename the modulename field to component ...
+            $table = new XMLDBTable('question_usages');
+            $field = new XMLDBField('modulename');
+            $field->setAttributes(XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, null, 'contextid');
+            $result = $result && rename_field($table, $field, 'component');
+
+            // ... and update its contents.
+            $result = $result && set_field('question_usages', 'component', 'mod_quiz', 'component', 'quiz');
+
+            // Add the contextid field.
+            $field = new XMLDBField('contextid');
+            $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, null, 'id');
+            $result = $result && add_field($table, $field);
+
+            // And populate it.
+            $quizmoduleid = get_field('modules', 'id', 'name', 'quiz');
+            $result = $result && execute_sql("
+                UPDATE {$CFG->prefix}question_usages SET contextid = (
+                    SELECT id
+                    FROM {$CFG->prefix}context ctx
+                    JOIN {$CFG->prefix}course_modules cm ON cm.id = ctx.instanceid AND cm.module = $quizmoduleid
+                    JOIN {$CFG->prefix}quiz_attempts quiza ON quiza.quiz = cm.instance
+                    WHERE ctx.contextlevel = " . CONTEXT_MODULE . "
+                    AND quiza.uniqueid = {$CFG->prefix}question_usages.id
+                )
+            ");
+
+            // Then make it NOT NULL.
+            $field = new XMLDBField('contextid');
+            $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null, 'id');
+            $result = $result && change_field_notnull($table, $field);
+
+            // Add the preferredbehaviour column. Populate it with '' for now.
+            // We will fill in the appropriate behaviour name when updating all
+            // the rest of the attempt data.
+            $field = new XMLDBField('preferredbehaviour');
+            $field->setAttributes(XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null, null, '', 'component');
+            $result = $result && add_field($table, $field);
+
+            // Then remove the default value, now the column is populated.
+            $field = new XMLDBField('preferredbehaviour');
+            $field->setAttributes(XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null, null, null, 'component');
+            $result = $result && change_field_default($table, $field);
+        }
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000507, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000508) {
+
+        // Define table question_attempts to be created
+        $table = new XMLDBTable('question_attempts');
+        if (!table_exists($table)) {
+
+            // Adding fields to table question_attempts
+            $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+            $table->addFieldInfo('questionusageid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+            $table->addFieldInfo('slot', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+            $table->addFieldInfo('behaviour', XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null, null, null);
+            $table->addFieldInfo('questionid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+            $table->addFieldInfo('maxmark', XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, null, null, null);
+            $table->addFieldInfo('minfraction', XMLDB_TYPE_NUMBER, '12, 7', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+            $table->addFieldInfo('flagged', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0');
+            $table->addFieldInfo('questionsummary', XMLDB_TYPE_TEXT, 'small', null, null, null, null, null, null);
+            $table->addFieldInfo('rightanswer', XMLDB_TYPE_TEXT, 'small', null, null, null, null, null, null);
+            $table->addFieldInfo('responsesummary', XMLDB_TYPE_TEXT, 'small', null, null, null, null, null, null);
+            $table->addFieldInfo('timemodified', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+
+            // Adding keys to table question_attempts
+            $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+            $table->addKeyInfo('questionid', XMLDB_KEY_FOREIGN, array('questionid'), 'question', array('id'));
+            $table->addKeyInfo('questionusageid', XMLDB_KEY_FOREIGN, array('questionusageid'), 'question_usages', array('id'));
+
+            // Adding indexes to table question_attempts
+            $table->addIndexInfo('questionusageid-numberinusage', XMLDB_INDEX_UNIQUE, array('questionusageid', 'slot'));
+
+            // Launch create table for question_attempts
+            $result = $result && create_table($table);
+        }
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000508, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000509) {
+
+        // Define table question_attempt_steps to be created
+        $table = new XMLDBTable('question_attempt_steps');
+        if (!table_exists($table)) {
+
+            // Adding fields to table question_attempt_steps
+            $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+            $table->addFieldInfo('questionattemptid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+            $table->addFieldInfo('sequencenumber', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+            $table->addFieldInfo('state', XMLDB_TYPE_CHAR, '13', null, XMLDB_NOTNULL, null, null, null, null);
+            $table->addFieldInfo('fraction', XMLDB_TYPE_NUMBER, '12, 7', null, null, null, null, null, null);
+            $table->addFieldInfo('timecreated', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+            $table->addFieldInfo('userid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, null);
+
+            // Adding keys to table question_attempt_steps
+            $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+            $table->addKeyInfo('questionattemptid', XMLDB_KEY_FOREIGN, array('questionattemptid'), 'question_attempts_new', array('id'));
+            $table->addKeyInfo('userid', XMLDB_KEY_FOREIGN, array('userid'), 'user', array('id'));
+
+            // Adding indexes to table question_attempt_steps
+            $table->addIndexInfo('questionattemptid-sequencenumber', XMLDB_INDEX_UNIQUE, array('questionattemptid', 'sequencenumber'));
+
+            // Launch create table for question_attempt_steps
+            $result = $result && create_table($table);
+        }
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000509, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000510) {
+
+        // Define table question_attempt_step_data to be created
+        $table = new XMLDBTable('question_attempt_step_data');
+        if (!table_exists($table)) {
+
+            // Adding fields to table question_attempt_step_data
+            $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+            $table->addFieldInfo('attemptstepid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+            $table->addFieldInfo('name', XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null, null, null);
+            $table->addFieldInfo('value', XMLDB_TYPE_TEXT, 'small', null, null, null, null, null, null);
+
+            // Adding keys to table question_attempt_step_data
+            $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+            $table->addKeyInfo('attemptstepid', XMLDB_KEY_FOREIGN, array('attemptstepid'), 'question_attempt_steps', array('id'));
+
+            // Adding indexes to table question_attempt_step_data
+            $table->addIndexInfo('attemptstepid-name', XMLDB_INDEX_UNIQUE, array('attemptstepid', 'name'));
+
+            // Launch create table for question_attempt_step_data
+            $result = $result && create_table($table);
+        }
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000510, 'quiz');
+    }
+
     commit_sql();
+
+    if ($result && $oldversion < 2008000511) {
+        $table = new XMLDBTable('question_states');
+        if (table_exists($table)) {
+            // Now update all the old attempt data.
+            require_once($CFG->dirroot . '/question/engine/upgradefromoldqe/upgrade.php');
+            $upgrader = new question_engine_attempt_upgrader();
+            $upgrader->convert_all_quiz_attempts();
+        }
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000511, 'quiz');
+    }
+
 
     return $result;
 }
