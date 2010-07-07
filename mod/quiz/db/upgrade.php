@@ -1084,6 +1084,37 @@ function xmldb_quiz_upgrade($oldversion=0) {
         upgrade_mod_savepoint($result, 2008000511, 'quiz');
     }
 
+    begin_sql();
+
+//    if ($result && $oldversion < 2008000512) {
+//
+//        // Define table question_states to be dropped
+//        $table = new XMLDBTable('question_states');
+//        if (table_exists($table)) {
+//
+//            // Launch drop table for question_states
+//            $result = $result && drop_table($table);
+//        }
+//
+//        // quiz savepoint reached
+//        upgrade_mod_savepoint($result, 2008000512, 'quiz');
+//    }
+//
+//    if ($result && $oldversion < 2008000513) {
+//
+//        // Define table question_states to be dropped
+//        $table = new XMLDBTable('question_states');
+//        if (table_exists($table)) {
+//
+//            // Launch drop table for question_states
+//            $result = $result && drop_table($table);
+//        }
+//
+//        // quiz savepoint reached
+//        upgrade_mod_savepoint($result, 2008000513, 'quiz');
+//    }
+
+    commit_sql();
 
     return $result;
 }
