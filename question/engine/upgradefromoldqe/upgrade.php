@@ -35,10 +35,128 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class question_engine_attempt_upgrader {
+    /** @var question_engine_upgrade_question_loader */
+    protected $questionloader;
+
     public function __construct() {
+        $this->questionloader = new question_engine_upgrade_question_loader();
+    }
+
+    protected function print_progress($done, $outof) {
+        print_progress($done, $outof);
     }
 
     public function convert_all_quiz_attempts() {
+        $quizids = get_records_menu('quiz', '', '', 'id', 'id,1');
+        $done = 0;
+        $outof = count($quizids);
+
+        foreach ($quizids as $quizid => $notused) {
+            $this->print_progress($done, $outof);
+
+            $quiz = get_record('quiz', 'id', $quizid);
+            $this->update_all_attemtps_at_quiz($quiz);
+
+            $done += 1;
+        }
+
+        $this->print_progress($outof, $outof);
+    }
+
+    public function update_all_attemtps_at_quiz($quiz) {
+        global $CFG;
+        begin_sql();
+
+        $quizattemptsrs = get_recordset('quiz_attempts', 'quiz', $quiz->id, 'uniqueid');
+        $questionsessionsrs = get_recordset_sql("
+                SELECT *
+                FROM {$CFG->prefix}question_sessions
+                WHERE attemptid IN (SELECT uniqueid FROM {$CFG->prefix}quiz_attempts
+                    WHERE quiz = {$quiz->id})
+                ORDER BY attemptid, questionid
+        ");
+
+        $questionsstatesrs = get_recordset_sql("
+                SELECT *
+                FROM {$CFG->prefix}question_states
+                WHERE attempt IN (SELECT uniqueid FROM {$CFG->prefix}quiz_attempts
+                    WHERE quiz = {$quiz->id})
+                ORDER BY attempt, question, seq_number
+        ");
+
+        while ($attempt = rs_fetch_next_record($quizattemptsrs)) {
+            while ($qsession = $this->get_next_question_session($attempt, $questionsessionsrs)) {
+                $question = $this->questionloader->load_question($qsession->questionid);
+                $qstates = $this->get_question_states($attempt, $question, $questionsstatesrs);
+                $this->convert_attempt($quiz, $attempt, $question, $qsession, $qstates);
+            }
+        }
+
+        rs_close($quizattemptsrs);
+        rs_close($questionsessionsrs);
+        rs_close($questionsstatesrs);
+
+        commit_sql();
+
+        return false; // Signal failure, since no work was acutally done.
+    }
+
+    public function get_next_question_session($attempt, $questionsessionsrs) {
+        $qsession = rs_fetch_record($questionsessionsrs);
+
+        if ($qsession->attemptid != $attempt->uniqueid) {
+            // No more question sessions belonging to this attempt.
+            return false;
+        }
+
+        // Session found, move the pointer in the RS and return the record.
+        rs_next_record($questionsessionsrs);
+        return $qsession;
+    }
+
+    public function get_question_states($attempt, $question, $questionsstatesrs) {
+        $qstates = array();
+
+        while ($state = rs_fetch_record($questionsstatesrs)) {
+            if (!$state || $state->attempt != $attempt->uniqueid ||
+                    $state->question != $question->id) {
+                // We have found all the states for this attempt. Stop.
+                break;
+            }
+
+            // Add the new state to the array, and advance.
+            $qstates[$state->seq_number] = $state;
+            rs_next_record($questionsstatesrs);
+        }
+
+        return $qstates;
+    }
+
+    public function convert_attempt($quiz, $attempt, $question, $qsession, $qstates) {
+        print_object($attempt);
+        print_object($question);
+        print_object($qsession);
+        print_object($qstates);
         // TODO
+    }
+}
+
+/**
+ * This class deals with loading (and caching) question definitions during the
+ * question engine upgrade.
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_engine_upgrade_question_loader {
+    private $cache = array();
+
+    public function load_question($questionid) {
+        if (isset($this->cache[$questionid])) {
+            return $this->cache[$questionid];
+        }
+
+        $this->cache[$questionid] = question_load_questions(array($questionid));
+        return $this->cache[$questionid];
     }
 }

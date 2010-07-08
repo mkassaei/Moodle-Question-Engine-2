@@ -1071,13 +1071,17 @@ function xmldb_quiz_upgrade($oldversion=0) {
 
     commit_sql();
 
+    if ($result) {
+        set_field('modules', 'version', 2008000510, 'name', 'quiz');
+    }
+
     if ($result && $oldversion < 2008000511) {
         $table = new XMLDBTable('question_states');
         if (table_exists($table)) {
             // Now update all the old attempt data.
             require_once($CFG->dirroot . '/question/engine/upgradefromoldqe/upgrade.php');
             $upgrader = new question_engine_attempt_upgrader();
-            $upgrader->convert_all_quiz_attempts();
+            $result = $result && $upgrader->convert_all_quiz_attempts();
         }
 
         // quiz savepoint reached
@@ -1086,33 +1090,33 @@ function xmldb_quiz_upgrade($oldversion=0) {
 
     begin_sql();
 
-//    if ($result && $oldversion < 2008000512) {
-//
-//        // Define table question_states to be dropped
-//        $table = new XMLDBTable('question_states');
-//        if (table_exists($table)) {
-//
-//            // Launch drop table for question_states
-//            $result = $result && drop_table($table);
-//        }
-//
-//        // quiz savepoint reached
-//        upgrade_mod_savepoint($result, 2008000512, 'quiz');
-//    }
-//
-//    if ($result && $oldversion < 2008000513) {
-//
-//        // Define table question_states to be dropped
-//        $table = new XMLDBTable('question_states');
-//        if (table_exists($table)) {
-//
-//            // Launch drop table for question_states
-//            $result = $result && drop_table($table);
-//        }
-//
-//        // quiz savepoint reached
-//        upgrade_mod_savepoint($result, 2008000513, 'quiz');
-//    }
+    if ($result && $oldversion < 2008000512) {
+
+        // Define table question_states to be dropped
+        $table = new XMLDBTable('question_states');
+        if (table_exists($table)) {
+
+            // Launch drop table for question_states
+            $result = $result && drop_table($table);
+        }
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000512, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000513) {
+
+        // Define table question_states to be dropped
+        $table = new XMLDBTable('question_states');
+        if (table_exists($table)) {
+
+            // Launch drop table for question_states
+            $result = $result && drop_table($table);
+        }
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000513, 'quiz');
+    }
 
     commit_sql();
 
