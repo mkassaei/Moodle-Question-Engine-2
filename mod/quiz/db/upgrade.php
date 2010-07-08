@@ -944,7 +944,7 @@ function xmldb_quiz_upgrade($oldversion=0) {
             $quizmoduleid = get_field('modules', 'id', 'name', 'quiz');
             $result = $result && execute_sql("
                 UPDATE {$CFG->prefix}question_usages SET contextid = (
-                    SELECT id
+                    SELECT ctx.id
                     FROM {$CFG->prefix}context ctx
                     JOIN {$CFG->prefix}course_modules cm ON cm.id = ctx.instanceid AND cm.module = $quizmoduleid
                     JOIN {$CFG->prefix}quiz_attempts quiza ON quiza.quiz = cm.instance

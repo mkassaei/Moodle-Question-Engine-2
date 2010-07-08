@@ -27,6 +27,10 @@
  */
 
 
+global $CFG;
+require_once($CFG->libdir . '/questionlib.php');
+
+
 /**
  * This class manages upgrading all the question attempts from the old database
  * structure to the new question engine.
@@ -104,7 +108,7 @@ class question_engine_attempt_upgrader {
     public function get_next_question_session($attempt, $questionsessionsrs) {
         $qsession = rs_fetch_record($questionsessionsrs);
 
-        if ($qsession->attemptid != $attempt->uniqueid) {
+        if (!$qsession || $qsession->attemptid != $attempt->uniqueid) {
             // No more question sessions belonging to this attempt.
             return false;
         }
@@ -152,11 +156,23 @@ class question_engine_upgrade_question_loader {
     private $cache = array();
 
     public function load_question($questionid) {
+        global $QTYPES;
+
         if (isset($this->cache[$questionid])) {
             return $this->cache[$questionid];
         }
 
-        $this->cache[$questionid] = question_load_questions(array($questionid));
+        $question = get_record('question', 'id', $questionid);
+
+        if (!array_key_exists($question->qtype, $QTYPES)) {
+            $question->qtype = 'missingtype';
+            $question->questiontext = '<p>' . get_string('warningmissingtype', 'quiz') . '</p>' . $question->questiontext;
+        }
+
+        $QTYPES[$question->qtype]->get_question_options($question);
+
+        $this->cache[$questionid] = $question;
+
         return $this->cache[$questionid];
     }
 }
