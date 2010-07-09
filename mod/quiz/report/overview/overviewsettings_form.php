@@ -65,7 +65,7 @@ class mod_quiz_report_overview_settings extends moodleform {
 
         $showattemptsgrp = array();
         if ($this->_customdata['qmsubselect']) {
-            $gm = '<span class="highlight">'.quiz_get_grading_option_name($this->_customdata['quiz']->grademethod).'</span>';
+            $gm = '<span class="gradedattempt">'.quiz_get_grading_option_name($this->_customdata['quiz']->grademethod).'</span>';
             $showattemptsgrp[] =& $mform->createElement('advcheckbox', 'qmfilter', get_string('showattempts', 'quiz_overview'), get_string('optonlygradedattempts', 'quiz_overview', $gm), null, array(0,1));
         }
         if (has_capability('mod/quiz:regrade', $this->_customdata['context'])) {

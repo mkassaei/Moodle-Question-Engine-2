@@ -195,10 +195,7 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
             $oldsumgrade = quiz_rescale_grade($oldsumgrade, $this->quiz);
             $grade = "<del>$oldsumgrade</del><br />$newsumgrade";
         }
-        $gradehtml = '<a href="review.php?q='.$this->quiz->id.'&amp;attempt='.$attempt->attempt.'">'.$grade.'</a>';
-        if ($this->qmsubselect && $attempt->gradedattempt) {
-            $gradehtml = '<div class="highlight">'.$gradehtml.'</div>';
-        }
+        $gradehtml = '<a href="review.php?attempt='.$attempt->attempt.'">'.$grade.'</a>';
         return $gradehtml;
     }
 

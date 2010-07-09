@@ -1105,15 +1105,16 @@ table.message_search_results td {
 table.quizattemptsummary .bestrow td {
   background-color: #e8e8e8;
 }
+.mod-quiz .gradedattempt,
+.mod-quiz .gradedattempt td {
+  background-color: #e8e8e8;
+}
 
 table.quizreviewsummary th.cell {
   background: #f0f0f0;
 }
 table.quizreviewsummary td.cell {
   background: #fafafa;
-}
-.mod-quiz .highlightgraded {
-    background:yellow;
 }
 
 #quiznavigation .qnbutton {

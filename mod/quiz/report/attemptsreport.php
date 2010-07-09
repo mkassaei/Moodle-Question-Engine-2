@@ -359,6 +359,13 @@ abstract class quiz_attempt_report_table extends table_sql {
      */
     protected $lateststeps = null;
 
+    protected $quiz;
+    protected $qmsubselect;
+    protected $groupstudents;
+    protected $students;
+    protected $questions;
+    protected $candelete;
+
     public function __construct($uniqueid, $quiz , $qmsubselect, $groupstudents,
             $students, $questions, $candelete, $reporturl, $displayoptions) {
         parent::table_sql('mod-quiz-report-responses-report');
@@ -440,6 +447,14 @@ abstract class quiz_attempt_report_table extends table_sql {
             return quiz_report_feedback_for_grade(quiz_rescale_grade($attempt->sumgrades, $this->quiz, false), $this->quiz->id);
         } else {
             return strip_tags(quiz_report_feedback_for_grade(quiz_rescale_grade($attempt->sumgrades, $this->quiz, false), $this->quiz->id));
+        }
+    }
+
+    function get_row_class($attempt) {
+        if ($this->qmsubselect && $attempt->gradedattempt) {
+            return 'gradedattempt';
+        } else {
+            return '';
         }
     }
 
