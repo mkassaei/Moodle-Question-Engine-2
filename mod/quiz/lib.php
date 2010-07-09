@@ -207,11 +207,11 @@ function quiz_get_best_grade($quiz, $userid) {
     $grade = get_field('quiz_grades', 'grade', 'quiz', $quiz->id, 'userid', $userid);
 
     // Need to detect errors/no result, without catching 0 scores.
-    if (is_numeric($grade)) {
-        return round($grade, $quiz->decimalpoints);
-    } else {
-        return NULL;
+    if ($grade === false) {
+        return null;
     }
+
+    return $grade + 0; // Convert to number.
 }
 
 /**

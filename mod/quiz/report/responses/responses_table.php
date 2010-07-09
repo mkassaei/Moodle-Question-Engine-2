@@ -91,9 +91,6 @@ class quiz_report_responses_table extends quiz_attempt_report_table {
         }
 
         $gradehtml = '<a href="review.php?q='.$this->quiz->id.'&amp;attempt='.$attempt->attempt.'">'.$grade.'</a>';
-        if ($this->qmsubselect && $attempt->gradedattempt) {
-            $gradehtml = '<div class="highlight">'.$gradehtml.'</div>';
-        }
         return $gradehtml;
     }
 

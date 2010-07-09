@@ -1019,9 +1019,9 @@ class qubaid_list extends qubaid_condition {
  */
 class qubaid_join extends qubaid_condition {
     /** @var array of ids. */
-    protected $from;
-    protected $usageidcolumn;
-    protected $where;
+    public $from;
+    public $usageidcolumn;
+    public $where;
 
     /**
      * Constructor. The meaning of the arguments is explained in the class comment.

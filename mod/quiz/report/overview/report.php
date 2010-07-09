@@ -270,7 +270,7 @@ class quiz_overview_report extends quiz_attempt_report {
                     }
                     $header .= '/' . quiz_rescale_grade($question->maxmark, $quiz, 'question');
                     $headers[] = $header;
-                 }
+                }
             }
 
             if (!$table->is_downloading() && has_capability('mod/quiz:regrade', $this->context) &&

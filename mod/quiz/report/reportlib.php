@@ -232,7 +232,7 @@ function quiz_report_highlighting_grading_method($quiz, $qmsubselect, $qmfilter)
 
     } else {
         return '<p>' . get_string('showinggradedandungraded', 'quiz_overview',
-                '<span class="highlight">' . quiz_get_grading_option_name($quiz->grademethod) .
+                '<span class="gradedattempt">' . quiz_get_grading_option_name($quiz->grademethod) .
                 '</span>') . '</p>';
     }
 }

@@ -68,12 +68,6 @@ class quiz_grading_report extends quiz_default_report {
         $pagesize = optional_param('pagesize', self::DEFAULT_PAGE_SIZE, PARAM_INT);
         $page = optional_param('page', 0, PARAM_INT);
         $order = optional_param('order', self::DEFAULT_ORDER, PARAM_ALPHA);
-        if (!in_array($order, array('random', 'date', 'student'))) {
-            $order = self::DEFAULT_ORDER;
-        }
-        if ($order == 'random') {
-            $page = 0;
-        }
 
         // Assemble the options requried to reload this page.
         $optparams = array('includeauto', 'page');
@@ -94,6 +88,18 @@ class quiz_grading_report extends quiz_default_report {
         require_capability('mod/quiz:grade', $this->context);
         $shownames = has_capability('quizreport/grading:viewstudentnames', $this->context);
         $showidnumbers = has_capability('quizreport/grading:viewidnumber', $this->context);
+
+        // Validate order.
+        if (!in_array($order, array('random', 'date', 'student', 'idnumber'))) {
+            $order = self::DEFAULT_ORDER;
+        } else if (!$shownames && $order == 'student') {
+            $order = self::DEFAULT_ORDER;
+        } else if (!$showidnumbers && $order == 'idnumber') {
+            $order = self::DEFAULT_ORDER;
+        }
+        if ($order == 'random') {
+            $page = 0;
+        }
 
         // Get the list of questions in this quiz.
         $this->questions = quiz_report_get_significant_questions($quiz);
@@ -135,7 +141,7 @@ class quiz_grading_report extends quiz_default_report {
         $where = "quiza.quiz = {$this->cm->instance} AND quiza.preview = 0 AND quiza.timefinish <> 0";
 
         if ($this->currentgroup) {
-            $where .= ' AND quiza.userid IN (' . implode(',', $this->userids) . ')';
+            $where .= ' AND quiza.userid IN (' . implode(',', array_keys($this->users)) . ')';
         }
 
         $sql = new stdClass;
@@ -154,7 +160,7 @@ class quiz_grading_report extends quiz_default_report {
                 quiza.timefinish <> 0";
         if ($this->currentgroup) {
             $where .= ' AND
-                quiza.userid IN (' . implode(',', $this->userids) . ')';
+                quiza.userid IN (' . implode(',', array_keys($this->users)) . ')';
         }
 
         return new qubaid_join("{$CFG->prefix}quiz_attempts quiza",
@@ -352,7 +358,7 @@ class quiz_grading_report extends quiz_default_report {
         if (array_key_exists('includeauto', $this->viewoptions)) {
             $hidden['includeauto'] = $this->viewoptions['includeauto'];
         }
-        $mform = new quiz_grading_settings($hidden, $counts);
+        $mform = new quiz_grading_settings($hidden, $counts, $shownames, $showidnumbers);
 
         // Tell the form the current settings.
         $settings = new stdClass;
@@ -514,7 +520,7 @@ END;
      * @param integer $slot The slot for the questions you want to konw about.
      * @param integer $questionid (optional) Only return attempts that were of this specific question.
      * @param string $summarystate 'all', 'needsgrading', 'autograded' or 'manuallygraded'.
-     * @param string $orderby 'random', 'date' or 'student'.
+     * @param string $orderby 'random', 'date', 'student' or 'idnumber'.
      * @param integer $page implements paging of the results.
      *      Ignored if $orderby = random or $pagesize is null.
      * @param integer $pagesize implements paging of the results. null = all.
@@ -539,9 +545,11 @@ END;
                     WHERE sortqas.questionattemptid = qa.id
                         AND sortqas.state {$dm->in_summary_state_test('manuallygraded', false)}
                     )";
-        } else if ($orderby == 'student') {
+        } else if ($orderby == 'student' || $orderby == 'idnumber') {
             $qubaids->from .= " JOIN {$CFG->prefix}user u ON quiza.userid = u.id ";
-            $orderby = sql_fullname('u.firstname', 'u.lastname');
+            if ($orderby == 'student') {
+                $orderby = sql_fullname('u.firstname', 'u.lastname');
+            }
         }
 
         return $dm->load_questions_usages_where_question_in_state($qubaids, $summarystate,

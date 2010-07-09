@@ -9,6 +9,7 @@ $string['attemptstograde'] = 'Attempts to grade';
 $string['automaticallygraded'] = 'Automatically graded';
 $string['backtothelistofquestions'] = 'Back to the list of questions';
 $string['bydate'] = 'By date';
+$string['bystudentidnumber'] = 'By student id number';
 $string['bystudentname'] = 'By student name';
 $string['cannotloadquestioninfo'] = 'Unable to load questiontype specific question information';
 $string['cannotgradethisattempt'] = 'Cannot grade this attempt.';
