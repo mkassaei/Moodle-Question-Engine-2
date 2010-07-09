@@ -37,12 +37,16 @@ class quiz_grading_settings extends moodleform {
     protected $includeauto;
     protected $hidden = array();
     protected $counts;
+    protected $shownames;
+    protected $showidnumbers;
 
-    public function __construct($hidden, $counts) {
+    public function __construct($hidden, $counts, $shownames, $showidnumbers) {
         global $CFG;
         $this->includeauto = !empty($hidden['includeauto']);
         $this->hidden = $hidden;
         $this->counts = $counts;
+        $this->shownames = $shownames;
+        $this->showidnumbers = $showidnumbers;
         parent::__construct($CFG->wwwroot . '/mod/quiz/report.php', null, 'get');
     }
 
@@ -69,8 +73,13 @@ class quiz_grading_settings extends moodleform {
         $orderoptions = array(
             'random' => get_string('randomly', 'quiz_grading'),
             'date' => get_string('bydate', 'quiz_grading'),
-            'student' => get_string('bystudentname', 'quiz_grading'),
         );
+        if ($this->shownames) {
+            $orderoptions['student'] = get_string('bystudentname', 'quiz_grading');
+        }
+        if ($this->showidnumbers) {
+            $orderoptions['idnumber'] = get_string('bystudentidnumber', 'quiz_grading');
+        }
         $mform->addElement('select', 'order', get_string('orderattempts', 'quiz_grading'), $orderoptions);
 
         foreach ($this->hidden as $name => $value) {
