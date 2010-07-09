@@ -141,7 +141,7 @@ class quiz_grading_report extends quiz_default_report {
         $where = "quiza.quiz = {$this->cm->instance} AND quiza.preview = 0 AND quiza.timefinish <> 0";
 
         if ($this->currentgroup) {
-            $where .= ' AND quiza.userid IN (' . implode(',', $this->userids) . ')';
+            $where .= ' AND quiza.userid IN (' . implode(',', array_keys($this->users)) . ')';
         }
 
         $sql = new stdClass;
@@ -160,7 +160,7 @@ class quiz_grading_report extends quiz_default_report {
                 quiza.timefinish <> 0";
         if ($this->currentgroup) {
             $where .= ' AND
-                quiza.userid IN (' . implode(',', $this->userids) . ')';
+                quiza.userid IN (' . implode(',', array_keys($this->users)) . ')';
         }
 
         return new qubaid_join("{$CFG->prefix}quiz_attempts quiza",
