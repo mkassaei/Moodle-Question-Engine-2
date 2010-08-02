@@ -93,7 +93,7 @@ class question_edit_ddwtos_form extends question_edit_form {
         //add the answer (choice) fields to the form
         $this->definition_answer_choice($mform);
 
-        $this->add_overall_feedback_fields(true);
+        $this->add_combined_feedback_fields(true);
         $this->add_interactive_settings(true, true);
     }
 

@@ -40,7 +40,7 @@ class qtype_ddwtos_test_helper {
 
         $dd->shufflechoices = true;
 
-        test_question_maker::set_standard_overall_feedback_fields($dd);
+        test_question_maker::set_standard_combined_feedback_fields($dd);
 
         $dd->choices = array(
             1 => array(
@@ -78,7 +78,7 @@ class qtype_ddwtos_test_helper {
 
         $dd->shufflechoices = true;
 
-        test_question_maker::set_standard_overall_feedback_fields($dd);
+        test_question_maker::set_standard_combined_feedback_fields($dd);
 
         $dd->choices = array(
             1 => array(

@@ -55,7 +55,7 @@ class question_edit_multichoice_form extends question_edit_form {
         $this->add_per_answer_fields($mform, get_string('choiceno', 'qtype_multichoice', '{no}'),
                 $creategrades->gradeoptionsfull, max(5, QUESTION_NUMANS_START));
 
-        $this->add_overall_feedback_fields(true);
+        $this->add_combined_feedback_fields(true);
         $mform->disabledIf('shownumcorrect', 'single', 'eq', 1);
 
         $this->add_interactive_settings(true, true);

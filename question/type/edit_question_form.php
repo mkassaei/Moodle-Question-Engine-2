@@ -274,10 +274,10 @@ class question_edit_form extends moodleform {
         $this->repeat_elements($repeated, $repeatsatstart, $repeatedoptions, 'noanswers', 'addanswers', $addoptions, get_string('addmorechoiceblanks', 'qtype_multichoice'));
     }
 
-    protected function add_overall_feedback_fields($withshownumpartscorrect = false) {
+    protected function add_combined_feedback_fields($withshownumpartscorrect = false) {
         $mform = $this->_form;
 
-        $mform->addElement('header', 'overallfeedbackhdr', get_string('overallfeedback', 'qtype_multichoice'));
+        $mform->addElement('header', 'combinedfeedbackhdr', get_string('combinedfeedback', 'question'));
 
         foreach (array('correctfeedback', 'partiallycorrectfeedback', 'incorrectfeedback') as $feedbackname) {
             $mform->addElement('htmleditor', $feedbackname, get_string($feedbackname, 'question'),

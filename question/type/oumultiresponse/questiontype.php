@@ -268,7 +268,7 @@ class qtype_oumultiresponse extends question_type {
         $question->answernumbering = $format->getpath($data,
                 array('#', 'answernumbering', 0, '#'), 'abc');
 
-        $format->import_overall_feedback($question, $data, true);
+        $format->import_combined_feedback($question, $data, true);
 
         // Run through the answers
         $answers = $data['#']['answer'];
@@ -304,7 +304,7 @@ class qtype_oumultiresponse extends question_type {
         $output .= "    <shuffleanswers>" . $format->get_single($question->options->shuffleanswers) . "</shuffleanswers>\n";
         $output .= "    <answernumbering>{$question->options->answernumbering}</answernumbering>\n";
 
-        $output .= $format->write_overall_feedback($question->options);
+        $output .= $format->write_combined_feedback($question->options);
         $output .= $format->write_answers($question->options->answers);
 
         return $output;

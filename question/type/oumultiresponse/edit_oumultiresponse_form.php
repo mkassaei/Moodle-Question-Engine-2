@@ -47,7 +47,7 @@ class question_edit_oumultiresponse_form extends question_edit_form {
         $this->add_per_answer_fields($mform, get_string('choiceno', 'qtype_multichoice', '{no}'),
                 null, max(5, QUESTION_NUMANS_START));
 
-        $this->add_overall_feedback_fields(true);
+        $this->add_combined_feedback_fields(true);
 
         $this->add_interactive_settings(true, true);
     }

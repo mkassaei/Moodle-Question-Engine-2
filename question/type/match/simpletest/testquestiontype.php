@@ -66,7 +66,7 @@ class qtype_match_test extends UnitTestCase {
         $q->modifiedby = $USER->id;
 
         $q->options->shuffleanswers = false;
-        test_question_maker::set_standard_overall_feedback_fields($q->options);
+        test_question_maker::set_standard_combined_feedback_fields($q->options);
 
         $q->options->subquestions = array(
             14 => (object) array('id' => 14, 'questiontext' => 'frog', 'answertext' => 'amphibian'),

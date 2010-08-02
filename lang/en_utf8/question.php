@@ -127,6 +127,7 @@ $string['clearwrongparts'] = 'Clear incorrect responses';
 $string['clicktoflag'] = 'Click to flag this question';
 $string['clicktounflag'] = 'Click to un-flag this question';
 $string['closepreview'] = 'Close preview';
+$string['combinedfeedback'] = 'Combined feedback';
 $string['commented'] = 'Commented: {$a}';
 $string['complete'] = 'Complete';
 $string['correct'] = 'Correct';

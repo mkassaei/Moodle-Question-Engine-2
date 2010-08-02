@@ -358,7 +358,7 @@ class qtype_ddwtos extends question_type {
             }
         }
 
-        $format->import_overall_feedback($question, $data, true);
+        $format->import_combined_feedback($question, $data, true);
         $format->import_hints($question, $data, true);
 
         return $question;
@@ -369,7 +369,7 @@ class qtype_ddwtos extends question_type {
 
         $output .= '    <shuffleanswers>' . $question->options->shuffleanswers . "</shuffleanswers>\n";
 
-        $output .= $format->write_overall_feedback($question->options);
+        $output .= $format->write_combined_feedback($question->options);
 
         foreach ($question->options->answers as $answer) {
             $options = unserialize($answer->feedback);

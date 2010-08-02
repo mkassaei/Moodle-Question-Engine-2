@@ -146,7 +146,7 @@ class test_question_maker {
         $mc->shuffleanswers = 1;
         $mc->answernumbering = 'abc';
 
-        self::set_standard_overall_feedback_fields($mc);
+        self::set_standard_combined_feedback_fields($mc);
 
         $mc->answers = array(
             13 => new question_answer('A', 0.5, 'A is part of the right answer'),
@@ -175,7 +175,7 @@ class test_question_maker {
 
         $match->shufflestems = 1;
 
-        self::set_standard_overall_feedback_fields($match);
+        self::set_standard_combined_feedback_fields($match);
 
         $match->stems = array('', 'Dog', 'Frog', 'Toad', 'Cat');
         $match->choices = array('', 'Mammal', 'Amphibian', 'Insect');
@@ -274,7 +274,7 @@ class test_question_maker {
      * methods in {@link qbehaviour_walkthrough_test_base} to works.
      * @param question_definition $q the question to add the feedback to.
      */
-    public static function set_standard_overall_feedback_fields($q) {
+    public static function set_standard_combined_feedback_fields($q) {
         $q->correctfeedback = self::STANDARD_OVERALL_CORRECT_FEEDBACK;
         $q->partiallycorrectfeedback = self::STANDARD_OVERALL_PARTIALLYCORRECT_FEEDBACK;
         $q->shownumcorrect = true;
@@ -409,15 +409,15 @@ class qbehaviour_walkthrough_test_base extends UnitTestCase {
         return new PatternExpectation('/' . preg_quote(get_string('incorrect', 'question')) . '/');
     }
 
-    protected function get_contains_standard_correct_overall_feedback_expectation() {
+    protected function get_contains_standard_correct_combined_feedback_expectation() {
         return new PatternExpectation('/' . preg_quote(test_question_maker::STANDARD_OVERALL_CORRECT_FEEDBACK) . '/');
     }
 
-    protected function get_contains_standard_partiallycorrect_overall_feedback_expectation() {
+    protected function get_contains_standard_partiallycorrect_combined_feedback_expectation() {
         return new PatternExpectation('/' . preg_quote(test_question_maker::STANDARD_OVERALL_PARTIALLYCORRECT_FEEDBACK) . '/');
     }
 
-    protected function get_contains_standard_incorrect_overall_feedback_expectation() {
+    protected function get_contains_standard_incorrect_combined_feedback_expectation() {
         return new PatternExpectation('/' . preg_quote(test_question_maker::STANDARD_OVERALL_INCORRECT_FEEDBACK) . '/');
     }
 

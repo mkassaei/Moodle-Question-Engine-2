@@ -32,7 +32,7 @@
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class qtype_multichoice_renderer_base extends qtype_with_overall_feedback_renderer {
+abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedback_renderer {
     abstract protected function get_input_type();
 
     abstract protected function get_input_name(question_attempt $qa, $value);
@@ -171,7 +171,7 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_overall_feedba
     }
 
     public function specific_feedback(question_attempt $qa) {
-        return $this->overall_feedback($qa);
+        return $this->combined_feedback($qa);
     }
 }
 

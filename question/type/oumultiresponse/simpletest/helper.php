@@ -41,7 +41,7 @@ class qtype_oumultiresponse_test_helper {
         $mc->shufflechoices = true;
         $mc->answernumbering = 'abc';
 
-        test_question_maker::set_standard_overall_feedback_fields($mc);
+        test_question_maker::set_standard_combined_feedback_fields($mc);
 
         $mc->answers = array(
             13 => new question_answer('One', 1, 'One is odd.'),

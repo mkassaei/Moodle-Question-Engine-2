@@ -2595,10 +2595,10 @@ body.notes .notesgroup {
   margin-top: 0;
 }
 
-#overallfeedbackhdr div.fhtmleditor {
+#combinedfeedbackhdr div.fhtmleditor {
     padding: 0;
 }
-#overallfeedbackhdr div.fcheckbox {
+#combinedfeedbackhdr div.fcheckbox {
     margin-bottom: 1em;
 }
 

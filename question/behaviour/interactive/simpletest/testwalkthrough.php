@@ -355,7 +355,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
                 new PatternExpectation('/' . preg_quote(get_string('notcomplete', 'qbehaviour_interactive')) . '/'),
                 $this->get_contains_hint_expectation('This is the first hint'),
                 $this->get_contains_num_parts_correct(1),
-                $this->get_contains_standard_incorrect_overall_feedback_expectation(),
+                $this->get_contains_standard_incorrect_combined_feedback_expectation(),
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . $right[0], '1'),
                 $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . $right[1]),
                 $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . $wrong[0]),

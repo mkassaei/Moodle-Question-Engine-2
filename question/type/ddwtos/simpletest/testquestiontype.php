@@ -77,7 +77,7 @@ class qtype_ddwtos_test extends UnitTestCase {
 
         $dd->options->shuffleanswers = true;
 
-        test_question_maker::set_standard_overall_feedback_fields($dd->options);
+        test_question_maker::set_standard_combined_feedback_fields($dd->options);
 
         $dd->options->answers = array(
             (object) array('answer' => 'quick', 'feedback' => 'O:8:"stdClass":2:{s:9:"draggroup";s:1:"1";s:8:"infinite";i:0;}'),
