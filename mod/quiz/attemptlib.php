@@ -1078,6 +1078,9 @@ abstract class quiz_nav_panel_base {
     protected function get_question_state_classes(question_attempt $qa, $showcorrectness) {
         // The current status of the question.
         $classes = $qa->get_state()->get_state_class($showcorrectness);
+        if (!$showcorrectness && $classes == 'notanswered') {
+            $classes = 'complete';
+        }
 
         // Plus a marker for the current page.
         if ($qa->get_question()->_page == $this->page) {
