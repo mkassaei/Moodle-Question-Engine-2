@@ -56,7 +56,7 @@ class qtype_truefalse_question extends question_graded_automatically {
 
     public function classify_response(array $response) {
         if (!array_key_exists('answer', $response)) {
-            return array(question_classified_response::no_response());
+            return array($this->id => question_classified_response::no_response());
         }
         list($fraction) = $this->grade_response($response);
         if ($response['answer']) {
