@@ -64,7 +64,7 @@ class question_engine_data_mapper {
     public function insert_question_attempt(question_attempt $qa) {
         $record = new stdClass;
         $record->questionusageid = $qa->get_usage_id();
-        $record->slot = $qa->get_number_in_usage();
+        $record->slot = $qa->get_slot();
         $record->behaviour = addslashes($qa->get_behaviour_name());
         $record->questionid = $qa->get_question()->id;
         $record->maxmark = $qa->get_max_mark();
@@ -76,7 +76,7 @@ class question_engine_data_mapper {
         $record->timemodified = time();
         $record->id = insert_record('question_attempts', $record);
         if (!$record->id) {
-            throw new Exception('Failed to save question_attempt ' . $qa->get_number_in_usage());
+            throw new Exception('Failed to save question_attempt ' . $qa->get_slot());
         }
 
         foreach ($qa->get_step_iterator() as $seq => $step) {
@@ -863,19 +863,19 @@ class question_engine_unit_of_work implements question_usage_observer {
     }
 
     public function notify_attempt_modified(question_attempt $qa) {
-        $no = $qa->get_number_in_usage();
+        $no = $qa->get_slot();
         if (!array_key_exists($no, $this->attemptsadded)) {
             $this->attemptsmodified[$no] = $qa;
         }
     }
 
     public function notify_attempt_added(question_attempt $qa) {
-        $this->attemptsadded[$qa->get_number_in_usage()] = $qa;
+        $this->attemptsadded[$qa->get_slot()] = $qa;
     }
 
     public function notify_delete_attempt_steps(question_attempt $qa) {
 
-        if (array_key_exists($qa->get_number_in_usage(), $this->attemptsadded)) {
+        if (array_key_exists($qa->get_slot(), $this->attemptsadded)) {
             return;
         }
 
@@ -890,7 +890,7 @@ class question_engine_unit_of_work implements question_usage_observer {
     }
 
     public function notify_step_added(question_attempt_step $step, question_attempt $qa, $seq) {
-        if (array_key_exists($qa->get_number_in_usage(), $this->attemptsadded)) {
+        if (array_key_exists($qa->get_slot(), $this->attemptsadded)) {
             return;
         }
         $this->stepsadded[] = array($step, $qa->get_database_id(), $seq);

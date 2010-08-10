@@ -67,6 +67,7 @@ add_to_log($attemptobj->get_courseid(), 'quiz', 'view summary', 'summary.php?att
 //$attemptobj->load_question_states();
 
 /// Print the page header
+require_js(array('yui_dom-event'));
 require_js($CFG->httpswwwroot . '/mod/quiz/quiz.js');
 $title = get_string('summaryofattempt', 'quiz');
 if ($accessmanager->securewindow_required($attemptobj->is_preview_user())) {

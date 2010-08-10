@@ -57,7 +57,7 @@ class core_question_renderer extends renderer_base {
 
         $output = '';
         $output .= html_writer::start_tag('div', array(
-            'id' => 'q' . $qa->get_number_in_usage(),
+            'id' => 'q' . $qa->get_slot(),
             'class' => 'que ' . $qa->get_question()->qtype->name() . ' ' .
                     $qa->get_behaviour_name(),
         ));
@@ -196,7 +196,7 @@ class core_question_renderer extends renderer_base {
                         '<input type="checkbox" id="' . $id . 'checkbox" name="' . $id . '" value="1" ' . $checked . ' />' .
                         '<label id="' . $id . 'label" for="' . $id . '">' . $this->get_flag_html(
                         $qa->is_flagged(), $id . 'img') . '</label>' . "\n" .
-                        print_js_call('question_flag_changer.init_flag', array($id, $postdata, $qa->get_number_in_usage()), true);
+                        print_js_call('question_flag_changer.init_flag', array($id, $postdata, $qa->get_slot()), true);
                 break;
             default:
                 $flagcontent = '';
@@ -316,7 +316,7 @@ class core_question_renderer extends renderer_base {
                 $rowclass = 'current';
             } else if (!empty($options->questionreviewlink)) {
                 $stepno = link_to_popup_window($options->questionreviewlink .
-                        '&amp;slot=' . $qa->get_number_in_usage() .
+                        '&amp;slot=' . $qa->get_slot() .
                         '&step=' . $i, 'reviewquestion', $stepno, 450, 650,
                         get_string('reviewresponse', 'quiz'), 'none', true);
             }

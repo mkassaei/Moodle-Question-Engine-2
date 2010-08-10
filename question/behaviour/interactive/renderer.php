@@ -55,7 +55,7 @@ class qbehaviour_interactive_renderer extends qbehaviour_renderer {
         $output = html_writer::empty_tag('input', $attributes);
         if (empty($attributes['disabled'])) {
             $output .= print_js_call('question_init_submit_button',
-                    array($attributes['id'], $qa->get_number_in_usage()), true);
+                    array($attributes['id'], $qa->get_slot()), true);
         }
         return $output;
     }
