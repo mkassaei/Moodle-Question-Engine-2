@@ -1096,6 +1096,7 @@ abstract class quiz_nav_panel_base {
                 '" class="qnbutton ' . implode(' ', array_keys($attributes)) .
                 '" id="' . $this->get_button_id($qa) . '" title="' .
                 $qa->get_state_string($showcorrectness) . '">' .
+                '<span class="thispageholder"></span><span class="trafficlight"></span>' .
                 get_string($qnostring, 'quiz', $a) . '</a>';
     }
 
@@ -1177,7 +1178,8 @@ class quiz_attempt_nav_panel extends quiz_nav_panel_base {
     }
 
     protected function get_before_button_bits() {
-        return '<div id="quiznojswarning">' . get_string('navnojswarning', 'quiz') . "</div>\n";
+        return '<div id="quiznojswarning">' . get_string('navnojswarning', 'quiz') . "</div>\n" .
+                print_js_call('quiz_hide_nav_warning', array(), true);
     }
 
     protected function get_end_bits() {

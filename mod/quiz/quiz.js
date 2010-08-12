@@ -164,9 +164,14 @@ function quiz_init_nav_button(buttonid, slot, strflagged) {
 function quiz_init_end_link() {
     var link = document.getElementById('endtestlink');
     YAHOO.util.Event.addListener(link, 'click', function(e) {
-        e.preventDefault(e);
+        YAHOO.util.Event.preventDefault(e);
         quiz_navigate_to(-1);
     });
+}
+
+function quiz_hide_nav_warning() {
+    var warning = document.getElementById('quiznojswarning');
+    warning.parentNode.removeChild(warning);
 }
 
 function quiz_nav_button_clicked(e) {
@@ -174,7 +179,7 @@ function quiz_nav_button_clicked(e) {
         return;
     }
 
-    e.preventDefault(e);
+    YAHOO.util.Event.preventDefault(e);
 
     var pageidmatch = this.href.match(/page=(\d+)/);
     var pageno;
@@ -184,9 +189,10 @@ function quiz_nav_button_clicked(e) {
         pageno = 0;
     }
 
+    var form = document.getElementById('responseform');
     var questionidmatch = this.href.match(/#q(\d+)/);
     if (questionidmatch) {
-        form.set(action, form.get(action) + '#q' + questionidmatch[1]);
+        form.action = form.action + '#q' + questionidmatch[1];
     }
 
     quiz_navigate_to(pageno);

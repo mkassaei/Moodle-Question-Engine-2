@@ -4094,9 +4094,8 @@ table.quizreviewsummary td.cell {
   padding-top: 1px;
 }
 #quiznavigation .qnbutton {
-  -moz-appearance: none;
-  -moz-box-sizing: content-box;
   display: block;
+  position: relative;
   float: left;
   width: 1.5em;
   height: 1.5em;
@@ -4107,9 +4106,17 @@ table.quizreviewsummary td.cell {
   background: #eee no-repeat top right;
   text-align: center;
   vertical-align: middle;
-  cursor: pointer;
-  white-space: normal;
 }
+#quiznavigation .qnbutton .trafficlight,
+#quiznavigation .qnbutton .thispageholder {
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
 #quiznavigation #user-picture {
     margin: 0.5em 0;
 }
