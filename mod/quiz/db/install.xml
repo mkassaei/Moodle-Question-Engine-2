@@ -170,7 +170,7 @@
         <KEY NAME="questionusageid" TYPE="foreign" FIELDS="questionusageid" REFTABLE="question_usages" REFFIELDS="id" PREVIOUS="questionid"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="questionusageid-numberinusage" UNIQUE="true" FIELDS="questionusageid, slot"/>
+        <INDEX NAME="questionusageid-slot" UNIQUE="true" FIELDS="questionusageid, slot"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="question_attempt_steps" COMMENT="Stores one step in in a question attempt. As well as the data here, the step will have some data in the question_attempt_step_data table." PREVIOUS="question_attempts" NEXT="question_attempt_step_data">
