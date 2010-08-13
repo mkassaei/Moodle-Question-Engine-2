@@ -42,6 +42,11 @@ class qbehaviour_deferredfeedback extends question_behaviour_with_save {
         return 'question_automatically_gradable';
     }
 
+    public static function get_unused_display_options() {
+        return array('correctness', 'marks', 'specificfeedback', 'generalfeedback',
+                'rightanswer');
+    }
+
     public function get_min_fraction() {
         return $this->question->get_min_fraction();
     }

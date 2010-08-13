@@ -51,4 +51,14 @@ class question_engine_test extends UnitTestCase {
         // Exercise SUT
         question_engine::load_behaviour_class('nonexistantbehaviour');
     }
+
+    public function test_get_behaviour_unused_display_options() {
+        $this->assertEqual(array(), question_engine::get_behaviour_unused_display_options('interactive'));
+        $this->assertEqual(array('correctness', 'marks', 'specificfeedback', 'generalfeedback', 'rightanswer'),
+                question_engine::get_behaviour_unused_display_options('deferredfeedback'));
+        $this->assertEqual(array('correctness', 'marks', 'specificfeedback', 'generalfeedback', 'rightanswer'),
+                question_engine::get_behaviour_unused_display_options('deferredcbm'));
+        $this->assertEqual(array('correctness', 'marks', 'specificfeedback', 'generalfeedback', 'rightanswer'),
+                question_engine::get_behaviour_unused_display_options('manualgraded'));
+    }
 }

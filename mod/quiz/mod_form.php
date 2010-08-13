@@ -37,6 +37,21 @@ MoodleQuickForm::registerElementType('duration', "$CFG->libdir/form/duration.php
 class mod_quiz_mod_form extends moodleform_mod {
     var $_feedbacks;
 
+    protected static $reviewfields = array(); // Initialised in the constructor.
+
+    public function __construct($instance, $section, $cm) {
+        self::$reviewfields = array(
+            'attempt' => get_string('theattempt', 'quiz'),
+            'correctness' => get_string('whethercorrect', 'question'),
+            'marks' => get_string('marks', 'question'),
+            'specificfeedback' => get_string('specificfeedback', 'question'),
+            'generalfeedback' => get_string('generalfeedback', 'question'),
+            'rightanswer' => get_string('rightanswer', 'question'),
+            'overallfeedback' => get_string('overallfeedback', 'quiz'),
+        );
+        parent::__construct($instance, $section, $cm);
+    }
+
     function definition() {
 
         global $COURSE, $CFG;
@@ -136,7 +151,8 @@ class mod_quiz_mod_form extends moodleform_mod {
         $mform->setDefault('shuffleanswers', $CFG->quiz_shuffleanswers);
 
     /// How questions behave (question behaviour).
-        $mform->addElement('select', 'preferredbehaviour', get_string('howquestionsbehave', 'question'), question_engine::get_archetypal_behaviours());
+        $behaviours = question_engine::get_archetypal_behaviours();
+        $mform->addElement('select', 'preferredbehaviour', get_string('howquestionsbehave', 'question'), $behaviours);
         $mform->setHelpButton('preferredbehaviour', array('howquestionsbehave', get_string('howquestionsbehave','question'), 'question'));
         $mform->setAdvanced('preferredbehaviour', $CFG->quiz_fix_preferredbehaviour);
         $mform->setDefault('preferredbehaviour', $CFG->quiz_preferredbehaviour);
@@ -158,6 +174,18 @@ class mod_quiz_mod_form extends moodleform_mod {
         $this->add_review_options_group($mform, 'immediately', mod_quiz_display_options::IMMEDIATELY_AFTER);
         $this->add_review_options_group($mform, 'open', mod_quiz_display_options::LATER_WHILE_OPEN);
         $this->add_review_options_group($mform, 'closed', mod_quiz_display_options::AFTER_CLOSE);
+
+        foreach ($behaviours as $behaviour => $notused) {
+            $unusedoptions = question_engine::get_behaviour_unused_display_options($behaviour);
+            foreach ($unusedoptions as $unusedoption) {
+                $mform->disabledIf($unusedoption . 'during', 'preferredbehaviour',
+                        'eq', $behaviour);
+            }
+        }
+        $mform->disabledIf('attemptduring', 'preferredbehaviour',
+                'neq', 'wontmatch');
+        $mform->disabledIf('overallfeedbackduring', 'preferredbehaviour',
+                'neq', 'wontmatch');
 
 //-------------------------------------------------------------------------------
         $mform->addElement('header', 'display', get_string('display', 'form'));
@@ -287,23 +315,14 @@ class mod_quiz_mod_form extends moodleform_mod {
 
     protected function add_review_options_group($mform, $whenname, $when) {
         global $CFG;
-        $fields = array(
-            'attempt' => get_string('theattempt', 'quiz'),
-            'correctness' => get_string('whethercorrect', 'question'),
-            'marks' => get_string('marks', 'question'),
-            'specificfeedback' => get_string('specificfeedback', 'question'),
-            'generalfeedback' => get_string('generalfeedback', 'question'),
-            'rightanswer' => get_string('rightanswer', 'question'),
-            'overallfeedback' => get_string('overallfeedback', 'quiz'),
-        );
 
         $group = array();
-        foreach ($fields as $field => $label) {
+        foreach (self::$reviewfields as $field => $label) {
             $group[] = $mform->createElement('checkbox', $field . $whenname, '', $label);
         }
         $mform->addGroup($group, $whenname . 'optionsgrp', get_string('review' . $whenname, 'quiz'), null, false);
 
-        foreach ($fields as $field => $notused) {
+        foreach (self::$reviewfields as $field => $notused) {
             $cfgfield = 'quiz_review' . $field;
             if ($CFG->$cfgfield & $when) {
                 $mform->setDefault($field . $whenname, 1);
@@ -319,10 +338,7 @@ class mod_quiz_mod_form extends moodleform_mod {
     }
 
     protected function preprocessing_review_settings(&$toform, $whenname, $when) {
-        static $fields = array('attempt', 'correctness', 'marks', 'specificfeedback',
-                'generalfeedback', 'rightanswer', 'overallfeedback');
-
-        foreach ($fields as $field) {
+        foreach (self::$reviewfields as $field => $notused) {
             $fieldname = 'review' . $field;
             if (array_key_exists($fieldname, $toform)) {
                 $toform[$field . $whenname] = $toform[$fieldname] & $when;

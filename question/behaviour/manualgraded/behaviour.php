@@ -38,6 +38,11 @@
 class qbehaviour_manualgraded extends question_behaviour_with_save {
     const IS_ARCHETYPAL = true;
 
+    public static function get_unused_display_options() {
+        return array('correctness', 'marks', 'specificfeedback', 'generalfeedback',
+                'rightanswer');
+    }
+
     public function adjust_display_options(question_display_options $options) {
         if ($this->qa->get_state()->is_finished()) {
             $options->readonly = true;

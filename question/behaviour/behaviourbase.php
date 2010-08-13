@@ -94,6 +94,16 @@ abstract class question_behaviour {
     }
 
     /**
+     * 'Override' this method if there are some display options that do not make
+     * sense 'during the attempt'.
+     * @return array of {@link question_display_options} field names, that are
+     * not relevant to this behaviour before a 'finish' action.
+     */
+    public static function get_unused_display_options() {
+        return array();
+    }
+
+    /**
      * Cause the question to be renderered. This gets the appropriate behaviour
      * renderer using {@link get_renderer()}, and adjusts the display
      * options using {@link adjust_display_options()} and then calls

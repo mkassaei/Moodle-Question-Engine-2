@@ -140,6 +140,20 @@ abstract class question_engine {
     }
 
     /**
+     * @param string $behaviour the name of a behaviour.
+     * @return array of {@link question_display_options} field names, that are
+     * not relevant to this behaviour before a 'finish' action.
+     */
+    public static function get_behaviour_unused_display_options($behaviour) {
+        self::load_behaviour_class($behaviour);
+        $class = 'qbehaviour_' . $behaviour;
+        if (!method_exists($class, 'get_unused_display_options')) {
+            return question_behaviour::get_unused_display_options();
+        }
+        return call_user_func(array($class, 'get_unused_display_options'));
+    }
+
+    /**
      * Create an behaviour for a particular type. If that type cannot be
      * found, return an instance of qbehaviour_missing.
      *
@@ -154,7 +168,7 @@ abstract class question_engine {
      */
     public static function make_behaviour($behaviour, question_attempt $qa, $preferredbehaviour) {
         try {
-            question_engine::load_behaviour_class($behaviour);
+            self::load_behaviour_class($behaviour);
         } catch (Exception $e) {
             question_engine::load_behaviour_class('missing');
             return new qbehaviour_missing($qa, $preferredbehaviour);
@@ -188,7 +202,7 @@ abstract class question_engine {
      * archetypal behaviour is one that is suitable to pass the name of to
      * {@link question_usage_by_activity::set_preferred_behaviour()}.
      *
-     * @return array model name => lang string for this model name.
+     * @return array model name => lang string for this behaviour name.
      */
     public static function get_archetypal_behaviours() {
         $archetypes = array();
