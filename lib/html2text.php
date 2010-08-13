@@ -219,7 +219,7 @@ class html2text
         '-',
         '*',
         '£',
-        'EUR',                                  // Euro sign. � ?
+        'EUR',                                  // Euro sign. € ?
         ' '                                     // Runs of spaces, post-handling
     );
 

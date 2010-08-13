@@ -150,8 +150,8 @@ class qformat_xml extends qformat_default {
                 get_string('xmlimportnoname', 'quiz'));
         $qo->questiontext = $this->getpath($question,
                 array('#', 'questiontext', 0, '#', 'text', 0, '#'), '', true);
-        $qo->questiontextformat = $this->trans_format(
-                $this->getpath($question, array('#', 'questiontext', 0, '@', 'format'), ''));
+        $qo->questiontextformat = $this->trans_format($this->getpath(
+                $question, array('#', 'questiontext', 0, '@', 'format'), ''));
         $qo->image = $this->getpath($question, array('#', 'image', 0, '#'), $qo->image);
         $image_base64 = $this->getpath($question, array('#', 'image_base64', '0', '#'), '');
         if (!empty($image_base64)) {

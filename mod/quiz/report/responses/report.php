@@ -112,9 +112,13 @@ class quiz_responses_report extends quiz_attempt_report {
         $displayoptions['resp'] = $includeresp;
         $displayoptions['right'] = $includeright;
 
+        if ($attemptsmode == QUIZ_REPORT_ATTEMPTS_ALL) {
+            $allowed = array();
+        }
+
         if ($attemptids = optional_param('attemptid', array(), PARAM_INT) && confirm_sesskey()) {
             require_capability('mod/quiz:deleteattempts', $this->context);
-            $this->delete_selected_attempts($quiz, $cm, $attemptids, $groupstudents);
+            $this->delete_selected_attempts($quiz, $cm, $attemptids, $allowed, $groupstudents);
             redirect($reporturl->out(false, $displayoptions));
         }
 

@@ -1787,7 +1787,7 @@ function format_text_email($text, $format) {
             break;
 
         case FORMAT_WIKI:
-            $text = wiki_to_html($text);
+            // there should not be any of these any more!
         /// This expression turns links into something nice in a text format. (Russell Jungwirth)
         /// From: http://php.net/manual/en/function.eregi-replace.php and simplified
             $text = eregi_replace('(<a [^<]*href=["|\']?([^ "\']*)["|\']?[^>]*>([^<]*)</a>)','\\3 [ \\2 ]', $text);
@@ -2290,7 +2290,7 @@ function markdown_to_html($text) {
  *
  * @param string $html The text to be converted.
  * @param integer $width Width to wrap the text at. (optional, default 75 which
- *      is a good value for email. 0 mean do not limit line length.)
+ *      is a good value for email. 0 means do not limit line length.)
  * @return string plain text equivalent of the HTML.
  */
 function html_to_text($html, $width = 75) {

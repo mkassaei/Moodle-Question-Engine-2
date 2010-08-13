@@ -982,7 +982,7 @@ class question_type {
         $qo->qtype = $question_type;
 
         foreach ($extraquestionfields as $field) {
-            $qo->$field = $format->getpath($data, array('#',$field,0,'#'), $qo->$field);
+            $qo->$field = addslashes($format->getpath($data, array('#',$field,0,'#'), $qo->$field));
         }
 
         // run through the answers
@@ -1019,7 +1019,11 @@ class question_type {
         array_shift($extraquestionfields);
         $expout='';
         foreach ($extraquestionfields as $field) {
-            $expout .= "    <$field>{$question->options->$field}</$field>\n";
+            $exportedvalue = $question->options->$field;
+            if (!empty($exportedvalue) && htmlspecialchars($exportedvalue) != $exportedvalue) {
+                $exportedvalue = '<![CDATA[' . $exportedvalue . ']]>';
+            }
+            $expout .= "    <$field>{$exportedvalue}</$field>\n";
         }
 
         $extraasnwersfields = $this->extra_answer_fields();

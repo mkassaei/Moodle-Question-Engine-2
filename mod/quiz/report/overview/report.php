@@ -96,12 +96,16 @@ class quiz_overview_report extends quiz_attempt_report {
         // We only want to show the checkbox to delete attempts
         // if the user has permissions and if the report mode is showing attempts.
         $candelete = has_capability('mod/quiz:deleteattempts', $this->context)
-                && ($attemptsmode!= QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH_NO);
+                && ($attemptsmode != QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH_NO);
 
         $displayoptions = array();
         $displayoptions['attemptsmode'] = $attemptsmode;
         $displayoptions['qmfilter'] = $qmfilter;
         $displayoptions['regradefilter'] = $regradefilter;
+
+        if ($attemptsmode == QUIZ_REPORT_ATTEMPTS_ALL) {
+            $allowed = array();
+        }
 
         // Load the required questions.
         if ($detailedmarks) {
@@ -171,10 +175,14 @@ class quiz_overview_report extends quiz_attempt_report {
 
         $nostudents = false;
         if (!$students) {
-            notify(get_string('nostudentsyet'));
+            if (!$table->is_downloading()) {
+                notify(get_string('nostudentsyet'));
+            }
             $nostudents = true;
         } else if ($currentgroup && !$groupstudents) {
-            notify(get_string('nostudentsingroup'));
+            if (!$table->is_downloading()) {
+                notify(get_string('nostudentsingroup'));
+            }
             $nostudents = true;
         }
 
