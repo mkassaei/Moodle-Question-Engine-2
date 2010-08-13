@@ -196,8 +196,8 @@ abstract class qtype_renderer extends renderer_base {
  * @copyright 2010 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class qtype_with_overall_feedback_renderer extends qtype_renderer {
-    protected function overall_feedback(question_attempt $qa) {
+abstract class qtype_with_combined_feedback_renderer extends qtype_renderer {
+    protected function combined_feedback(question_attempt $qa) {
         $question = $qa->get_question();
 
         $state = $qa->get_state();

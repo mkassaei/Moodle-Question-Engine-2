@@ -325,10 +325,19 @@ abstract class quiz_attempt_report extends quiz_default_report {
      * @param array $attemptids the list of attempt ids to delete.
      * @param array $groupstudents if this 
      */
-    protected function delete_selected_attempts($quiz, $cm, $attemptids, $groupstudents) {
-        foreach($attemptids as $attemptid) {
+    protected function delete_selected_attempts($quiz, $cm, $attemptids, $allowed, $groupstudents) {
+        foreach ($attemptids as $attemptid) {
             $attempt = get_record('quiz_attempts', 'id', $attemptid);
-            if ($groupstudents && !in_array($attempt->userid, $groupstudents)) {
+            if (!$attempt || $attempt->quiz != $quiz->id || $attempt->preview != 0) {
+                // Ensure the attempt exists, and belongs to this quiz. If not skip.
+                continue;
+            }
+            if ($allowed && !array_key_exists($attempt->userid, $allowed)) {
+                // Ensure the attempt belongs to a student included in the report. If not skip.
+                continue;
+            }
+            if ($groupstudents && !array_key_exists($attempt->userid, $groupstudents)) {
+                // Additional check in groups mode.
                 continue;
             }
             add_to_log($quiz->course, 'quiz', 'delete attempt', 'report.php?id=' . $cm->id,
@@ -430,7 +439,7 @@ abstract class quiz_attempt_report_table extends table_sql {
 
     public function col_duration($attempt) {
         if ($attempt->timefinish) {
-            return format_time($attempt->duration);
+            return format_time($attempt->timefinish - $attempt->timestart);
         } elseif ($attempt->timestart) {
             return get_string('unfinished', 'quiz');
         } else {

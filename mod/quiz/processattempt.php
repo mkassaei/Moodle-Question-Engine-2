@@ -42,31 +42,14 @@ $timenow = time();
 
 /// Get submitted parameters.
 $attemptid = required_param('attempt', PARAM_INT);
-$thispage = optional_param('thispage', 0, PARAM_INT);
+$nextpage = optional_param('nextpage', 0, PARAM_INT);
 $finishattempt = optional_param('finishattempt', 0, PARAM_BOOL);
 $timeup = optional_param('timeup', 0, PARAM_BOOL); // True if form was submitted by timer.
 $scrollpos = optional_param('scrollpos', '', PARAM_RAW);
 
 $attemptobj = quiz_attempt::create($attemptid);
 
-/// Because IE is buggy (see http://www.peterbe.com/plog/button-tag-in-IE) we cannot
-/// do the quiz navigation buttons as <button type="submit" name="page" value="N">Caption</button>.
-/// Instead we have to do them as <input type="submit" name="gotopageN" value="Caption"/> -
-/// at lest that seemed like the least horrible work-around to me.
-$nextpage = $thispage;
-if (optional_param('gotosummary', false, PARAM_BOOL)) {
-    $nextpage = -1;
-} else {
-    $numpagesinquiz = $attemptobj->get_num_pages();
-    for ($i = 0; $i < $numpagesinquiz; $i++) {
-        if (optional_param('gotopage' . $i, false, PARAM_BOOL)) {
-            $nextpage = $i;
-            break;
-        }
-    }
-}
-
-/// Set $nexturl.
+/// Set $nexturl now.
 if ($nextpage == -1) {
     $nexturl = $attemptobj->summary_url();
 } else {

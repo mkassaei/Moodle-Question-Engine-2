@@ -1001,7 +1001,7 @@ function xmldb_quiz_upgrade($oldversion=0) {
             $table->addKeyInfo('questionusageid', XMLDB_KEY_FOREIGN, array('questionusageid'), 'question_usages', array('id'));
 
             // Adding indexes to table question_attempts
-            $table->addIndexInfo('questionusageid-numberinusage', XMLDB_INDEX_UNIQUE, array('questionusageid', 'slot'));
+            $table->addIndexInfo('questionusageid-slot', XMLDB_INDEX_UNIQUE, array('questionusageid', 'slot'));
 
             // Launch create table for question_attempts
             $result = $result && create_table($table);

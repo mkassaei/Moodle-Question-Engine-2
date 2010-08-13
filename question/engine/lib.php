@@ -617,7 +617,7 @@ class question_usage_by_activity {
         }
         $qa->set_number_in_usage(end(array_keys($this->questionattempts)));
         $this->observer->notify_attempt_added($qa);
-        return $qa->get_number_in_usage();
+        return $qa->get_slot();
     }
 
     /**
@@ -1284,7 +1284,7 @@ class question_attempt {
     }
 
     /** @return integer the number used to identify this question_attempt within the usage. */
-    public function get_number_in_usage() {
+    public function get_slot() {
         return $this->slot;
     }
 

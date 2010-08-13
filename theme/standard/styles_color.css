@@ -1118,15 +1118,14 @@ table.quizreviewsummary td.cell {
 }
 
 #quiznavigation .qnbutton {
-  color: #00f;
   border-color: #bbb;
   background-color: #ddd;
 }
-#quiznavigation .qnbutton:hover {
-  color: #f00;
-}
 #quiznavigation .qnbutton.thispage {
-  border-color: black;
+  border-color: #666;
+}
+#quiznavigation .qnbutton.thispage .thispageholder {
+  border: 1px solid #666;
 }
 #quiznavigation .qnbutton.notyetanswered,
 #quiznavigation .qnbutton.requiresgrading {
@@ -1134,8 +1133,9 @@ table.quizreviewsummary td.cell {
 }
 #quiznavigation .qnbutton.correct {
   background-color: #cfc;
-  border-bottom: 0.27em solid #080;
-  height: 1.3em;
+}
+#quiznavigation .qnbutton.correct .trafficlight {
+  border-bottom: 3px solid #080;
 }
 #quiznavigation .qnbutton.partiallycorrect {
   background-color: #ffa;
@@ -1143,10 +1143,15 @@ table.quizreviewsummary td.cell {
 #quiznavigation .qnbutton.notanswered,
 #quiznavigation .qnbutton.incorrect {
   background-color: #fcc;
-  border-top: 0.27em solid #800;
-  height: 1.3em;
-  line-height: 1.23em !important;
 }
+#quiznavigation .qnbutton.notanswered .trafficlight,
+#quiznavigation .qnbutton.incorrect .trafficlight {
+  border-top: 3px solid #800;
+}
+
+#quiznojswarning {color: red;}
+#quiznojswarning {font-size: 0.7em;line-height: 1.1;}
+.jsenabled #quiznojswarning {display: none;}
 
 /***
  *** Modules: Resource

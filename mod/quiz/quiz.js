@@ -22,7 +22,7 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-function init_quiz_form() {
+function quiz_init_form() {
     question_init_form('responseform');
     YAHOO.util.Event.addListener('responseform', 'submit', quiz_timer.stop);
 }
@@ -99,9 +99,9 @@ quiz_timer = {
 
     // Function that updates the text displayed in element timer_display.
     set_displayed_time: function(str) {
-        var display = quiz_timer.timerdisplay
+        var display = quiz_timer.timerdisplay;
         if (!display.firstChild) {
-            display.appendChild(document.createTextNode(str))
+            display.appendChild(document.createTextNode(str));
         } else if (display.firstChild.nodeType == 3) {
             display.firstChild.replaceData(0, display.firstChild.length, str);
         } else {
@@ -153,31 +153,83 @@ quiz_timer = {
     }
 };
 
-// Initialise initialise an on-click handler for navigation buttons that link to a
-// question that is not the first on a page.
-function quiz_init_nav_button_scroll_down(buttonid, slot) {
+// Initialise a button on the navigation panel.
+function quiz_init_nav_button(buttonid, slot, strflagged) {
     var button = document.getElementById(buttonid);
-    YAHOO.util.Event.addListener(button, 'click', function(e) {
-        button.form.action = button.form.action + '#q' + slot;
+    button.stateupdater = new quiz_nav_updater(button, slot, strflagged);
+    if (document.getElementById('responseform')) {
+        YAHOO.util.Event.addListener(button, 'click', quiz_nav_button_clicked);
+    }
+}
+
+function quiz_init_end_link() {
+    var link = document.getElementById('endtestlink');
+    YAHOO.util.Event.addListener(link, 'click', function(e) {
+        YAHOO.util.Event.preventDefault(e);
+        quiz_navigate_to(-1);
     });
 }
 
-// Initialise a button on the navigation panel.
-function quiz_init_nav_button(buttonid, slot) {
-    // Arrange to be notified if the flagged state changes.
-    var button = document.getElementById(buttonid);
-    button.stateupdater = new quiz_nav_updater(button, slot);
+function quiz_hide_nav_warning() {
+    var warning = document.getElementById('quiznojswarning');
+    warning.parentNode.removeChild(warning);
 }
 
-function quiz_nav_updater(element, slot) {
+function quiz_nav_button_clicked(e) {
+    if (YAHOO.util.Dom.hasClass(this, 'thispage')) {
+        return;
+    }
+
+    YAHOO.util.Event.preventDefault(e);
+
+    var pageidmatch = this.href.match(/page=(\d+)/);
+    var pageno;
+    if (pageidmatch) {
+        pageno = pageidmatch[1];
+    } else {
+        pageno = 0;
+    }
+
+    var form = document.getElementById('responseform');
+    var questionidmatch = this.href.match(/#q(\d+)/);
+    if (questionidmatch) {
+        form.action = form.action + '#q' + questionidmatch[1];
+    }
+
+    quiz_navigate_to(pageno);
+}
+
+var quiz_form_submitted = false;
+function quiz_navigate_to(pageno) {
+    if (quiz_form_submitted) {
+        return;
+    }
+    quiz_form_submitted = true;
+    document.getElementById('nextpagehiddeninput').value = pageno;
+
+    var form = document.getElementById('responseform');
+    if (form.onsubmit) {
+        form.onsubmit();
+    }
+    form.submit();
+}
+
+function quiz_nav_updater(element, slot, strflagged) {
     this.element = element;
+    this.strflagged = strflagged;
     question_flag_changer.add_flag_state_listener(slot, this);
 };
 
 quiz_nav_updater.prototype.flag_state_changed = function(newstate) {
     this.element.className = this.element.className.replace(/\s*\bflagged\b\s*/, ' ');
+    var flagstatediv = YAHOO.util.Dom.getElementsByClassName(
+            'flagstate', 'span', this.element)[0];
     if (newstate) {
-        this.element.className += ' flagged';
+        YAHOO.util.Dom.addClass(this.element, 'flagged');
+        flagstatediv.innerHTML = this.strflagged;
+    } else {
+        YAHOO.util.Dom.removeClass(this.element, 'flagged');
+        flagstatediv.innerHTML = '';
     }
 };
 

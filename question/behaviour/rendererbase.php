@@ -137,7 +137,7 @@ abstract class qbehaviour_renderer extends renderer_base {
         if ($options->manualcommentlink) {
             $strcomment = get_string('commentormark', 'question');
             $link = link_to_popup_window($options->manualcommentlink .
-                    '&amp;slot=' . $qa->get_number_in_usage(),
+                    '&amp;slot=' . $qa->get_slot(),
                     'commentquestion', $strcomment, 600, 800, $strcomment, 'none', true);
             $output .= html_writer::tag('div', $link, array('class' => 'commentlink'));
         }
@@ -183,7 +183,7 @@ abstract class qbehaviour_renderer extends renderer_base {
         $output = html_writer::empty_tag('input', $attributes);
         if (!$options->readonly) {
             $output .= print_js_call('question_init_submit_button',
-                    array($attributes['id'], $qa->get_number_in_usage()), true);
+                    array($attributes['id'], $qa->get_slot()), true);
         }
         return $output;
     }

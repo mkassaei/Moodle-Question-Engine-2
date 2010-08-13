@@ -661,7 +661,7 @@ class quiz_attempt {
     /**
      * Get the question_attempt object for a particular question in this attempt.
      * @param integer $slot the number used to identify this question within this attempt.
-     * @return question_attempt 
+     * @return question_attempt
      */
     public function get_question_attempt($slot) {
         return $this->quba->get_question_attempt($slot);
@@ -757,10 +757,8 @@ class quiz_attempt {
      * to jump to a particuar question on the page.
      * @return string the URL to continue this attempt.
      */
-    public function attempt_url($slot = 0, $page = -1) {
-        global $CFG;
-        return $CFG->wwwroot . '/mod/quiz/attempt.php?attempt=' . $this->attempt->id .
-                $this->page_and_question_fragment($slot, $page);
+    public function attempt_url($slot = 0, $page = -1, $thispage = -1) {
+        return $this->page_and_question_url('attempt', $slot, $page, false, $thispage);
     }
 
     /**
@@ -780,19 +778,17 @@ class quiz_attempt {
     }
 
     /**
+     * @param integer $slot indicates which question to link to.
      * @param integer $page if specified, the URL of this particular page of the attempt, otherwise
-     * the URL will go to the first page.
-     * @param integer $questionid a question id. If set, will add a fragment to the URL
-     * to jump to a particuar question on the page.
+     * the URL will go to the first page.  If -1, deduce $page from $slot.
      * @param boolean $showall if true, the URL will be to review the entire attempt on one page,
      * and $page will be ignored.
-     * @param $otherattemptid if given, link to another attempt, instead of the one we represent.
+     * @param integer $thispage if not -1, the current page. Will cause links to other things on
+     * this page to be output as only a fragment.
      * @return string the URL to review this attempt.
      */
-    public function review_url($slot = 0, $page = -1, $showall = false) {
-        global $CFG;
-        return $CFG->wwwroot . '/mod/quiz/review.php?attempt=' . $this->attempt->id .
-                $this->page_and_question_fragment($slot, $page, $showall);
+    public function review_url($slot = 0, $page = -1, $showall = false, $thispage = -1) {
+        return $this->page_and_question_url('review', $slot, $page, $showall, $thispage);
     }
 
     // Bits of content =====================================================================
@@ -984,15 +980,23 @@ class quiz_attempt {
     // Private methods =====================================================================
 
     /**
-     * Create part of a URL relating to this attempt.
-     * @param unknown_type $questionid the id of a particular question on the page to jump to.
-     * @param integer $page -1 to look up the page number from the questionid, otherwise the page number to use.
-     * @param boolean $showall
-     * @return string bit to add to the end of a URL.
+     * Get a URL for a particular question on a particular page of the quiz.
+     * Used by {@link attempt_url()} and {@link review_url()}.
+     *
+     * @param string $script. Used in the URL like /mod/quiz/$script.php
+     * @param integer $slot identifies the specific question on the page to jump to. 0 to just use the $page parameter.
+     * @param integer $page -1 to look up the page number from the slot, otherwise the page number to go to.
+     * @param boolean $showall if true, return a URL with showall=1, and not page number
+     * @param integer $thispage the page we are currently on. Links to questions on this
+     *      page will just be a fragment #q123. -1 to disable this.
+     * @return The requested URL.
      */
-    private function page_and_question_fragment($slot, $page, $showall = false) {
+    protected function page_and_question_url($script, $slot, $page, $showall, $thispage) {
+        global $CFG;
+
+        // Fix up $page
         if ($page == -1) {
-            if ($slot) {
+            if ($slot && !$showall) {
                 $page = $this->quba->get_question($slot)->_page;
             } else {
                 $page = 0;
@@ -1001,24 +1005,38 @@ class quiz_attempt {
         if ($showall) {
             $page = 0;
         }
-        $fragment = '';
-        if ($slot && $slot != reset($this->pagelayout[$page])) {
-            $fragment = '#q' . $slot;
+
+        // Work out the correct start to the URL.
+        if ($thispage == $page) {
+            $url = '';
+        } else {
+            $url = $CFG->wwwroot . '/mod/quiz/' . $script . '.php?attempt=' . $this->attempt->id;
+            if ($showall) {
+                $url .= '&showall=1';
+            } else if ($page > 0) {
+                $url .= '&page=' . $page;
+            }
         }
-        $param = '';
-        if ($showall) {
-            $param = '&amp;showall=1';
-        } else if ($page > 0) {
-            $param = '&amp;page=' . $page;
+
+        // Add a fragment to scroll down ot the question.
+        if ($slot) {
+            if ($slot == reset($this->pagelayout[$page])) {
+                // First question on page, go to top.
+                $url .= '#';
+            } else {
+                $url .= '#q' . $slot;
+            }
         }
-        return $param . $fragment;
+
+        return $url;
     }
-}
+    }
 
 /**
- * Base class for the navigation panel that appears on the attempt and review pages.
+ * Represents the navigation panel, and builds a {@link block_contents} to allow
+ * it to be output.
  *
- * @copyright 2009 Tim Hunt
+ * @copyright 2008 Tim Hunt
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class quiz_nav_panel_base {
@@ -1053,17 +1071,74 @@ abstract class quiz_nav_panel_base {
 
     protected function get_button_id(question_attempt $qa) {
         // The id to put on the button element in the HTML.
-        return 'quiznavbutton' . $qa->get_number_in_usage();
+        return 'quiznavbutton' . $qa->get_slot();
     }
 
     protected function get_button_update_script(question_attempt $qa) {
-        return print_js_call('quiz_init_nav_button',
-                array($this->get_button_id($qa), $qa->get_number_in_usage()), true);
+        return print_js_call('quiz_init_nav_button', array($this->get_button_id($qa),
+                $qa->get_slot(), get_string('flagged', 'question')), true);
     }
 
-    abstract protected function get_question_button(question_attempt $qa, $number, $showcorrectness);
+    protected function get_question_button(question_attempt $qa, $number, $showcorrectness) {
+        $attributes = $this->get_attributes($qa, $showcorrectness);
+
+        if (is_numeric($number)) {
+            $qnostring = 'questionnonav';
+        } else {
+            $qnostring = 'questionnonavinfo';
+        }
+
+        $a = new stdClass;
+        $a->number = $number;
+        $a->attributes = implode(' ', $attributes);
+
+        return '<a href="' . $this->get_question_url($qa->get_slot()) .
+                '" class="qnbutton ' . implode(' ', array_keys($attributes)) .
+                '" id="' . $this->get_button_id($qa) . '" title="' .
+                $qa->get_state_string($showcorrectness) . '">' .
+                '<span class="thispageholder"></span><span class="trafficlight"></span>' .
+                get_string($qnostring, 'quiz', $a) . '</a>';
+    }
+
+    /**
+     * @param question_attempt $qa
+     * @param boolean $showcorrectness
+     * @return array class name => descriptive string.
+     */
+    protected function get_attributes(question_attempt $qa, $showcorrectness) {
+        // The current status of the question.
+        $attributes = array();
+
+        // On the current page?
+        if ($qa->get_question()->_page == $this->page) {
+            $attributes['thispage'] = get_string('onthispage', 'quiz');
+        }
+
+        // Question state.
+        $stateclass = $qa->get_state()->get_state_class($showcorrectness);
+        if (!$showcorrectness && $stateclass == 'notanswered') {
+            $stateclass = 'complete';
+        }
+        $attributes[$stateclass] = $qa->get_state_string($showcorrectness);
+
+        // Flagged?
+        if ($qa->is_flagged()) {
+            $attributes['flagged'] = '<span class="flagstate">' .
+                    get_string('flagged', 'question') . '</span>';
+        } else {
+            $attributes[''] = '<span class="flagstate"></span>';
+        }
+
+        return $attributes;
+    }
+
+    protected function get_before_button_bits() {
+        return '';
+    }
 
     abstract protected function get_end_bits();
+
+    abstract protected function get_question_url($slot);
 
     protected function get_user_picture() {
         $user = get_record('user', 'id', $this->attemptobj->get_userid());
@@ -1075,68 +1150,60 @@ abstract class quiz_nav_panel_base {
         return $output;
     }
 
-    protected function get_question_state_classes(question_attempt $qa, $showcorrectness) {
-        // The current status of the question.
-        $classes = $qa->get_state()->get_state_class($showcorrectness);
-
-        // Plus a marker for the current page.
-        if ($qa->get_question()->_page == $this->page) {
-            $classes .= ' thispage';
-        }
-
-        // Plus a marker for flagged questions.
-        if ($qa->is_flagged()) {
-            $classes .= ' flagged';
-        }
-        return $classes;
-    }
-
     public function display() {
-        $strquiznavigation = get_string('quiznavigation', 'quiz');
+
         $content = '';
         if (!empty($this->attemptobj->get_quiz()->showuserpicture)) {
             $content .= $this->get_user_picture() . "\n";
         }
+        $content .= $this->get_before_button_bits();
         $content .= $this->get_question_buttons() . "\n";
         $content .= '<div class="othernav">' . "\n" . $this->get_end_bits() . "\n</div>\n";
+
+        $strquiznavigation = get_string('quiznavigation', 'quiz');
         print_side_block($strquiznavigation, $content, NULL, NULL, '', array('id' => 'quiznavigation'), $strquiznavigation);
     }
 }
 
+/**
+ * Specialisation of {@link quiz_nav_panel_base} for the attempt quiz page.
+ *
+ * @copyright 2008 Tim Hunt
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @since Moodle 2.0
+ */
 class quiz_attempt_nav_panel extends quiz_nav_panel_base {
-    protected function get_question_button(question_attempt $qa, $number, $showcorrectness) {
-        $questionsonpage = $this->attemptobj->get_question_numbers($qa->get_question()->_page);
-        $output = '<input type="submit" name="gotopage' . $qa->get_question()->_page .
-                '" value="' . $number . '" class="qnbutton ' .
-                $this->get_question_state_classes($qa, $showcorrectness) .
-                '" id="' . $this->get_button_id($qa) . '" />';
-        if ($qa->get_number_in_usage() != reset($questionsonpage)) {
-            $output .= print_js_call('quiz_init_nav_button_scroll_down',
-                    array($this->get_button_id($qa), $qa->get_number_in_usage()), true);
-        }
-        return $output;
+    protected function get_question_url($slot) {
+        return $this->attemptobj->attempt_url($slot, -1, $this->page);
+    }
+
+    protected function get_before_button_bits() {
+        return '<div id="quiznojswarning">' . get_string('navnojswarning', 'quiz') . "</div>\n" .
+                print_js_call('quiz_hide_nav_warning', array(), true);
     }
 
     protected function get_end_bits() {
         $output = '';
-        $output .= '<input type="submit" name="gotosummary" value="' .
-                get_string('endtest', 'quiz') . '" class="endtestlink" />';
+        $output .= '<a href="' . $this->attemptobj->summary_url() . '" id="endtestlink">' . get_string('endtest', 'quiz') . '</a>';
+        $output .= print_js_call('quiz_init_end_link', array(), true);
         $output .= $this->attemptobj->get_timer_html();
         return $output;
     }
 }
 
+/**
+ * Specialisation of {@link quiz_nav_panel_base} for the review quiz page.
+ *
+ * @copyright 2008 Tim Hunt
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @since Moodle 2.0
+ */
 class quiz_review_nav_panel extends quiz_nav_panel_base {
-    protected function get_question_button(question_attempt $qa, $number, $showcorrectness) {
-        $strstate = $qa->get_state_string($showcorrectness);
-        return '<a href="' . $this->attemptobj->review_url($qa->get_number_in_usage()) .
-                '" class="qnbutton ' . $this->get_question_state_classes($qa, $showcorrectness) .
-                '" id="' . $this->get_button_id($qa) . '" title="' . $strstate . '">' .
-                $number . '<span class="accesshide">(' . $strstate . '</span></a>';
+    protected function get_question_url($slot) {
+        return $this->attemptobj->review_url($slot, -1, $this->showall, $this->page);
     }
 
     protected function get_end_bits() {
-        $accessmanager = $this->attemptobj->get_access_manager(time());
         $html = '';
         if ($this->attemptobj->get_num_pages() > 1) {
             if ($this->showall) {
@@ -1145,6 +1212,7 @@ class quiz_review_nav_panel extends quiz_nav_panel_base {
                 $html .= '<a href="' . $this->attemptobj->review_url(0, 0, true) . '">' . get_string('showall', 'quiz') . '</a>';
             }
         }
+        $accessmanager = $this->attemptobj->get_access_manager(time());
         $html .= $accessmanager->print_finish_review_link($this->attemptobj->is_preview_user(), true);
         return $html;
     }

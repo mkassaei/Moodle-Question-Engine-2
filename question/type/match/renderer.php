@@ -31,7 +31,7 @@
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_match_renderer extends qtype_with_overall_feedback_renderer {
+class qtype_match_renderer extends qtype_with_combined_feedback_renderer {
 
     public function formulation_and_controls(question_attempt $qa,
             question_display_options $options) {
@@ -98,7 +98,7 @@ class qtype_match_renderer extends qtype_with_overall_feedback_renderer {
     }
 
     public function specific_feedback(question_attempt $qa) {
-        return $this->overall_feedback($qa);
+        return $this->combined_feedback($qa);
     }
 
     protected function format_choices($question) {

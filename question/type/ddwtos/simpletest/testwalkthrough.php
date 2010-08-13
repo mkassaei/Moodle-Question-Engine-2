@@ -367,7 +367,7 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 new PatternExpectation('/' . preg_quote(get_string('notcomplete', 'qbehaviour_interactive')) . '/'),
                 $this->get_contains_hint_expectation('This is the first hint'),
                 $this->get_contains_num_parts_correct(2),
-                $this->get_contains_standard_partiallycorrect_overall_feedback_expectation(),
+                $this->get_contains_standard_partiallycorrect_combined_feedback_expectation(),
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', '1'),
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', '1'),
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', ''));
@@ -413,7 +413,7 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 new PatternExpectation('/' . preg_quote(get_string('notcomplete', 'qbehaviour_interactive')) . '/'),
                 $this->get_contains_hint_expectation('This is the second hint'),
                 $this->get_contains_num_parts_correct(2),
-                $this->get_contains_standard_partiallycorrect_overall_feedback_expectation(),
+                $this->get_contains_standard_partiallycorrect_combined_feedback_expectation(),
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', '1'),
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', ''),
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', '1'));
@@ -453,7 +453,7 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_contains_correct_expectation(),
                 $this->get_no_hint_visible_expectation(),
                 $this->get_does_not_contain_num_parts_correct(),
-                $this->get_contains_standard_correct_overall_feedback_expectation(),
+                $this->get_contains_standard_correct_combined_feedback_expectation(),
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', '1'),
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', '1'),
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', '1'));

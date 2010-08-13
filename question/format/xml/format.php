@@ -150,8 +150,8 @@ class qformat_xml extends qformat_default {
                 get_string('xmlimportnoname', 'quiz'));
         $qo->questiontext = $this->getpath($question,
                 array('#', 'questiontext', 0, '#', 'text', 0, '#'), '', true);
-        $qo->questiontextformat = $this->trans_format(
-                $this->getpath($question, array('#', 'questiontext', 0, '@', 'format'), ''));
+        $qo->questiontextformat = $this->trans_format($this->getpath(
+                $question, array('#', 'questiontext', 0, '@', 'format'), ''));
         $qo->image = $this->getpath($question, array('#', 'image', 0, '#'), $qo->image);
         $image_base64 = $this->getpath($question, array('#', 'image_base64', '0', '#'), '');
         if (!empty($image_base64)) {
@@ -194,7 +194,7 @@ class qformat_xml extends qformat_default {
      * @param object $qo the question data to add the fields to.
      * @param boolean $withshownumpartscorrect include the shownumcorrect field.
      */
-    public function import_overall_feedback($qo, $questionxml, $withshownumpartscorrect = false) {
+    public function import_combined_feedback($qo, $questionxml, $withshownumpartscorrect = false) {
         $qo->correctfeedback = $this->getpath($questionxml,
                 array('#', 'correctfeedback', 0, '#', 'text', 0, '#'), '', true);
         $qo->partiallycorrectfeedback = $this->getpath($questionxml,
@@ -303,7 +303,7 @@ class qformat_xml extends qformat_default {
             ++$acount;
         }
 
-        $this->import_overall_feedback($qo, $question, true);
+        $this->import_combined_feedback($qo, $question, true);
         $this->import_hints($qo, $question, true);
 
         return $qo;
@@ -508,7 +508,7 @@ class qformat_xml extends qformat_default {
                     array('#', 'answer', 0, '#', 'text', 0, '#'), '', true);
         }
 
-        $this->import_overall_feedback($qo, $question, true);
+        $this->import_combined_feedback($qo, $question, true);
         $this->import_hints($qo, $question, true);
 
         return $qo;
@@ -917,7 +917,7 @@ class qformat_xml extends qformat_default {
             $expout .= "    <single>" . $this->get_single($question->options->single) . "</single>\n";
             $expout .= "    <shuffleanswers>" . $this->get_single($question->options->shuffleanswers) . "</shuffleanswers>\n";
             $expout .= "    <answernumbering>{$question->options->answernumbering}</answernumbering>\n";
-            $expout .= $this->write_overall_feedback($question->options);
+            $expout .= $this->write_combined_feedback($question->options);
             $expout .= $this->write_answers($question->options->answers);
             break;
 
@@ -947,7 +947,7 @@ class qformat_xml extends qformat_default {
 
         case MATCH:
             $expout .= "    <shuffleanswers>" . $this->get_single($question->options->shuffleanswers) . "</shuffleanswers>\n";
-            $expout .= $this->write_overall_feedback($question->options);
+            $expout .= $this->write_combined_feedback($question->options);
             foreach ($question->options->subquestions as $subquestion) {
                 $expout .= "    <subquestion>\n";
                 $expout .= $this->writetext($subquestion->questiontext, 3);
@@ -1103,7 +1103,7 @@ class qformat_xml extends qformat_default {
         return $output;
     }
 
-    public function write_overall_feedback($questionoptions) {
+    public function write_combined_feedback($questionoptions) {
         $output = "    <correctfeedback>
       {$this->writetext($questionoptions->correctfeedback)}    </correctfeedback>
     <partiallycorrectfeedback>

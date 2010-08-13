@@ -40,7 +40,7 @@ class question_edit_match_form extends question_edit_form {
 
         $this->add_per_answer_fields($mform, get_string('questionno', 'quiz', '{no}'), 0);
 
-        $this->add_overall_feedback_fields(true);
+        $this->add_combined_feedback_fields(true);
         $this->add_interactive_settings(true, true);
     }
 

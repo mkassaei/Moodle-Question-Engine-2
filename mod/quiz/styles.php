@@ -24,6 +24,6 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-#quiznavigation .qnbutton.flagged {
-  background-image: url(<?php echo $CFG->pixpath ?>/i/ne_red_mark.png);
+#quiznavigation .qnbutton.flagged .trafficlight {
+  background: transparent url(<?php echo $CFG->pixpath ?>/i/ne_red_mark.png) no-repeat top right;
 }

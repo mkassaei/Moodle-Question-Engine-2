@@ -81,7 +81,7 @@ class qtype_multichoice_single_question_test extends UnitTestCase {
         $mc->shuffleanswers = 0;
         $mc->answernumbering = 'abc';
 
-        test_question_maker::set_standard_overall_feedback_fields($mc);
+        test_question_maker::set_standard_combined_feedback_fields($mc);
 
         $mc->answers = array(
             11 => new question_answer('1', 0.3333333, ''),

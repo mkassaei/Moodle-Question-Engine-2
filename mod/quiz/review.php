@@ -90,6 +90,7 @@ if ($attemptobj->is_preview_user() && $attemptobj->is_own_attempt()) {
 }
 
 // Print the page header
+require_js(array('yui_dom-event'));
 require_js($CFG->httpswwwroot . '/mod/quiz/quiz.js');
 $headtags = $attemptobj->get_html_head_contributions($page, $showall);
 if ($accessmanager->securewindow_required($attemptobj->is_preview_user())) {

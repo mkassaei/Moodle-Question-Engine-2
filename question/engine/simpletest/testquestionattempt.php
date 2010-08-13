@@ -63,7 +63,7 @@ class question_attempt_test extends UnitTestCase {
 
     public function test_get_set_number_in_usage() {
         $this->qa->set_number_in_usage(7);
-        $this->assertEqual(7, $this->qa->get_number_in_usage());
+        $this->assertEqual(7, $this->qa->get_slot());
     }
 
     public function test_fagged_initially_false() {
@@ -91,7 +91,7 @@ class question_attempt_test extends UnitTestCase {
         $this->qa->set_number_in_usage(7);
         $name = $this->qa->get_field_prefix();
         $this->assertPattern('/' . preg_quote($this->usageid) . '/', $name);
-        $this->assertPattern('/' . preg_quote($this->qa->get_number_in_usage()) . '/', $name);
+        $this->assertPattern('/' . preg_quote($this->qa->get_slot()) . '/', $name);
     }
 
     public function test_get_submitted_var_not_present_var_returns_null() {
