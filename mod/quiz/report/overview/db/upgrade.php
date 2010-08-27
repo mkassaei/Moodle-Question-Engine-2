@@ -122,5 +122,27 @@ function xmldb_quizreport_overview_upgrade($oldversion) {
         $result = $result && rename_field($table, $field, 'slot');
     }
 
+    if ($result && $oldversion < 2010082700) {
+
+    /// Changing nullability of field newfraction on table quiz_question_regrade to null
+        $table = new XMLDBTable('quiz_question_regrade');
+        $field = new XMLDBField('newfraction');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', null, null, null, null, null, null, 'slot');
+
+    /// Launch change of nullability for field newfraction
+        $result = $result && change_field_notnull($table, $field);
+    }
+
+    if ($result && $oldversion < 2010082701) {
+
+    /// Changing nullability of field oldfraction on table quiz_question_regrade to null
+        $table = new XMLDBTable('quiz_question_regrade');
+        $field = new XMLDBField('oldfraction');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', null, null, null, null, null, null, 'newfraction');
+
+    /// Launch change of nullability for field oldfraction
+        $result = $result && change_field_notnull($table, $field);
+    }
+
     return $result;
 }

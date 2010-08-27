@@ -23,4 +23,4 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$plugin->version  = 2010081200;   // The (date) version of this module
+$plugin->version  = 2010082701;   // The (date) version of this module
