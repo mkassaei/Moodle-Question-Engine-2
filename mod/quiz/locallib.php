@@ -641,27 +641,74 @@ function quiz_update_all_final_grades($quiz) {
     }
 
     $finalgradesubquery = "
-            SELECT $select
+            SELECT quiza.userid, $select * $quiz->grade / $quiz->sumgrades AS newgrade
             FROM {$CFG->prefix}quiz_attempts quiza
             $join
             WHERE
                 $where
                 quiza.timefinish <> 0 AND
                 quiza.preview = 0 AND
-                quiza.quiz = $quiz->id AND
-                quiza.userid = {$CFG->prefix}quiz_grades.userid";
+                quiza.quiz = $quiz->id
+            GROUP BY quiza.userid";
+
+    $changedgrades = get_records_sql("
+            SELECT users.userid, qg.id, qg.grade, newgrades.newgrade
+
+            FROM (
+                SELECT userid
+                FROM {$CFG->prefix}quiz_grades qg
+                WHERE quiz = $quiz->id
+            UNION
+                SELECT DISTINCT userid
+                FROM {$CFG->prefix}quiz_attempts quiza2
+                WHERE
+                    quiza2.timefinish <> 0 AND
+                    quiza2.preview = 0 AND
+                    quiza2.quiz = $quiz->id
+            ) users
+
+            LEFT JOIN {$CFG->prefix}quiz_grades qg ON qg.userid = users.userid AND qg.quiz = $quiz->id
+
+            LEFT JOIN (
+                $finalgradesubquery
+            ) newgrades ON newgrades.userid = users.userid
+
+            WHERE
+                ABS(newgrades.newgrade - qg.grade) > 0.000005 OR
+                (newgrades.newgrade IS NULL) <> (qg.grade IS NULL)");
+
+    if (empty($changedgrades)) {
+        return;
+    }
 
     $timenow = time();
-    $sql = "UPDATE {$CFG->prefix}quiz_grades
+    $todelete = array();
+    foreach ($changedgrades as $changedgrade) {
 
-            SET
-                timemodified = $timenow,
-                grade = (
-                    $finalgradesubquery
-                ) * $quiz->grade / $quiz->sumgrades
+        if (is_null($changedgrade->newgrade)) {
+            $todelete[] = $changedgrade->userid;
 
-            WHERE quiz = $quiz->id";
-    execute_sql($sql, false);
+        } else if (is_null($changedgrade->grade)) {
+            $toinsert = new stdClass;
+            $toinsert->quiz = $quiz->id;
+            $toinsert->userid = $changedgrade->userid;
+            $toinsert->timemodified = $timenow;
+            $toinsert->grade = $changedgrade->newgrade;
+            insert_record('quiz_grades', $toinsert);
+
+        } else {
+            $toupdate = new stdClass;
+            $toupdate->id = $changedgrade->id;
+            $toupdate->grade = $changedgrade->newgrade;
+            $toupdate->timemodified = $timenow;
+            update_record('quiz_grades', $toupdate);
+        }
+    }
+
+    if (!empty($todelete)) {
+        delete_records_select('quiz_grades', "quiz = $quiz->id AND userid IN (" .
+                implode(',', $todelete) . ")");
+    }
 }
 
 /**
