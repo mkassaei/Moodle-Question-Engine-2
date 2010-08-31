@@ -370,6 +370,8 @@ class mod_quiz_mod_form extends moodleform_mod {
         $this->preprocessing_review_settings($toform, 'immediately', mod_quiz_display_options::IMMEDIATELY_AFTER);
         $this->preprocessing_review_settings($toform, 'open', mod_quiz_display_options::LATER_WHILE_OPEN);
         $this->preprocessing_review_settings($toform, 'closed', mod_quiz_display_options::AFTER_CLOSE);
+        $toform['attemptduring'] = true;
+        $toform['overallfeedbackduring'] = false;
 
         // Password field - different in form to stop browsers that remember
         // passwords from getting confused.

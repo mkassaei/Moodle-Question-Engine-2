@@ -34,6 +34,8 @@ $times = array(
     'open' => mod_quiz_display_options::LATER_WHILE_OPEN,
     'closed' => mod_quiz_display_options::AFTER_CLOSE,
 );
+$form->reviewattempt |= mod_quiz_display_options::DURING;
+$form->reviewoverallfeedback &= ~mod_quiz_display_options::DURING;
 foreach ($fields as $field => $string) {
     $fieldname = 'review' . $field;
     $current = $form->$fieldname;
@@ -41,8 +43,10 @@ foreach ($fields as $field => $string) {
     foreach ($times as $whenname => $when) {
 ?>
       <td align="left">
-        <input type="checkbox" name="<?php echo $field . $whenname; ?>" value="1" <?php
-                echo ($form->$fieldname & $when) ? 'checked="checked"' : '' ?> />
+        <input type="checkbox" name="<?php echo $field . $whenname; ?>" value="1"<?php
+                echo ($form->$fieldname & $when) ? ' checked="checked"' : ''; ?><?php
+                echo (($field == 'attempt' || $field == 'overallfeedback') &&
+                    $whenname == 'during') ? ' disabled="disabled"' : ''; ?> />
         <?php echo $string ?>
       </td>
 <?php
