@@ -508,13 +508,13 @@ function question_showbank_actions($pageurl, $cm){
                     // for each question either hide it if it is in use or delete it
                     foreach ($questionlist as $questionid) {
                         question_require_capability_on($questionid, 'edit');
-                        if (record_exists('quiz_question_instances', 'question', $questionid)) {
+                        if (questions_in_use(array($questionid))) {
                             if (!set_field('question', 'hidden', 1, 'id', $questionid)) {
                                 question_require_capability_on($questionid, 'edit');
                                 error('Was not able to hide question');
                             }
                         } else {
-                            delete_question($questionid);
+                            question_delete_question($questionid);
                         }
                     }
                 }
@@ -567,7 +567,7 @@ function question_showbank($tabname, $contexts, $pageurl, $cm, $page, $perpage, 
                 $key = $matches[1];
                 $questionlist .= $key.',';
                 question_require_capability_on($key, 'edit');
-                if (record_exists('quiz_question_instances', 'question', $key)) {
+                if (questions_in_use(array($key))) {
                     $questionnames .= '* ';
                     $inuse = true;
                 }

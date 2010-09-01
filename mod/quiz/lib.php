@@ -960,28 +960,12 @@ function quiz_get_post_actions() {
 }
 
 /**
- * Returns an array of names of quizzes that use this question
- *
- * @param object $questionid
- * @return array of strings
+ * @param array $questionids of question ids.
+ * @return boolean whether any of these questions are used by any instance of this module.
  */
-function quiz_question_list_instances($questionid) {
-    global $CFG;
-
-    // TODO: we should also consider other questions that are used by
-    // random questions in this quiz, but that is very hard.
-
-    $sql = "SELECT q.id, q.name
-            FROM {$CFG->prefix}quiz q
-            INNER JOIN
-                 {$CFG->prefix}quiz_question_instances qqi
-            ON q.id = qqi.quiz
-            WHERE qqi.question = '$questionid'";
-
-    if ($instances = get_records_sql_menu($sql)) {
-        return $instances;
-    }
-    return array();
+function quiz_questions_in_use($questionids) {
+    return record_exists_select('quiz_question_instances', 'question IN (' .
+            implode(',', $questionids) . ')');
 }
 
 /**

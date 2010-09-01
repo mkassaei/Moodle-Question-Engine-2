@@ -123,6 +123,15 @@ abstract class question_engine {
     }
 
     /**
+     * @param array $questionids of question ids.
+     * @return boolean whether any of these questions are being used by the question engine.
+     */
+    public static function questions_in_use(array $questionids) {
+        $dm = new question_engine_data_mapper();
+        $dm->questions_in_use($questionids);
+    }
+
+    /**
      * Create an archetypal behaviour for a particular question attempt.
      * Used by {@link question_definition::make_behaviour()}.
      *

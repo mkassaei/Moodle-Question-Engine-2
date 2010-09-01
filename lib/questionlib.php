@@ -128,24 +128,53 @@ function question_type_menu() {
 /**
  * Returns an array of names of activity modules that use this question
  *
+ * @deprecated since Moodle 2.1. Use {@link questions_in_use} instead.
+
  * @param object $questionid
  * @return array of strings
  */
 function question_list_instances($questionid) {
+    throw new coding_exception('question_list_instances has been deprectated. Please use questions_in_use instead.');
+}
+
+/**
+ * @param array $questionids of question ids.
+ * @return boolean whether any of these questions are being used by any part of Moodle.
+ */
+function questions_in_use($questionids) {
     global $CFG;
-    $instances = array();
-    $modules = get_records('modules');
-    foreach ($modules as $module) {
-        $fullmod = $CFG->dirroot . '/mod/' . $module->name;
-        if (file_exists($fullmod . '/lib.php')) {
-            include_once($fullmod . '/lib.php');
-            $fn = $module->name.'_question_list_instances';
+
+    if (question_engine::questions_in_use($questionids)) {
+        return true;
+    }
+
+    foreach (get_records('modules') as $module) {
+        $lib = $CFG->dirroot . '/mod/' . $module->name . '/lib.php';
+        if (file_exists($lib)) {
+            include_once($lib);
+
+            $fn = $module->name . '_questions_in_use';
             if (function_exists($fn)) {
-                $instances = $instances + $fn($questionid);
+                if ($fn($questionids)) {
+                    return true;
+                }
+            } else {
+
+                // Fallback for legacy modules.
+                $fn = $module->name.'_question_list_instances';
+                foreach ($questionids as $questionid) {
+                    if (function_exists($fn)) {
+                        $instances = $fn($questionid);
+                        if (!empty($instances)) {
+                            return true;
+                        }
+                    }
+                }
             }
         }
     }
-    return $instances;
+
+    return false;
 }
 
 /**
@@ -269,34 +298,42 @@ function match_grade_options($gradeoptionsfull, $grade, $matchgrades='error') {
 }
 
 /**
- * Tests whether a category is in use by any activity module
- *
- * @return boolean
- * @param integer $categoryid
- * @param boolean $recursive Whether to examine category children recursively
+ * @deprecated Since Moodle 2.1. Use {@link question_category_in_use} instead.
+ * @param integer $categoryid a question category id.
+ * @param boolean $recursive whether to check child categories too.
+ * @return boolean whether any question in this category is in use.
  */
 function question_category_isused($categoryid, $recursive = false) {
+    throw new coding_exception('question_category_isused has been deprectated. Please use question_category_in_use instead.');
+}
 
-    //Look at each question in the category
+/**
+ * Tests whether any question in a category is used by any part of Moodle.
+ *
+ * @param integer $categoryid a question category id.
+ * @param boolean $recursive whether to check child categories too.
+ * @return boolean whether any question in this category is in use.
+ */
+function question_category_in_use($categoryid, $recursive = false) {
+
+    // Look at each question in the category
     if ($questions = get_records('question', 'category', $categoryid)) {
-        foreach ($questions as $question) {
-            if (count(question_list_instances($question->id))) {
+        if (questions_in_use($questions)) {
+            return true;
+        }
+    }
+    if (!$recursive) {
+        return false;
+    }
+
+    // Look under child categories recursively
+    if ($children = get_records('question_categories', 'parent', $categoryid)) {
+        foreach ($children as $child) {
+            if (question_category_in_use($child->id, $recursive)) {
                 return true;
             }
         }
     }
-
-    //Look under child categories recursively
-    if ($recursive) {
-        if ($children = get_records('question_categories', 'parent', $categoryid)) {
-            foreach ($children as $child) {
-                if (question_category_isused($child->id, $recursive)) {
-                    return true;
-                }
-            }
-        }
-    }
-
     return false;
 }
 
@@ -306,7 +343,7 @@ function question_category_isused($categoryid, $recursive = false) {
  * It will not delete a question if it is used by an activity module
  * @param object $question  The question being deleted
  */
-function delete_question($questionid) {
+function question_delete_question($questionid) {
     global $QTYPES;
 
     if (!$question = get_record('question', 'id', $questionid)) {
@@ -317,7 +354,7 @@ function delete_question($questionid) {
     }
 
     // Do not delete a question if it is used by an activity module
-    if (count(question_list_instances($questionid))) {
+    if (questions_in_use(array($questionid))) {
         return;
     }
 
@@ -340,7 +377,7 @@ function delete_question($questionid) {
     if ($children = get_records('question', 'parent', $questionid)) {
         foreach ($children as $child) {
             if ($child->id != $questionid) {
-                delete_question($child->id);
+                question_delete_question($child->id);
             }
         }
     }
@@ -379,7 +416,7 @@ function question_delete_course($course, $feedback=true) {
             //deleting questions
             if ($questions = get_records("question", "category", $category->id)) {
                 foreach ($questions as $question) {
-                    delete_question($question->id);
+                    question_delete_question($question->id);
                 }
                 delete_records("question", "category", $category->id);
             }
@@ -426,7 +463,7 @@ function question_delete_course_category($category, $newcategory, $feedback=true
 
                     // Try to delete each question.
                     foreach ($questions as $question) {
-                        delete_question($question->id);
+                        question_delete_question($question->id);
                     }
 
                     // Check to see if there were any questions that were kept because they are
@@ -535,7 +572,7 @@ function question_delete_activity($cm, $feedback=true) {
             //deleting questions
             if ($questions = get_records("question", "category", $category->id)) {
                 foreach ($questions as $question) {
-                    delete_question($question->id);
+                    question_delete_question($question->id);
                 }
                 delete_records("question", "category", $category->id);
             }
