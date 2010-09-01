@@ -1106,7 +1106,7 @@ table.quizattemptsummary .bestrow td {
   background-color: #e8e8e8;
 }
 .mod-quiz .gradedattempt,
-.mod-quiz .gradedattempt td {
+.mod-quiz tr.gradedattempt td {
   background-color: #e8e8e8;
 }
 
