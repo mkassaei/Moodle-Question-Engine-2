@@ -195,7 +195,7 @@ class qtype_match extends question_type {
             $responses = array();
             foreach ($q->choices as $choiceid => $choice) {
                 $responses[$choiceid] = new question_possible_response(
-                        html_to_text($q->format_text($stem)) . ': ' . html_to_text($q->format_text($choice)),
+                        html_to_text($q->format_text($stem), 0, false) . ': ' . html_to_text($q->format_text($choice), 0, false),
                         $choiceid == $q->right[$stemid]);
             }
             $responses[null] = question_possible_response::no_response();

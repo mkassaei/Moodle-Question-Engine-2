@@ -72,10 +72,10 @@ class qtype_match_question extends question_graded_automatically_with_countback 
     }
 
     public function get_question_summary() {
-        $question = html_to_text($this->format_questiontext(), 0);
+        $question = html_to_text($this->format_questiontext(), 0, false);
         $stems = array();
         foreach ($this->stemorder as $stemid) {
-            $stems[] = html_to_text($this->format_text($this->stems[$stemid]), 0);
+            $stems[] = html_to_text($this->format_text($this->stems[$stemid]), 0, false);
         }
         $choices = array();
         foreach ($this->choiceorder as $choiceid) {
@@ -89,7 +89,7 @@ class qtype_match_question extends question_graded_automatically_with_countback 
         $matches = array();
         foreach ($this->stemorder as $key => $stemid) {
             if (array_key_exists($this->field($key), $response) && $response[$this->field($key)]) {
-                $matches[] = html_to_text($this->format_text($this->stems[$stemid]), 0) . ' -> ' .
+                $matches[] = html_to_text($this->format_text($this->stems[$stemid]), 0, false) . ' -> ' .
                         $this->choices[$this->choiceorder[$response[$this->field($key)]]];
             }
         }

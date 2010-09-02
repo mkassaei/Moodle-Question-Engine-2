@@ -61,10 +61,10 @@ abstract class qtype_multichoice_base extends question_graded_automatically {
     }
 
     public function get_question_summary() {
-        $question = html_to_text($this->format_questiontext());
+        $question = html_to_text($this->format_questiontext(), 0, false);
         $choices = array();
         foreach ($this->order as $ansid) {
-            $choices[] = html_to_text($this->format_text($this->answers[$ansid]->answer));
+            $choices[] = html_to_text($this->format_text($this->answers[$ansid]->answer), 0, false);
         }
         return $question . ': ' . implode('; ', $choices);
     }
@@ -117,7 +117,7 @@ class qtype_multichoice_single_question extends qtype_multichoice_base {
             return null;
         }
         return html_to_text($this->format_text(
-                $this->answers[$this->order[$response['answer']]]->answer));
+                $this->answers[$this->order[$response['answer']]]->answer), 0, false);
     }
 
     public function classify_response(array $response) {
@@ -128,7 +128,7 @@ class qtype_multichoice_single_question extends qtype_multichoice_base {
         $choiceid = $this->order[$response['answer']];
         $ans = $this->answers[$choiceid];
         return array($this->id => new question_classified_response($choiceid,
-                html_to_text($this->format_text($ans->answer)), $ans->fraction));
+                html_to_text($this->format_text($ans->answer), 0, false), $ans->fraction));
     }
 
     public function get_correct_response() {
@@ -230,7 +230,7 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
             $fieldname = $this->field($key);
             if (array_key_exists($fieldname, $response) && $response[$fieldname]) {
                 $selectedchoices[] = html_to_text($this->format_text(
-                        $this->answers[$ans]->answer));
+                        $this->answers[$ans]->answer), 0, false);
             }
         }
         if (empty($selectedchoices)) {
@@ -251,7 +251,7 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
         foreach ($this->answers as $ansid => $ans) {
             if (isset($selectedchoices[$ansid])) {
                 $choices[$ansid] = new question_classified_response($ansid,
-                        html_to_text($this->format_text($ans->answer)), $ans->fraction);
+                        html_to_text($this->format_text($ans->answer), 0, false), $ans->fraction);
             }
         }
         return $choices;

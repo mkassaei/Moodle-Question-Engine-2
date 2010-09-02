@@ -78,7 +78,7 @@ class qbehaviour_opaque extends question_behaviour {
         $step->set_behaviour_var('_statestring', $opaquestate->progressinfo);
 
         // Remember the question summary.
-        $this->questionsummary = html_to_text($opaquestate->xhtml, 0);
+        $this->questionsummary = html_to_text($opaquestate->xhtml, 0, false);
     }
 
     public function get_question_summary() {

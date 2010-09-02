@@ -448,7 +448,7 @@ abstract class question_behaviour {
         $a = new stdClass;
         if ($step->has_behaviour_var('comment')) {
             $a->comment = shorten_text(html_to_text($this->format_comment(
-                    $step->get_behaviour_var('comment')), 0), 200);
+                    $step->get_behaviour_var('comment')), 0, false), 200);
         } else {
             $a->comment = '';
         }

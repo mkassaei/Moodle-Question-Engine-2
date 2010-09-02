@@ -308,7 +308,7 @@ class qtype_ddwtos extends question_type {
 
             foreach ($question->choices[$group] as $i => $choice) {
                 $choices[$i] = new question_possible_response(
-                        html_to_text($question->format_text($choice->text)),
+                        html_to_text($question->format_text($choice->text), 0, false),
                         $question->rightchoices[$place] == $i);
             }
             $choices[null] = question_possible_response::no_response();
