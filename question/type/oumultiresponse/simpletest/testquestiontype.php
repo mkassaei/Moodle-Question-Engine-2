@@ -63,12 +63,14 @@ class qtype_oumultiresponse_test extends UnitTestCase {
         $q = new stdClass;
         $q->id = 1;
         $q->options->answers[1] = (object) array('answer' => 'frog', 'fraction' => 1);
-        $q->options->answers[2] = (object) array('answer' => 'toad', 'fraction' => 0);
+        $q->options->answers[2] = (object) array('answer' => 'toad', 'fraction' => 1);
+        $q->options->answers[3] = (object) array('answer' => 'newt', 'fraction' => 0);
         $responses = $this->qtype->get_possible_responses($q);
 
         $this->assertEqual(array(
-            1 => array(1 => new question_possible_response('frog', 1)),
-            2 => array(2 => new question_possible_response('toad', 0)),
+            1 => array(1 => new question_possible_response('frog', 0.5)),
+            2 => array(2 => new question_possible_response('toad', 0.5)),
+            3 => array(3 => new question_possible_response('newt', 0)),
         ), $this->qtype->get_possible_responses($q));
     }
 

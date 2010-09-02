@@ -44,6 +44,15 @@ class qtype_oumultiresponse_question extends qtype_multichoice_multi_question
         return question_engine::make_archetypal_behaviour($preferredbehaviour, $qa);
     }
 
+    public function classify_response(array $response) {
+        $choices = parent::classify_response($response);
+        $numright = $this->get_num_correct_choices();
+        foreach ($choices as $choice) {
+            $choice->fraction /= $numright;
+        }
+        return $choices;
+    }
+
     public function grade_response(array $response) {
         list($numright, $total) = $this->get_num_parts_right($response);
         $numwrong = $this->get_num_selected_choices($response) - $numright;

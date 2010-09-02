@@ -229,33 +229,39 @@ class qtype_oumultiresponse extends question_type {
         return parent::delete_question($questionid);
     }
 
-    function get_random_guess_score($questiondata) {
-        // We compute the randome guess score here on the assumption we are using
-        // the deferred feedback behaviour, and the question text tells the
-        // student how many of the responses are correct.
-        // Amazingly, the forumla for this works out to be
-        // # correct choices / total # choices in all cases.
+    protected function get_num_correct_choices($questiondata) {
         $numright = 0;
         foreach ($questiondata->options->answers as $answer) {
             if (!question_state::graded_state_for_fraction($answer->fraction)->is_incorrect()) {
                 $numright += 1;
             }
         }
-        return $numright / count($questiondata->options->answers);
+        return $numright;
     }
 
-    function get_possible_responses($questiondata) {
+    public function get_random_guess_score($questiondata) {
+        // We compute the randome guess score here on the assumption we are using
+        // the deferred feedback behaviour, and the question text tells the
+        // student how many of the responses are correct.
+        // Amazingly, the forumla for this works out to be
+        // # correct choices / total # choices in all cases.
+        return $this->get_num_correct_choices($questiondata) /
+                count($questiondata->options->answers);
+    }
+
+    public function get_possible_responses($questiondata) {
+        $numright = $this->get_num_correct_choices($questiondata);
         $parts = array();
 
         foreach ($questiondata->options->answers as $aid => $answer) {
             $parts[$aid] = array($aid =>
-                    new question_possible_response($answer->answer, $answer->fraction));
+                    new question_possible_response($answer->answer, $answer->fraction / $numright));
         }
 
         return $parts;
     }
 
-    function import_from_xml($data, $question, $format, $extra=null) {
+    public function import_from_xml($data, $question, $format, $extra=null) {
         if (!isset($data['@']['type']) || $data['@']['type'] != 'oumultiresponse') {
             return false;
         }
@@ -298,7 +304,7 @@ class qtype_oumultiresponse extends question_type {
         return $question;
     }
 
-    function export_to_xml($question, $format, $extra = null) {
+    public function export_to_xml($question, $format, $extra = null) {
         $output = '';
 
         $output .= "    <shuffleanswers>" . $format->get_single($question->options->shuffleanswers) . "</shuffleanswers>\n";
@@ -343,7 +349,7 @@ class qtype_oumultiresponse extends question_type {
      * Restores the data in the question (This is used in question/restorelib.php)
      *
      */
-    function restore($old_question_id,$new_question_id,$info,$restore) {
+    public function restore($old_question_id,$new_question_id,$info,$restore) {
         $status = true;
 
         //Get the oumultiresponses array
@@ -381,7 +387,7 @@ class qtype_oumultiresponse extends question_type {
         return $status;
     }
 
-    function restore_recode_answer($state, $restore) {
+    public function restore_recode_answer($state, $restore) {
         $pos = strpos($state->answer, ':');
         $order = array();
         $responses = array();
@@ -425,7 +431,7 @@ class qtype_oumultiresponse extends question_type {
      * Decode links in question type specific tables.
      * @return bool success or failure.
      */
-    function decode_content_links_caller($questionids, $restore, &$i) {
+    public function decode_content_links_caller($questionids, $restore, &$i) {
         $status = true;
         // Decode links in the question_oumultiresponse table.
         if ($oumultiresponses = get_records_list('question_oumultiresponse', 'questionid',
