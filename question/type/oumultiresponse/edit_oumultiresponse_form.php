@@ -79,7 +79,7 @@ class question_edit_oumultiresponse_form extends question_edit_form {
                 $key = 0;
                 foreach ($answers as $answer){
                     $default_values['answer['.$key.']'] = $answer->answer;
-                    $default_values['correctanswer['.$key.']'] = $answer->fraction;
+                    $default_values['correctanswer['.$key.']'] = ($answer->fraction > 0) ? 1 : 0;
                     $default_values['feedback['.$key.']'] = $answer->feedback;
                     $key++;
                 }
