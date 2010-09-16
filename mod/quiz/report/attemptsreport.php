@@ -488,7 +488,7 @@ abstract class quiz_attempt_report_table extends table_sql {
 
         $feedbackimg = '';
         if ($state->is_finished() && $state != question_state::$needsgrading) {
-            $feedbackimg = question_get_feedback_image($stepdata->fraction);
+            $feedbackimg = $this->icon_for_fraction($stepdata->fraction);
         }
 
         $output = '<span class="que"><span class="' . $state->get_state_class(true) . '">' .
@@ -500,6 +500,27 @@ abstract class quiz_attempt_report_table extends table_sql {
                 'none', true);
 
         return $output;
+    }
+
+    /**
+     * Return an appropriate icon (green tick, red cross, etc.) for a grade.
+     * @param float $fraction grade on a scale 0..1.
+     * @return string html fragment.
+     */
+    function icon_for_fraction($fraction) {
+        global $CFG;
+
+        $state = question_state::graded_state_for_fraction($fraction);
+        if ($state == question_state::$gradedright) {
+            $icon = 'tick_green_big';
+        } else if ($state == question_state::$gradedpartial) {
+            $icon = 'tick_amber_big';
+        } else {
+            $icon = 'cross_red_big';
+        }
+
+        return '<img src="' . $CFG->pixpath . '/i/' . $icon . '.gif" class="icon" ' .
+                'alt="' . get_string($state->get_feedback_class(), 'quiz') . '" />';
     }
 
     /**

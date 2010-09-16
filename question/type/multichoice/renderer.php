@@ -91,7 +91,7 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
                         $question->format_text($ans->answer), array('for' => $inputattributes['id']));
 
             if (($options->feedback || $options->rightanswer) && $response !== -1) {
-                $feedbackimg[] = question_get_feedback_image($this->is_right($ans), $isselected && $options->feedback);
+                $feedbackimg[] = $this->feedback_image($this->is_right($ans), $isselected && $options->feedback);
             } else {
                 $feedbackimg[] = '';
             }

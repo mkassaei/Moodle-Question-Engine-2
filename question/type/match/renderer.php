@@ -72,7 +72,7 @@ class qtype_match_renderer extends qtype_with_combined_feedback_renderer {
 
             if ($options->feedback && $selected) {
                 $classes .= ' ' . $this->feedback_class($fraction);
-                $feedbackimage = question_get_feedback_image($fraction);
+                $feedbackimage = $this->feedback_image($fraction);
             }
 
             $result .= html_writer::tag('td',

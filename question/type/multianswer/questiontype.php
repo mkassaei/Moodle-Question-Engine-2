@@ -372,7 +372,7 @@ class qtype_multianswer extends question_type {
                 /// Determine style
                 if ($options->feedback && $response != '') {
                     $style = 'class = "'.$this->feedback_class($chosenanswer->fraction).'"';
-                    $feedbackimg = question_get_feedback_image($chosenanswer->fraction);
+                    $feedbackimg = $this->feedback_image($chosenanswer->fraction);
                 } else {
                     $style = '';
                     $feedbackimg = '';
@@ -478,9 +478,9 @@ class qtype_multianswer extends question_type {
                 }
                 if (($options->feedback && $chosen) || $options->correct_responses) {
                     if ($type == ' type="checkbox" ') {
-                        $a->feedbackimg = question_get_feedback_image($mcanswer->fraction > 0 ? 1 : 0, $chosen && $options->feedback);
+                        $a->feedbackimg = $this->feedback_image($mcanswer->fraction > 0 ? 1 : 0, $chosen && $options->feedback);
                     } else {
-                        $a->feedbackimg = question_get_feedback_image($mcanswer->fraction, $chosen && $options->feedback);
+                        $a->feedbackimg = $this->feedback_image($mcanswer->fraction, $chosen && $options->feedback);
                     }
                 }
     

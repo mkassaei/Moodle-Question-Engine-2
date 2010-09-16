@@ -192,8 +192,35 @@ abstract class qtype_renderer extends renderer_base {
         return question_state::graded_state_for_fraction($fraction)
                 ->get_feedback_class();
     }
-}
 
+    /**
+     * Return an appropriate icon (green tick, red cross, etc.) for a grade.
+     * @param float $fraction grade on a scale 0..1.
+     * @param booelan $selected whether to show a big or small icon.
+     * @return string html fragment.
+     */
+    function feedback_image($fraction, $selected = true) {
+        global $CFG;
+
+        $state = question_state::graded_state_for_fraction($fraction);
+        if ($state == question_state::$gradedright) {
+            $icon = 'tick_green';
+        } else if ($state == question_state::$gradedpartial) {
+            $icon = 'tick_amber';
+        } else {
+            $icon = 'cross_red';
+        }
+
+        if ($selected) {
+            $icon .= '_big';
+        } else {
+            $icon .= '_small';
+        }
+
+        return '<img src="' . $CFG->pixpath . '/i/' . $icon . '.gif" class="icon" ' .
+                'alt="' . get_string($state->get_feedback_class(), 'quiz') . '" />';
+    }
+}
 
 /**
  * Renderer base classes for question types.

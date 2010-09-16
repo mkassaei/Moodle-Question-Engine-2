@@ -781,47 +781,6 @@ function get_question_options(&$questions, $loadtags = false) {
 }
 
 /**
- * Returns the html for question feedback image.
- * @param float   $fraction  value representing the correctness of the user's
- *                           response to a question.
- * @param boolean $selected  whether or not the answer is the one that the
- *                           user picked.
- * @return string
- */
-function question_get_feedback_image($fraction, $selected=true) {
-
-    global $CFG;
-
-    $state = question_state::graded_state_for_fraction($fraction);
-    if ($state == question_state::$gradedright) {
-        if ($selected) {
-            $feedbackimg = '<img src="'.$CFG->pixpath.'/i/tick_green_big.gif" '.
-                            'alt="'.get_string('correct', 'quiz').'" class="icon" />';
-        } else {
-            $feedbackimg = '<img src="'.$CFG->pixpath.'/i/tick_green_small.gif" '.
-                            'alt="'.get_string('correct', 'quiz').'" class="icon" />';
-        }
-    } else if ($state == question_state::$gradedpartial) {
-        if ($selected) {
-            $feedbackimg = '<img src="'.$CFG->pixpath.'/i/tick_amber_big.gif" '.
-                            'alt="'.get_string('partiallycorrect', 'quiz').'" class="icon" />';
-        } else {
-            $feedbackimg = '<img src="'.$CFG->pixpath.'/i/tick_amber_small.gif" '.
-                            'alt="'.get_string('partiallycorrect', 'quiz').'" class="icon" />';
-        }
-    } else {
-        if ($selected) {
-            $feedbackimg = '<img src="'.$CFG->pixpath.'/i/cross_red_big.gif" '.
-                            'alt="'.get_string('incorrect', 'quiz').'" class="icon" />';
-        } else {
-            $feedbackimg = '<img src="'.$CFG->pixpath.'/i/cross_red_small.gif" '.
-                            'alt="'.get_string('incorrect', 'quiz').'" class="icon" />';
-        }
-    }
-    return $feedbackimg;
-}
-
-/**
 * Print the icon for the question type
 *
 * @param object $question  The question object for which the icon is required
