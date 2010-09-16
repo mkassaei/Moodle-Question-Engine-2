@@ -821,28 +821,6 @@ function question_get_feedback_image($fraction, $selected=true) {
     return $feedbackimg;
 }
 
-
-/**
- * Returns the class name for question feedback.
- * @param float  $fraction  value representing the correctness of the user's
- *                          response to a question.
- * @return string
- */
-function question_get_feedback_class($fraction) {
-
-    global $CFG;
-
-    $state = question_state::graded_state_for_fraction($fraction);
-    if ($state == question_state::$gradedright) {
-        $class = 'correct';
-    } else if ($state == question_state::$gradedpartial) {
-        $class = 'partiallycorrect';
-    } else {
-        $class = 'incorrect';
-    }
-    return $class;
-}
-
 /**
 * Print the icon for the question type
 *

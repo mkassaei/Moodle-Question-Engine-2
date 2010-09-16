@@ -105,7 +105,7 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
             }
             $class = 'r' . ($value % 2);
             if ($options->rightanswer && $ans->fraction > 0) {
-                $class .= ' ' . question_get_feedback_class($this->is_right($ans));
+                $class .= ' ' . $this->feedback_class($this->is_right($ans));
             }
             $classes[] = $class;
         }

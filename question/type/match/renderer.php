@@ -71,7 +71,7 @@ class qtype_match_renderer extends qtype_with_combined_feedback_renderer {
             $fraction = (int) ($selected && $selected == $question->get_right_choice_for($stemid));
 
             if ($options->feedback && $selected) {
-                $classes .= ' ' . question_get_feedback_class($fraction);
+                $classes .= ' ' . $this->feedback_class($fraction);
                 $feedbackimage = question_get_feedback_image($fraction);
             }
 

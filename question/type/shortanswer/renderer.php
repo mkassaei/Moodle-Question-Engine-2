@@ -56,13 +56,13 @@ class qtype_shortanswer_renderer extends qtype_renderer {
         if ($options->feedback) {
             $answer = $question->get_matching_answer(array('answer' => $currentanswer));
             if ($answer) {
-                $inputattributes['class'] = question_get_feedback_class($answer->fraction);
+                $inputattributes['class'] = $this->feedback_class($answer->fraction);
                 $feedbackimg = question_get_feedback_image($answer->fraction);
                 if ($answer->feedback) {
                     $feedback = $question->format_text($answer->feedback);
                 }
             } else {
-                $inputattributes['class'] = question_get_feedback_class(0);
+                $inputattributes['class'] = $this->feedback_class(0);
                 $feedbackimg = question_get_feedback_image(0);
             }
         }

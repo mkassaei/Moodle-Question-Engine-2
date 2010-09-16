@@ -76,9 +76,9 @@ class qtype_truefalse_renderer extends qtype_renderer {
         $falseclass = '';
         if ($options->feedback) {
             if ($truechecked) {
-                $trueclass = ' ' . question_get_feedback_class((int) $question->rightanswer);
+                $trueclass = ' ' . $this->feedback_class((int) $question->rightanswer);
             } else if ($falsechecked) {
-                $falseclass = ' ' . question_get_feedback_class((int) (!$question->rightanswer));
+                $falseclass = ' ' . $this->feedback_class((int) (!$question->rightanswer));
             }
         }
         $truefeedbackimg = '';

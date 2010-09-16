@@ -187,6 +187,11 @@ abstract class qtype_renderer extends renderer_base {
     public function head_code(question_attempt $qa) {
         return implode("\n", $qa->get_question()->qtype->find_standard_scripts_and_css());
     }
+
+    protected function feedback_class($fraction) {
+        return question_state::graded_state_for_fraction($fraction)
+                ->get_feedback_class();
+    }
 }
 
 
