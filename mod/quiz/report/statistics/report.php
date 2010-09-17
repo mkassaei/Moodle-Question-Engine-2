@@ -864,7 +864,7 @@ class quiz_statistics_report extends quiz_default_report {
     protected function analyse_responses($quizstatisticsid, $quizid, $currentgroup,
             $nostudentsingroup, $useallattempts, $groupstudents, $questions, $subquestions) {
 
-        $qubaids = quiz_statistics_qubaids_condition($quizid, $currentgroup, $groupstudents);
+        $qubaids = quiz_statistics_qubaids_condition($quizid, $currentgroup, $groupstudents, $useallattempts);
 
         $done = array();
         foreach ($questions as $question) {
