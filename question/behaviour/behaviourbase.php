@@ -149,7 +149,7 @@ abstract class question_behaviour {
 
     /**
      * Get the most applicable hint for the question in its current state.
-     * @return question_hint|null the most applicable hint, or null, if none.
+     * @return question_hint the most applicable hint, or null, if none.
      */
     public function get_applicable_hint() {
         return null;

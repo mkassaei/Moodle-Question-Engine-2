@@ -69,13 +69,16 @@ class core_question_renderer extends renderer_base {
         $output .= html_writer::start_tag('div', array('class' => 'content'));
 
         $output .= html_writer::tag('div',
-                $this->formulation($qa, $behaviouroutput, $qtoutput, $options),
+                $this->add_part_heading(get_string('questiontext', 'question'),
+                $this->formulation($qa, $behaviouroutput, $qtoutput, $options)),
                 array('class' => 'formulation'));
         $output .= html_writer::nonempty_tag('div',
-                $this->outcome($qa, $behaviouroutput, $qtoutput, $options),
+                $this->add_part_heading(get_string('feedback', 'question'),
+                $this->outcome($qa, $behaviouroutput, $qtoutput, $options)),
                 array('class' => 'outcome'));
         $output .= html_writer::nonempty_tag('div',
-                $behaviouroutput->manual_comment($qa, $options), array('class' => 'comment'));
+                $this->add_part_heading(get_string('comments', 'question'),
+                $behaviouroutput->manual_comment($qa, $options)), array('class' => 'comment'));
         $output .= html_writer::nonempty_tag('div',
                 $this->response_history($qa, $behaviouroutput, $qtoutput, $options),
                 array('class' => 'history'));
@@ -126,6 +129,20 @@ class core_question_renderer extends renderer_base {
             return '';
         }
         return html_writer::tag('h2', $numbertext, array('class' => 'no'));
+    }
+
+    /**
+     * Add an invisible heading like 'question text', 'feebdack' at the top of
+     * a section's contents, but only if the section has some content.
+     * @param string $heading the heading to add.
+     * @param string $content the content of the section.
+     * @return string HTML fragment with the heading added.
+     */
+    protected function add_part_heading($heading, $content) {
+        if ($content) {
+            $content = html_writer::tag('h3', $heading, array('class' => 'accesshide')) . $content;
+        }
+        return $content;
     }
 
     /**

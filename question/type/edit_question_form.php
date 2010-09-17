@@ -84,15 +84,15 @@ class question_edit_form extends moodleform {
 
         if (!isset($this->question->id)) {
             //adding question
-            $mform->addElement('questioncategory', 'category', get_string('category', 'quiz'),
+            $mform->addElement('questioncategory', 'category', get_string('category', 'question'),
                     array('contexts' => $this->contexts->having_cap('moodle/question:add')));
         } elseif (!($this->question->formoptions->canmove || $this->question->formoptions->cansaveasnew)) {
             //editing question with no permission to move from category.
-            $mform->addElement('questioncategory', 'category', get_string('category', 'quiz'),
+            $mform->addElement('questioncategory', 'category', get_string('category', 'question'),
                     array('contexts' => array($this->categorycontext)));
         } elseif ($this->question->formoptions->movecontext) {
             //moving question to another context.
-            $mform->addElement('questioncategory', 'categorymoveto', get_string('category', 'quiz'),
+            $mform->addElement('questioncategory', 'categorymoveto', get_string('category', 'question'),
                     array('contexts' => $this->contexts->having_cap('moodle/question:add')));
 
         } else {
@@ -117,26 +117,26 @@ class question_edit_form extends moodleform {
             }
         }
 
-        $mform->addElement('text', 'name', get_string('questionname', 'quiz'), array('size' => 50));
+        $mform->addElement('text', 'name', get_string('questionname', 'question'), array('size' => 50));
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', null, 'client');
 
-        $mform->addElement('htmleditor', 'questiontext', get_string('questiontext', 'quiz'),
+        $mform->addElement('htmleditor', 'questiontext', get_string('questiontext', 'question'),
                 array('rows' => 15, 'course' => $this->coursefilesid));
         $mform->setType('questiontext', PARAM_RAW);
-        $mform->setHelpButton('questiontext', array(array('questiontext', get_string('questiontext', 'quiz'), 'quiz'), 'richtext'), false, 'editorhelpbutton');
+        $mform->setHelpButton('questiontext', array(array('questiontext', get_string('questiontext', 'question'), 'question'), 'richtext'), false, 'editorhelpbutton');
         $mform->addElement('format', 'questiontextformat', get_string('format'));
 
-        $mform->addElement('text', 'defaultmark', get_string('defaultmark', 'quiz'),
+        $mform->addElement('text', 'defaultmark', get_string('defaultmark', 'question'),
                 array('size' => 3));
         $mform->setType('defaultmark', PARAM_INT);
         $mform->setDefault('defaultmark', 1);
         $mform->addRule('defaultmark', null, 'required', null, 'client');
 
-        $mform->addElement('htmleditor', 'generalfeedback', get_string('generalfeedback', 'quiz'),
+        $mform->addElement('htmleditor', 'generalfeedback', get_string('generalfeedback', 'question'),
                 array('rows' => 10, 'course' => $this->coursefilesid));
         $mform->setType('generalfeedback', PARAM_RAW);
-        $mform->setHelpButton('generalfeedback', array('generalfeedback', get_string('generalfeedback', 'quiz'), 'quiz'));
+        $mform->setHelpButton('generalfeedback', array('generalfeedback', get_string('generalfeedback', 'question'), 'question'));
 
         // Any questiontype specific fields.
         $this->definition_inner($mform);
@@ -197,7 +197,7 @@ class question_edit_form extends moodleform {
                 $buttonarray[] = &$mform->createElement('submit', 'submitbutton', get_string('savechanges'));
             }
             if ($this->question->formoptions->cansaveasnew) {
-                $buttonarray[] = &$mform->createElement('submit', 'makecopy', get_string('makecopy', 'quiz'));
+                $buttonarray[] = &$mform->createElement('submit', 'makecopy', get_string('makecopy', 'question'));
             }
             $buttonarray[] = &$mform->createElement('cancel');
         } else {
@@ -236,7 +236,7 @@ class question_edit_form extends moodleform {
     protected function get_per_answer_fields(&$mform, $label, $gradeoptions, &$repeatedoptions, &$answersoption) {
         $repeated = array();
         $repeated[] =& $mform->createElement('header', 'answerhdr', $label);
-        $repeated[] =& $mform->createElement('text', 'answer', get_string('answer', 'quiz'), array('size' => 50));
+        $repeated[] =& $mform->createElement('text', 'answer', get_string('answer', 'question'), array('size' => 50));
         $repeated[] =& $mform->createElement('select', 'fraction', get_string('grade'), $gradeoptions);
         $repeated[] =& $mform->createElement('htmleditor', 'feedback', get_string('feedback', 'question'),
                                 array('course' => $this->coursefilesid));

@@ -297,8 +297,10 @@ class question_display_options {
     public $clearwrong = false;
 
     /**
-     * Should the one-line summary of the current state of the question that
-     * appears by the question number be shown?
+     * Should the student have what they got right and wrong clearly indicated.
+     * This includes the green/red hilighting of the bits of their response,
+     * whether the one-line summary of the current state of the question says
+     * correct/incorrect or just answered.
      * @var integer {@link question_display_options::HIDDEN} or
      * {@link question_display_options::VISIBLE}
      */
@@ -394,6 +396,7 @@ class question_display_options {
         $this->generalfeedback = self::HIDDEN;
         $this->rightanswer = self::HIDDEN;
         $this->manualcomment = self::HIDDEN;
+        $this->correctness = self::HIDDEN;
     }
 
     /**
