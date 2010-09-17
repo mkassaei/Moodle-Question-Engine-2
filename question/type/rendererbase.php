@@ -196,13 +196,14 @@ abstract class qtype_renderer extends renderer_base {
     /**
      * Return an appropriate icon (green tick, red cross, etc.) for a grade.
      * @param float $fraction grade on a scale 0..1.
-     * @param booelan $selected whether to show a big or small icon.
+     * @param boolean $selected whether to show a big or small icon. (Deprecated)
      * @return string html fragment.
      */
     function feedback_image($fraction, $selected = true) {
         global $CFG;
 
         $state = question_state::graded_state_for_fraction($fraction);
+
         if ($state == question_state::$gradedright) {
             $icon = 'tick_green';
         } else if ($state == question_state::$gradedpartial) {
@@ -210,15 +211,19 @@ abstract class qtype_renderer extends renderer_base {
         } else {
             $icon = 'cross_red';
         }
-
         if ($selected) {
             $icon .= '_big';
         } else {
             $icon .= '_small';
         }
 
-        return '<img src="' . $CFG->pixpath . '/i/' . $icon . '.gif" class="icon" ' .
-                'alt="' . get_string($state->get_feedback_class(), 'quiz') . '" />';
+        $attributes = array(
+            'src' => $CFG->pixpath . '/i/' . $icon . '.gif',
+            'alt' => get_string($state->get_feedback_class(), 'question'),
+            'class' => 'questioncorrectnessicon',
+        );
+
+        return html_writer::empty_tag('img', $attributes);
     }
 }
 

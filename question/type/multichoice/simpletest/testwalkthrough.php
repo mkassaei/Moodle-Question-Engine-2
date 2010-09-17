@@ -64,7 +64,7 @@ class qtype_multichoice_walkthrough_test extends qbehaviour_walkthrough_test_bas
                 $this->get_contains_mc_radio_expectation($rightindex, false, true),
                 $this->get_contains_correct_expectation(),
                 new PatternExpectation('/class="r0 correct"/'),
-                new PatternExpectation('/class="r1 partiallycorrect"/'));
+                new PatternExpectation('/class="r1"/'));
     }
 
     public function test_deferredfeedback_feedback_multichoice_multi() {

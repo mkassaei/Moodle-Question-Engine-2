@@ -74,18 +74,16 @@ class qtype_truefalse_renderer extends qtype_renderer {
         // Work out visual feedback for answer correctness.
         $trueclass = '';
         $falseclass = '';
-        if ($options->feedback) {
-            if ($truechecked) {
-                $trueclass = ' ' . $this->feedback_class((int) $question->rightanswer);
-            } else if ($falsechecked) {
-                $falseclass = ' ' . $this->feedback_class((int) (!$question->rightanswer));
-            }
-        }
         $truefeedbackimg = '';
         $falsefeedbackimg = '';
-        if (($options->feedback || $options->rightanswer) && $response !== '') {
-            $truefeedbackimg = $this->feedback_image($response, $truechecked && $options->feedback);
-            $falsefeedbackimg = $this->feedback_image(!$response, $falsechecked && $options->feedback);
+        if ($options->correctness) {
+            if ($truechecked) {
+                $trueclass = ' ' . $this->feedback_class((int) $question->rightanswer);
+                $truefeedbackimg = $this->feedback_image((int) $question->rightanswer);
+            } else if ($falsechecked) {
+                $falseclass = ' ' . $this->feedback_class((int) (!$question->rightanswer));
+                $falsefeedbackimg = $this->feedback_image((int) (!$question->rightanswer));
+            }
         }
 
         $radiotrue = html_writer::empty_tag('input', $trueattributes) .
@@ -104,9 +102,9 @@ class qtype_truefalse_renderer extends qtype_renderer {
                 array('class' => 'prompt'));
 
         $result .= html_writer::start_tag('div', array('class' => 'answer'));
-        $result .= html_writer::tag('span', $radiotrue . $truefeedbackimg,
+        $result .= html_writer::tag('span', $radiotrue . ' ' . $truefeedbackimg,
                 array('class' => 'r0' . $trueclass));
-        $result .= html_writer::tag('span', $radiofalse . $falsefeedbackimg,
+        $result .= html_writer::tag('span', $radiofalse . ' ' . $falsefeedbackimg,
                 array('class' => 'r1' . $falseclass));
         $result .= html_writer::end_tag('div'); // answer
 

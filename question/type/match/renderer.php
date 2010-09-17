@@ -70,14 +70,14 @@ class qtype_match_renderer extends qtype_with_combined_feedback_renderer {
 
             $fraction = (int) ($selected && $selected == $question->get_right_choice_for($stemid));
 
-            if ($options->feedback && $selected) {
+            if ($options->correctness && $selected) {
                 $classes .= ' ' . $this->feedback_class($fraction);
                 $feedbackimage = $this->feedback_image($fraction);
             }
 
             $result .= html_writer::tag('td',
                     choose_from_menu($choices, $qa->get_qt_field_name('sub' . $key), $selected,
-                            'choose', '', '0', true, $options->readonly) . $feedbackimage,
+                            'choose', '', '0', true, $options->readonly) . ' ' . $feedbackimage,
                     array('class' => $classes));
 
             $result .= html_writer::end_tag('tr');

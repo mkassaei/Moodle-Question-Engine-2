@@ -51,20 +51,16 @@ class qtype_shortanswer_renderer extends qtype_renderer {
             $inputattributes['readonly'] = 'readonly';
         }
 
-        $class = '';
         $feedbackimg = '';
-        if ($options->feedback) {
+        if ($options->correctness) {
             $answer = $question->get_matching_answer(array('answer' => $currentanswer));
             if ($answer) {
-                $inputattributes['class'] = $this->feedback_class($answer->fraction);
-                $feedbackimg = $this->feedback_image($answer->fraction);
-                if ($answer->feedback) {
-                    $feedback = $question->format_text($answer->feedback);
-                }
+                $fraction = $answer->fraction;
             } else {
-                $inputattributes['class'] = $this->feedback_class(0);
-                $feedbackimg = $this->feedback_image(0);
+                $fraction = 0;
             }
+            $inputattributes['class'] = $this->feedback_class($fraction);
+            $feedbackimg = $this->feedback_image($fraction);
         }
 
         $questiontext = $question->format_questiontext();

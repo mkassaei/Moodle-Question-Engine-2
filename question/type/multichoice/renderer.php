@@ -90,11 +90,6 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
                     html_writer::tag('label', $this->number_in_style($value, $question->answernumbering) .
                         $question->format_text($ans->answer), array('for' => $inputattributes['id']));
 
-            if (($options->feedback || $options->rightanswer) && $response !== -1) {
-                $feedbackimg[] = $this->feedback_image($this->is_right($ans), $isselected && $options->feedback);
-            } else {
-                $feedbackimg[] = '';
-            }
             // $options->suppresschoicefeedback is a hack specific to the
             // oumultiresponse question type. It would be good to refactor to
             // avoid refering to it here.
@@ -104,8 +99,11 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
                 $feedback[] = '';
             }
             $class = 'r' . ($value % 2);
-            if ($options->rightanswer && $ans->fraction > 0) {
+            if ($options->correctness && $isselected) {
+                $feedbackimg[] = $this->feedback_image($this->is_right($ans));
                 $class .= ' ' . $this->feedback_class($this->is_right($ans));
+            } else {
+                $feedbackimg[] = '';
             }
             $classes[] = $class;
         }
@@ -119,7 +117,7 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
 
         $result .= html_writer::start_tag('div', array('class' => 'answer'));
         foreach ($radiobuttons as $key => $radio) {
-            $result .= html_writer::tag('span', $radio . $feedbackimg[$key] . $feedback[$key],
+            $result .= html_writer::tag('span', $radio . ' ' . $feedbackimg[$key] . $feedback[$key],
                     array('class' => $classes[$key])) . "\n";
         }
         $result .= html_writer::end_tag('div'); // answer
