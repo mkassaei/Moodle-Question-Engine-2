@@ -782,12 +782,6 @@ function quiz_process_options($quiz) {
         $quiz->name = trim($quiz->name);
     }
 
-    // Time limit. (Get rid of it if the checkbox was not ticked.)
-    if (empty($quiz->timelimitenable)) {
-        $quiz->timelimit = 0;
-    }
-    $quiz->timelimit = round($quiz->timelimit);
-
     // Password field - different in form to stop browsers that remember passwords
     // getting confused.
     $quiz->password = $quiz->quizpassword;

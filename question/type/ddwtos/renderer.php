@@ -101,6 +101,12 @@ class qtype_ddwtos_renderer extends qtype_with_combined_feedback_renderer {
             $attributes['tabindex'] = '0';
         }
 
+        $feedbackimage = '';
+        if ($options->correctness) {
+            
+            $attributes['class'] .= ' readonly';
+        }
+
         return html_writer::tag('span', $boxcontents, $attributes);
     }
 
