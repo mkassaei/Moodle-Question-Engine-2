@@ -34,6 +34,13 @@
     cursor: default;
 }
 
+.que.ddwtos span.incorrect {
+    background-color: #faa;
+}
+.que.ddwtos span.correct {
+    background-color: #afa;
+}
+
 .que.ddwtos .group1 {
     background-color: #FFFFFF;
 }

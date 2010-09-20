@@ -103,11 +103,16 @@ class qtype_ddwtos_renderer extends qtype_with_combined_feedback_renderer {
 
         $feedbackimage = '';
         if ($options->correctness) {
-            
-            $attributes['class'] .= ' readonly';
+            $response = $qa->get_last_qt_data();
+            $fieldname = $question->field($place);
+            if (array_key_exists($fieldname, $response)) {
+                $fraction = (int) ($response[$fieldname] == $question->get_right_choice_for($place));
+                $attributes['class'] .= ' ' . $this->feedback_class($fraction);
+                $feedbackimage = $this->feedback_image($fraction);
+            }
         }
 
-        return html_writer::tag('span', $boxcontents, $attributes);
+        return html_writer::tag('span', $boxcontents, $attributes) . ' ' . $feedbackimage;
     }
 
     protected function drag_boxes($qa, $group, $choices, question_display_options $options) {
@@ -163,7 +168,7 @@ class qtype_ddwtos_renderer extends qtype_with_combined_feedback_renderer {
         }
 
         $output = '';
-        foreach ($qa->get_question()->places as $place => $group) {
+        foreach ($question->places as $place => $group) {
             $fieldname = $question->field($place);
             if (array_key_exists($fieldname, $response)) {
                 $value = $response[$fieldname];

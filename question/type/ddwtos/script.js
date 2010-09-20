@@ -139,6 +139,13 @@ var ddwtos_currentzindex = 10;
             target.player = this;
             YAHOO.util.Dom.setXY(target.player.getEl(), YAHOO.util.Dom.getXY(target.getEl()));
             YAHOO.util.Dom.addClass(this.getEl(), 'placed');
+            if (YAHOO.util.Dom.hasClass(target.getEl(), 'readonly')) {
+                if (YAHOO.util.Dom.hasClass(target.getEl(), 'correct')) {
+                    YAHOO.util.Dom.addClass(this.getEl(), 'correct');
+                } else if (YAHOO.util.Dom.hasClass(target.getEl(), 'incorrect')) {
+                    YAHOO.util.Dom.addClass(this.getEl(), 'incorrect');
+                }
+            }
 
             // set value
             var hiddenElement = document.getElementById(id + '_hidden');
