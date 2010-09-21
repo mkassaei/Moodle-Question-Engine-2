@@ -145,6 +145,8 @@ $string['hidden'] = 'Hidden';
 $string['hintn'] = 'Hint {no}';
 $string['hinttext'] = 'Hint text';
 $string['howquestionsbehave'] = 'How questions behave';
+$string['importfromcoursefiles'] = '... or choose a course file to import.';
+$string['importfromupload'] = 'Select a file to upload ...';
 $string['incorrect'] = 'Incorrect';
 $string['incorrectfeedback'] = 'For any incorrect response';
 $string['invalidanswer'] = 'Incomplete answer';
@@ -193,3 +195,4 @@ $string['xoutofmax'] = '$a->mark out of $a->max';
 $string['yougotnright'] = 'You have correctly selected {$a->num}.';
 
 $string['unexpectedexception'] = 'Unexpected exception: $a';
+
