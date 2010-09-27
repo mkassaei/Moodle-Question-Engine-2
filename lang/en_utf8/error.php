@@ -41,6 +41,7 @@ $string['erroronline'] = 'Error on line $a';
 $string['errorreadingfile'] = 'Error reading file \"$a\"';
 $string['errorsavingrequest'] = 'An error occurred when trying to save your request.';
 $string['errorunzippingfiles'] = 'Error unzipping files';
+$string['errorxmlfile'] = 'XML not well formed. (<strong>$a->errorstring</strong> at line <strong>$a->errorline</strong>, character <strong>$a->errorchar</strong>.)';
 $string['fieldrequired'] = '\"$a\" is a required field';
 $string['filenotfound'] = 'Sorry, the requested file could not be found';
 $string['forumblockingtoomanyposts'] = 'You have exceeded the posting threshold set for this forum';

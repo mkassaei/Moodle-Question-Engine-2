@@ -652,8 +652,12 @@ class qformat_xml extends qformat_default {
 
         // This converts xml to big nasty data structure
         // the 0 means keep white space as it is (important for markdown format)
-        $xml = xmlize($text, 0);
-
+        try {
+            $xml = xmlize($text, 0, 'UTF-8', true);
+        } catch (xml_format_exception $e){
+            $this->error($e->getMessage(), '');
+            return false;
+        }
         // Set up array to hold all our questions
         $questions = array();
 

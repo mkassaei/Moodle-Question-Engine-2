@@ -242,6 +242,9 @@ class qformat_default {
         }
 
         if (! $questions = $this->readquestions($lines)) {   // Extract all the questions
+            if (!is_array($questions)) {
+                return false;
+            }
             notify( get_string('noquestionsinfile','quiz') );
             return false;
         }
