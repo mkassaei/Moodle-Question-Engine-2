@@ -18,6 +18,10 @@
  * @license Feel Free To Use it However
  */
 
+
+require_once($CFG->dirroot . '/question/engine/compatibility.php');
+
+
 /**
  * Exception thrown when there is an error parsing an XML file.
  *
