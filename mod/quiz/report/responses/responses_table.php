@@ -111,7 +111,7 @@ class quiz_report_responses_table extends quiz_attempt_report_table {
         if (is_null($stepdata->$field)) {
             $summary = '-';
         } else {
-            $summary = $stepdata->$field;
+            $summary = trim($stepdata->$field);
         }
 
         if ($this->is_downloading() || $field != 'responsesummary') {
