@@ -212,4 +212,48 @@ class qbehaviour_manualgraded_walkthrough_test extends qbehaviour_walkthrough_te
         $this->assertEqual('Commented: Actually, I am not sure any more.',
                 $qa->summarise_action($qa->get_last_step()));
     }
+
+    public function test_manual_graded_essay_can_grade_0() {
+
+        // Create an essay question.
+        $essay = test_question_maker::make_an_essay_question();
+        $this->start_attempt_at_question($essay, 'deferredfeedback', 10);
+
+        // Check the right model is being used.
+        $this->assertEqual('manualgraded', $this->quba->
+                get_question_attempt($this->slot)->get_behaviour_name());
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output($this->get_contains_question_text_expectation($essay),
+                $this->get_does_not_contain_feedback_expectation());
+
+        // Simulate some data submitted by the student.
+        $this->process_submission(array('answer' => 'This is my wonderful essay!'));
+
+        // Verify.
+        $this->check_current_state(question_state::$complete);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                new ContainsTagWithAttribute('textarea', 'name',
+                $this->quba->get_question_attempt($this->slot)->get_qt_field_name('answer')),
+                $this->get_does_not_contain_feedback_expectation());
+
+        // Finish the attempt.
+        $this->quba->finish_all_questions();
+
+        // Verify.
+        $this->check_current_state(question_state::$needsgrading);
+        $this->check_current_mark(null);
+        $this->assertEqual('This is my wonderful essay!',
+                $this->quba->get_response_summary($this->slot));
+
+        // Process a blank comment and a grade of 0.
+        $this->manual_grade('', 0);
+
+        // Verify.
+        $this->check_current_state(question_state::$mangrwrong);
+        $this->check_current_mark(0);
+    }
 }

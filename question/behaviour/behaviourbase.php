@@ -335,8 +335,8 @@ abstract class question_behaviour {
         $newmark = $pendingstep->get_behaviour_var('mark');
 
         if (is_null($previousfraction)) {
-            return is_null($newmark) || $newmark == '';
-        } else if (is_null($newmark) || $newmark == '') {
+            return is_null($newmark) || $newmark === '';
+        } else if (is_null($newmark) || $newmark === '') {
             return false;
         }
 
