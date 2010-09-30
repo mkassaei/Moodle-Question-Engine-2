@@ -32,17 +32,20 @@ require_once($CFG->dirroot . '/question/type/ddwtos/simpletest/helper.php');
 
 class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
 
-    protected function get_contains_drop_box_expectation($place, $group, $readonly) {
+    protected function get_contains_drop_box_expectation($place, $group, $readonly, $stateclass = '') {
         $qa = $this->quba->get_question_attempt($this->slot);
 
         $readonlyclass = '';
         if ($readonly) {
             $readonlyclass = ' readonly';
         }
+        if ($stateclass) {
+            $stateclass = ' ' . $stateclass;
+        }
 
         return new ContainsTagWithAttributes('span', array(
             'id' => $qa->get_qt_field_name($place . '_' . $group),
-            'class' => 'slot group' . $group . $readonlyclass,
+            'class' => 'slot group' . $group . $readonlyclass . $stateclass,
             'tabindex' => 0
         ));
     }
@@ -134,9 +137,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
         $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(2);
         $this->check_current_output(
-                $this->get_contains_drop_box_expectation('p1', 1, true),
-                $this->get_contains_drop_box_expectation('p2', 2, true),
-                $this->get_contains_drop_box_expectation('p3', 3, true),
+                $this->get_contains_drop_box_expectation('p1', 1, true, 'correct'),
+                $this->get_contains_drop_box_expectation('p2', 2, true, 'correct'),
+                $this->get_contains_drop_box_expectation('p3', 3, true, 'correct'),
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_contains_correct_expectation(),
                 $this->get_no_hint_visible_expectation());
@@ -207,9 +210,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
         $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(3);
         $this->check_current_output(
-                $this->get_contains_drop_box_expectation('p1', 1, true),
-                $this->get_contains_drop_box_expectation('p2', 2, true),
-                $this->get_contains_drop_box_expectation('p3', 3, true),
+                $this->get_contains_drop_box_expectation('p1', 1, true, 'correct'),
+                $this->get_contains_drop_box_expectation('p2', 2, true, 'correct'),
+                $this->get_contains_drop_box_expectation('p3', 3, true, 'correct'),
                 $this->get_contains_correct_expectation());
 
         // Change the right answer a bit.
@@ -316,9 +319,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
         $this->check_current_state(question_state::$gradedpartial);
         $this->check_current_mark(1);
         $this->check_current_output(
-                $this->get_contains_drop_box_expectation('p1', 1, true),
-                $this->get_contains_drop_box_expectation('p2', 2, true),
-                $this->get_contains_drop_box_expectation('p3', 3, true),
+                $this->get_contains_drop_box_expectation('p1', 1, true, 'correct'),
+                $this->get_contains_drop_box_expectation('p2', 2, true, 'incorrect'),
+                $this->get_contains_drop_box_expectation('p3', 3, true, 'incorrect'),
                 $this->get_contains_partcorrect_expectation());
     }
 
@@ -445,9 +448,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
         $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(6);
         $this->check_current_output(
-                $this->get_contains_drop_box_expectation('p1', 1, true),
-                $this->get_contains_drop_box_expectation('p2', 2, true),
-                $this->get_contains_drop_box_expectation('p3', 3, true),
+                $this->get_contains_drop_box_expectation('p1', 1, true, 'correct'),
+                $this->get_contains_drop_box_expectation('p2', 2, true, 'correct'),
+                $this->get_contains_drop_box_expectation('p3', 3, true, 'correct'),
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_does_not_contain_try_again_button_expectation(),
                 $this->get_contains_correct_expectation(),
@@ -495,9 +498,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
         $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(3);
         $this->check_current_output(
-                $this->get_contains_drop_box_expectation('p1', 1, true),
-                $this->get_contains_drop_box_expectation('p2', 2, true),
-                $this->get_contains_drop_box_expectation('p3', 3, true),
+                $this->get_contains_drop_box_expectation('p1', 1, true, 'correct'),
+                $this->get_contains_drop_box_expectation('p2', 2, true, 'correct'),
+                $this->get_contains_drop_box_expectation('p3', 3, true, 'correct'),
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_contains_correct_expectation(),
                 $this->get_no_hint_visible_expectation());
@@ -546,9 +549,9 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
         $this->check_current_state(question_state::$gradedpartial);
         $this->check_current_mark(1);
         $this->check_current_output(
-                $this->get_contains_drop_box_expectation('p1', 1, true),
-                $this->get_contains_drop_box_expectation('p2', 2, true),
-                $this->get_contains_drop_box_expectation('p3', 3, true),
+                $this->get_contains_drop_box_expectation('p1', 1, true, 'correct'),
+                $this->get_contains_drop_box_expectation('p2', 2, true, 'incorrect'),
+                $this->get_contains_drop_box_expectation('p3', 3, true, 'incorrect'),
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_contains_partcorrect_expectation(),
                 $this->get_no_hint_visible_expectation());
