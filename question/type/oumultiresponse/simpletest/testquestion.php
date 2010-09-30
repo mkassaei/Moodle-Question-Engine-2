@@ -48,7 +48,7 @@ class qtype_oumultiresponse_question_test extends UnitTestCase {
         $this->assertEqual(qtype_oumultiresponse_question::replace_char_at('220', 0, '0'), '020');
     }
 
-    public function test_grade_responses_correct() {
+    public function test_grade_responses_right_right() {
         $mc = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_four();
         $mc->shufflechoices = false;
         $mc->init_first_step(new question_attempt_step());
@@ -58,7 +58,7 @@ class qtype_oumultiresponse_question_test extends UnitTestCase {
         $this->assertEqual($state, question_state::$gradedright);
     }
 
-    public function test_grade_responses_partial() {
+    public function test_grade_responses_right() {
         $mc = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_four();
         $mc->shufflechoices = false;
         $mc->init_first_step(new question_attempt_step());
@@ -68,7 +68,7 @@ class qtype_oumultiresponse_question_test extends UnitTestCase {
         $this->assertEqual($state, question_state::$gradedpartial);
     }
 
-    public function test_grade_responses_wrong() {
+    public function test_grade_responses_wrong_wrong() {
         $mc = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_four();
         $mc->shufflechoices = false;
         $mc->init_first_step(new question_attempt_step());
@@ -78,7 +78,7 @@ class qtype_oumultiresponse_question_test extends UnitTestCase {
         $this->assertEqual($state, question_state::$gradedwrong);
     }
 
-    public function test_grade_responses_partial_zero() {
+    public function test_grade_responses_right_wrong_wrong() {
         $mc = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_four();
         $mc->shufflechoices = false;
         $mc->init_first_step(new question_attempt_step());
@@ -88,7 +88,28 @@ class qtype_oumultiresponse_question_test extends UnitTestCase {
         $this->assertEqual($state, question_state::$gradedpartial);
     }
 
-    public function test_grade_responses_all_selected() {
+    public function test_grade_responses_right_wrong() {
+        $mc = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_four();
+        $mc->shufflechoices = false;
+        $mc->init_first_step(new question_attempt_step());
+
+        list($fraction, $state) = $mc->grade_response(array('choice0' => '1', 'choice1' => '1'));
+        $this->assertWithinMargin(0.5, $fraction, $this->tolerance);
+        $this->assertEqual($state, question_state::$gradedpartial);
+    }
+
+    public function test_grade_responses_right_right_wrong() {
+        $mc = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_four();
+        $mc->shufflechoices = false;
+        $mc->init_first_step(new question_attempt_step());
+
+        list($fraction, $state) = $mc->grade_response(array(
+                'choice0' => '1', 'choice2' => '1', 'choice3' => '1'));
+        $this->assertWithinMargin(0.5, $fraction, $this->tolerance);
+        $this->assertEqual($state, question_state::$gradedpartial);
+    }
+
+    public function test_grade_responses_right_right_wrong_wrong() {
         $mc = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_four();
         $mc->shufflechoices = false;
         $mc->init_first_step(new question_attempt_step());

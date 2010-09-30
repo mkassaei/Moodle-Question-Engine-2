@@ -58,7 +58,7 @@ class qtype_oumultiresponse_question extends qtype_multichoice_multi_question
         $numwrong = $this->get_num_selected_choices($response) - $numright;
         $numcorrect = $this->get_num_correct_choices();
 
-        $fraction = max(0, $numright - $numwrong) / $numcorrect;
+        $fraction = max(min($numright, $numcorrect - $numwrong), 0) / $numcorrect;
 
         $state = question_state::graded_state_for_fraction($fraction);
         if ($state == question_state::$gradedwrong && $numright > 0) {
