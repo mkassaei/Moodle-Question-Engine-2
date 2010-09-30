@@ -114,7 +114,7 @@ function question_init_form(id) {
     responseform.setAttribute('autocomplete', 'off');
 
     YAHOO.util.Event.addListener(responseform, 'keypress', question_filter_key_events);
-    YAHOO.util.Event.addListener(responseform, 'submit', question_prevent_repeat_submission, responseform);
+    YAHOO.util.Event.addListener(responseform, 'submit', question_prevent_repeat_submission, document.body);
 
     var matches = window.location.href.match(/^.*[?&]scrollpos=(\d*)(?:&|$|#).*$/, '$1');
     if (matches) {
@@ -135,8 +135,8 @@ function question_init_form(id) {
  * @param e the form submit event.
  * @param form the form element.
  */
-function question_prevent_repeat_submission(e, form) {
-    if (form.questionformalreadysubmitted) {
+function question_prevent_repeat_submission(e, container) {
+    if (container.questionformalreadysubmitted) {
         YAHOO.util.Event.stopEvent(e);
         return;
     }
@@ -144,10 +144,10 @@ function question_prevent_repeat_submission(e, form) {
     setTimeout(function() {
         YAHOO.util.Dom.getElementsBy(function(el) {
             return el.type == 'submit';
-        }, 'input', form, function(el) {
+        }, 'input', container, function(el) {
             el.disabled = true; });
         }, 0);
-    form.questionformalreadysubmitted = true;
+    container.questionformalreadysubmitted = true;
 }
 
 /**

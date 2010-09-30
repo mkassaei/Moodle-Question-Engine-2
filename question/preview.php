@@ -187,12 +187,13 @@ echo '<input type="submit" name="finish"' . $finishdisabled .
         ' value="' . get_string('submitandfinish', 'question') . '" />', "\n";
 echo '<input type="hidden" name="scrollpos" id="scrollpos" value="" />';
 echo '</div>';
-echo '<script type="text/javascript">question_preview_close_button("' .
-        get_string('closepreview', 'question') . '", "previewcontrols");</script>', "\n";
 echo '</form>';
 
 // Display the settings form.
 $optionsform->display();
+
+echo '<script type="text/javascript">question_preview_init("' .
+        get_string('closepreview', 'question') . '", "previewcontrols");</script>', "\n";
 
 // Finish output.
 use_html_editor();

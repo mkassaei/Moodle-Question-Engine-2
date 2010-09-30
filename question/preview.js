@@ -26,9 +26,10 @@
 
 
 /**
- * Add a button inside the element with id addto that closes the preview popup.
+ * Initialise JavaScript-specific parts of the question preview popup.
  */
-function question_preview_close_button(caption, addto) {
+function question_preview_init(caption, addto) {
+    // Add a close button to the window.
     var button = document.createElement('input');
     button.type = 'button';
     button.value = caption;
@@ -37,4 +38,10 @@ function question_preview_close_button(caption, addto) {
 
     var container = document.getElementById(addto);
     container.appendChild(button);
+
+    // Make changint the settings disable all submit buttons, like clicking one of the
+    // question buttons does.
+    var form = document.getElementById('mform1');
+    YAHOO.util.Event.addListener(form, 'submit',
+            question_prevent_repeat_submission, document.body);
 }
