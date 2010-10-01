@@ -1,60 +1,6 @@
 The bug URLs only work within the OU network. Sorry. Overall tracking bug:
 http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8553
 
-Integrate new code into the quiz reports (7d)
-(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9205)
-√   Start with Moodle 2.0 reports.
-√   overview 2d
-√   responses 1d
-√   manual grading 1d
-√   statistics
-√       statistics computation and display
-√       response analysis 2d
-√   delete unused code from reportlib.php
-√   check formatting by question or quiz decimal points
-√   delete obsolete get_all_responses method.
-√   re-impliment regrading functionality 1d
-√   sorting on question grade/summary columns 1d
-√   if you change the quiz Grading method setting, overall grades are not re-computed nor when changing question weights. 1d
-√   refactor to eliminate some duplicated code 1d
-
-Incorporate other OU-specific quiz customisations into this code (8d)
-(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8558)
-√   Basic merge 0.5d
-√   Check with Phil there are no changes the reports compared to what went into 2.0.
-√   Plugins to convert
-√       oumultiresponse 1d
-√           fix import/export hack
-√       ddwtos 1d
-√           fix import/export hack
-√   Changes to preserve
-√       adaptive mode / overall feedback import-export refactoring 1d
-√          answers???
-√       new correctness review option on the editing form/db/backup and restore/config/defaults 0.5d
-√       new 'during the attempt' review option period 0.5d
-√       display of question history on the review page
-√       count-back scoring for ou-multiresponse, drag-and-drop, and matching question types.
-√       matching question, add overall feedback fields (check lang file) 1d
-√       ou_backup_IsConvertingToStandard 0.5d
-√       $DASHBOARD_COUNTER crap 0.5d
-√       quiz backup version 0d
-√       OCI revisioneditor stuff 0.5d
-√   Changes to eliminate (with permission)
-√       nasty hack in report.php and tabs.php to prevent tutors accessing the responses report (check separate groups works). 0.5d
-√   Review lang files as a double-check that nothing was missed. 0.5d
-√   Don't auto redirect to edit.php for empty quizzes. 0d
-√   Activity completion changes. 0d
-√   Files to delete 0d
-√       attempt_close_js.php
-√       jstimer.php
-
-<-- Ready for funcitional testing milestone
-
-Database upgrade script (5d)
-(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9207)
-    For OU Moodle 5d
-    Deal with question images 0d
-
 Backup and restore code (7d)
 (http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9208)
     Implement backup and restore of the new database tables 2d
@@ -82,11 +28,11 @@ Finish database load/save code (7d)
 <-- OU version done milestone
 
 Miscellaneous code clean-up (1.5d)
-    Refactor out commonalities between multiplechoice and truefalse rendering. 0.5d
+√   Refactor out commonalities between multiplechoice and truefalse rendering. 0.5d
     Unit tests for mod/quiz/attemptlib.php (1d)
     Check how the time limit is enforced.
 √   remove obsolete functions from questionlib.php
-    test ungraded quizzes and ungraded questions
+√   test ungraded quizzes and ungraded questions
     Upgrade essay question type. Kill its use of an answer, and merge all feedback into generalfeedback.
 √   rename interaction model -> behaviour
     eliminate global $QTYPES.
@@ -234,3 +180,56 @@ Finish question engine core (3d)
 √   Implement responsesummary.
 √   Put starting seq_no in a hidden input, and verify before processing, to prevent duplicate submit problems.
 
+Integrate new code into the quiz reports (7d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9205)
+√   Start with Moodle 2.0 reports.
+√   overview 2d
+√   responses 1d
+√   manual grading 1d
+√   statistics
+√       statistics computation and display
+√       response analysis 2d
+√   delete unused code from reportlib.php
+√   check formatting by question or quiz decimal points
+√   delete obsolete get_all_responses method.
+√   re-impliment regrading functionality 1d
+√   sorting on question grade/summary columns 1d
+√   if you change the quiz Grading method setting, overall grades are not re-computed nor when changing question weights. 1d
+√   refactor to eliminate some duplicated code 1d
+
+Incorporate other OU-specific quiz customisations into this code (8d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=8558)
+√   Basic merge 0.5d
+√   Check with Phil there are no changes the reports compared to what went into 2.0.
+√   Plugins to convert
+√       oumultiresponse 1d
+√           fix import/export hack
+√       ddwtos 1d
+√           fix import/export hack
+√   Changes to preserve
+√       adaptive mode / overall feedback import-export refactoring 1d
+√          answers???
+√       new correctness review option on the editing form/db/backup and restore/config/defaults 0.5d
+√       new 'during the attempt' review option period 0.5d
+√       display of question history on the review page
+√       count-back scoring for ou-multiresponse, drag-and-drop, and matching question types.
+√       matching question, add overall feedback fields (check lang file) 1d
+√       ou_backup_IsConvertingToStandard 0.5d
+√       $DASHBOARD_COUNTER crap 0.5d
+√       quiz backup version 0d
+√       OCI revisioneditor stuff 0.5d
+√   Changes to eliminate (with permission)
+√       nasty hack in report.php and tabs.php to prevent tutors accessing the responses report (check separate groups works). 0.5d
+√   Review lang files as a double-check that nothing was missed. 0.5d
+√   Don't auto redirect to edit.php for empty quizzes. 0d
+√   Activity completion changes. 0d
+√   Files to delete 0d
+√       attempt_close_js.php
+√       jstimer.php
+
+<-- Ready for funcitional testing milestone
+
+Database upgrade script (5d)
+(http://lts-strat-dev-1.open.ac.uk/bugzilla/show_bug.cgi?id=9207)
+√   For OU Moodle 5d
+√   Deal with question images 0d
