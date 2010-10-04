@@ -79,13 +79,17 @@ function xmldb_quizreport_statistics_upgrade($oldversion) {
 
     if ($result && $oldversion < 2010070300) {
 
-    /// Rename field qnumber on table quiz_question_statistics to slot
+    /// Rename field qnumber on table quiz_question_statistics to slot, if
+    /// it is not already called that. The 2010032400 change above was amended to
+    /// Create a column slot directly.
         $table = new XMLDBTable('quiz_question_statistics');
         $field = new XMLDBField('qnumber');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, null, 'questionid');
 
     /// Launch rename field slot
-        $result = $result && rename_field($table, $field, 'slot');
+        if (field_exists($table, $field)) {
+            $result = $result && rename_field($table, $field, 'slot');
+        }
     }
 
     if ($result && $oldversion < 2010070301) {
