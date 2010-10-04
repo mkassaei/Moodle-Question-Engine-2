@@ -958,11 +958,11 @@ function xmldb_quiz_upgrade($oldversion=0) {
             $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null, 'id');
             $result = $result && change_field_notnull($table, $field);
 
-            // Add the preferredbehaviour column. Populate it with '' for now.
-            // We will fill in the appropriate behaviour name when updating all
-            // the rest of the attempt data.
+            // Add the preferredbehaviour column. Populate it with a dummy value
+            // for now. We will fill in the appropriate behaviour name when
+            // updating all the rest of the attempt data.
             $field = new XMLDBField('preferredbehaviour');
-            $field->setAttributes(XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null, null, '', 'component');
+            $field->setAttributes(XMLDB_TYPE_CHAR, '32', null, null, null, null, null, 'to_be_set_later', 'component');
             $result = $result && add_field($table, $field);
 
             // Then remove the default value, now the column is populated.
@@ -1092,13 +1092,13 @@ function xmldb_quiz_upgrade($oldversion=0) {
 
     if ($result && $oldversion < 2008000512) {
 
-        // Define table question_states to be dropped
-        $table = new XMLDBTable('question_states');
-        if (table_exists($table)) {
+        // Define key questionid (foreign) to be added to question_hints
+        $table = new XMLDBTable('question_hints');
+        $key = new XMLDBKey('questionid');
+        $key->setAttributes(XMLDB_KEY_FOREIGN, array('questionid'), 'question', array('id'));
 
-            // Launch drop table for question_states
-            $result = $result && drop_table($table);
-        }
+        // Launch add key questionid
+        $result = $result && add_key($table, $key);
 
         // quiz savepoint reached
         upgrade_mod_savepoint($result, 2008000512, 'quiz');
@@ -1106,6 +1106,23 @@ function xmldb_quiz_upgrade($oldversion=0) {
 
     if ($result && $oldversion < 2008000513) {
 
+        // Define key contextid (foreign) to be added to question_usages
+        $table = new XMLDBTable('question_usages');
+        $key = new XMLDBKey('contextid');
+        $key->setAttributes(XMLDB_KEY_FOREIGN, array('contextid'), 'context', array('id'));
+
+        // Launch add key contextid
+        $result = $result && add_key($table, $key);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000513, 'quiz');
+    }
+
+/*
+For now, comment out deleting the old data, until we are sure the upgrade works.
+
+    if ($result && $oldversion < 2008000514) {
+
         // Define table question_states to be dropped
         $table = new XMLDBTable('question_states');
         if (table_exists($table)) {
@@ -1115,9 +1132,24 @@ function xmldb_quiz_upgrade($oldversion=0) {
         }
 
         // quiz savepoint reached
-        upgrade_mod_savepoint($result, 2008000513, 'quiz');
+        upgrade_mod_savepoint($result, 2008000514, 'quiz');
     }
 
+    if ($result && $oldversion < 2008000515) {
+
+        // Define table question_states to be dropped
+        $table = new XMLDBTable('question_states');
+        if (table_exists($table)) {
+
+            // Launch drop table for question_states
+            $result = $result && drop_table($table);
+        }
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000515, 'quiz');
+    }
+
+*/
     commit_sql();
 
     return $result;
