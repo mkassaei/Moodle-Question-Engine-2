@@ -1118,6 +1118,21 @@ function xmldb_quiz_upgrade($oldversion=0) {
         upgrade_mod_savepoint($result, 2008000513, 'quiz');
     }
 
+    if ($result && $oldversion < 2008000514) {
+
+        // Changing precision of field component on table question_usages to (255)
+        // This was missed during the upgrade from old versions.
+        $table = new XMLDBTable('question_usages');
+        $field = new XMLDBField('component');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, null, 'contextid');
+
+        // Launch change of precision for field component
+        $result = $result && change_field_precision($table, $field);
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000514, 'quiz');
+    }
+
 /*
 For now, comment out deleting the old data, until we are sure the upgrade works.
 
