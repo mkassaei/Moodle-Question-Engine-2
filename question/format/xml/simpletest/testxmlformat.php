@@ -35,6 +35,11 @@ require_once($CFG->dirroot . '/question/format/xml/format.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qformat_xml_test extends UnitTestCase {
+    public function assert_same_xml($expectedxml, $xml) {
+        $this->assertEqual(str_replace("\r\n", "\n", $expectedxml),
+                str_replace("\r\n", "\n", $xml));
+    }
+
     public function make_test_question() {
         global $USER;
         $q = new stdClass;
@@ -245,7 +250,7 @@ END;
   </question>
 ';
 
-        $this->assertEqual($expectedxml, $xml);
+        $this->assert_same_xml($expectedxml, $xml);
     }
 
     public function test_import_essay() {
@@ -314,7 +319,7 @@ END;
   </question>
 ';
 
-        $this->assertEqual($expectedxml, $xml);
+        $this->assert_same_xml($expectedxml, $xml);
     }
 
     public function test_import_match() {
@@ -510,7 +515,7 @@ END;
   </question>
 ';
 
-        $this->assertEqual($expectedxml, $xml);
+        $this->assert_same_xml($expectedxml, $xml);
     }
 
     public function test_import_multichoice() {
@@ -700,7 +705,7 @@ END;
   </question>
 ';
 
-        $this->assertEqual($expectedxml, $xml);
+        $this->assert_same_xml($expectedxml, $xml);
     }
 
     public function test_import_numerical() {
@@ -826,7 +831,7 @@ END;
   </question>
 ';
 
-        $this->assertEqual($expectedxml, $xml);
+        $this->assert_same_xml($expectedxml, $xml);
     }
 
     public function test_import_shortanswer() {
@@ -950,7 +955,7 @@ END;
   </question>
 ';
 
-        $this->assertEqual($expectedxml, $xml);
+        $this->assert_same_xml($expectedxml, $xml);
     }
 
     public function test_import_truefalse() {
@@ -1054,6 +1059,6 @@ END;
   </question>
 ';
 
-        $this->assertEqual($expectedxml, $xml);
+        $this->assert_same_xml($expectedxml, $xml);
     }
 }

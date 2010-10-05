@@ -82,6 +82,11 @@ class qtype_opaque_test extends UnitTestCase {
         $this->qtype = null;
     }
 
+    public function assert_same_xml($expectedxml, $xml) {
+        $this->assertEqual(str_replace("\r\n", "\n", $expectedxml),
+                str_replace("\r\n", "\n", $xml));
+    }
+
     public function test_name() {
         $this->assertEqual($this->qtype->name(), 'opaque');
     }
@@ -293,6 +298,6 @@ class qtype_opaque_test extends UnitTestCase {
   </question>
 ';
 
-        $this->assertEqual($expectedxml, $xml);
+        $this->assert_same_xml($expectedxml, $xml);
     }
 }

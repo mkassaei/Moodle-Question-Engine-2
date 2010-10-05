@@ -47,6 +47,11 @@ class qtype_ddwtos_test extends UnitTestCase {
         $this->qtype = null;
     }
 
+    public function assert_same_xml($expectedxml, $xml) {
+        $this->assertEqual(str_replace("\r\n", "\n", $expectedxml),
+                str_replace("\r\n", "\n", $xml));
+    }
+
     /**
      * @return object the data to construct a question like
      * {@link qtype_ddwtos_test_helper::make_a_ddwtos_question()}.
@@ -460,6 +465,6 @@ class qtype_ddwtos_test extends UnitTestCase {
   </question>
 ';
 
-        $this->assertEqual($expectedxml, $xml);
+        $this->assert_same_xml($expectedxml, $xml);
     }
 }
