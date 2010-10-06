@@ -1133,6 +1133,48 @@ function xmldb_quiz_upgrade($oldversion=0) {
         upgrade_mod_savepoint($result, 2008000514, 'quiz');
     }
 
+    if ($result && $oldversion < 2008000515) {
+
+        // In the past, question_answer fractions were stored with rather
+        // sloppy rounding. Now update them to the new standard of 7 d.p.
+        $changes = array(
+            '-0.66666'  => '-0.6666667',
+            '-0.33333'  => '-0.3333333',
+            '-0.16666'  => '-0.1666667',
+            '-0.142857' => '-0.1428571',
+             '0.11111'  =>  '0.1111111',
+             '0.142857' =>  '0.1428571',
+             '0.16666'  =>  '0.1666667',
+             '0.33333'  =>  '0.3333333',
+             '0.333333' =>  '0.3333333',
+             '0.66666'  =>  '0.6666667',
+        );
+        foreach ($changes as $from => $to) {
+            $result = $result && set_field('question_answers',
+                    'fraction', $to, 'fraction', $from);
+        }
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000515, 'quiz');
+    }
+
+    if ($result && $oldversion < 2008000516) {
+
+        // In the past, question penalties were stored with rather
+        // sloppy rounding. Now update them to the new standard of 7 d.p.
+        $result = $result && set_field('question',
+                'penalty', 0.3333333, 'penalty', 33.3);
+        $result = $result && set_field_select('question',
+                'penalty', 0.3333333, 'penalty >= 0.33 AND penalty <= 0.34');
+        $result = $result && set_field_select('question',
+                'penalty', 0.6666667, 'penalty >= 0.66 AND penalty <= 0.67');
+        $result = $result && set_field_select('question',
+                'penalty', 1, 'penalty > 1');
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000516, 'quiz');
+    }
+
 /*
 For now, comment out deleting the old data, until we are sure the upgrade works.
 
