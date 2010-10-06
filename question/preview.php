@@ -30,14 +30,12 @@
  *      numerous contributors.
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 require_once(dirname(__FILE__) . '/../config.php');
 require_once($CFG->libdir . '/questionlib.php');
 require_once($CFG->libdir . '/formslib.php');
 require_once(dirname(__FILE__) . '/previewlib.php');
 require_js('yui_dom-event');
 require_js($CFG->httpswwwroot . '/question/preview.js');
-
 // Get and validate question id.
 $id = required_param('id', PARAM_INT); // Question id
 $question = question_bank::load_question($id);
@@ -46,16 +44,8 @@ question_require_capability_on($question, 'use');
 if (!$category = get_record("question_categories", "id", $question->category)) {
     print_error('unknownquestioncategory', 'question', $question->category);
 }
-
-$displaysettings = array(
-    'correctness' => question_display_options::VISIBLE,
-    'marks' => question_display_options::MARK_AND_MAX,
-    'markdp' => $CFG->quiz_decimalpoints,
-    'feedback' => question_display_options::VISIBLE,
-    'generalfeedback' => question_display_options::VISIBLE,
-    'rightanswer' => question_display_options::VISIBLE,
-    'history' => question_display_options::HIDDEN
-);
+$qdpo = new question_display_preview_options();
+$displaysettings = $qdpo->get_preview_options();
 
 // Get and validate display options.
 $displayoptions = new question_display_options();
@@ -104,12 +94,19 @@ foreach ($displaysettings as $setting => $default) {
 // Create the settings form, and initialise the fields.
 $optionsform = new preview_options_form($actionurl);
 $currentoptions = clone($displayoptions);
-$currentoptions->behaviour = $quba->get_preferred_behaviour();
-$currentoptions->maxmark = $quba->get_question_max_mark($slot);
+
+// Get default behaviour and maxmark for the first time user
+if ($qdpo->is_first_time_user()) {
+    $currentoptions->behaviour = $quba->get_preferred_behaviour();
+    $currentoptions->maxmark = $quba->get_question_max_mark($slot);
+}
 $optionsform->set_data($currentoptions);
 
 // Process change of settings, if that was requested.
 if ($newoptions = $optionsform->get_submitted_data()) {
+    // Set user preferences
+    new question_display_preview_options($newoptions);
+
     restart_preview($previewid, $question->id, $newoptions->behaviour,
             $newoptions->maxmark, $newoptions);
 }

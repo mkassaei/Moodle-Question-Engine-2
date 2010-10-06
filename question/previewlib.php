@@ -73,6 +73,116 @@ class preview_options_form extends moodleform {
     }
 }
 
+
+/**
+ * Displays question preview options as default and set the options
+ * Setting default, getiing and setting user preferences in question preview options.
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_display_preview_options extends question_display_options {
+
+    // Use the prefix to easily identify the names  in user_preferences table
+    private $optionsprefix = 'question_preview_options_';
+
+    //Set to true when the user have question disp
+    private $firsttimeuser = false;
+    /**
+     * 
+     * @param $newoptions
+     * @return unknown_type
+     */
+    function __construct($newoptions = false) {
+        if ($newoptions) {
+            $this->set_user_preview_options($newoptions);
+        }
+    }
+
+    /**
+     * Returns an assosiative array with default values
+     * @param void
+     * @return array , an assosiative array with default values
+     */
+    private function get_default_display_options() {
+        global $CFG;
+        return array(
+            'correctness' => parent::VISIBLE,
+            'marks' => parent::MARK_AND_MAX,
+            'markdp' => $CFG->quiz_decimalpoints,
+            'feedback' => parent::VISIBLE,
+            'generalfeedback' => parent::VISIBLE,
+            'rightanswer' => parent::VISIBLE,
+            'history' => parent::HIDDEN
+        );
+    }
+
+    /**
+     * Returns an assosiative array with user preferences in question preview options
+     * @param void
+     * @return array, an assosiative array with question preview options user preferences
+     */
+    private function get_user_preview_options() {
+        $userpreferences = array();
+        $prefixlength = strlen($this->optionsprefix);
+        foreach (get_user_preferences() as $key=>$value) {
+            if (substr($key, 0, $prefixlength) == $this->optionsprefix) {
+                $userpreferences[substr($key, $prefixlength)]= $value;
+            }
+        }
+        return $userpreferences;
+    }
+
+    /**
+     * Sets question preview options as user preferences
+     * @param array $newoptions
+     * @return void
+     */
+    private function set_user_preview_options($newoptions) {
+        // Get option keys and add the missing ones
+        $optionkeys = array_keys($this->get_default_display_options());
+        $optionkeys[] = 'behaviour';
+        $optionkeys[] = 'maxmark';
+
+        // Set user preferences
+        $userpreferences = array();
+        foreach ($newoptions as $key=>$value) {
+            if (in_array($key, $optionkeys)) {
+                $userpreferences[$this->optionsprefix . $key] = $value;
+            }
+        }
+        set_user_preferences($userpreferences);
+    }
+
+    /**
+     * Returns an assosiative array of question preview options from 
+     * user preferences if set, otherwise default
+     * @param void
+     * @return array, true when user log in for the first time, false otherwise
+     */
+    public function get_preview_options() {
+        // Get use preview options
+        $userpreviewoptions = $this->get_user_preview_options();
+        if (count($userpreviewoptions) == 0) {
+            $this->firsttimeuser = true;
+            return $this->get_default_display_options();
+        }
+        return $userpreviewoptions;
+    }
+
+    /**
+     * Returns true if the user is a first time user and false when the user has 
+     * already question preview options in user preferences
+     * @param void
+     * @return boolean, true when user log in for the first time, false otherwise
+     */
+    public function is_first_time_user() {
+        return $this->firsttimeuser;
+    }
+
+}
+
+
 /**
  * Delete the current preview, if any, and redirect to start a new preview.
  * @param integer $previewid
