@@ -76,7 +76,7 @@ class preview_options_form extends moodleform {
 
 /**
  * Displays question preview options as default and set the options
- * Setting default, getiing and setting user preferences in question preview options.
+ * Setting default, getting and setting user preferences in question preview options.
  *
  * @copyright 2010 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -84,29 +84,30 @@ class preview_options_form extends moodleform {
 class question_display_preview_options extends question_display_options {
 
     // Use the prefix to easily identify the names  in user_preferences table
-    private $optionsprefix = 'question_preview_options_';
+    const OPTIONPREFIX = 'question_preview_options_';
 
-    //Set to true when the user have question disp
-    private $firsttimeuser = false;
     /**
      * 
-     * @param $newoptions
-     * @return unknown_type
+     * @param object $question
+     * @param object $newoptions
+     * @return void
      */
-    function __construct($newoptions = false) {
+    function __construct($question, $newoptions = false) {
         if ($newoptions) {
-            $this->set_user_preview_options($newoptions);
+            $this->set_user_preview_options($question, $newoptions);
         }
     }
 
     /**
-     * Returns an assosiative array with default values
-     * @param void
-     * @return array , an assosiative array with default values
+     * Returns an associative array with default values
+     * @param object $question
+     * @return array , an associative array with default values
      */
-    private function get_default_display_options() {
+    private function get_default_display_options($question) {
         global $CFG;
         return array(
+            'behaviour'=> 'deferredfeedback',
+            'maxmark' => $question->defaultmark,
             'correctness' => parent::VISIBLE,
             'marks' => parent::MARK_AND_MAX,
             'markdp' => $CFG->quiz_decimalpoints,
@@ -124,9 +125,9 @@ class question_display_preview_options extends question_display_options {
      */
     private function get_user_preview_options() {
         $userpreferences = array();
-        $prefixlength = strlen($this->optionsprefix);
+        $prefixlength = strlen(self::OPTIONPREFIX);
         foreach (get_user_preferences() as $key=>$value) {
-            if (substr($key, 0, $prefixlength) == $this->optionsprefix) {
+            if (substr($key, 0, $prefixlength) == self::OPTIONPREFIX) {
                 $userpreferences[substr($key, $prefixlength)]= $value;
             }
         }
@@ -135,20 +136,17 @@ class question_display_preview_options extends question_display_options {
 
     /**
      * Sets question preview options as user preferences
-     * @param array $newoptions
+     * @param object $question
+     * @param object $newoptions
      * @return void
      */
-    private function set_user_preview_options($newoptions) {
-        // Get option keys and add the missing ones
-        $optionkeys = array_keys($this->get_default_display_options());
-        $optionkeys[] = 'behaviour';
-        $optionkeys[] = 'maxmark';
-
+    private function set_user_preview_options($question, $newoptions) {
         // Set user preferences
+        $optionkeys = array_keys($this->get_default_display_options($question));
         $userpreferences = array();
         foreach ($newoptions as $key=>$value) {
             if (in_array($key, $optionkeys)) {
-                $userpreferences[$this->optionsprefix . $key] = $value;
+                $userpreferences[self::OPTIONPREFIX . $key] = $value;
             }
         }
         set_user_preferences($userpreferences);
@@ -157,27 +155,16 @@ class question_display_preview_options extends question_display_options {
     /**
      * Returns an assosiative array of question preview options from 
      * user preferences if set, otherwise default
-     * @param void
+     * @param object $question
      * @return array, true when user log in for the first time, false otherwise
      */
-    public function get_preview_options() {
+    public function get_preview_options($question) {
         // Get use preview options
         $userpreviewoptions = $this->get_user_preview_options();
         if (count($userpreviewoptions) == 0) {
-            $this->firsttimeuser = true;
-            return $this->get_default_display_options();
+            return $this->get_default_display_options($question);
         }
         return $userpreviewoptions;
-    }
-
-    /**
-     * Returns true if the user is a first time user and false when the user has 
-     * already question preview options in user preferences
-     * @param void
-     * @return boolean, true when user log in for the first time, false otherwise
-     */
-    public function is_first_time_user() {
-        return $this->firsttimeuser;
     }
 
 }
@@ -187,13 +174,11 @@ class question_display_preview_options extends question_display_options {
  * Delete the current preview, if any, and redirect to start a new preview.
  * @param integer $previewid
  * @param integer $questionid
- * @param string $preferredbehaviour
- * @param float $maxmark
- * @param integer $markdp
+ * @param object $displayoptions
  */
-function restart_preview($previewid, $questionid, $preferredbehaviour, $maxmark, $displayoptions) {
+function restart_preview($previewid, $questionid, $displayoptions) {
     if ($previewid) {
         question_engine::delete_questions_usage_by_activity($previewid);
     }
-    redirect(question_preview_url($questionid, $preferredbehaviour, $maxmark, $displayoptions));
+    redirect(question_preview_url($questionid, $displayoptions->behaviour, $displayoptions->maxmark, $displayoptions));
 }

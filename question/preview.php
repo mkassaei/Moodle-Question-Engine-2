@@ -30,12 +30,14 @@
  *      numerous contributors.
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 require_once(dirname(__FILE__) . '/../config.php');
 require_once($CFG->libdir . '/questionlib.php');
 require_once($CFG->libdir . '/formslib.php');
 require_once(dirname(__FILE__) . '/previewlib.php');
 require_js('yui_dom-event');
 require_js($CFG->httpswwwroot . '/question/preview.js');
+
 // Get and validate question id.
 $id = required_param('id', PARAM_INT); // Question id
 $question = question_bank::load_question($id);
@@ -44,13 +46,13 @@ question_require_capability_on($question, 'use');
 if (!$category = get_record("question_categories", "id", $question->category)) {
     print_error('unknownquestioncategory', 'question', $question->category);
 }
-$qdpo = new question_display_preview_options();
-$displaysettings = $qdpo->get_preview_options();
 
 // Get and validate display options.
-$displayoptions = new question_display_options();
-$displayoptions->flags = question_display_options::HIDDEN;
-$displayoptions->manualcomment = question_display_options::HIDDEN;
+$displayoptions = new question_display_preview_options($question);
+$displayoptions->flags = question_display_preview_options::HIDDEN;
+$displayoptions->manualcomment = question_display_preview_options::HIDDEN;
+$displaysettings = $displayoptions->get_preview_options($question);
+
 foreach ($displaysettings as $setting => $default) {
     $displayoptions->$setting = optional_param($setting, $default, PARAM_INT);
 }
@@ -70,8 +72,8 @@ if ($previewid) {
     $question = $usedquestion;
 
 } else {
-    $behaviour = optional_param('behaviour', 'deferredfeedback', PARAM_FORMAT);
-    $maxmark = optional_param('maxmark', $question->defaultmark, PARAM_NUMBER);
+    $behaviour = optional_param('behaviour', $displayoptions->behaviour, PARAM_FORMAT);
+    $maxmark = optional_param('maxmark', $displayoptions->maxmark, PARAM_NUMBER);
 
     $quba = question_engine::make_questions_usage_by_activity('core_question_preview',
             get_context_instance_by_id($category->contextid));
@@ -86,36 +88,26 @@ if ($previewid) {
 // Prepare a URL that is used in various places.
 $actionurl = $CFG->wwwroot . '/question/preview.php?id=' . $question->id . '&previewid=' . $quba->get_id();
 foreach ($displaysettings as $setting => $default) {
-    if ($displayoptions->$setting != $default) {
-        $actionurl .= '&' . $setting . '=' . $displayoptions->$setting;
-    }
+    $actionurl .= '&' . $setting . '=' . $displayoptions->$setting;
 }
 
 // Create the settings form, and initialise the fields.
-$optionsform = new preview_options_form($actionurl);
-$currentoptions = clone($displayoptions);
-
-// Get default behaviour and maxmark for the first time user
-if ($qdpo->is_first_time_user()) {
-    $currentoptions->behaviour = $quba->get_preferred_behaviour();
-    $currentoptions->maxmark = $quba->get_question_max_mark($slot);
-}
-$optionsform->set_data($currentoptions);
+$optionsform = new preview_options_form($CFG->wwwroot . '/question/preview.php?id=' . $question->id);
+$displayoptions->behaviour = $quba->get_preferred_behaviour();
+$displayoptions->maxmark = $quba->get_question_max_mark($slot);
+$optionsform->set_data($displayoptions);
 
 // Process change of settings, if that was requested.
 if ($newoptions = $optionsform->get_submitted_data()) {
     // Set user preferences
-    new question_display_preview_options($newoptions);
-
-    restart_preview($previewid, $question->id, $newoptions->behaviour,
-            $newoptions->maxmark, $newoptions);
+    new question_display_preview_options($question, $newoptions);
+    restart_preview($previewid, $question->id, $newoptions);
 }
 
 // Process any actions from the buttons at the bottom of the form.
 if (data_submitted() && confirm_sesskey()) {
     if (optional_param('restart', false, PARAM_BOOL)) {
-        restart_preview($previewid, $question->id, $quba->get_preferred_behaviour(),
-                $quba->get_question_max_mark($slot), $displayoptions);
+        restart_preview($previewid, $question->id, $displayoptions);
 
     } else if (optional_param('fill', null, PARAM_BOOL)) {
         $correctresponse = $quba->get_correct_response($slot);
