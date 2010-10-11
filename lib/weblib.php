@@ -340,7 +340,7 @@ class moodle_url {
     }
 
     /**
-     * Add an array of params to the params for this page. 
+     * Add an array of params to the params for this page.
      *
      * The added params override existing ones if they have the same name.
      *
@@ -1233,7 +1233,7 @@ $targetwindow='self', $selectlabel='', $optionsextra=NULL, $gobutton=NULL) {
           '.location=document.getElementById(\''.$formid.
           '\').jump.options[document.getElementById(\''.
           $formid.'\').jump.selectedIndex].value;"';
-    }    
+    }
 
     $output .= '<div>'.$selectlabel.$button.'<select id="'.$formid.'_jump" name="jump"'.$javascript.'>'."\n";
 
@@ -2013,7 +2013,6 @@ function clean_text($text, $format=FORMAT_MOODLE) {
 
     switch ($format) {
         case FORMAT_PLAIN:
-        case FORMAT_MARKDOWN:
             return $text;
 
         default:
@@ -2532,7 +2531,7 @@ function print_header ($title='', $heading='', $navigation='', $focus='',
         $meta .= '<script type="text/javascript"  src="'.$CFG->httpswwwroot.'/lib/yui/event/event-min.js"></script>';
         $meta .= '<script type="text/javascript"  src="'.$CFG->httpswwwroot.'/lib/yui/connection/connection-min.js"></script>';
         $meta .= '<script type="text/javascript"  src="'.$CFG->httpswwwroot.'/lib/swfobject/swfobject.js"></script>';
-        $meta .= 
+        $meta .=
            "<script type=\"text/javascript\">\n".
            "//<![CDATA[\n".
            "  var flashversion = swfobject.getFlashPlayerVersion();\n".
@@ -4537,7 +4536,7 @@ function print_user_picture($user, $courseid, $picture=NULL, $size=0, $return=fa
         }
     }
 
-    $output .= "<img class=\"$class\" src=\"$src\" height=\"$size\" width=\"$size\" alt=\"".s($imagealt).'"  />';
+    $output .= "<img class=\"$class\" src=\"$src\" height=\"$size\" width=\"$size\" title=\"".s($imagealt)."\" alt=\"".s($imagealt).'"  />';
     if ($link) {
         $output .= '</a>';
     }
@@ -4729,7 +4728,7 @@ function print_group_picture($group, $courseid, $large=false, $return=false, $li
     } else {
         $file = 'f2';
     }
-    
+
     // Print custom group picture
     require_once($CFG->libdir.'/filelib.php');
     $grouppictureurl = get_file_url($group->id.'/'.$file.'.jpg', null, 'usergroup');
@@ -4865,7 +4864,7 @@ function print_table($table, $return=false) {
     $output .= " cellpadding=\"$table->cellpadding\" cellspacing=\"$table->cellspacing\" class=\"$table->class boxalign$table->tablealign\" $tableid>\n";
 
     $countcols = 0;
-    
+
     if (!empty($table->head)) {
         $countcols = count($table->head);
         $output .= '<tr>';
@@ -6241,7 +6240,7 @@ function redirect($url, $message='', $delay=-1) {
 <script type="text/javascript">
 //<![CDATA[
 
-  function redirect() { 
+  function redirect() {
       document.location.replace('<?php echo addslashes_js($url) ?>');
   }
   setTimeout("redirect()", <?php echo ($delay * 1000) ?>);
@@ -6497,8 +6496,8 @@ function print_side_block($heading='', $content='', $list=NULL, $icons=NULL, $fo
         if ($list) {
             $row = 0;
             //Accessibility: replaced unnecessary table with list, see themes/standard/styles_layout.css
-            echo "\n<ul class='list'>\n";            
-            foreach ($list as $key => $string) {                
+            echo "\n<ul class='list'>\n";
+            foreach ($list as $key => $string) {
                 echo '<li class="r'. $row .'">';
                 if ($icons) {
                    echo '<div class="icon column c0">'. $icons[$key] .'</div>';
@@ -6538,7 +6537,7 @@ function print_side_block_start($heading='', $attributes = array()) {
         $attributes['class'] = 'sideblock';
 
     } else if(!strpos($attributes['class'], 'sideblock')) {
-        $attributes['class'] .= ' sideblock';        
+        $attributes['class'] .= ' sideblock';
     }
 
     // OK, the class is surely there and in addition to anything
