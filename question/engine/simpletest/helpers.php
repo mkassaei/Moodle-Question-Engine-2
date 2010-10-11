@@ -448,6 +448,26 @@ class qbehaviour_walkthrough_test_base extends UnitTestCase {
         return new NoPatternExpectation('/class="validationerror"/');
     }
 
+    protected function get_contains_mark_summary($mark) {
+        $a = new stdClass;
+        $a->mark = format_float($mark, $this->displayoptions->markdp);
+        $a->max = format_float($this->quba->get_question_max_mark($this->slot),
+                $this->displayoptions->markdp);
+        return new PatternExpectation('/' .
+                preg_quote(get_string('markoutofmax', 'question', $a)) . '/');
+    }
+
+    protected function get_contains_marked_out_of_summary() {
+        $max = format_float($this->quba->get_question_max_mark($this->slot),
+                $this->displayoptions->markdp);
+        return new PatternExpectation('/' .
+                preg_quote(get_string('markedoutofmax', 'question', $max)) . '/');
+    }
+
+    protected function get_does_not_contain_mark_summary() {
+        return new NoPatternExpectation('/<div class="grade">/');
+    }
+
     protected function get_contains_checkbox_expectation($baseattr, $enabled, $checked) {
         $expectedattributes = $baseattr;
         $forbiddenattributes = array();

@@ -44,6 +44,7 @@ class qbehaviour_adaptivenopenalty_walkthrough_test extends qbehaviour_walkthrou
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_question_text_expectation($mc),
                 $this->get_contains_mc_radio_expectation(0, true, false),
                 $this->get_contains_mc_radio_expectation(1, true, false),
@@ -58,6 +59,7 @@ class qbehaviour_adaptivenopenalty_walkthrough_test extends qbehaviour_walkthrou
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(0);
         $this->check_current_output(
+                $this->get_contains_mark_summary(0),
                 $this->get_contains_mc_radio_expectation($wrongindex, true, true),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 2) % 3, true, false),
@@ -72,6 +74,7 @@ class qbehaviour_adaptivenopenalty_walkthrough_test extends qbehaviour_walkthrou
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(0);
         $this->check_current_output(
+                $this->get_contains_mark_summary(0),
                 $this->get_contains_mc_radio_expectation($rightindex, true, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
                 $this->get_contains_mc_radio_expectation(($rightindex + 2) % 3, true, false));
@@ -85,6 +88,7 @@ class qbehaviour_adaptivenopenalty_walkthrough_test extends qbehaviour_walkthrou
         $this->check_current_state(question_state::$complete);
         $this->check_current_mark(3);
         $this->check_current_output(
+                $this->get_contains_mark_summary(3),
                 $this->get_contains_mc_radio_expectation($rightindex, true, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, true, false),
                 $this->get_contains_mc_radio_expectation(($rightindex + 2) % 3, true, false),
@@ -99,6 +103,7 @@ class qbehaviour_adaptivenopenalty_walkthrough_test extends qbehaviour_walkthrou
         $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(3);
         $this->check_current_output(
+                $this->get_contains_mark_summary(3),
                 $this->get_contains_mc_radio_expectation($rightindex, false, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
                 $this->get_contains_mc_radio_expectation(($rightindex + 2) % 3, false, false),
@@ -111,6 +116,7 @@ class qbehaviour_adaptivenopenalty_walkthrough_test extends qbehaviour_walkthrou
         $this->check_current_state(question_state::$mangrpartial);
         $this->check_current_mark(1);
         $this->check_current_output(
+                $this->get_contains_mark_summary(1),
                 new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
 
         // Now change the correct answer to the question, and regrade.
@@ -122,6 +128,7 @@ class qbehaviour_adaptivenopenalty_walkthrough_test extends qbehaviour_walkthrou
         $this->check_current_state(question_state::$mangrpartial);
         $this->check_current_mark(1);
         $this->check_current_output(
+                $this->get_contains_mark_summary(1),
                 $this->get_contains_partcorrect_expectation());
 
         $autogradedstep = $this->get_step($this->get_step_count() - 2);
@@ -140,6 +147,7 @@ class qbehaviour_adaptivenopenalty_walkthrough_test extends qbehaviour_walkthrou
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_question_text_expectation($mc),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation());
@@ -151,6 +159,7 @@ class qbehaviour_adaptivenopenalty_walkthrough_test extends qbehaviour_walkthrou
         $this->check_current_state(question_state::$complete);
         $this->check_current_mark(2);
         $this->check_current_output(
+                $this->get_contains_mark_summary(2),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_contains_correct_expectation());
 
@@ -170,6 +179,7 @@ class qbehaviour_adaptivenopenalty_walkthrough_test extends qbehaviour_walkthrou
         $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(2);
         $this->check_current_output(
+                $this->get_contains_mark_summary(2),
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_contains_correct_expectation());
     }

@@ -48,6 +48,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_question_text_expectation($mc),
                 $this->get_contains_mc_radio_expectation(0, true, false),
                 $this->get_contains_mc_radio_expectation(1, true, false),
@@ -64,6 +65,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_mc_radio_expectation($wrongindex, true, true),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
@@ -80,6 +82,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_mc_radio_expectation($wrongindex, false, true),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
@@ -102,6 +105,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_mc_radio_expectation($wrongindex, true, true),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, true, false),
@@ -118,6 +122,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(0.6666667);
         $this->check_current_output(
+                $this->get_contains_mark_summary(0.6666667),
                 $this->get_contains_mc_radio_expectation($rightindex, false, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
@@ -134,6 +139,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(0.6666667);
         $this->check_current_output(
+                $this->get_contains_mark_summary(0.6666667),
                 $this->get_contains_mc_radio_expectation($rightindex, false, true),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
                 $this->get_contains_mc_radio_expectation(($rightindex + 1) % 3, false, false),
@@ -147,6 +153,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$mangrpartial);
         $this->check_current_mark(0.5);
         $this->check_current_output(
+                $this->get_contains_mark_summary(0.5),
                 $this->get_contains_partcorrect_expectation(),
                 new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
 
@@ -157,6 +164,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$mangrpartial);
         $this->check_current_mark(0.5);
         $this->check_current_output(
+                $this->get_contains_mark_summary(0.5),
                 $this->get_contains_partcorrect_expectation());
 
         $autogradedstep = $this->get_step($this->get_step_count() - 2);
@@ -179,6 +187,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_question_text_expectation($mc),
                 $this->get_contains_mc_radio_expectation(0, true, false),
                 $this->get_contains_mc_radio_expectation(1, true, false),
@@ -196,6 +205,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_mc_radio_expectation($wrongindex, false, true),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
@@ -212,6 +222,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$gradedwrong);
         $this->check_current_mark(0);
         $this->check_current_output(
+                $this->get_contains_mark_summary(0),
                 $this->get_contains_mc_radio_expectation($wrongindex, false, true),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
                 $this->get_contains_mc_radio_expectation(($wrongindex + 1) % 3, false, false),
@@ -233,6 +244,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_does_not_contain_validation_error_expectation(),
@@ -246,6 +258,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$invalid);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_contains_validation_error_expectation(),
@@ -259,6 +272,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_does_not_contain_validation_error_expectation(),
                 $this->get_contains_try_again_button_expectation(true),
@@ -274,6 +288,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_does_not_contain_validation_error_expectation(),
@@ -287,6 +302,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$invalid);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_submit_button_expectation(true),
                 $this->get_does_not_contain_feedback_expectation(),
                 $this->get_contains_validation_error_expectation(),
@@ -300,6 +316,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$gradedright);
         $this->check_current_mark(0.6666667);
         $this->check_current_output(
+                $this->get_contains_mark_summary(0.6666667),
                 $this->get_contains_submit_button_expectation(false),
                 $this->get_contains_correct_expectation(),
                 $this->get_does_not_contain_validation_error_expectation(),
@@ -326,6 +343,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_question_text_expectation($mc),
                 $this->get_contains_mc_checkbox_expectation('choice0', true, false),
                 $this->get_contains_mc_checkbox_expectation('choice1', true, false),
@@ -345,6 +363,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_mc_checkbox_expectation($right[0], false, true),
                 $this->get_contains_mc_checkbox_expectation($right[1], false, false),
                 $this->get_contains_mc_checkbox_expectation($wrong[0], false, true),
@@ -368,6 +387,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
         $this->check_current_state(question_state::$todo);
         $this->check_current_mark(null);
         $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
                 $this->get_contains_mc_checkbox_expectation($right[0], true, true),
                 $this->get_contains_mc_checkbox_expectation($right[1], true, false),
                 $this->get_contains_mc_checkbox_expectation($wrong[0], true, false),

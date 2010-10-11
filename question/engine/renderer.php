@@ -174,7 +174,7 @@ class core_question_renderer extends renderer_base {
             $summary = get_string('notgraded', 'question');
 
         } else if ($options->marks == question_display_options::MAX_ONLY ||
-                !$qa->get_state()->is_graded()) {
+                is_null($qa->get_fraction())) {
             $summary = get_string('markedoutofmax', 'question', $qa->format_max_mark($options->markdp));
 
         } else {
