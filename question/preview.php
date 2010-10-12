@@ -42,20 +42,15 @@ require_js($CFG->httpswwwroot . '/question/preview.js');
 $id = required_param('id', PARAM_INT); // Question id
 $question = question_bank::load_question($id);
 require_login();
-question_require_capability_on($question, 'use');
-if (!$category = get_record("question_categories", "id", $question->category)) {
+if (!$category = get_record('question_categories', 'id', $question->category)) {
     print_error('unknownquestioncategory', 'question', $question->category);
 }
+question_require_capability_on($question, 'use');
 
 // Get and validate display options.
-$displayoptions = new question_display_preview_options($question);
-$displayoptions->flags = question_display_preview_options::HIDDEN;
-$displayoptions->manualcomment = question_display_preview_options::HIDDEN;
-$displaysettings = $displayoptions->get_preview_options($question);
-
-foreach ($displaysettings as $setting => $default) {
-    $displayoptions->$setting = optional_param($setting, $default, PARAM_INT);
-}
+$options = new question_preview_options($question);
+$options->load_user_defaults();
+$options->set_from_request();
 
 // Get and validate exitsing preview, or start a new one.
 $previewid = optional_param('previewid', 0, PARAM_ALPHANUM);
@@ -72,42 +67,36 @@ if ($previewid) {
     $question = $usedquestion;
 
 } else {
-    $behaviour = optional_param('behaviour', $displayoptions->behaviour, PARAM_FORMAT);
-    $maxmark = optional_param('maxmark', $displayoptions->maxmark, PARAM_NUMBER);
-
     $quba = question_engine::make_questions_usage_by_activity('core_question_preview',
             get_context_instance_by_id($category->contextid));
-    $quba->set_preferred_behaviour($behaviour);
-    $slot = $quba->add_question($question, $maxmark);
+    $quba->set_preferred_behaviour($options->behaviour);
+    $slot = $quba->add_question($question, $options->maxmark);
     $quba->start_all_questions();
     question_engine::save_questions_usage_by_activity($quba);
 
     $SESSION->question_previews[$quba->get_id()] = true;
 }
-
-// Prepare a URL that is used in various places.
-$actionurl = $CFG->wwwroot . '/question/preview.php?id=' . $question->id . '&previewid=' . $quba->get_id();
-foreach ($displaysettings as $setting => $default) {
-    $actionurl .= '&' . $setting . '=' . $displayoptions->$setting;
-}
+$options->behaviour = $quba->get_preferred_behaviour();
+$options->maxmark = $quba->get_question_max_mark($slot);
 
 // Create the settings form, and initialise the fields.
 $optionsform = new preview_options_form($CFG->wwwroot . '/question/preview.php?id=' . $question->id);
-$displayoptions->behaviour = $quba->get_preferred_behaviour();
-$displayoptions->maxmark = $quba->get_question_max_mark($slot);
-$optionsform->set_data($displayoptions);
+$optionsform->set_data($options);
 
 // Process change of settings, if that was requested.
 if ($newoptions = $optionsform->get_submitted_data()) {
     // Set user preferences
-    new question_display_preview_options($question, $newoptions);
+    $options->save_user_preview_options($newoptions);
     restart_preview($previewid, $question->id, $newoptions);
 }
+
+// Prepare a URL that is used in various places.
+$actionurl = question_preview_action_url($question->id, $quba->get_id(), $options);
 
 // Process any actions from the buttons at the bottom of the form.
 if (data_submitted() && confirm_sesskey()) {
     if (optional_param('restart', false, PARAM_BOOL)) {
-        restart_preview($previewid, $question->id, $displayoptions);
+        restart_preview($previewid, $question->id, $options);
 
     } else if (optional_param('fill', null, PARAM_BOOL)) {
         $correctresponse = $quba->get_correct_response($slot);
@@ -161,7 +150,7 @@ echo '<input type="hidden" name="sesskey" value="' . sesskey() . '" />', "\n";
 echo '<input type="hidden" name="slots" value="' . $slot . '" />', "\n";
 
 // Output the question.
-echo $quba->render_question($slot, $displayoptions, $displaynumber);
+echo $quba->render_question($slot, $options, $displaynumber);
 
 echo '<p class="notifytiny">' . get_string('behaviourbeingused', 'question',
         question_engine::get_behaviour_name(

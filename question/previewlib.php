@@ -81,94 +81,119 @@ class preview_options_form extends moodleform {
  * @copyright 2010 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class question_display_preview_options extends question_display_options {
+class question_preview_options extends question_display_options {
+    /** @var string the behaviour to use for this preview. */
+    public $behaviour;
 
-    // Use the prefix to easily identify the names  in user_preferences table
+    /** @var number the maximum mark to use for this preview. */
+    public $maxmark;
+
+    /** @var string prefix to append to field names to get user_preference names. */
     const OPTIONPREFIX = 'question_preview_options_';
 
     /**
-     * 
-     * @param object $question
-     * @param object $newoptions
-     * @return void
+     * Constructor.
      */
-    function __construct($question, $newoptions = false) {
-        if ($newoptions) {
-            $this->set_user_preview_options($question, $newoptions);
-        }
+    public function __construct($question) {
+        global $CFG;
+        $this->behaviour = 'deferredfeedback';
+        $this->maxmark = $question->defaultmark;
+        $this->correctness = self::VISIBLE;
+        $this->marks = self::MARK_AND_MAX;
+        $this->markdp = $CFG->quiz_decimalpoints;
+        $this->feedback = self::VISIBLE;
+        $this->generalfeedback = self::VISIBLE;
+        $this->rightanswer = self::VISIBLE;
+        $this->history = self::HIDDEN;
+        $this->flags = self::HIDDEN;
+        $this->manualcomment = self::HIDDEN;
     }
 
     /**
-     * Returns an associative array with default values
-     * @param object $question
-     * @return array , an associative array with default values
+     * @return array names of the options we store in the user preferences table.
      */
-    private function get_default_display_options($question) {
-        global $CFG;
+    protected function get_user_pref_fields() {
+        return array('behaviour', 'correctness', 'marks', 'markdp', 'feedback',
+                'generalfeedback', 'rightanswer', 'history');
+    }
+
+    /**
+     * @return array names and param types of the options we read from the request.
+     */
+    protected function get_field_types() {
         return array(
-            'behaviour'=> 'deferredfeedback',
-            'maxmark' => $question->defaultmark,
-            'correctness' => parent::VISIBLE,
-            'marks' => parent::MARK_AND_MAX,
-            'markdp' => $CFG->quiz_decimalpoints,
-            'feedback' => parent::VISIBLE,
-            'generalfeedback' => parent::VISIBLE,
-            'rightanswer' => parent::VISIBLE,
-            'history' => parent::HIDDEN
+            'behaviour' => PARAM_ALPHA,
+            'maxmark' => PARAM_NUMBER,
+            'correctness' => PARAM_BOOL,
+            'marks' => PARAM_INT,
+            'markdp' => PARAM_INT,
+            'feedback' => PARAM_BOOL,
+            'generalfeedback' => PARAM_BOOL,
+            'rightanswer' => PARAM_BOOL,
+            'history' => PARAM_BOOL,
         );
     }
 
     /**
-     * Returns an assosiative array with user preferences in question preview options
-     * @param void
-     * @return array, an assosiative array with question preview options user preferences
+     * Load the value of the options from the user_preferences table.
      */
-    private function get_user_preview_options() {
-        $userpreferences = array();
-        $prefixlength = strlen(self::OPTIONPREFIX);
-        foreach (get_user_preferences() as $key=>$value) {
-            if (substr($key, 0, $prefixlength) == self::OPTIONPREFIX) {
-                $userpreferences[substr($key, $prefixlength)]= $value;
-            }
+    public function load_user_defaults() {
+        foreach ($this->get_user_pref_fields() as $field) {
+            $this->$field = get_user_preferences(
+                    self::OPTIONPREFIX . $field, $this->$field);
         }
-        return $userpreferences;
     }
 
     /**
-     * Sets question preview options as user preferences
-     * @param object $question
+     * Save a change to the user's preview options to the database.
      * @param object $newoptions
-     * @return void
      */
-    private function set_user_preview_options($question, $newoptions) {
-        // Set user preferences
-        $optionkeys = array_keys($this->get_default_display_options($question));
-        $userpreferences = array();
-        foreach ($newoptions as $key=>$value) {
-            if (in_array($key, $optionkeys)) {
-                $userpreferences[self::OPTIONPREFIX . $key] = $value;
+    public function save_user_preview_options($newoptions) {
+        foreach ($this->get_user_pref_fields() as $field) {
+            if (isset($newoptions->$field)) {
+                set_user_preference(self::OPTIONPREFIX . $field, $newoptions->$field);
             }
         }
-        set_user_preferences($userpreferences);
     }
 
     /**
-     * Returns an assosiative array of question preview options from 
-     * user preferences if set, otherwise default
-     * @param object $question
-     * @return array, true when user log in for the first time, false otherwise
+     * Set the value of any fields included in the request.
      */
-    public function get_preview_options($question) {
-        // Get use preview options
-        $userpreviewoptions = $this->get_user_preview_options();
-        if (count($userpreviewoptions) == 0) {
-            return $this->get_default_display_options($question);
+    public function set_from_request() {
+        foreach ($this->get_field_types() as $field => $type) {
+            $this->$field = optional_param($field, $this->$field, $type);
         }
-        return $userpreviewoptions;
     }
 
+    /**
+     * @return string URL fragment. Parameters needed in the URL when continuing
+     * this preview.
+     */
+    public function get_query_string() {
+        $querystring = array();
+        foreach ($this->get_field_types() as $field => $notused) {
+            if ($field == 'behaviour' || $field == 'maxmark') {
+                continue;
+            }
+            $querystring[] = $field . '=' . $this->$field;
+        }
+        return implode('&', $querystring);
+    }
 }
 
+
+/**
+ * The the URL to use for actions relating to this preview.
+ * @param integer $questionid the question being previewed.
+ * @param integer $qubaid the id of the question usage for this preview.
+ * @param question_preview_options $options the options in use.
+ */
+function question_preview_action_url($questionid, $qubaid,
+        question_preview_options $options) {
+    global $CFG;
+    $url = $CFG->wwwroot . '/question/preview.php?id=' . $questionid . '&previewid=' . $qubaid;
+    return $url . '&' . $options->get_query_string();
+}
 
 /**
  * Delete the current preview, if any, and redirect to start a new preview.
