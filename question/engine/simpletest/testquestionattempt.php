@@ -251,17 +251,23 @@ class question_attempt_db_test extends data_loading_method_test_base {
                                                                              'questionsummary', 'rightanswer', 'responsesummary', 'timemodified',
                                                                                                      'attemptstepid', 'sequencenumber', 'state', 'fraction',
                                                                                                                           'timecreated', 'userid', 'name', 'value'),
-            array(1, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 1, 0, 'todo',              null, 1256233700, 1,       null, null),
-            array(2, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 2, 1, 'complete',          null, 1256233705, 1,   'answer',  '1'),
-            array(3, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 1, '', '', '', 1256233790, 3, 2, 'complete',          null, 1256233710, 1,   'answer',  '0'),
-            array(4, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 4, 3, 'complete',          null, 1256233715, 1,   'answer',  '1'),
-            array(5, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 5, 4, 'gradedright',  1.0000000, 1256233720, 1,  '-finish',  '1'),
-            array(6, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 'mangrpartial', 0.5000000, 1256233790, 1, '-comment', 'Not good enough!'),
-            array(7, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 'mangrpartial', 0.5000000, 1256233790, 1,    '-mark',  '1'),
-            array(8, 1, 1, 1, 'deferredfeedback', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 'mangrpartial', 0.5000000, 1256233790, 1, '-maxmark',  '2'),
+            array(1, 1, 1, 1, 'deferredfeedback', -1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 1, 0, 'todo',              null, 1256233700, 1,       null, null),
+            array(2, 1, 1, 1, 'deferredfeedback', -1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 2, 1, 'complete',          null, 1256233705, 1,   'answer',  '1'),
+            array(3, 1, 1, 1, 'deferredfeedback', -1, 2.0000000, 0.0000000, 1, '', '', '', 1256233790, 3, 2, 'complete',          null, 1256233710, 1,   'answer',  '0'),
+            array(4, 1, 1, 1, 'deferredfeedback', -1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 4, 3, 'complete',          null, 1256233715, 1,   'answer',  '1'),
+            array(5, 1, 1, 1, 'deferredfeedback', -1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 5, 4, 'gradedright',  1.0000000, 1256233720, 1,  '-finish',  '1'),
+            array(6, 1, 1, 1, 'deferredfeedback', -1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 'mangrpartial', 0.5000000, 1256233790, 1, '-comment', 'Not good enough!'),
+            array(7, 1, 1, 1, 'deferredfeedback', -1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 'mangrpartial', 0.5000000, 1256233790, 1,    '-mark',  '1'),
+            array(8, 1, 1, 1, 'deferredfeedback', -1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 6, 5, 'mangrpartial', 0.5000000, 1256233790, 1, '-maxmark',  '2'),
         ));
 
+        $question = test_question_maker::make_a_truefalse_question();
+        $question->id = -1;
+
+        question_bank::start_unit_test();
+        question_bank::load_test_question_data($question);
         $qa = question_attempt::load_from_records($records, 1, new question_usage_null_observer(), 'deferredfeedback');
+        question_bank::end_unit_test();
 
         $this->assertEqual(6, $qa->get_num_steps());
 

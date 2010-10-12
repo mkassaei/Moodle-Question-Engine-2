@@ -47,6 +47,10 @@ abstract class question_bank {
 
     protected static $questionfinder = null;
 
+    /** @var boolean nasty hack to allow unit tests to call {@link load_question()}. */
+    private static $testmode = false;
+    private static $testdata = array();
+
     /**
      * Get the question type class for a particular question type.
      * @param string $qtypename the question type name. For example 'multichoice' or 'shortanswer'.
@@ -88,7 +92,7 @@ abstract class question_bank {
         $qtypes = array();
         $plugins = get_list_of_plugins('question/type', 'datasetdependent');
         foreach ($plugins as $plugin) {
-            $qtypes[$plugin] = question_bank::get_qtype($plugin);
+            $qtypes[$plugin] = self::get_qtype($plugin);
         }
         return $qtypes;
     }
@@ -119,6 +123,11 @@ abstract class question_bank {
      * @return question_definition loaded from the database.
      */
     public static function load_question($questionid) {
+        if (self::$testmode) {
+            // Evil, test code in production, but now way round it.
+            return self::return_test_question_data($questionid);
+        }
+
         $questiondata = get_record('question', 'id', $questionid);
         if (empty($questiondata)) {
             throw new Exception('Unknown question id ' . $questionid);
@@ -145,6 +154,41 @@ abstract class question_bank {
             self::$questionfinder = new question_finder();
         }
         return self::$questionfinder;
+    }
+
+    /**
+     * Only to be called from unit tests. Allows {@link load_test_data()} to be used.
+     */
+    public static function start_unit_test() {
+        self::$testmode = true;
+    }
+
+    /**
+     * Only to be called from unit tests. Allows {@link load_test_data()} to be used.
+     */
+    public static function end_unit_test() {
+        self::$testmode = false;
+        self::$testdata = array();
+    }
+
+    private static function return_test_question_data($questionid) {
+        if (!isset(self::$testdata[$questionid])) {
+            throw new Exception('question_bank::return_test_data(' . $questionid .
+                    ') called, but no matching question has been loaded by load_test_data.');
+        }
+        return self::$testdata[$questionid];
+    }
+
+    /**
+     * To be used for unit testing only. Will throw an exception if
+     * {@link start_unit_test()} has not been called first.
+     * @param object $questiondata a question data object to put in the test data store.
+     */
+    public static function load_test_question_data(question_definition $question) {
+        if (!self::$testmode) {
+            throw new Exception('question_bank::load_test_data called when not in test mode.');
+        }
+        self::$testdata[$question->id] = $question;
     }
 }
 

@@ -58,13 +58,19 @@ class qbehaviour_missing_test extends UnitTestCase {
                                                                             'questionsummary', 'rightanswer', 'responsesummary', 'timemodified',
                                                                                                    'attemptstepid', 'sequencenumber', 'state', 'fraction',
                                                                                                                           'timecreated', 'userid', 'name', 'value'),
-            array(1, 1, 1, 1, 'strangeunknown', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 1, 0, 'todo',     null, 1256233700, 1,   '_order', '1,2,3'),
-            array(2, 1, 1, 1, 'strangeunknown', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 2, 1, 'complete', 0.50, 1256233705, 1,  '-submit',  '1'),
-            array(3, 1, 1, 1, 'strangeunknown', 1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 2, 1, 'complete', 0.50, 1256233705, 1,  'choice0',  '1'),
+            array(1, 1, 1, 1, 'strangeunknown', -1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 1, 0, 'todo',     null, 1256233700, 1,   '_order', '1,2,3'),
+            array(2, 1, 1, 1, 'strangeunknown', -1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 2, 1, 'complete', 0.50, 1256233705, 1,  '-submit',  '1'),
+            array(3, 1, 1, 1, 'strangeunknown', -1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 2, 1, 'complete', 0.50, 1256233705, 1,  'choice0',  '1'),
         ));
 
+        $question = test_question_maker::make_a_truefalse_question();
+        $question->id = -1;
+
+        question_bank::start_unit_test();
+        question_bank::load_test_question_data($question);
         $qa = question_attempt::load_from_records($records, 1,
                 new question_usage_null_observer(), 'deferredfeedback');
+        question_bank::end_unit_test();
 
         $this->assertEqual(2, $qa->get_num_steps());
 
