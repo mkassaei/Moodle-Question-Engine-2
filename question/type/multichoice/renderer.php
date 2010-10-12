@@ -258,7 +258,7 @@ class qtype_multichoice_multi_renderer extends qtype_multichoice_renderer_base {
     }
 
     protected function is_choice_selected($response, $value) {
-        return isset($response['choice' . $value]);
+        return !empty($response['choice' . $value]);
     }
 
     protected function is_right(question_answer $ans) {

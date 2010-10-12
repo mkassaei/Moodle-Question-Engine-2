@@ -377,7 +377,7 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
                 $this->get_contains_standard_incorrect_combined_feedback_expectation(),
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . $right[0], '1'),
                 $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . $right[1]),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . $wrong[0]),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . $wrong[0], '0'),
                 $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . $wrong[1]));
 
         // Do try again.

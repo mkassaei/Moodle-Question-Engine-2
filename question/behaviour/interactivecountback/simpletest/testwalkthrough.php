@@ -86,9 +86,9 @@ class qbehaviour_interactivecountback_walkthrough_test extends qbehaviour_walkth
                 $this->get_contains_num_parts_correct(2),
                 $this->get_contains_standard_partiallycorrect_combined_feedback_expectation(),
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'sub0', $orderforchoice[1]),
-                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'sub3', $orderforchoice[1]),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'sub1'),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'sub2'));
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'sub1', '0'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'sub2', '0'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'sub3', $orderforchoice[1]));
 
         // Check that extract responses will return the reset data.
         $prefix = $this->quba->get_field_prefix($this->slot);

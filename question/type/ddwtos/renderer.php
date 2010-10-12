@@ -173,12 +173,12 @@ class qtype_ddwtos_renderer extends qtype_with_combined_feedback_renderer {
             if (array_key_exists($fieldname, $response)) {
                 $value = $response[$fieldname];
             } else {
-                $value = '';
+                $value = '0';
             }
             if (array_key_exists($fieldname, $cleanresponse)) {
                 $cleanvalue = $cleanresponse[$fieldname];
             } else {
-                $cleanvalue = '';
+                $cleanvalue = '0';
             }
             if ($cleanvalue != $value) {
                 $output .= html_writer::empty_tag('input', array(

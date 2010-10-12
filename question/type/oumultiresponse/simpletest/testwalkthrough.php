@@ -138,7 +138,7 @@ class qtype_oumultiresponse_walkthrough_test extends qbehaviour_walkthrough_test
                 $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice0', '1'),
                 $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice1'),
                 $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice2'),
-                $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice3'));
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice3', '0'));
 
         // Do try again.
         $this->process_submission(array('choice0' => '1', '-tryagain' => 1));
@@ -182,7 +182,7 @@ class qtype_oumultiresponse_walkthrough_test extends qbehaviour_walkthrough_test
         $mc = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_four();
         $mc->hints = array(
             new qtype_oumultiresponse_hint('Hint 1', true, true, true),
-            new qtype_oumultiresponse_hint('Hint 1', true, true, true),
+            new qtype_oumultiresponse_hint('Hint 2', true, true, true),
         );
         $mc->shufflechoices = false;
         $this->start_attempt_at_question($mc, 'interactive', 3);
@@ -226,5 +226,118 @@ class qtype_oumultiresponse_walkthrough_test extends qbehaviour_walkthrough_test
                 $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice1'),
                 $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice2'),
                 $this->get_does_not_contain_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice3'));
+    }
+
+    public function test_interactive_clear_wrong() {
+
+        // Create a multichoice single question.
+        $mc = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_four();
+        $mc->hints = array(
+            new qtype_oumultiresponse_hint('Hint 1', true, true, true),
+            new qtype_oumultiresponse_hint('Hint 2', true, true, true),
+        );
+        $mc->shufflechoices = false;
+        $this->start_attempt_at_question($mc, 'interactive', 3);
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
+                $this->get_contains_question_text_expectation($mc),
+                $this->get_contains_mc_checkbox_expectation('choice0', true, false),
+                $this->get_contains_mc_checkbox_expectation('choice1', true, false),
+                $this->get_contains_mc_checkbox_expectation('choice2', true, false),
+                $this->get_contains_mc_checkbox_expectation('choice3', true, false),
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_does_not_contain_num_parts_correct(),
+                $this->get_tries_remaining_expectation(3),
+                $this->get_no_hint_visible_expectation(),
+                new PatternExpectation('/' . preg_quote(get_string('selectmulti', 'qtype_multichoice'), '/') . '/'));
+
+        // Submit a wrong answer.
+        $this->process_submission(array('choice1' => '1', 'choice3' => '1', '-submit' => '1'));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
+                $this->get_contains_mc_checkbox_expectation('choice0', false, false),
+                $this->get_contains_mc_checkbox_expectation('choice1', false, true),
+                $this->get_contains_mc_checkbox_expectation('choice2', false, false),
+                $this->get_contains_mc_checkbox_expectation('choice3', false, true),
+                $this->get_contains_submit_button_expectation(false),
+                $this->get_contains_try_again_button_expectation(true),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_contains_num_parts_correct(0),
+                new PatternExpectation('/' . preg_quote(get_string('notcomplete', 'qbehaviour_interactive')) . '/'),
+                $this->get_contains_hint_expectation('Hint 1'),
+                $this->get_contains_standard_incorrect_combined_feedback_expectation(),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice1', '0'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice3', '0'));
+
+        // Try again.
+        $this->process_submission(array('choice1' => '0', 'choice3' => '0', '-tryagain' => '1'));
+
+        // Vreify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
+                $this->get_contains_question_text_expectation($mc),
+                $this->get_contains_mc_checkbox_expectation('choice0', true, false),
+                $this->get_contains_mc_checkbox_expectation('choice1', true, false),
+                $this->get_contains_mc_checkbox_expectation('choice2', true, false),
+                $this->get_contains_mc_checkbox_expectation('choice3', true, false),
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_does_not_contain_num_parts_correct(),
+                $this->get_tries_remaining_expectation(2),
+                $this->get_no_hint_visible_expectation(),
+                new PatternExpectation('/' . preg_quote(get_string('selectmulti', 'qtype_multichoice'), '/') . '/'));
+
+        // Submit a partially right answer.
+        $this->process_submission(array('choice0' => '1', 'choice3' => '1', '-submit' => '1'));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
+                $this->get_contains_mc_checkbox_expectation('choice0', false, true),
+                $this->get_contains_mc_checkbox_expectation('choice1', false, false),
+                $this->get_contains_mc_checkbox_expectation('choice2', false, false),
+                $this->get_contains_mc_checkbox_expectation('choice3', false, true),
+                $this->get_contains_submit_button_expectation(false),
+                $this->get_contains_try_again_button_expectation(true),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_contains_num_parts_correct(1),
+                new PatternExpectation('/' . preg_quote(get_string('notcomplete', 'qbehaviour_interactive')) . '/'),
+                $this->get_contains_hint_expectation('Hint 2'),
+                $this->get_contains_standard_partiallycorrect_combined_feedback_expectation(),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice0', '1'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'choice3', '0'));
+
+        // Try again.
+        $this->process_submission(array('choice0' => '1', 'choice3' => '0', '-tryagain' => '1'));
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_marked_out_of_summary(),
+                $this->get_contains_question_text_expectation($mc),
+                $this->get_contains_mc_checkbox_expectation('choice0', true, true),
+                $this->get_contains_mc_checkbox_expectation('choice1', true, false),
+                $this->get_contains_mc_checkbox_expectation('choice2', true, false),
+                $this->get_contains_mc_checkbox_expectation('choice3', true, false),
+                $this->get_contains_submit_button_expectation(true),
+                $this->get_does_not_contain_feedback_expectation(),
+                $this->get_does_not_contain_num_parts_correct(),
+                $this->get_tries_remaining_expectation(1),
+                $this->get_no_hint_visible_expectation(),
+                new PatternExpectation('/' . preg_quote(get_string('selectmulti', 'qtype_multichoice'), '/') . '/'));
     }
 }

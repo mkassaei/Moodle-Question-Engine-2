@@ -184,9 +184,10 @@ class qtype_multichoice_multi_question extends qtype_multichoice_base {
 
     public function clear_wrong_from_response(array $response) {
         foreach ($this->order as $key => $ans) {
-            if (question_state::graded_state_for_fraction(
+            if (array_key_exists($this->field($key), $response) &&
+                    question_state::graded_state_for_fraction(
                     $this->answers[$ans]->fraction)->is_incorrect()) {
-                unset($response[$this->field($key)]);
+                $response[$this->field($key)] = 0;
             }
         }
         return $response;

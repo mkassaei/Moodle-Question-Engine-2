@@ -132,7 +132,7 @@ class qtype_ddwtos_question extends question_graded_automatically_with_countback
         foreach ($this->places as $place => $notused) {
             if (array_key_exists($this->field($place), $response) &&
                     $response[$this->field($place)] != $this->get_right_choice_for($place)) {
-                $response[$this->field($place)] = '';
+                $response[$this->field($place)] = '0';
             }
         }
         return $response;
@@ -212,7 +212,7 @@ class qtype_ddwtos_question extends question_graded_automatically_with_countback
     public function is_same_response(array $prevresponse, array $newresponse) {
         foreach ($this->places as $place => $notused) {
             $fieldname = $this->field($place);
-            if (!question_utils::arrays_same_at_key_missing_is_blank(
+            if (!question_utils::arrays_same_at_key_integer(
                     $prevresponse, $newresponse, $fieldname)) {
                 return false;
             }
