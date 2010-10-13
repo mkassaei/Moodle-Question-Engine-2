@@ -187,6 +187,7 @@ $string['started'] = 'Started';
 $string['state'] = 'State';
 $string['step'] = 'Step';
 $string['submissionoutofsequence'] = 'Access out of sequence. Please do not click the back button when working on quiz questions.';
+$string['submissionoutofsequencefriendlymessage'] = "You have entered data outside the normal sequence. This can occur if you use your browser's Back or Forward buttons; please don't use these during the test. It can also happen if you click on something while a page is loading. Click <strong>Continue</strong> to resume.";
 $string['submit'] = 'Submit';
 $string['submitandfinish'] = 'Submit and finish';
 $string['submitted'] = 'Submit: {$a}';

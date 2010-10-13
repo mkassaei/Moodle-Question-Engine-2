@@ -96,7 +96,12 @@ if ($attemptobj->is_finished()) {
 
 /// Process the responses //////////////////////////////////////////////////////
 if (!$finishattempt) {
-    $attemptobj->process_all_actions($timenow);
+    try {
+        $attemptobj->process_all_actions($timenow);
+    } catch (question_out_of_sequence_exception $e){
+        print_error('submissionoutofsequencefriendlymessage', 'question',
+                $attemptobj->attempt_url(0, $thispage));
+    }
     redirect($nexturl);
 }
 

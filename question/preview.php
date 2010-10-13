@@ -58,7 +58,13 @@ if ($previewid) {
     if (!isset($SESSION->question_previews[$previewid])) {
         print_error('notyourpreview', 'question');
     }
-    $quba = question_engine::load_questions_usage_by_activity($previewid);
+    try {
+        $quba = question_engine::load_questions_usage_by_activity($previewid);
+    } catch (Exception $e){
+        print_error('submissionoutofsequencefriendlymessage', 'question',
+                question_preview_url($question->id, $options->behaviour,
+                $options->maxmark, $options));
+    }
     $slot = $quba->get_first_question_number();
     $usedquestion = $quba->get_question($slot);
     if ($usedquestion->id != $question->id) {
@@ -105,13 +111,21 @@ if (data_submitted() && confirm_sesskey()) {
         redirect($actionurl);
 
     } else if (optional_param('finish', null, PARAM_BOOL)) {
-        $quba->process_all_actions();
+        try {
+            $quba->process_all_actions();
+        } catch (question_out_of_sequence_exception $e){
+            print_error('submissionoutofsequencefriendlymessage', 'question', $actionurl);
+        }
         $quba->finish_all_questions();
         question_engine::save_questions_usage_by_activity($quba);
         redirect($actionurl);
 
     } else {
-        $quba->process_all_actions();
+        try {
+            $quba->process_all_actions();
+        } catch (question_out_of_sequence_exception $e){
+            print_error('submissionoutofsequencefriendlymessage', 'question', $actionurl);
+        }
         question_engine::save_questions_usage_by_activity($quba);
         $scrollpos = optional_param('scrollpos', '', PARAM_RAW);
         if ($scrollpos !== '') {
