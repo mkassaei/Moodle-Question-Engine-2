@@ -86,7 +86,7 @@ $options->behaviour = $quba->get_preferred_behaviour();
 $options->maxmark = $quba->get_question_max_mark($slot);
 
 // Create the settings form, and initialise the fields.
-$optionsform = new preview_options_form($CFG->wwwroot . '/question/preview.php?id=' . $question->id);
+$optionsform = new preview_options_form($CFG->wwwroot . '/question/preview.php?id=' . $question->id, $quba);
 $optionsform->set_data($options);
 
 // Process change of settings, if that was requested.

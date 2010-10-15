@@ -42,8 +42,8 @@ class preview_options_form extends moodleform {
 
         $mform->addElement('header', 'optionsheader', get_string('changeoptions', 'question'));
 
-        $mform->addElement('select', 'behaviour', get_string('howquestionsbehave', 'question'),
-                question_engine::get_archetypal_behaviours());
+        $behaviours = question_engine::get_behaviour_options($this->_customdata->get_preferred_behaviour());
+        $mform->addElement('select', 'behaviour', get_string('howquestionsbehave', 'question'), $behaviours);
         $mform->setHelpButton('behaviour', array('howquestionsbehave', get_string('howquestionsbehave', 'question'), 'question'));
 
         $mform->addElement('text', 'maxmark', get_string('markedoutof', 'question'), array('size' => '5'));

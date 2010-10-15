@@ -241,7 +241,7 @@
   <td align="right"><b><?php print_string("howquestionsbehave", "question") ?>:</b></td>
   <td>
     <?php
-        choose_from_menu(question_engine::get_archetypal_behaviours(),
+        choose_from_menu(question_engine::get_behaviour_options($form->preferredbehaviour),
                 "preferredbehaviour", $form->preferredbehaviour, '');
         helpbutton("howquestionsbehave", get_string("howquestionsbehave","question"), "question");
     ?>

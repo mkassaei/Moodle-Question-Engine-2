@@ -151,7 +151,14 @@ class mod_quiz_mod_form extends moodleform_mod {
         $mform->setDefault('shuffleanswers', $CFG->quiz_shuffleanswers);
 
     /// How questions behave (question behaviour).
-        $behaviours = question_engine::get_archetypal_behaviours();
+        if (!empty($this->_instance)) {
+            // This is a nasty hack, but I can't think of a good way to get the
+            // current value of $quiz->preferredbehaviour here.
+            $currentbehaviour = get_field('quiz', 'preferredbehaviour', 'id', $this->_instance);
+        } else {
+            $currentbehaviour = '';
+        }
+        $behaviours = question_engine::get_behaviour_options($currentbehaviour);
         $mform->addElement('select', 'preferredbehaviour', get_string('howquestionsbehave', 'question'), $behaviours);
         $mform->setHelpButton('preferredbehaviour', array('howquestionsbehave', get_string('howquestionsbehave','question'), 'question'));
         $mform->setAdvanced('preferredbehaviour', $CFG->quiz_fix_preferredbehaviour);
