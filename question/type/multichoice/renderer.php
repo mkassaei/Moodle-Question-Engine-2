@@ -94,7 +94,7 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
             // oumultiresponse question type. It would be good to refactor to
             // avoid refering to it here.
             if ($options->feedback && empty($options->suppresschoicefeedback) && $isselected) {
-                $feedback[] = $question->format_text($ans->feedback);
+                $feedback[] = "<span class='que specificfeedback'>" . $question->format_text($ans->feedback) . '</span>';
             } else {
                 $feedback[] = '';
             }

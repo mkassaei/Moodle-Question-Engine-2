@@ -823,6 +823,11 @@ table.message_search_results td {
 .que .outcome {
     background: #FFF3BF;
 }
+.que .specificfeedback {
+    padding-left: 10px;
+    padding-right: 5px;
+    background: #FFF3BF;
+}
 .que .comment {
     background: #e0ffe0;
 }
