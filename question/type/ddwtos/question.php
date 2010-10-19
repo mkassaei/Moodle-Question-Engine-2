@@ -105,14 +105,18 @@ class qtype_ddwtos_question extends question_graded_automatically_with_countback
 
     public function summarise_response(array $response) {
         $matches = array();
+        $allblank = true;
         foreach ($this->places as $place => $group) {
             if (array_key_exists($this->field($place), $response) &&
                     $response[$this->field($place)]) {
                 $choices[] = '{' . html_to_text($this->format_text($this->get_selected_choice(
                         $group, $response[$this->field($place)])->text), 0, false) . '}';
+                $allblank = false;
+            } else {
+                $choices[] = '{}';
             }
         }
-        if (empty($choices)) {
+        if ($allblank) {
             return null;
         }
         return implode(' ', $choices);
