@@ -117,14 +117,15 @@ class question_engine_attempt_upgrader {
             }
         }
 
-        $questionorder = explode(',', $quiz->questions);
-        $questionorder = array_filter($questionorder, create_function('$x', 'return $x != 0;'));
-
-        $this->save_usage($quiz->preferredbehaviour, $attempt->uniqueid, $qas, $questionorder);
+        $this->save_usage($quiz->preferredbehaviour, $attempt->uniqueid, $qas, $quiz->questions, $attempt->layout);
     }
 
-    protected function save_usage($preferredbehaviour, $qubaid, $qas, $questionorder) {
+    protected function save_usage($preferredbehaviour, $qubaid, $qas, $quizlayout, $attemptlayout) {
         $missing = array();
+
+        $layout = explode(',', $attemptlayout);
+        $questionkeys = array_combine(array_values($layout), array_keys($layout));
+        $questionorder = array_filter(explode(',', $quizlayout), create_function('$x', 'return $x != 0;'));
 
         $this->set_quba_preferred_behaviour($qubaid, $preferredbehaviour);
 
@@ -141,6 +142,7 @@ class question_engine_attempt_upgrader {
             $qa->questionusageid = $qubaid;
             $qa->slot = $i;
             $this->insert_record('question_attempts', $qa);
+            $layout[$questionkeys[$questionid]] = $qa->slot;
 
             foreach ($qa->steps as $step) {
                 $step->questionattemptid = $qa->id;
@@ -156,6 +158,8 @@ class question_engine_attempt_upgrader {
             }
         }
 
+        $this->set_quiz_attempt_layout($qubaid, implode(',', $layout));
+
         if ($missing) {
             notify("Question sessions for questions " .
                     implode(', ', $missing) .
@@ -165,6 +169,10 @@ class question_engine_attempt_upgrader {
 
     protected function set_quba_preferred_behaviour($qubaid, $preferredbehaviour) {
         set_field('question_usages', 'preferredbehaviour', $preferredbehaviour, 'id', $qubaid);
+    }
+
+    protected function set_quiz_attempt_layout($qubaid, $layout) {
+        set_field('quiz_attempts', 'layout', $layout, 'uniqueid', $qubaid);
     }
 
     protected function escape_fields($record) {
@@ -270,6 +278,7 @@ abstract class qbehaviour_converter {
     protected $qsession;
     protected $qstates;
 
+    protected $sequencenumber;
     protected $finishstate;
     protected $alreadystarted;
 
@@ -316,13 +325,13 @@ abstract class qbehaviour_converter {
         $step = $this->make_step($state);
 
         $method = 'process' . $state->event;
-        $keep = $this->$method($step, $state);
+        $this->$method($step, $state);
+    }
 
-        if ($keep) {
-            $step->sequencenumber = $this->sequencenumber;
-            $this->qa->steps[] = $step;
-            $this->sequencenumber++;
-        }
+    protected function add_step($step) {
+        $step->sequencenumber = $this->sequencenumber;
+        $this->qa->steps[] = $step;
+        $this->sequencenumber++;
     }
 
     protected function unexpected_event($state) {
@@ -332,14 +341,14 @@ abstract class qbehaviour_converter {
     protected function process0($step, $state) {
         if ($this->startstate) {
             if ($state->answer == reset($this->qstates)->answer) {
-                return false;
+                return;
             } else {
                 throw new coding_exception("Two inconsistent open states for question session {$this->qsession->id}.");
             }
         }
         $step->state = 'todo';
         $this->startstate = $state;
-        return true;
+        $this->add_step($step);
     }
 
     protected function process1($step, $state) {
@@ -352,7 +361,7 @@ abstract class qbehaviour_converter {
         } else {
             $step->state = 'todo';
         }
-        return true;
+        $this->add_step($step);
     }
 
     protected function process3($step, $state) {
@@ -394,7 +403,7 @@ abstract class qbehaviour_converter {
         }
         unset($step->data['answer']);
         $step->userid = null;
-        return true;
+        $this->add_step($step);
     }
 
     protected function process10($step, $state) {
@@ -471,11 +480,11 @@ class qbehaviour_informationitem_converter extends qbehaviour_converter {
 
     protected function process0($step, $state) {
         if ($this->startstate) {
-            return false;
+            return;
         }
         $step->state = 'todo';
         $this->startstate = $state;
-        return true;
+        $this->add_step($step);
     }
 
     protected function process2($step, $state) {
@@ -488,13 +497,13 @@ class qbehaviour_informationitem_converter extends qbehaviour_converter {
 
     protected function process6($step, $state) {
         if ($this->finishstate) {
-            return false;
+            return;
         }
 
         $step->state = 'finished';
         $step->data['-finish'] = '1';
         $this->finishstate = $state;
-        return true;
+        $this->add_step($step);
     }
 
     protected function process7($step, $state) {
@@ -524,7 +533,7 @@ class qbehaviour_opaque_converter extends qbehaviour_converter {
 
     protected function process2($step, $state) {
         $step->state = 'todo';
-        return true;
+        $this->add_step($step);
     }
 
     protected function process3($step, $state) {
@@ -543,7 +552,7 @@ class qbehaviour_opaque_converter extends qbehaviour_converter {
             $step->state = 'finished';
         }
         $this->finishstate = $state;
-        return true;
+        $this->add_step($step);
     }
 
     protected function process7($step, $state) {
@@ -567,7 +576,7 @@ class qbehaviour_manualgraded_converter extends qbehaviour_converter {
             $step->data['-finish'] = '1';
             $this->finishstate = $state;
         }
-        return true;
+        $this->add_step($step);
     }
 
     protected function process7($step, $state) {
@@ -593,16 +602,31 @@ class qbehaviour_interactive_converter extends qbehaviour_converter {
         return $ok;
     }
 
+    protected function process3($step, $state) {
+        return $this->process6($step, $state);
+    }
+
     protected function process6($step, $state) {
         if ($this->finishstate) {
-            if ($this->finishstate->answer != $state->answer ||
-                    $this->finishstate->event != $state->event ||
+            if (!$this->qtypeupdater->compare_answers($this->finishstate->answer, $state->answer) ||
                     $this->finishstate->grade != $state->grade ||
                     $this->finishstate->raw_grade != $state->raw_grade ||
                     $this->finishstate->penalty != $state->penalty) {
                 throw new coding_exception("Two inconsistent finish states found for question session {$this->qsession->id}.");
+            } else if ($this->triesleft) {
+                $step->data = array('-finish' => '1');
+                if ($this->question->maxmark > 0) {
+                    $step->fraction = $state->grade / $this->question->maxmark;
+                    $step->state = $this->graded_state_for_fraction($step->fraction);
+                } else {
+                    $step->state = 'finished';
+                }
+                $this->finishstate = $state;
+                $this->add_step($step);
+                $this->triesleft = 0;
+                return;
             } else {
-                return false;
+                return;
             }
         }
 
@@ -617,10 +641,13 @@ class qbehaviour_interactive_converter extends qbehaviour_converter {
         $step->data['-submit'] = '1';
         if ($this->triesleft && $step->state != 'gradedright') {
             $step->state = 'todo';
+            $step->fraction = null;
             $step->data['-_triesleft'] = $this->triesleft;
+        } else {
+            $this->triesleft = 0;
         }
         $this->finishstate = $state;
-        return true;
+        $this->add_step($step);
     }
 
     protected function process7($step, $state) {
@@ -628,9 +655,19 @@ class qbehaviour_interactive_converter extends qbehaviour_converter {
     }
 
     protected function process10($step, $state) {
+        if (!$this->finishstate) {
+            $oldcount = $this->sequencenumber;
+            $this->process3($step, $state);
+            if ($this->sequencenumber != $oldcount + 1) {
+                throw new coding_exception('Submit before try again did not keep the step.');
+            }
+            $step = $this->make_step($state);
+        }
+
         $step->state = 'todo';
-        $step->data['-tryagain'] = 1;
-        return true;
+        $step->data = array('-tryagain' => 1);
+        $this->finishstate = null;
+        $this->add_step($step);
     }
 }
 
@@ -643,7 +680,7 @@ class qbehaviour_deferredfeedback_converter extends qbehaviour_converter {
     protected function process6($step, $state) {
         if (!$this->startstate) {
             // WTF, but this has happened a few times in our DB. It seems it is safe to ignore.
-            return false;
+            return;
         }
 
         if ($this->finishstate) {
@@ -654,7 +691,7 @@ class qbehaviour_deferredfeedback_converter extends qbehaviour_converter {
                     $this->finishstate->penalty != $state->penalty) {
                 throw new coding_exception("Two inconsistent finish states found for question session {$this->qsession->id}.");
             } else {
-                return false;
+                return;
             }
         }
 
@@ -666,7 +703,7 @@ class qbehaviour_deferredfeedback_converter extends qbehaviour_converter {
         }
         $step->data['-finish'] = '1';
         $this->finishstate = $state;
-        return true;
+        $this->add_step($step);
     }
 
     protected function process7($step, $state) {
@@ -691,6 +728,10 @@ abstract class qtype_updater {
 
     public function question_summary() {
         return $this->to_text($this->question->questiontext);
+    }
+
+    public function compare_answers($answer1, $answer2) {
+        return $answer1 == $answer2;
     }
 
     public abstract function right_answer();
@@ -861,6 +902,7 @@ class qtype_numerical_updater extends qtype_updater {
     }
 
     public function set_first_step_data_elements($state, &$data) {
+        $data['_separators'] = '.$,';
     }
 
     public function set_data_elements_for_step($state, &$data) {
@@ -1186,7 +1228,14 @@ class qtype_ddwtos_updater extends qtype_updater {
         return $this->make_summary($this->rightchoices);
     }
 
+    public function compare_answers($answer1, $answer2) {
+        list($answer1) = explode('=', $answer1);
+        list($answer2) = explode('=', $answer2);
+        return $answer1 == $answer2;
+    }
+
     protected function explode_answer($answer) {
+        list($answer) = explode('=', $answer);
         $bits = explode(';', $answer);
 
         $selections = array();

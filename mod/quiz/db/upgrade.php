@@ -1081,7 +1081,9 @@ function xmldb_quiz_upgrade($oldversion=0) {
             // Now update all the old attempt data.
             require_once($CFG->dirroot . '/question/engine/upgradefromoldqe/upgrade.php');
             $upgrader = new question_engine_attempt_upgrader();
+            $db->debug = false;
             $result = $result && $upgrader->convert_all_quiz_attempts();
+            $db->debug = true;
         }
 
         // quiz savepoint reached
