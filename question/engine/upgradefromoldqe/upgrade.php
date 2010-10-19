@@ -804,7 +804,7 @@ class qtype_multichoice_updater extends qtype_updater {
         $flippedorder = array_combine(array_values($order), array_keys($order));
         if ($this->question->options->single) {
             if (is_numeric($responses)) {
-                $data['answer'] = $flippedorder[$responses] + 1;
+                $data['answer'] = $flippedorder[$responses];
             }
 
         } else {
@@ -812,7 +812,7 @@ class qtype_multichoice_updater extends qtype_updater {
                 $responses = explode(',', $responses);
                 $bits = array();
                 foreach ($responses as $response) {
-                    $data['choice' . ($flippedorder[$response] + 1)] = 1;
+                    $data['choice' . $flippedorder[$response]] = 1;
                 }
             }
         }
@@ -1159,7 +1159,7 @@ class qtype_oumultiresponse_updater extends qtype_updater {
         $flippedorder = array_combine(array_values($order), array_keys($order));
 
         foreach ($responses as $response) {
-            $data['choice' . ($flippedorder[$response] + 1)] = 1;
+            $data['choice' . $flippedorder[$response]] = 1;
         }
     }
 }
