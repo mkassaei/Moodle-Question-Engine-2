@@ -5,6 +5,7 @@ $string['addingddwtos'] = 'Adding drag and drop: words in text';
 $string['addmorechoiceblanks'] = 'Blanks for {no} More Choices';
 $string['answer'] = 'Answer';
 $string['choices'] = 'Choices';
+$string['correctansweris'] = 'The correct answer is: $a';
 $string['ddwtos'] = 'Drag and drop: words in text';
 $string['editingddwtos'] = 'Editing drag and drop: words in text';
 $string['group'] = 'Group';
