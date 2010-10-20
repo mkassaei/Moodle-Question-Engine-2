@@ -310,7 +310,9 @@ class quiz_statistics_report extends quiz_default_report {
         }
 
         $qtable = new quiz_report_statistics_question_table($question->id);
-        if (!$qtable->is_downloading()) {
+        $exportclass = $this->table->export_class_instance();
+        $qtable->export_class_instance($exportclass);
+        if (!$this->table->is_downloading()) {
             // Output an appropriate title.
             print_heading(get_string('analysisofresponses', 'quiz_statistics'));
 
@@ -325,8 +327,6 @@ class quiz_statistics_report extends quiz_default_report {
             }
 
             // Set up the table.
-            $exportclass = $this->table->export_class_instance();
-            $qtable->export_class_instance($exportclass);
             $exportclass->start_table($questiontabletitle);
         }
 
