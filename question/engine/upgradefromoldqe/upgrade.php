@@ -319,6 +319,7 @@ abstract class qbehaviour_converter {
         foreach ($this->qstates as $state) {
             $this->process_state($state);
         }
+        $this->finish_up($state);
     }
 
     protected function process_state($state) {
@@ -326,6 +327,9 @@ abstract class qbehaviour_converter {
 
         $method = 'process' . $state->event;
         $this->$method($step, $state);
+    }
+
+    protected function finish_up() {
     }
 
     protected function add_step($step) {
@@ -592,14 +596,32 @@ class qbehaviour_interactive_converter extends qbehaviour_converter {
         return 'interactive';
     }
 
+    protected function finish_up() {
+        if ($this->triesleft == 0 || !$this->attempt->timefinish) {
+            return;
+        }
+
+        $state = end($this->qstates);
+        $step = $this->make_step($state);
+        $step->data['-finish'] = 1;
+
+        if ($this->question->maxmark > 0) {
+            $step->fraction = $state->grade / $this->question->maxmark;
+            $step->state = $this->graded_state_for_fraction($step->fraction);
+        } else {
+            $step->state = 'finished';
+        }
+
+        $this->add_step($step);
+    }
+
     protected function process0($step, $state) {
-        $ok = parent::process0($step, $state);
         $this->triesleft = 1;
         if (!empty($this->question->hints)) {
             $this->triesleft += count($this->question->hints);
         }
         $step->data['-_triesleft'] = $this->triesleft;
-        return $ok;
+        parent::process0($step, $state);
     }
 
     protected function process3($step, $state) {
