@@ -860,7 +860,7 @@ function xmldb_quiz_upgrade($oldversion=0) {
         // Changing type of field fraction on table question_answers to (12, 7)
         $table = new XMLDBTable('question_answers');
         $field = new XMLDBField('fraction');
-        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, null, null, '0.3333333', 'defaultmark');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, null, null, '0.3333333', 'answer');
 
         // Launch change of type for field penalty
         $result = $result && change_field_type($table, $field);

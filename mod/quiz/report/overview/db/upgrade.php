@@ -48,12 +48,12 @@ function xmldb_quizreport_overview_upgrade($oldversion) {
 
     if ($result && $oldversion < 2010040602) {
 
-    /// Define field slot to be added to quiz_question_regrade
+    /// Define field numberinusage to be added to quiz_question_regrade
         $table = new XMLDBTable('quiz_question_regrade');
-        $field = new XMLDBField('slot');
+        $field = new XMLDBField('numberinusage');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null, 'questionusageid');
 
-    /// Launch add field slot
+    /// Launch add field numberinusage
         $result = $result && add_field($table, $field);
     }
 
@@ -72,7 +72,7 @@ function xmldb_quizreport_overview_upgrade($oldversion) {
     /// Rename field newgrade on table quiz_question_regrade to newfraction
         $table = new XMLDBTable('quiz_question_regrade');
         $field = new XMLDBField('newgrade');
-        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, null, null, null, 'slot');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, null, null, null, 'numberinusage');
 
     /// Launch rename field newfraction
         $result = $result && rename_field($table, $field, 'newfraction');
@@ -83,7 +83,7 @@ function xmldb_quizreport_overview_upgrade($oldversion) {
     /// Rename field oldgrade on table quiz_question_regrade to oldfraction
         $table = new XMLDBTable('quiz_question_regrade');
         $field = new XMLDBField('oldgrade');
-        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, null, null, null, 'slot');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, null, null, null, 'numberinusage');
 
     /// Launch rename field newfraction
         $result = $result && rename_field($table, $field, 'oldfraction');
@@ -105,7 +105,7 @@ function xmldb_quizreport_overview_upgrade($oldversion) {
     /// Changing precision of field newfraction on table quiz_question_regrade to (12, 7)
         $table = new XMLDBTable('quiz_question_regrade');
         $field = new XMLDBField('newfraction');
-        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, null, null, null, 'slot');
+        $field->setAttributes(XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, null, null, null, 'numberinusage');
 
     /// Launch change of precision for field newfraction
         $result = $result && change_field_precision($table, $field);
