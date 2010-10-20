@@ -61,7 +61,6 @@ class qtype_match_walkthrough_test extends qbehaviour_walkthrough_test_base {
         // Save a blank response.
         $this->process_submission(array('sub0' => '0', 'sub1' => '0',
                 'sub2' => '0', 'sub3' => '0'));
-        
 
         // Verify.
         $this->check_current_state(question_state::$todo);
