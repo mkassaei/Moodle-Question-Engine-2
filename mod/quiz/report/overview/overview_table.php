@@ -64,9 +64,7 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
             }
             if ($this->groupstudents) {
                 $g_usql = ' IN (' . implode(',', $this->groupstudents) . ')';
-
-                $groupaveragesql = $averagesql." AND qg.userid $g_usql";
-                $record = get_record_sql($groupaveragesql);
+                $record = get_record_sql($averagesql . ' AND qg.userid ' . $g_usql);
                 $groupaveragerow = array(
                         $namekey => get_string('groupavg', 'grades'),
                         'sumgrades' => $this->format_average($record),
@@ -78,17 +76,19 @@ class quiz_report_overview_table extends quiz_attempt_report_table {
                 $this->add_data_keyed($groupaveragerow);
             }
 
-            $s_usql = ' IN (' . implode(',', $this->students) . ')';
-            $record = get_record_sql($averagesql." AND qg.userid $s_usql");
-            $overallaveragerow = array(
-                    $namekey => get_string('overallaverage', 'grades'),
-                    'sumgrades' => $this->format_average($record),
-                    'feedbacktext'=> strip_tags(quiz_report_feedback_for_grade($record->grade, $this->quiz->id)));
-            if ($this->detailedmarks && ($this->quiz->attempts == 1 || $this->qmsubselect)) {
-                $avggradebyq = $this->load_average_question_grades($this->students);
-                $overallaveragerow += $this->format_average_grade_for_questions($avggradebyq);
+            if ($this->students) {
+                $s_usql = ' IN (' . implode(',', $this->students) . ')';
+                $record = get_record_sql($averagesql . ' AND qg.userid ' . $s_usql);
+                $overallaveragerow = array(
+                        $namekey => get_string('overallaverage', 'grades'),
+                        'sumgrades' => $this->format_average($record),
+                        'feedbacktext'=> strip_tags(quiz_report_feedback_for_grade($record->grade, $this->quiz->id)));
+                if ($this->detailedmarks && ($this->quiz->attempts == 1 || $this->qmsubselect)) {
+                    $avggradebyq = $this->load_average_question_grades($this->students);
+                    $overallaveragerow += $this->format_average_grade_for_questions($avggradebyq);
+                }
+                $this->add_data_keyed($overallaveragerow);
             }
-            $this->add_data_keyed($overallaveragerow);
         }
     }
 
