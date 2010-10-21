@@ -102,6 +102,7 @@ class question_preview_options extends question_display_options {
         $this->marks = self::MARK_AND_MAX;
         $this->markdp = $CFG->quiz_decimalpoints;
         $this->feedback = self::VISIBLE;
+        $this->numpartscorrect = $this->feedback;
         $this->generalfeedback = self::VISIBLE;
         $this->rightanswer = self::VISIBLE;
         $this->history = self::HIDDEN;
@@ -142,6 +143,7 @@ class question_preview_options extends question_display_options {
             $this->$field = get_user_preferences(
                     self::OPTIONPREFIX . $field, $this->$field);
         }
+        $this->numpartscorrect = $this->feedback;
     }
 
     /**
@@ -163,6 +165,7 @@ class question_preview_options extends question_display_options {
         foreach ($this->get_field_types() as $field => $type) {
             $this->$field = optional_param($field, $this->$field, $type);
         }
+        $this->numpartscorrect = $this->feedback;
     }
 
     /**

@@ -1301,6 +1301,8 @@ class mod_quiz_display_options extends question_display_options {
         $options->rightanswer = self::extract($quiz->reviewrightanswer, $when);
         $options->overallfeedback = self::extract($quiz->reviewoverallfeedback, $when);
 
+        $options->numpartscorrect = $options->feedback;
+
         if ($quiz->questiondecimalpoints != -1) {
             $options->markdp = $quiz->questiondecimalpoints;
         } else {
