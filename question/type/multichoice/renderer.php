@@ -86,7 +86,15 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
             } else {
                 unset($inputattributes['checked']);
             }
-            $radiobuttons[] = html_writer::empty_tag('input', $inputattributes) .
+            $hidden = '';
+            if (!$options->readonly && $this->get_input_type() == 'checkbox') {
+                $hidden = html_writer::empty_tag('input', array(
+                    'type' => 'hidden',
+                    'name' => $inputattributes['name'],
+                    'value' => 0,
+                ));
+            }
+            $radiobuttons[] = $hidden . html_writer::empty_tag('input', $inputattributes) .
                     html_writer::tag('label', $this->number_in_style($value, $question->answernumbering) .
                         $question->format_text($ans->answer), array('for' => $inputattributes['id']));
 
