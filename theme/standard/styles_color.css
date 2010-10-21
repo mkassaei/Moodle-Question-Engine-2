@@ -824,7 +824,11 @@ table.message_search_results td {
     background: #FFF3BF;
 }
 .que.multichoice .answer .specificfeedback {
+    display: inline;
     padding: 0 0.7em;
+    background: #FFF3BF;
+}
+.que.multichoice .answer .specificfeedback * {
     background: #FFF3BF;
 }
 .que .comment {
