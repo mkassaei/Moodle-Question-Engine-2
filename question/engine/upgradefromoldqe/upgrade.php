@@ -46,17 +46,26 @@ class question_engine_attempt_upgrader {
         $this->questionloader = new question_engine_upgrade_question_loader();
     }
 
-    protected function print_progress($done, $outof) {
+    protected function print_progress($done, $outof, $quizid) {
         print_progress($done, $outof);
     }
 
+    protected function prevent_timeout() {
+        set_time_limit(0);
+    }
+
+    protected function get_quiz_ids() {
+        return get_records_menu('quiz', '', '', 'id', 'id,1');
+    }
+
     public function convert_all_quiz_attempts() {
-        $quizids = get_records_menu('quiz', '', '', 'id', 'id,1');
+        $quizids = $this->get_quiz_ids();
+
         $done = 0;
         $outof = count($quizids);
 
         foreach ($quizids as $quizid => $notused) {
-            $this->print_progress($done, $outof);
+            $this->print_progress($done, $outof, $quizid);
 
             $quiz = get_record('quiz', 'id', $quizid);
             $this->update_all_attemtps_at_quiz($quiz);
@@ -64,7 +73,8 @@ class question_engine_attempt_upgrader {
             $done += 1;
         }
 
-        $this->print_progress($outof, $outof);
+        $this->print_progress($outof, $outof, 'All done!');
+        return true;
     }
 
     public function update_all_attemtps_at_quiz($quiz) {
@@ -225,12 +235,78 @@ class question_engine_attempt_upgrader {
         return $qstates;
     }
 
-    public function convert_attempt($quiz, $attempt, $question, $qsession, $qstates) {
-        print_object($attempt);
-        print_object($question);
-        print_object($qsession);
-        print_object($qstates);
-        // TODO
+    public function format_var($name, $var) {
+        $out = var_export($var, true);
+        $out = str_replace('<', '&lt;', $out);
+        $out = str_replace('ADOFetchObj::__set_state(array(', '(object) array(', $out);
+        $out = str_replace('stdClass::__set_state(array(', '(object) array(', $out);
+        $out = str_replace('array (', 'array(', $out);
+        $out = preg_replace('/=> \n\s*/', '=> ', $out);
+        $out = str_replace(')),', '),', $out);
+        $out = str_replace('))', ')', $out);
+        $out = preg_replace('/\n         (?! )/', "\n                        ", $out);
+        $out = preg_replace('/\n       (?! )/',   "\n                        ", $out);
+        $out = preg_replace('/\n      (?! )/',    "\n                    ", $out);
+        $out = preg_replace('/\n     (?! )/',     "\n                ", $out);
+        $out = preg_replace('/\n    (?! )/',      "\n                ", $out);
+        $out = preg_replace('/\n   (?! )/',       "\n            ", $out);
+        $out = preg_replace('/\n  (?! )/',        "\n            ", $out);
+        $out = preg_replace('/\n(?! )/',          "\n        ", $out);
+        return "        $name = $out;\n";
+    }
+
+    public function display_convert_attempt_input($quiz, $attempt, $question, $qsession, $qstates) {
+        echo $this->format_var('$quiz', $quiz);
+        echo $this->format_var('$attempt', $attempt);
+        echo $this->format_var('$question', $question);
+        echo $this->format_var('$qsession', $qsession);
+        echo $this->format_var('$qstates', $qstates);
+    }
+
+    public function convert_question_attempt($quiz, $attempt, $question, $qsession, $qstates) {
+        $this->prevent_timeout();
+
+        if ($question->qtype == 'random') {
+            list($question, $qstates) = $this->decode_random_attempt($qstates, $question->maxmark);
+            $qsession->questionid = $question->id;
+        }
+
+        if (in_array($question->qtype, array('calculated', 'multianswer', 'randomsamatch'))) {
+            throw new coding_exception("Question session {$qsession->id} uses unsupported question type {$question->qtype}.");
+        } else if ($question->qtype == 'missingtype') {
+            throw new coding_exception("Question session {$qsession->id} links to missing question {$question->id}.");
+        } else if ($question->qtype == 'essay') {
+            $converterclass = 'qbehaviour_manualgraded_converter';
+        } else if ($question->qtype == 'description') {
+            $converterclass = 'qbehaviour_informationitem_converter';
+        } else if ($question->qtype == 'opaque') {
+            $converterclass = 'qbehaviour_opaque_converter';
+        } else if ($quiz->preferredbehaviour == 'interactive') {
+            $converterclass = 'qbehaviour_interactive_converter';
+        } else if ($quiz->preferredbehaviour == 'deferredfeedback') {
+            $converterclass = 'qbehaviour_deferredfeedback_converter';
+        } else {
+            throw new coding_exception("Question session {$qsession->id} has an unexpected preferred behaviour {$quiz->preferredbehaviour}.");
+        }
+
+        $qbehaviourupdater = new $converterclass($quiz, $attempt, $question, $qsession, $qstates);
+        return $qbehaviourupdater->get_converted_qa();
+    }
+
+    protected function decode_random_attempt($qstates, $maxmark) {
+        $realquestionid = null;
+        foreach ($qstates as $i => $state) {
+            list($randombit, $realanswer) = explode('-', $state->answer, 2);
+            $newquestionid = substr($randombit, 6);
+            if ($realquestionid && $realquestionid != $newquestionid) {
+                throw new coding_exception("Question session {$this->qsession->id} for random question points to two different real questions {$realquestionid} and {$newquestionid}.");
+            }
+            $qstates[$i]->answer = $realanswer;
+        }
+
+        $newquestion = $this->load_question($newquestionid);
+        $newquestion->maxmark = $maxmark;
+        return array($newquestion, $qstates);
     }
 }
 
@@ -252,6 +328,13 @@ class question_engine_upgrade_question_loader {
         }
 
         $question = get_record('question', 'id', $questionid);
+
+        if (!$question) {
+            $question = new stdClass();
+            $question->id = $questionid;
+            $question->qtype = 'missingtype';
+            $question->questiontext = '<p>This question session referred to a question that was not in the database.</p>';
+        }
 
         if (!array_key_exists($question->qtype, $QTYPES)) {
             $question->qtype = 'missingtype';
@@ -319,7 +402,7 @@ abstract class qbehaviour_converter {
         foreach ($this->qstates as $state) {
             $this->process_state($state);
         }
-        $this->finish_up($state);
+        $this->finish_up();
     }
 
     protected function process_state($state) {
@@ -787,7 +870,11 @@ class qtype_multichoice_updater extends qtype_updater {
         list($order, $responses) = split(':', $state->answer);
         if ($this->question->options->single) {
             if (is_numeric($responses)) {
-                return $this->to_text($this->question->options->answers[$responses]->answer);
+                if (array_key_exists($responses, $this->question->options->answers)) {
+                    return $this->to_text($this->question->options->answers[$responses]->answer);
+                } else {
+                    return '[CHOICE THAT WAS LATER DELETED]';
+                }
             } else {
                 return null;
             }
@@ -797,7 +884,11 @@ class qtype_multichoice_updater extends qtype_updater {
                 $responses = explode(',', $responses);
                 $bits = array();
                 foreach ($responses as $response) {
-                    $bits[] = $this->to_text($this->question->options->answers[$response]->answer);
+                    if (array_key_exists($response, $this->question->options->answers)) {
+                        $bits[] = $this->to_text($this->question->options->answers[$response]->answer);
+                    } else {
+                        $bits[] = '[CHOICE THAT WAS LATER DELETED]';
+                    }
                 }
                 return implode('; ', $bits);
             } else {
@@ -826,7 +917,11 @@ class qtype_multichoice_updater extends qtype_updater {
         $flippedorder = array_combine(array_values($order), array_keys($order));
         if ($this->question->options->single) {
             if (is_numeric($responses)) {
-                $data['answer'] = $flippedorder[$responses];
+                if (array_key_exists($responses, $flippedorder)) {
+                    $data['answer'] = $flippedorder[$responses];
+                } else {
+                    $data['answer'] = '-1';
+                }
             }
 
         } else {
@@ -834,7 +929,9 @@ class qtype_multichoice_updater extends qtype_updater {
                 $responses = explode(',', $responses);
                 $bits = array();
                 foreach ($responses as $response) {
-                    $data['choice' . $flippedorder[$response]] = 1;
+                    if (array_key_exists($response, $flippedorder)) {
+                        $data['choice' . $flippedorder[$response]] = 1;
+                    }
                 }
             }
         }
