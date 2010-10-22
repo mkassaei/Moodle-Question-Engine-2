@@ -81,12 +81,13 @@ class question_engine_attempt_upgrader {
         global $CFG;
         begin_sql();
 
-        $quizattemptsrs = get_recordset('quiz_attempts', 'quiz', $quiz->id, 'uniqueid');
+        $quizattemptsrs = get_recordset_select('quiz_attempts',
+                "quiz = {$quiz->id} AND preview = 0", 'uniqueid');
         $questionsessionsrs = get_recordset_sql("
                 SELECT *
                 FROM {$CFG->prefix}question_sessions
                 WHERE attemptid IN (SELECT uniqueid FROM {$CFG->prefix}quiz_attempts
-                    WHERE quiz = {$quiz->id})
+                    WHERE quiz = {$quiz->id} AND preview = 0)
                 ORDER BY attemptid, questionid
         ");
 
@@ -94,8 +95,8 @@ class question_engine_attempt_upgrader {
                 SELECT *
                 FROM {$CFG->prefix}question_states
                 WHERE attempt IN (SELECT uniqueid FROM {$CFG->prefix}quiz_attempts
-                    WHERE quiz = {$quiz->id})
-                ORDER BY attempt, question, seq_number
+                    WHERE quiz = {$quiz->id} AND preview = 0)
+                ORDER BY attempt, question, seq_number, id
         ");
 
         while ($attempt = rs_fetch_next_record($quizattemptsrs)) {
@@ -296,6 +297,11 @@ class question_engine_attempt_upgrader {
     protected function decode_random_attempt($qstates, $maxmark) {
         $realquestionid = null;
         foreach ($qstates as $i => $state) {
+            if (strpos($state->answer, '-') < 6) {
+                // Broken state, skip it.
+                unset($qstates[$i]);
+                continue;
+            }
             list($randombit, $realanswer) = explode('-', $state->answer, 2);
             $newquestionid = substr($randombit, 6);
             if ($realquestionid && $realquestionid != $newquestionid) {
