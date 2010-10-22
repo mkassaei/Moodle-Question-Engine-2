@@ -154,8 +154,8 @@ class qtype_multichoice_single_question extends qtype_multichoice_base {
     }
 
     public function grade_response(array $response) {
-        if (!array_key_exists('answer', $response) ||
-                !array_key_exists($response['answer'], $this->order)) {
+        if (array_key_exists('answer', $response) &&
+                array_key_exists($response['answer'], $this->order)) {
             $fraction = $this->answers[$this->order[$response['answer']]]->fraction;
         } else {
             $fraction = 0;
