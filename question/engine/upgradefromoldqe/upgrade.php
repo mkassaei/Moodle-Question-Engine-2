@@ -714,7 +714,7 @@ class qbehaviour_interactive_converter extends qbehaviour_converter {
     }
 
     protected function process3($step, $state) {
-        return $this->process6($step, $state);
+        return;
     }
 
     protected function process6($step, $state) {
@@ -768,7 +768,7 @@ class qbehaviour_interactive_converter extends qbehaviour_converter {
     protected function process10($step, $state) {
         if (!$this->finishstate) {
             $oldcount = $this->sequencenumber;
-            $this->process3($step, $state);
+            $this->process6($step, $state);
             if ($this->sequencenumber != $oldcount + 1) {
                 throw new coding_exception('Submit before try again did not keep the step.');
             }
