@@ -868,6 +868,8 @@ abstract class qtype_updater {
 }
 
 class qtype_multichoice_updater extends qtype_updater {
+    protected $order;
+
     public function right_answer() {
         if ($this->question->options->single) {
             foreach ($this->question->options->answers as $ans) {
@@ -887,8 +889,19 @@ class qtype_multichoice_updater extends qtype_updater {
         }
     }
 
+    protected function explode_answer($answer) {
+        if (strpos($answer, ':') !== false) {
+            list($order, $responses) = explode(':', $answer);
+            return $responses;
+        } else {
+            // Sometimes, a bug means that a state is missing the <order>: bit,
+            // We need to deal with that.
+            return $answer;
+        }
+    }
+
     public function response_summary($state) {
-        list($order, $responses) = split(':', $state->answer);
+        $responses = $this->explode_answer($state->answer);
         if ($this->question->options->single) {
             if (is_numeric($responses)) {
                 if (array_key_exists($responses, $this->question->options->answers)) {
@@ -919,7 +932,7 @@ class qtype_multichoice_updater extends qtype_updater {
     }
 
     public function was_answered($state) {
-        list($order, $responses) = split(':', $state->answer);
+        $responses = $this->explode_answer($state->answer);
         if ($this->question->options->single) {
             return is_numeric($responses);
         } else {
@@ -928,14 +941,14 @@ class qtype_multichoice_updater extends qtype_updater {
     }
 
     public function set_first_step_data_elements($state, &$data) {
-        list($order, $responses) = split(':', $state->answer);
+        list($order, $responses) = explode(':', $state->answer);
         $data['_order'] = $order;
+        $this->order = explode(',', $order);
     }
 
     public function set_data_elements_for_step($state, &$data) {
-        list($order, $responses) = split(':', $state->answer);
-        $order = explode(',', $order);
-        $flippedorder = array_combine(array_values($order), array_keys($order));
+        $responses = $this->explode_answer($state->answer);
+        $flippedorder = array_combine(array_values($this->order), array_keys($this->order));
         if ($this->question->options->single) {
             if (is_numeric($responses)) {
                 if (array_key_exists($responses, $flippedorder)) {
@@ -1256,7 +1269,7 @@ class qtype_oumultiresponse_updater extends qtype_updater {
     }
 
     protected function parse_response($answer) {
-        list($order, $responsepart) = split(':', $answer);
+        list($order, $responsepart) = explode(':', $answer);
         $bits = explode(',', $responsepart);
 
         $responses = array();
@@ -1283,7 +1296,7 @@ class qtype_oumultiresponse_updater extends qtype_updater {
     }
 
     public function was_answered($state) {
-        list($order, $responses) = split(':', $state->answer);
+        list($order, $responses) = explode(':', $state->answer);
         return !empty($responses);
     }
 
