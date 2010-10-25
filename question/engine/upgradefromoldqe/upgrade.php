@@ -1163,6 +1163,9 @@ class qtype_match_updater extends qtype_updater {
     }
 
     protected function explode_answer($answer) {
+        if (!$answer) {
+            return array();
+        }
         $bits = explode(',', $answer);
         $selections = array();
         foreach ($bits as $bit) {
@@ -1238,11 +1241,10 @@ class qtype_match_updater extends qtype_updater {
         $choices = $this->explode_answer($state->answer);
 
         foreach ($this->stemorder as $i => $key) {
-            $choice = $choices[$key];
-            if (!$choice) {
+            if (empty($choices[$key])) {
                 continue;
             }
-            $choice = $this->lookup_choice($choice);
+            $choice = $this->lookup_choice($choices[$key]);
             $data['sub' . $i] = $this->flippedchoiceorder[$choice] + 1;
         }
     }
