@@ -1376,6 +1376,10 @@ class qtype_ddwtos_updater extends qtype_updater {
 
     protected function explode_answer($answer) {
         list($answer) = explode('=', $answer);
+        if (!$answer) {
+            return array();
+        }
+
         $bits = explode(';', $answer);
 
         $selections = array();
