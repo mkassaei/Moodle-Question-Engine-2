@@ -1080,9 +1080,9 @@ function xmldb_quiz_upgrade($oldversion=0) {
         if (table_exists($table)) {
             // First delete all data from preview attempts.
             delete_records_select('question_states',
-                    "attempt IN (SELECT uniqueid FROM {$CFG->prefix} WHERE preview = 1)");
+                    "attempt IN (SELECT uniqueid FROM {$CFG->prefix}quiz_attempts WHERE preview = 1)");
             delete_records_select('question_sessions',
-                    "attemptid IN (SELECT uniqueid FROM {$CFG->prefix} WHERE preview = 1)");
+                    "attemptid IN (SELECT uniqueid FROM {$CFG->prefix}quiz_attempts WHERE preview = 1)");
             delete_records('quiz_attempts', 'preview', 1);
 
             // Now update all the old attempt data.
