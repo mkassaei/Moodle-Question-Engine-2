@@ -450,6 +450,13 @@ abstract class qbehaviour_converter {
         if ($this->startstate) {
             if ($state->answer == reset($this->qstates)->answer) {
                 return;
+            } else if ($this->quiz->attemptonlast && $this->sequencenumber == 1) {
+                // There was a bug in attemptonlast in the past, which meant that
+                // it created two inconsistent open states, with the second taking
+                // priority. Simulate that be discarding the first open state, then
+                // continuing.
+                $this->sequencenumber = 0;
+                $this->qa->steps = array();
             } else {
                 throw new coding_exception("Two inconsistent open states for question session {$this->qsession->id}.");
             }
@@ -560,7 +567,7 @@ abstract class qbehaviour_converter {
         $step = new stdClass();
         $step->data = array();
 
-        if ($this->sequencenumber == 0) {
+        if ($state->event == 0 || $this->sequencenumber == 0) {
             $this->qtypeupdater->set_first_step_data_elements($state, $step->data);
         } else {
             $this->qtypeupdater->set_data_elements_for_step($state, $step->data);
