@@ -1839,6 +1839,8 @@ class question_attempt {
         $this->add_step($firststep);
 
         // Record questionline and correct answer.
+        // TODO we should only really do this for new attempts, not when called
+        // via load_from_records.
         $this->questionsummary = $this->behaviour->get_question_summary();
         $this->rightanswer = $this->behaviour->get_right_answer_summary();
     }
@@ -2125,7 +2127,14 @@ class question_attempt {
             }
         }
 
-        $question = question_bank::load_question($record->questionid);
+        try {
+            $question = question_bank::load_question($record->questionid);
+        } catch (Exception $e) {
+            // The question must have been deleted somehow. Create a missing
+            // question to use in its place.
+            $question = question_bank::get_qtype('missingtype')->make_deleted_instance(
+                    $record->questionid, $record->maxmark + 0);
+        }
 
         $qa = new question_attempt($question, $record->questionusageid, null, $record->maxmark + 0);
         $qa->set_database_id($record->questionattemptid);

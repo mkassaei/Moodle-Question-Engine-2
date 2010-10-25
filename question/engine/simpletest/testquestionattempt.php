@@ -269,6 +269,8 @@ class question_attempt_db_test extends data_loading_method_test_base {
         $qa = question_attempt::load_from_records($records, 1, new question_usage_null_observer(), 'deferredfeedback');
         question_bank::end_unit_test();
 
+        $this->assertEqual($question->questiontext, $qa->get_question()->questiontext);
+
         $this->assertEqual(6, $qa->get_num_steps());
 
         $step = $qa->get_step(0);
@@ -313,5 +315,32 @@ class question_attempt_db_test extends data_loading_method_test_base {
         $this->assertEqual(1, $step->get_user_id());
         $this->assertEqual(array('-comment' => 'Not good enough!', '-mark' => '1', '-maxmark' => '2'),
                 $step->get_all_data());
+    }
+
+    public function test_load_missing_question() {
+        $records = testing_db_record_builder::build_db_records(array(
+            array('id', 'questionattemptid', 'questionusageid', 'slot',
+                              'behaviour', 'questionid', 'maxmark', 'minfraction', 'flagged',
+                                                                             'questionsummary', 'rightanswer', 'responsesummary', 'timemodified',
+                                                                                                     'attemptstepid', 'sequencenumber', 'state', 'fraction',
+                                                                                                                          'timecreated', 'userid', 'name', 'value'),
+            array(1, 1, 1, 1, 'deferredfeedback', -1, 2.0000000, 0.0000000, 0, '', '', '', 1256233790, 1, 0, 'todo',              null, 1256233700, 1,       null, null),
+        ));
+
+        question_bank::start_unit_test();
+        $qa = question_attempt::load_from_records($records, 1, new question_usage_null_observer(), 'deferredfeedback');
+        question_bank::end_unit_test();
+
+        $missingq = question_bank::get_qtype('missingtype')->make_deleted_instance(-1, 2);
+        $this->assertEqual($missingq, $qa->get_question());
+
+        $this->assertEqual(1, $qa->get_num_steps());
+
+        $step = $qa->get_step(0);
+        $this->assertEqual(question_state::$todo, $step->get_state());
+        $this->assertNull($step->get_fraction());
+        $this->assertEqual(1256233700, $step->get_timecreated());
+        $this->assertEqual(1, $step->get_user_id());
+        $this->assertEqual(array(), $step->get_all_data());
     }
 }

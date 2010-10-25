@@ -202,7 +202,7 @@ class question_engine_attempt_upgrader {
     }
 
     public function load_question($questionid, $quizid = null) {
-        return $this->questionloader->load_question($questionid, $quizid);
+        return $this->questionloader->get_question($questionid, $quizid);
     }
 
     public function get_next_question_session($attempt, $questionsessionsrs) {
@@ -274,8 +274,6 @@ class question_engine_attempt_upgrader {
 
         if (in_array($question->qtype, array('calculated', 'multianswer', 'randomsamatch'))) {
             throw new coding_exception("Question session {$qsession->id} uses unsupported question type {$question->qtype}.");
-        } else if ($question->qtype == 'missingtype') {
-            throw new coding_exception("Question session {$qsession->id} links to missing question {$question->id}.");
         } else if ($question->qtype == 'essay') {
             $converterclass = 'qbehaviour_manualgraded_converter';
         } else if ($question->qtype == 'description') {
@@ -326,20 +324,21 @@ class question_engine_attempt_upgrader {
 class question_engine_upgrade_question_loader {
     private $cache = array();
 
-    public function load_question($questionid) {
-        global $QTYPES;
+    protected function load_question($questionid, $quizid) {
+        global $CFG, $QTYPES;
 
-        if (isset($this->cache[$questionid])) {
-            return $this->cache[$questionid];
+        if ($quizid) {
+            $question = get_record_sql("
+                SELECT q.*, qqi.grade AS maxmark
+                FROM {$CFG->prefix}question q
+                JOIN {$CFG->prefix}quiz_question_instances qqi ON qqi.question = q.id
+                WHERE q.id = $questionid AND qqi.quiz = $quizid");
+        } else {
+            $question = get_record('question', 'id', $questionid);
         }
 
-        $question = get_record('question', 'id', $questionid);
-
         if (!$question) {
-            $question = new stdClass();
-            $question->id = $questionid;
-            $question->qtype = 'missingtype';
-            $question->questiontext = '<p>This question session referred to a question that was not in the database.</p>';
+            return null;
         }
 
         if (!array_key_exists($question->qtype, $QTYPES)) {
@@ -349,8 +348,24 @@ class question_engine_upgrade_question_loader {
 
         $QTYPES[$question->qtype]->get_question_options($question);
 
-        $this->cache[$questionid] = $question;
+        return $question;
+    }
 
+    public function get_question($questionid, $quizid) {
+        if (isset($this->cache[$questionid])) {
+            return $this->cache[$questionid];
+        }
+
+        $question = $this->load_question($questionid, $quizid);
+
+        if (!$question) {
+            $question = new stdClass();
+            $question->id = $questionid;
+            $question->qtype = 'deleted';
+            $question->questiontext = get_string('deletedquestiontext', 'qtype_missingtype');
+        }
+
+        $this->cache[$questionid] = $question;
         return $this->cache[$questionid];
     }
 }
@@ -1433,6 +1448,9 @@ class qtype_ddwtos_updater extends qtype_updater {
         $choices = $this->explode_answer($state->answer);
 
         foreach ($choices as $place => $choice) {
+            if (!array_key_exists($choice, $this->choiceindexmap)) {
+                continue;
+            }
             list($group, $choicetext, $choiceindex) = $this->choiceindexmap[$choice];
             $data['p' . $place] = $this->shuffleorders[$group][$choiceindex] + 1;
         }
@@ -1508,5 +1526,27 @@ class qtype_opaque_updater extends qtype_updater {
             }
             $data[$name] = $value;
         }
+    }
+}
+
+class qtype_deleted_updater extends qtype_updater {
+    public function right_answer() {
+        return '';
+    }
+
+    public function response_summary($state) {
+        return $state->answer;
+    }
+
+    public function was_answered($state) {
+        return !empty($state->answer);
+    }
+
+    public function set_first_step_data_elements($state, &$data) {
+        $data['upgradedfromdeletedquestion'] = $state->answer;
+    }
+
+    public function set_data_elements_for_step($state, &$data) {
+        $data['upgradedfromdeletedquestion'] = $state->answer;
     }
 }

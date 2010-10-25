@@ -412,6 +412,15 @@ interface question_automatically_gradable extends question_manually_gradable {
      * @param question_attempt $qa The question_attempt.
      */
     public function get_hint($hintnumber, question_attempt $qa);
+
+    /**
+     * Generate a brief, plain-text, summary of the correct answer to this question.
+     * This is used by various reports, and can also be useful when testing.
+     * This method will return null if such a summary is not possible, or
+     * inappropriate.
+     * @return string|null a plain text summary of the right answer to this question.
+     */
+    public function get_right_answer_summary();
 }
 
 
@@ -467,13 +476,6 @@ abstract class question_graded_automatically extends question_with_responses
         return $this->is_complete_response($response);
     }
 
-    /**
-     * Generate a brief, plain-text, summary of the correct answer to this question.
-     * This is used by various reports, and can also be useful when testing.
-     * This method will return null if such a summary is not possible, or
-     * inappropriate.
-     * @return string|null a plain text summary of the right answer to this question.
-     */
     public function get_right_answer_summary() {
         $correctresponse = $this->get_correct_response();
         if (empty($correctresponse)) {
