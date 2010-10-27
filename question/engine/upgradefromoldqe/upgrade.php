@@ -51,7 +51,7 @@ class question_engine_attempt_upgrader {
     }
 
     protected function prevent_timeout() {
-        set_time_limit(0);
+        set_time_limit(300);
     }
 
     protected function get_quiz_ids() {
@@ -60,6 +60,9 @@ class question_engine_attempt_upgrader {
 
     public function convert_all_quiz_attempts() {
         $quizids = $this->get_quiz_ids();
+        if (!$quizids) {
+            return true;
+        }
 
         $done = 0;
         $outof = count($quizids);
@@ -134,6 +137,14 @@ class question_engine_attempt_upgrader {
     protected function save_usage($preferredbehaviour, $qubaid, $qas, $quizlayout, $attemptlayout) {
         $missing = array();
 
+        if (empty($qas)) {
+            // Somehow, all the question attempt data for this quiz attempt
+            // was lost. (This seems to have happened on labspace.)
+            // Delete the corresponding quiz attempt.
+            $this->delete_quiz_attempt($qubaid);
+            return;
+        }
+
         $layout = explode(',', $attemptlayout);
         $questionkeys = array_combine(array_values($layout), array_keys($layout));
         $questionorder = array_filter(explode(',', $quizlayout), create_function('$x', 'return $x != 0;'));
@@ -184,6 +195,11 @@ class question_engine_attempt_upgrader {
 
     protected function set_quiz_attempt_layout($qubaid, $layout) {
         set_field('quiz_attempts', 'layout', $layout, 'uniqueid', $qubaid);
+    }
+
+    protected function delete_quiz_attempt($qubaid) {
+        delete_records('quiz_attempts', 'uniqueid', $qubaid);
+        delete_records('question_attempts', 'id', $qubaid);
     }
 
     protected function escape_fields($record) {
@@ -818,7 +834,6 @@ class qbehaviour_deferredfeedback_converter extends qbehaviour_converter {
 
         if ($this->finishstate) {
             if ($this->finishstate->answer != $state->answer ||
-                    $this->finishstate->event != $state->event ||
                     $this->finishstate->grade != $state->grade ||
                     $this->finishstate->raw_grade != $state->raw_grade ||
                     $this->finishstate->penalty != $state->penalty) {
