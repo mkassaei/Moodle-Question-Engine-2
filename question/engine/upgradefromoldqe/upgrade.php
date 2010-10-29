@@ -32,6 +32,52 @@ require_once($CFG->libdir . '/questionlib.php');
 
 
 /**
+ * This class serves to record all the assumptions that the code had to make
+ * during the question engine database database upgrade, to facilitate reviewing them.
+ *
+ * @copyright 2010 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class question_engine_assumption_logger {
+    protected $handle;
+    protected $attemptid;
+
+    public function __construct() {
+        global $CFG;
+        make_upload_directory('upgradelogs');
+        $this->handle = fopen($CFG->dataroot . '/upgradelogs/qe_' .
+                date('Ymd-Hi') . '.html', 'a');
+        fwrite($this->handle, '<html><head><title>Question engine upgrade assumptions ' .
+                date('Ymd-Hi') . '</title></head><body><h2>Question engine upgrade assumptions ' .
+                date('Ymd-Hi') . "</h2>\n\n");
+    }
+
+    public function set_current_attempt_id($id) {
+        $this->attemptid = $id;
+    }
+
+    public function log_assumption($description, $quizattemptid = null) {
+        global $CFG;
+        $message = '<p>' . $description;
+        if (!$quizattemptid) {
+            $quizattemptid = $this->attemptid;
+        }
+        if ($quizattemptid) {
+        $message .= ' (<a href="' . $CFG->wwwroot . '/mod/quiz/review.php?attempt=' .
+                $quizattemptid . '">Review this attempt</a>)';
+        }
+        $message .= "</p>\n";
+        fwrite($this->handle, $message);
+    }
+
+    public function __destruct() {
+        fwrite($this->handle, '</body></html>');
+        fclose($this->handle);
+    }
+}
+
+
+/**
  * This class manages upgrading all the question attempts from the old database
  * structure to the new question engine.
  *
@@ -41,9 +87,10 @@ require_once($CFG->libdir . '/questionlib.php');
 class question_engine_attempt_upgrader {
     /** @var question_engine_upgrade_question_loader */
     protected $questionloader;
+    protected $logger;
 
     public function __construct() {
-        $this->questionloader = new question_engine_upgrade_question_loader();
+        // $this->questionloader = new question_engine_upgrade_question_loader();
     }
 
     protected function print_progress($done, $outof, $quizid) {
@@ -66,6 +113,7 @@ class question_engine_attempt_upgrader {
 
         $done = 0;
         $outof = count($quizids);
+        $this->logger = new question_engine_assumption_logger();
 
         foreach ($quizids as $quizid => $notused) {
             $this->print_progress($done, $outof, $quizid);
@@ -77,11 +125,16 @@ class question_engine_attempt_upgrader {
         }
 
         $this->print_progress($outof, $outof, 'All done!');
+        $this->logger = null;
         return true;
     }
 
     public function update_all_attemtps_at_quiz($quiz) {
         global $CFG;
+
+        // Wipe question loader cache.
+        $this->questionloader = new question_engine_upgrade_question_loader($this->logger);
+
         begin_sql();
 
         $quizattemptsrs = get_recordset_select('quiz_attempts',
@@ -121,6 +174,7 @@ class question_engine_attempt_upgrader {
 
     protected function convert_quiz_attempt($quiz, $attempt, $questionsessionsrs, $questionsstatesrs) {
         $qas = array();
+        $this->logger->set_current_attempt_id($attempt->id);
         while ($qsession = $this->get_next_question_session($attempt, $questionsessionsrs)) {
             $question = $this->load_question($qsession->questionid, $quiz->id);
             $qstates = $this->get_question_states($attempt, $question, $questionsstatesrs);
@@ -130,26 +184,30 @@ class question_engine_attempt_upgrader {
                 notify($e->getMessage());
             }
         }
+        $this->logger->set_current_attempt_id(null);
 
-        $this->save_usage($quiz->preferredbehaviour, $attempt->uniqueid, $qas, $quiz->questions, $attempt->layout);
+        $this->save_usage($quiz->preferredbehaviour, $attempt, $qas, $quiz->questions);
     }
 
-    protected function save_usage($preferredbehaviour, $qubaid, $qas, $quizlayout, $attemptlayout) {
+    protected function save_usage($preferredbehaviour, $attempt, $qas, $quizlayout) {
         $missing = array();
 
         if (empty($qas)) {
+            $this->logger->log_assumption("All the question attempts for 
+                    attempt {$attempt->id} at quiz {$attempt->quiz} were missing.
+                    Deleting this attempt", $attempt->id);
             // Somehow, all the question attempt data for this quiz attempt
             // was lost. (This seems to have happened on labspace.)
             // Delete the corresponding quiz attempt.
-            $this->delete_quiz_attempt($qubaid);
+            $this->delete_quiz_attempt($attempt->uniqueid);
             return;
         }
 
-        $layout = explode(',', $attemptlayout);
+        $layout = explode(',', $attempt->layout);
         $questionkeys = array_combine(array_values($layout), array_keys($layout));
         $questionorder = array_filter(explode(',', $quizlayout), create_function('$x', 'return $x != 0;'));
 
-        $this->set_quba_preferred_behaviour($qubaid, $preferredbehaviour);
+        $this->set_quba_preferred_behaviour($attempt->uniqueid, $preferredbehaviour);
 
         $i = 0;
         foreach ($questionorder as $questionid) {
@@ -161,7 +219,7 @@ class question_engine_attempt_upgrader {
             }
 
             $qa = $qas[$questionid];
-            $qa->questionusageid = $qubaid;
+            $qa->questionusageid = $attempt->uniqueid;
             $qa->slot = $i;
             $this->insert_record('question_attempts', $qa);
             $layout[$questionkeys[$questionid]] = $qa->slot;
@@ -180,12 +238,12 @@ class question_engine_attempt_upgrader {
             }
         }
 
-        $this->set_quiz_attempt_layout($qubaid, implode(',', $layout));
+        $this->set_quiz_attempt_layout($attempt->uniqueid, implode(',', $layout));
 
         if ($missing) {
             notify("Question sessions for questions " .
                     implode(', ', $missing) .
-                    " were missing when upgrading question usage {$qubaid}.");
+                    " were missing when upgrading question usage {$attempt->uniqueid}.");
         }
     }
 
@@ -304,8 +362,10 @@ class question_engine_attempt_upgrader {
             throw new coding_exception("Question session {$qsession->id} has an unexpected preferred behaviour {$quiz->preferredbehaviour}.");
         }
 
-        $qbehaviourupdater = new $converterclass($quiz, $attempt, $question, $qsession, $qstates);
-        return $qbehaviourupdater->get_converted_qa();
+        $qbehaviourupdater = new $converterclass($quiz, $attempt, $question, $qsession, $qstates, $this->logger);
+        $qa = $qbehaviourupdater->get_converted_qa();
+        $qbehaviourupdater->discard();
+        return $qa;
     }
 
     protected function decode_random_attempt($qstates, $maxmark) {
@@ -313,6 +373,8 @@ class question_engine_attempt_upgrader {
         foreach ($qstates as $i => $state) {
             if (strpos($state->answer, '-') < 6) {
                 // Broken state, skip it.
+                $this->logger->log_assumption("Had to skip brokes state {$state->id}
+                        for question {$state->question}.");
                 unset($qstates[$i]);
                 continue;
             }
@@ -340,6 +402,10 @@ class question_engine_attempt_upgrader {
 class question_engine_upgrade_question_loader {
     private $cache = array();
 
+    public function __construct($logger) {
+        $this->logger = $logger;
+    }
+
     protected function load_question($questionid, $quizid) {
         global $CFG, $QTYPES;
 
@@ -358,6 +424,8 @@ class question_engine_upgrade_question_loader {
         }
 
         if (!array_key_exists($question->qtype, $QTYPES)) {
+            $this->logger->log_assumption("Dealing with question id {$question->id}
+                    that is of an unknown type {$question->qtype}.");
             $question->qtype = 'missingtype';
             $question->questiontext = '<p>' . get_string('warningmissingtype', 'quiz') . '</p>' . $question->questiontext;
         }
@@ -375,6 +443,8 @@ class question_engine_upgrade_question_loader {
         $question = $this->load_question($questionid, $quizid);
 
         if (!$question) {
+            $this->logger->log_assumption("Dealing with question id {$questionid}
+                    that was missing from the database.");
             $question = new stdClass();
             $question->id = $questionid;
             $question->qtype = 'deleted';
@@ -389,6 +459,7 @@ class question_engine_upgrade_question_loader {
 
 abstract class qbehaviour_converter {
     protected $qtypeupdater;
+    protected $logger;
 
     protected $qa;
 
@@ -402,12 +473,26 @@ abstract class qbehaviour_converter {
     protected $finishstate;
     protected $alreadystarted;
 
-    public function __construct($quiz, $attempt, $question, $qsession, $qstates) {
+    public function __construct($quiz, $attempt, $question, $qsession, $qstates, $logger) {
         $this->quiz = $quiz;
         $this->attempt = $attempt;
         $this->question = $question;
         $this->qsession = $qsession;
         $this->qstates = $qstates;
+        $this->logger = $logger;
+    }
+
+    public function discard() {
+        // Help the garbage collector, which seems to be struggling.
+        $this->quiz = null;
+        $this->attempt = null;
+        $this->question = null;
+        $this->qsession = null;
+        $this->qstates = null;
+        $this->qa = null;
+        $this->qtypeupdater->discard();
+        $this->qtypeupdater = null;
+        $this->logger = null;
     }
 
     protected abstract function behaviour_name();
@@ -471,6 +556,7 @@ abstract class qbehaviour_converter {
                 // it created two inconsistent open states, with the second taking
                 // priority. Simulate that be discarding the first open state, then
                 // continuing.
+                $this->logger->log_assumption("Ignoring bogus state in attempt at question {$state->question}");
                 $this->sequencenumber = 0;
                 $this->qa->steps = array();
             } else {
@@ -496,7 +582,6 @@ abstract class qbehaviour_converter {
     }
 
     protected function process3($step, $state) {
-        // TODO
         return $this->process6($step, $state);
     }
 
@@ -547,7 +632,7 @@ abstract class qbehaviour_converter {
      */
     protected function make_qtype_updater() {
         $class = 'qtype_' . $this->question->qtype . '_updater';
-        return new $class($this, $this->question);
+        return new $class($this, $this->question, $this->logger);
     }
 
     public function to_text($html) {
@@ -775,6 +860,7 @@ class qbehaviour_interactive_converter extends qbehaviour_converter {
                 $this->triesleft = 0;
                 return;
             } else {
+                $this->logger->log_assumption("Ignoring extra finish states in attempt at question {$state->question}");
                 return;
             }
         }
@@ -828,6 +914,7 @@ class qbehaviour_deferredfeedback_converter extends qbehaviour_converter {
 
     protected function process6($step, $state) {
         if (!$this->startstate) {
+            $this->logger->log_assumption("Ignoring bogus submit before open in attempt at question {$state->question}");
             // WTF, but this has happened a few times in our DB. It seems it is safe to ignore.
             return;
         }
@@ -839,6 +926,7 @@ class qbehaviour_deferredfeedback_converter extends qbehaviour_converter {
                     $this->finishstate->penalty != $state->penalty) {
                 throw new coding_exception("Two inconsistent finish states found for question session {$this->qsession->id}.");
             } else {
+                $this->logger->log_assumption("Ignoring extra finish states in attempt at question {$state->question}");
                 return;
             }
         }
@@ -864,10 +952,19 @@ abstract class qtype_updater {
     /** @var question_engine_attempt_upgrader */
     protected $question;
     protected $updater;
+    protected $logger;
 
-    public function __construct($updater, $question) {
+    public function __construct($updater, $question, $logger) {
         $this->updater = $updater;
         $this->question = $question;
+        $this->logger = $logger;
+    }
+
+    public function discard() {
+        // Help the garbage collector, which seems to be struggling.
+        $this->updater = null;
+        $this->question = null;
+        $this->logger = null;
     }
 
     protected function to_text($html) {
@@ -918,6 +1015,8 @@ class qtype_multichoice_updater extends qtype_updater {
         } else {
             // Sometimes, a bug means that a state is missing the <order>: bit,
             // We need to deal with that.
+            $this->logger->log_assumption("Dealing with missing order information
+                    in attempt at multiple choice question {$this->question->id}");
             return $answer;
         }
     }
@@ -929,6 +1028,9 @@ class qtype_multichoice_updater extends qtype_updater {
                 if (array_key_exists($responses, $this->question->options->answers)) {
                     return $this->to_text($this->question->options->answers[$responses]->answer);
                 } else {
+                    $this->logger->log_assumption("Dealing with a place where the
+                            student selected a choice that was later deleted for
+                            multiple choice question {$this->question->id}");
                     return '[CHOICE THAT WAS LATER DELETED]';
                 }
             } else {
@@ -943,6 +1045,9 @@ class qtype_multichoice_updater extends qtype_updater {
                     if (array_key_exists($response, $this->question->options->answers)) {
                         $bits[] = $this->to_text($this->question->options->answers[$response]->answer);
                     } else {
+                        $this->logger->log_assumption("Dealing with a place where the
+                                student selected a choice that was later deleted for
+                                multiple choice question {$this->question->id}");
                         $bits[] = '[CHOICE THAT WAS LATER DELETED]';
                     }
                 }
@@ -1149,10 +1254,6 @@ class qtype_match_updater extends qtype_updater {
     protected $choiceorder;
     protected $flippedchoiceorder;
 
-    public function __construct($updater, $question) {
-        parent::__construct($updater, $question);
-    }
-
     public function question_summary() {
         $this->stems = array();
         $this->choices = array();
@@ -1348,10 +1449,6 @@ class qtype_ddwtos_updater extends qtype_updater {
     protected $places;
     protected $choiceindexmap;
     protected $shuffleorders;
-
-    public function __construct($updater, $question) {
-        parent::__construct($updater, $question);
-    }
 
     public function question_summary() {
         $this->choices = array();
