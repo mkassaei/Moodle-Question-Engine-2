@@ -482,6 +482,7 @@ class question_engine_upgrade_question_loader {
             $question = new stdClass();
             $question->id = $questionid;
             $question->qtype = 'deleted';
+            $question->maxmark = 1; // Guess, but that is all we can do.
             $question->questiontext = get_string('deletedquestiontext', 'qtype_missingtype');
         }
 
