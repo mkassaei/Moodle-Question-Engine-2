@@ -94,6 +94,7 @@ class question_engine_attempt_upgrader {
     }
 
     protected function print_progress($done, $outof, $quizid) {
+        gc_collect_cycles();
         print_progress($done, $outof);
     }
 
@@ -186,12 +187,6 @@ class question_engine_attempt_upgrader {
         }
         $this->logger->set_current_attempt_id(null);
 
-        $this->save_usage($quiz->preferredbehaviour, $attempt, $qas, $quiz->questions);
-    }
-
-    protected function save_usage($preferredbehaviour, $attempt, $qas, $quizlayout) {
-        $missing = array();
-
         if (empty($qas)) {
             $this->logger->log_assumption("All the question attempts for 
                     attempt {$attempt->id} at quiz {$attempt->quiz} were missing.
@@ -203,20 +198,37 @@ class question_engine_attempt_upgrader {
             return;
         }
 
+        $questionorder = array();
+        foreach (explode(',', $quiz->questions) as $questionid) {
+            if ($questionid == 0) {
+                continue;
+            }
+            if (!array_key_exists($questionid, $qas)) {
+                $this->logger->log_assumption("Supplying minimal open state for 
+                        question {$questionid} in attempt {$attempt->id} at quiz
+                        {$attempt->quiz}, since the session was missing.", $attempt->id);
+                $qas[$questionid] = $this->supply_missing_question_attempt(
+                        $quiz, $attempt, $question);
+            }
+        }
+
+        $this->save_usage($quiz->preferredbehaviour, $attempt, $qas, $quiz->questions);
+    }
+
+    protected function save_usage($preferredbehaviour, $attempt, $qas, $quizlayout) {
+        $missing = array();
+
         $layout = explode(',', $attempt->layout);
         $questionkeys = array_combine(array_values($layout), array_keys($layout));
-        $questionorder = array_filter(explode(',', $quizlayout), create_function('$x', 'return $x != 0;'));
 
         $this->set_quba_preferred_behaviour($attempt->uniqueid, $preferredbehaviour);
 
         $i = 0;
-        foreach ($questionorder as $questionid) {
-            $i++;
-
-            if (!array_key_exists($questionid, $qas)) {
-                $missing[] = $questionid;
+        foreach (explode(',', $quizlayout) as $questionid) {
+            if ($questionid == 0) {
                 continue;
             }
+            $i++;
 
             $qa = $qas[$questionid];
             $qa->questionusageid = $attempt->uniqueid;
@@ -239,12 +251,6 @@ class question_engine_attempt_upgrader {
         }
 
         $this->set_quiz_attempt_layout($attempt->uniqueid, implode(',', $layout));
-
-        if ($missing) {
-            notify("Question sessions for questions " .
-                    implode(', ', $missing) .
-                    " were missing when upgrading question usage {$attempt->uniqueid}.");
-        }
     }
 
     protected function set_quba_preferred_behaviour($qubaid, $preferredbehaviour) {
@@ -338,6 +344,37 @@ class question_engine_attempt_upgrader {
         echo $this->format_var('$qstates', $qstates);
     }
 
+    protected function get_converter_class_name($question, $quiz, $qsessionid) {
+        if (in_array($question->qtype, array('calculated', 'multianswer', 'randomsamatch'))) {
+            throw new coding_exception("Question session {$qsessionid} uses unsupported question type {$question->qtype}.");
+        } else if ($question->qtype == 'essay') {
+            return 'qbehaviour_manualgraded_converter';
+        } else if ($question->qtype == 'description') {
+            return 'qbehaviour_informationitem_converter';
+        } else if ($question->qtype == 'opaque') {
+            return 'qbehaviour_opaque_converter';
+        } else if ($quiz->preferredbehaviour == 'interactive') {
+            return 'qbehaviour_interactive_converter';
+        } else if ($quiz->preferredbehaviour == 'deferredfeedback') {
+            return 'qbehaviour_deferredfeedback_converter';
+        } else {
+            throw new coding_exception("Question session {$qsessionid} has an unexpected preferred behaviour {$quiz->preferredbehaviour}.");
+        }
+    }
+
+    public function supply_missing_question_attempt($quiz, $attempt, $question) {
+        if ($question->qtype == 'random') {
+            throw new coding_exception("Cannot supply a missing qsession for question {$question->id} in attempt {$attempt->id}.");
+        }
+
+        $converterclass = $this->get_converter_class_name($question, $quiz, 'missing');
+
+        $qbehaviourupdater = new $converterclass($quiz, $attempt, $question, null, null, $this->logger);
+        $qa = $qbehaviourupdater->supply_missing_qa();
+        $qbehaviourupdater->discard();
+        return $qa;
+    }
+
     public function convert_question_attempt($quiz, $attempt, $question, $qsession, $qstates) {
         $this->prevent_timeout();
 
@@ -346,21 +383,7 @@ class question_engine_attempt_upgrader {
             $qsession->questionid = $question->id;
         }
 
-        if (in_array($question->qtype, array('calculated', 'multianswer', 'randomsamatch'))) {
-            throw new coding_exception("Question session {$qsession->id} uses unsupported question type {$question->qtype}.");
-        } else if ($question->qtype == 'essay') {
-            $converterclass = 'qbehaviour_manualgraded_converter';
-        } else if ($question->qtype == 'description') {
-            $converterclass = 'qbehaviour_informationitem_converter';
-        } else if ($question->qtype == 'opaque') {
-            $converterclass = 'qbehaviour_opaque_converter';
-        } else if ($quiz->preferredbehaviour == 'interactive') {
-            $converterclass = 'qbehaviour_interactive_converter';
-        } else if ($quiz->preferredbehaviour == 'deferredfeedback') {
-            $converterclass = 'qbehaviour_deferredfeedback_converter';
-        } else {
-            throw new coding_exception("Question session {$qsession->id} has an unexpected preferred behaviour {$quiz->preferredbehaviour}.");
-        }
+        $converterclass = $this->get_converter_class_name($question, $quiz, $qsession->id);
 
         $qbehaviourupdater = new $converterclass($quiz, $attempt, $question, $qsession, $qstates, $this->logger);
         $qa = $qbehaviourupdater->get_converted_qa();
@@ -497,7 +520,31 @@ abstract class qbehaviour_converter {
 
     protected abstract function behaviour_name();
 
-    protected function convert() {
+    public function get_converted_qa() {
+        $this->initialise_qa();
+        $this->convert_steps();
+        return $this->qa;
+    }
+
+    protected function create_missing_first_step() {
+        $step = new stdClass();
+        $step->state = 'todo';
+        $step->data = array();
+        $step->fraction = null;
+        $step->timecreated = $this->attempt->timestart;
+        $step->userid = $this->attempt->userid;
+        $this->qtypeupdater->supply_missing_first_step_data($step->data);
+        return $step;
+    }
+
+    public function supply_missing_qa() {
+        $this->initialise_qa();
+        $this->qa->timemodified = $this->attempt->timestart;
+        $this->add_step($this->create_missing_first_step());
+        return $this->qa;
+    }
+
+    protected function initialise_qa() {
         $this->qtypeupdater = $this->make_qtype_updater();
 
         $qa = new stdClass();
@@ -513,8 +560,6 @@ abstract class qbehaviour_converter {
         $qa->steps = array();
 
         $this->qa = $qa;
-
-        $this->convert_steps();
     }
 
     protected function convert_steps() {
@@ -529,7 +574,6 @@ abstract class qbehaviour_converter {
 
     protected function process_state($state) {
         $step = $this->make_step($state);
-
         $method = 'process' . $state->event;
         $this->$method($step, $state);
     }
@@ -659,11 +703,6 @@ abstract class qbehaviour_converter {
         }
     }
 
-    public function get_converted_qa() {
-        $this->convert();
-        return $this->qa;
-    }
-
     protected function make_step($state){
         $step = new stdClass();
         $step->data = array();
@@ -737,10 +776,20 @@ class qbehaviour_opaque_converter extends qbehaviour_converter {
         return 'opaque';
     }
 
+    protected function create_missing_first_step() {
+        global $CFG;
+        $step = parent::create_missing_first_step();
+        $step->data['-_preferredbehaviour'] = $this->quiz->preferredbehaviour;
+        $step->data['-_language'] = $CFG->lang;
+        $step->data['-_userid'] = $step->userid;
+        $step->data['-_statestring'] = 'You have [N] attempts.';
+        return $step;
+    }
+
     protected function process0($step, $state) {
         global $CFG;
         $ok = parent::process0($step, $state);
-        $step->data['-_preferredbehaviour'] = ($this->quiz->preferredbehaviour ? 'interactive' : 'deferredfeedback');;
+        $step->data['-_preferredbehaviour'] = $this->quiz->preferredbehaviour;
         $step->data['-_language'] = $CFG->lang;
         $step->data['-_userid'] = $step->userid;
         $step->data['-_statestring'] = 'You have [N] attempts.';
@@ -984,6 +1033,7 @@ abstract class qtype_updater {
     public abstract function was_answered($state);
     public abstract function set_first_step_data_elements($state, &$data);
     public abstract function set_data_elements_for_step($state, &$data);
+    public abstract function supply_missing_first_step_data(&$data);
 }
 
 class qtype_multichoice_updater extends qtype_updater {
@@ -1073,6 +1123,11 @@ class qtype_multichoice_updater extends qtype_updater {
         $this->order = explode(',', $order);
     }
 
+    public function supply_missing_first_step_data(&$data) {
+        throw new coding_exception('qtype_multichoice_updater::supply_missing_first_step_data not tested');
+        $data['_order'] = implode(',', array_keys($this->question->option->answers));
+    }
+
     public function set_data_elements_for_step($state, &$data) {
         $responses = $this->explode_answer($state->answer);
         $flippedorder = array_combine(array_values($this->order), array_keys($this->order));
@@ -1124,6 +1179,9 @@ class qtype_shortanswer_updater extends qtype_updater {
     public function set_first_step_data_elements($state, &$data) {
     }
 
+    public function supply_missing_first_step_data(&$data) {
+    }
+
     public function set_data_elements_for_step($state, &$data) {
         if (!empty($state->answer)) {
             $data['answer'] = $state->answer;
@@ -1150,6 +1208,9 @@ class qtype_essay_updater extends qtype_updater {
     }
 
     public function set_first_step_data_elements($state, &$data) {
+    }
+
+    public function supply_missing_first_step_data(&$data) {
     }
 
     public function set_data_elements_for_step($state, &$data) {
@@ -1185,6 +1246,10 @@ class qtype_numerical_updater extends qtype_updater {
         $data['_separators'] = '.$,';
     }
 
+    public function supply_missing_first_step_data(&$data) {
+        $data['_separators'] = '.$,';
+    }
+
     public function set_data_elements_for_step($state, &$data) {
         if (!empty($state->answer)) {
             $data['answer'] = $state->answer;
@@ -1207,6 +1272,9 @@ class qtype_description_updater extends qtype_updater {
     }
 
     public function set_first_step_data_elements($state, &$data) {
+    }
+
+    public function supply_missing_first_step_data(&$data) {
     }
 
     public function set_data_elements_for_step($state, &$data) {
@@ -1236,6 +1304,9 @@ class qtype_truefalse_updater extends qtype_updater {
     }
 
     public function set_first_step_data_elements($state, &$data) {
+    }
+
+    public function supply_missing_first_step_data(&$data) {
     }
 
     public function set_data_elements_for_step($state, &$data) {
@@ -1360,6 +1431,12 @@ class qtype_match_updater extends qtype_updater {
         $data['_choiceorder'] = implode(',', $this->choiceorder);
     }
 
+    public function supply_missing_first_step_data(&$data) {
+        throw new coding_exception('qtype_match_updater::supply_missing_first_step_data not tested');
+        $data['_stemorder'] = array_keys($this->stems);
+        $data['_choiceorder'] = shuffle(array_keys($this->choices));
+    }
+
     public function set_data_elements_for_step($state, &$data) {
         $choices = $this->explode_answer($state->answer);
 
@@ -1428,6 +1505,11 @@ class qtype_oumultiresponse_updater extends qtype_updater {
     public function set_first_step_data_elements($state, &$data) {
         list($order, $responses) = $this->parse_response($state->answer);
         $data['_order'] = $order;
+    }
+
+    public function supply_missing_first_step_data(&$data) {
+        throw new coding_exception('qtype_oumultiresponse_updater::supply_missing_first_step_data not tested');
+        $data['_order'] = implode(',', array_keys($this->question->option->answers));
     }
 
     public function set_data_elements_for_step($state, &$data) {
@@ -1582,6 +1664,10 @@ class qtype_ddwtos_updater extends qtype_updater {
         }
     }
 
+    public function supply_missing_first_step_data(&$data) {
+        throw new coding_exception('qtype_ddwtos_updater::supply_missing_first_step_data not implemented');
+    }
+
     public function set_data_elements_for_step($state, &$data) {
         $choices = $this->explode_answer($state->answer);
 
@@ -1654,6 +1740,10 @@ class qtype_opaque_updater extends qtype_updater {
         }
     }
 
+    public function supply_missing_first_step_data(&$data) {
+        $data['__randomseed'] = rand();
+    }
+
     public function set_data_elements_for_step($state, &$data) {
         $responses = $this->explode_answer($state->answer);
         foreach ($responses as $name => $value) {
@@ -1682,6 +1772,9 @@ class qtype_deleted_updater extends qtype_updater {
 
     public function set_first_step_data_elements($state, &$data) {
         $data['upgradedfromdeletedquestion'] = $state->answer;
+    }
+
+    public function supply_missing_first_step_data(&$data) {
     }
 
     public function set_data_elements_for_step($state, &$data) {
