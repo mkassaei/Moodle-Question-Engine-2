@@ -1305,7 +1305,14 @@ class qtype_truefalse_updater extends qtype_updater {
 
     public function response_summary($state) {
         if (is_numeric($state->answer)) {
-            return $this->question->options->answers[$state->answer]->answer;
+            if (array_key_exists($state->answer, $this->question->options->answers)) {
+                return $this->question->options->answers[$state->answer]->answer;
+            } else {
+                $this->logger->log_assumption("Dealing with a place where the
+                        student selected a choice that was later deleted for
+                        true/false question {$this->question->id}");
+                return null;
+            }
         } else {
             return null;
         }
