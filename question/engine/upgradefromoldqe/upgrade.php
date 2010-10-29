@@ -207,8 +207,12 @@ class question_engine_attempt_upgrader {
                 $this->logger->log_assumption("Supplying minimal open state for 
                         question {$questionid} in attempt {$attempt->id} at quiz
                         {$attempt->quiz}, since the session was missing.", $attempt->id);
-                $qas[$questionid] = $this->supply_missing_question_attempt(
-                        $quiz, $attempt, $question);
+                try {
+                    $qas[$questionid] = $this->supply_missing_question_attempt(
+                            $quiz, $attempt, $question);
+                } catch (Exception $e) {
+                    notify($e->getMessage());
+                }
             }
         }
 
@@ -229,6 +233,11 @@ class question_engine_attempt_upgrader {
                 continue;
             }
             $i++;
+
+            if (!array_key_exists($questionid, $qas)) {
+                $missing[] = $questionid;
+                continue;
+            }
 
             $qa = $qas[$questionid];
             $qa->questionusageid = $attempt->uniqueid;
@@ -251,6 +260,12 @@ class question_engine_attempt_upgrader {
         }
 
         $this->set_quiz_attempt_layout($attempt->uniqueid, implode(',', $layout));
+
+        if ($missing) {
+            notify("Question sessions for questions " .
+                    implode(', ', $missing) .
+                    " were missing when upgrading question usage {$attempt->uniqueid}.");
+        }
     }
 
     protected function set_quba_preferred_behaviour($qubaid, $preferredbehaviour) {
