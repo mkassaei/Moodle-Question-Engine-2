@@ -1503,15 +1503,29 @@ class qtype_oumultiresponse_updater extends qtype_updater {
     }
 
     protected function parse_response($answer) {
+        if (strpos($answer, ':') === false) {
+            $this->logger->log_assumption("Dealing with missing order information
+                    in attempt at oumultiresponse question {$this->question->id}");
+            return array(null, $responses);
+        }
+
         list($order, $responsepart) = explode(':', $answer);
         $bits = explode(',', $responsepart);
 
         $responses = array();
         if ($responsepart) {
             foreach ($bits as $bit) {
-                list($choice, $history) = explode('h', $bit);
-                if (substr($history, 0, 1) === '1') {
-                    $responses[] = $choice;
+                if (strpos($bit, 'h')) {
+                    list($choice, $history) = explode('h', $bit);
+                    if (substr($history, 0, 1) === '1') {
+                        $responses[] = $choice;
+                    }
+                } else {
+                    // Very old code did this.
+                    list($choice, $grade) = explode('g', $bit);
+                    if ($grade > 0) {
+                        $responses[] = $choice;
+                    }
                 }
             }
         }
