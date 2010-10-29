@@ -95,7 +95,7 @@ class question_type {
      * @return whether the question_answers.answer field needs to have
      * restore_decode_content_links_worker called on it.
      */
-    protected function has_html_answers() {
+    public function has_html_answers() {
         return false;
     }
 

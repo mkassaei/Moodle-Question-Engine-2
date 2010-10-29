@@ -341,7 +341,11 @@ class qtype_match extends question_type {
         } else {
             $match->incorrectfeedback = '';
         }
-        $match->shownumcorrect = isset($mat_opt['#']['SHOWNUMCORRECT']['0']['#'])?backup_todb($mat_opt['#']['SHOWNUMCORRECT']['0']['#']):0;
+        if (array_key_exists('SHOWNUMCORRECT', $mat_opt['#'])) {
+            $match->shownumcorrect = backup_todb($mat_opt['#']['SHOWNUMCORRECT']['0']['#']);
+        } else {
+            $match->shownumcorrect = 0;
+        }
 
         //The structure is equal to the db, so insert the question_match_sub
         $newid = insert_record('question_match', $match);

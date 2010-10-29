@@ -405,7 +405,7 @@ class qtype_ddwtos extends question_type {
                 fwrite ($bf,full_tag("CORRECTFEEDBACK",$level+1,false,$ddws->correctfeedback));
                 fwrite ($bf,full_tag("PARTIALLYCORRECTFEEDBACK",$level+1,false,$ddws->partiallycorrectfeedback));
                 fwrite ($bf,full_tag("INCORRECTFEEDBACK",$level+1,false,$ddws->incorrectfeedback));
-                fwrite ($bf,full_tag("CORRECTRESPONSESFEEDBACK",$level+1,false,$ddws->correctresponsesfeedback));
+                fwrite ($bf,full_tag("SHOWNUMCORRECT",$level+1,false,$ddws->correctresponsesfeedback));
                 $status = fwrite ($bf,end_tag("DDWORDSSENTENCES",$level,true));
             }
 
@@ -448,7 +448,13 @@ class qtype_ddwtos extends question_type {
             } else {
                 $ddwtos->incorrectfeedback = '';
             }
-            $ddwtos->correctresponsesfeedback = isset($mul_info['#']['CORRECTRESPONSESFEEDBACK']['0']['#'])?backup_todb($mul_info['#']['CORRECTRESPONSESFEEDBACK']['0']['#']):'';
+            if (array_key_exists('SHOWNUMCORRECT', $mul_info['#'])) {
+                $ddwtos->shownumcorrect = backup_todb($mul_info['#']['SHOWNUMCORRECT']['0']['#']);
+            } else if (array_key_exists('CORRECTRESPONSESFEEDBACK', $mul_info['#'])) {
+                $ddwtos->shownumcorrect = backup_todb($mul_info['#']['CORRECTRESPONSESFEEDBACK']['0']['#']);
+            } else {
+                $ddwtos->shownumcorrect = 0;
+            }
 
             $newid = insert_record ("question_ddwtos",$ddwtos);
 
