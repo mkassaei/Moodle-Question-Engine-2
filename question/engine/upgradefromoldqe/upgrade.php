@@ -614,6 +614,9 @@ abstract class qbehaviour_converter {
                 $this->logger->log_assumption("Ignoring bogus state in attempt at question {$state->question}");
                 $this->sequencenumber = 0;
                 $this->qa->steps = array();
+            } else if ($state->answer == '') {
+                $this->logger->log_assumption("Ignoring second start state with blank answer in attempt at question {$state->question}");
+                return;
             } else {
                 throw new coding_exception("Two inconsistent open states for question session {$this->qsession->id}.");
             }
@@ -1130,6 +1133,9 @@ class qtype_multichoice_updater extends qtype_updater {
     }
 
     public function set_first_step_data_elements($state, &$data) {
+        if (!$state->answer) {
+            return;
+        }
         list($order, $responses) = explode(':', $state->answer);
         $data['_order'] = $order;
         $this->order = explode(',', $order);
