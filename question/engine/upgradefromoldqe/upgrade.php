@@ -1012,6 +1012,7 @@ abstract class qtype_updater {
     /** @var question_engine_attempt_upgrader */
     protected $question;
     protected $updater;
+    /** @var question_engine_assumption_logger */
     protected $logger;
 
     public function __construct($updater, $question, $logger) {
@@ -1404,9 +1405,17 @@ class qtype_match_updater extends qtype_updater {
     public function response_summary($state) {
         $choices = $this->explode_answer($state->answer);
         $pairs = array();
-        foreach ($choices as $stemid => $choice) {
+        foreach ($choices as $stemid => $choicekey) {
             if (array_key_exists($stemid, $this->stems) && $choices[$stemid]) {
-                $pairs[$this->stems[$stemid]] = $this->choices[$this->lookup_choice($choice)];
+                $choiceid = $this->lookup_choice($choicekey);
+                if ($choiceid) {
+                    $pairs[$this->stems[$stemid]] = $this->choices[$choiceid];
+                } else {
+                    $this->logger->log_assumption("Dealing with a place where the
+                            student selected a choice that was later deleted for
+                            match question {$this->question->id}");
+                    $pairs[$this->stems[$stemid]] = '[CHOICE THAT WAS LATER DELETED]';
+                }
             }
         }
         if ($pairs) {
@@ -1456,7 +1465,12 @@ class qtype_match_updater extends qtype_updater {
                 continue;
             }
             $choice = $this->lookup_choice($choices[$key]);
-            $data['sub' . $i] = $this->flippedchoiceorder[$choice] + 1;
+
+            if (array_key_exists($choice, $this->flippedchoiceorder)) {
+                $data['sub' . $i] = $this->flippedchoiceorder[$choice] + 1;
+            } else {
+                $data['sub' . $i] = 0;
+            }
         }
     }
 }

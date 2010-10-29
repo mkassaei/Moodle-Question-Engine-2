@@ -799,7 +799,7 @@ function xmldb_quiz_upgrade($oldversion=0) {
 
     if ($result && $oldversion < 2008000500) {
 
-        // Rename field slot on table question_attempts_new to slot
+        // Rename field numberinusage on table question_attempts_new to slot
         $table = new XMLDBTable('question_attempts_new');
         if (table_exists($table)) {
             $field = new XMLDBField('numberinusage');
@@ -1086,10 +1086,15 @@ function xmldb_quiz_upgrade($oldversion=0) {
             delete_records('quiz_attempts', 'preview', 1);
 
             // Now update all the old attempt data.
+            $db->debug = false;
+            $oldrcachesetting = $CFG->rcache;
+            $CFG->rcache = false;
+
             require_once($CFG->dirroot . '/question/engine/upgradefromoldqe/upgrade.php');
             $upgrader = new question_engine_attempt_upgrader();
-            $db->debug = false;
             $result = $result && $upgrader->convert_all_quiz_attempts();
+
+            $CFG->rcache = $oldrcachesetting;
             $db->debug = true;
         }
 
