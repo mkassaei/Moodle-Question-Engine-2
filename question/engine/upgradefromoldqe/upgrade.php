@@ -89,10 +89,6 @@ class question_engine_attempt_upgrader {
     protected $questionloader;
     protected $logger;
 
-    public function __construct() {
-        // $this->questionloader = new question_engine_upgrade_question_loader();
-    }
-
     protected function print_progress($done, $outof, $quizid) {
         gc_collect_cycles();
         print_progress($done, $outof);
@@ -1408,9 +1404,9 @@ class qtype_match_updater extends qtype_updater {
     public function response_summary($state) {
         $choices = $this->explode_answer($state->answer);
         $pairs = array();
-        foreach ($choices as $stem => $choice) {
-            if ($choice) {
-                $pairs[$this->stems[$stem]] = $this->choices[$this->lookup_choice($choice)];
+        foreach ($choices as $stemid => $choice) {
+            if (array_key_exists($stemid, $this->stems) && $choices[$stemid]) {
+                $pairs[$this->stems[$stemid]] = $this->choices[$this->lookup_choice($choice)];
             }
         }
         if ($pairs) {
