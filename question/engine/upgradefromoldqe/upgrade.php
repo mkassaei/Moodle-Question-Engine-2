@@ -599,6 +599,11 @@ abstract class qbehaviour_converter {
         $this->sequencenumber++;
     }
 
+    protected function discard_last_state() {
+        array_pop($this->qa->steps);
+        $this->sequencenumber--;
+    }
+
     protected function unexpected_event($state) {
         throw new coding_exception("Unexpected event {$state->event} in state {$state->id} in question session {$this->qsession->id}.");
     }
@@ -988,7 +993,8 @@ class qbehaviour_deferredfeedback_converter extends qbehaviour_converter {
                     $this->finishstate->grade != $state->grade ||
                     $this->finishstate->raw_grade != $state->raw_grade ||
                     $this->finishstate->penalty != $state->penalty) {
-                throw new coding_exception("Two inconsistent finish states found for question session {$this->qsession->id}.");
+                $this->logger->log_assumption("Two inconsistent finish states found for question session {$this->qsession->id} in attempt at question {$state->question} keeping the later one.");
+                $this->discard_last_state();
             } else {
                 $this->logger->log_assumption("Ignoring extra finish states in attempt at question {$state->question}");
                 return;
@@ -1143,8 +1149,7 @@ class qtype_multichoice_updater extends qtype_updater {
     }
 
     public function supply_missing_first_step_data(&$data) {
-        throw new coding_exception('qtype_multichoice_updater::supply_missing_first_step_data not tested');
-        $data['_order'] = implode(',', array_keys($this->question->option->answers));
+        $data['_order'] = implode(',', array_keys($this->question->options->answers));
     }
 
     public function set_data_elements_for_step($state, &$data) {
