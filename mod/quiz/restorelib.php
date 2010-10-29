@@ -69,8 +69,6 @@
             $quiz->intro = backup_todb($info['MOD']['#']['INTRO']['0']['#']); 
             $quiz->timeopen = backup_todb($info['MOD']['#']['TIMEOPEN']['0']['#']);
             $quiz->timeclose = backup_todb($info['MOD']['#']['TIMECLOSE']['0']['#']);
-            $quiz->optionflags = backup_todb($info['MOD']['#']['OPTIONFLAGS']['0']['#']);
-            $quiz->penaltyscheme = backup_todb($info['MOD']['#']['PENALTYSCHEME']['0']['#']);
             $quiz->attempts = backup_todb($info['MOD']['#']['ATTEMPTS_NUMBER']['0']['#']);
             $quiz->attemptonlast = backup_todb($info['MOD']['#']['ATTEMPTONLAST']['0']['#']);
             $quiz->grademethod = backup_todb($info['MOD']['#']['GRADEMETHOD']['0']['#']);
@@ -83,14 +81,49 @@
             $quiz->grade = backup_todb($info['MOD']['#']['GRADE']['0']['#']);
             $quiz->timecreated = backup_todb($info['MOD']['#']['TIMECREATED']['0']['#']);
             $quiz->timemodified = backup_todb($info['MOD']['#']['TIMEMODIFIED']['0']['#']);
-            $quiz->timelimit = backup_todb($info['MOD']['#']['TIMELIMIT']['0']['#']);
             $quiz->password = backup_todb($info['MOD']['#']['PASSWORD']['0']['#']);
             $quiz->subnet = backup_todb($info['MOD']['#']['SUBNET']['0']['#']);
             $quiz->popup = backup_todb($info['MOD']['#']['POPUP']['0']['#']);
             $quiz->delay1 = isset($info['MOD']['#']['DELAY1']['0']['#'])?backup_todb($info['MOD']['#']['DELAY1']['0']['#']):'';
             $quiz->delay2 = isset($info['MOD']['#']['DELAY2']['0']['#'])?backup_todb($info['MOD']['#']['DELAY2']['0']['#']):'';
 
-            if (array_key_exists($info['MOD']['#']['REVIEWATTEMPTS'])) {
+            if (array_key_exists('QUESTIONDECIMALPOINTS', $info['MOD']['#'])) {
+                $quiz->decimalpoints = backup_todb($info['MOD']['#']['QUESTIONDECIMALPOINTS']['0']['#']);
+            } else {
+                $quiz->decimalpoints = -1;
+            }
+
+            if (array_key_exists('SHOWUSERPICTURE', $info['MOD']['#'])) {
+                $quiz->showuserpicture = backup_todb($info['MOD']['#']['SHOWUSERPICTURE']['0']['#']);
+            } else {
+                $quiz->showuserpicture = 0;
+            }
+
+            if (array_key_exists('TIMELIMITSECS', $info['MOD']['#'])) {
+                $quiz->timelimit = backup_todb($info['MOD']['#']['TIMELIMITSECS']['0']['#']);
+            } else {
+                $quiz->timelimit = 60 * backup_todb($info['MOD']['#']['TIMELIMIT']['0']['#']);
+            }
+
+            if (array_key_exists('INTROFORMAT', $info['MOD']['#'])) {
+                $quiz->introformat = backup_todb($info['MOD']['#']['INTROFORMAT']['0']['#']);
+            } else {
+                $quiz->introformat = 0;
+            }
+
+            if (array_key_exists('PREFERREDBEHAVIOUR', $info['MOD']['#'])) {
+                $quiz->preferredbehaviour = backup_todb($info['MOD']['#']['PREFERREDBEHAVIOUR']['0']['#']);
+            } else {
+                $optionflags = backup_todb($info['MOD']['#']['OPTIONFLAGS']['0']['#']);
+                $penaltyscheme = backup_todb($info['MOD']['#']['PENALTYSCHEME']['0']['#']);
+                if ($optionflags == 0) {
+                    $quiz->preferredbehaviour = 'deferredfeedback';
+                } else {
+                    $quiz->preferredbehaviour = 'interactive';
+                }
+            }
+
+            if (array_key_exists('REVIEWATTEMPTS', $info['MOD']['#'])) {
                 // Backup from the new question engine.
                 $quiz->reviewattempt = backup_todb($info['MOD']['#']['REVIEWATTEMPT']['0']['#']);
                 $quiz->reviewcorrectness = backup_todb($info['MOD']['#']['REVIEWCORRECTNESS']['0']['#']);

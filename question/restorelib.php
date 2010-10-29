@@ -335,6 +335,17 @@
             $question->timecreated = backup_todb_optional_field($que_info, 'TIMECREATED', 0);
             $question->timemodified = backup_todb_optional_field($que_info, 'TIMEMODIFIED', 0);
 
+            // Update old, badly rounded penalties, to the new equivalents.
+            if ($question->penalty >= 0.33 && $question->penalty <= 0.34) {
+                $question->penalty = 0.3333333;
+            }
+            if ($question->penalty >= 0.66 && $question->penalty <= 0.67) {
+                $question->penalty = 0.6666667;
+            }
+            if ($question->penalty >= 1) {
+                $question->penalty = 1;
+            }
+
             // Set the createdby field, if the user was in the backup, or if we are on the same site.
             $createdby = backup_todb_optional_field($que_info, 'CREATEDBY', null);
             if (!empty($createdby)) {
@@ -466,7 +477,8 @@
                 }
 
                 //Now, restore every question_answers in this question
-                $status = question_restore_answers($oldid,$newid,$que_info,$restore);
+                $status = $status && question_restore_answers($oldid,$newid,$que_info,$restore);
+                $status = $status && question_restore_hints($oldid,$newid,$que_info,$restore);
                 // Restore questiontype specific data
                 if (array_key_exists($question->qtype, $QTYPES)) {
                     $status = $QTYPES[$question->qtype]->restore($oldid,$newid,$que_info,$restore);
@@ -510,6 +522,37 @@
         }
     }
 
+    function question_restore_hints($old_question_id, $new_question_id, $info, $restore) {
+        if (!isset($info['#']['HINTS']['0']['#']['HINT'])) {
+            return true;
+        }
+        $hints = $info['#']['HINTS']['0']['#']['HINT'];
+
+        $status = true;
+        $count = 0;
+        foreach ($hints as $hint_info) {
+            // Copy the data from the XML to the DB.
+            $hint = new stdClass;
+            $hint->questionid = $new_question_id;
+            $hint->hint = backup_todb($hint_info['#']['HINT_TEXT']['0']['#']);
+            $hint->shownumcorrect = backup_todb($hint_info['#']['SHOWNUMCORRECT']['0']['#']);
+            $hint->clearwrong = backup_todb($hint_info['#']['CLEARWRONG']['0']['#']);
+            $hint->options = backup_todb($hint_info['#']['OPTIONS']['0']['#']);
+            $status = $status && insert_record('question_hints', $hint, false);
+
+            //Do some output
+            if (($count++ % 50) == 0 && !defined('RESTORE_SILENTLY')) {
+                echo ".";
+                if ($count % 1000 == 0) {
+                    echo "<br />";
+                }
+                backup_flush(300);
+            }
+        }
+
+        return $status;
+    }
+
     function question_restore_answers ($old_question_id,$new_question_id,$info,$restore) {
 
         global $CFG;
@@ -541,6 +584,23 @@
                 // Update 'match everything' answers for numerical questions coming from old backup files.
                 if ($qtype == 'numerical' && $answer->answer == '') {
                     $answer->answer = '*';
+                }
+
+                // Update old, badly rounded values, to the new equivalents.
+                $changes = array(
+                    '-0.66666'  => '-0.6666667',
+                    '-0.33333'  => '-0.3333333',
+                    '-0.16666'  => '-0.1666667',
+                    '-0.142857' => '-0.1428571',
+                     '0.11111'  =>  '0.1111111',
+                     '0.142857' =>  '0.1428571',
+                     '0.16666'  =>  '0.1666667',
+                     '0.33333'  =>  '0.3333333',
+                     '0.333333' =>  '0.3333333',
+                     '0.66666'  =>  '0.6666667',
+                );
+                if (array_key_exists($answer->fraction, $changes)) {
+                    $answer->fraction = $changes[$answer->fraction];
                 }
 
                 //The structure is equal to the db, so insert the question_answers
