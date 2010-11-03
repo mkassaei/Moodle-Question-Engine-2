@@ -54,7 +54,7 @@ class qtype_multianswer extends question_type {
                 }else {
                     // for wrapped questions the maxgrade is always equal to the defaultgrade,
                     // there is no entry in the question_instances table for them
-                    $wrapped->maxgrade = $wrapped->defaultgrade;
+                    $wrapped->maxgrade = $wrapped->defaultmark;
                     $nbvaliquestion++ ;
                     $question->options->questions[$sequence[$wrapped->id]] = clone($wrapped); // ??? Why do we need a clone here?
                 }
@@ -162,7 +162,7 @@ class qtype_multianswer extends question_type {
                                  // save_question_options, where it is
                                  // needed to call type specific
                                  // save_question methods.
-        $form->defaultgrade = $question->defaultgrade;
+        $form->defaultmark = $question->defaultmark;
         $form->questiontext = $question->questiontext;
         $form->questiontextformat = 0;
         $form->options = clone($question->options);
@@ -586,7 +586,7 @@ class qtype_multianswer extends question_type {
             $state->raw_grade += $teststate->raw_grade;
         }
         }
-        $state->raw_grade /= $question->defaultgrade;
+        $state->raw_grade /= $question->defaultmark;
         $state->raw_grade = min(max((float) $state->raw_grade, 0.0), 1.0)
          * $question->maxgrade;
 
@@ -898,14 +898,14 @@ function qtype_multianswer_extract_question($text) {
     $question->qtype = 'multianswer';
     $question->questiontext = $text;
     $question->options->questions = array();
-    $question->defaultgrade = 0; // Will be increased for each answer norm
+    $question->defaultmark = 0; // Will be increased for each answer norm
 
     for ($positionkey=1
         ; preg_match('/'.ANSWER_REGEX.'/', $question->questiontext, $answerregs)
         ; ++$positionkey ) {
         $wrapped = new stdClass;
-        $wrapped->defaultgrade = $answerregs[ANSWER_REGEX_NORM]
-            or $wrapped->defaultgrade = '1';
+        $wrapped->defaultmark = $answerregs[ANSWER_REGEX_NORM]
+            or $wrapped->defaultmark = '1';
         if (!empty($answerregs[ANSWER_REGEX_ANSWER_TYPE_NUMERICAL])) {
             $wrapped->qtype = 'numerical';
             $wrapped->multiplier = array();
@@ -990,7 +990,7 @@ function qtype_multianswer_extract_question($text) {
             $remainingalts = $tmp[1];
         }
 
-        $question->defaultgrade += $wrapped->defaultgrade;
+        $question->defaultmark += $wrapped->defaultmark;
         $question->options->questions[$positionkey] = clone($wrapped);
         $question->questiontext = implode("{#$positionkey}",
                     explode($answerregs[0], $question->questiontext, 2));

@@ -486,6 +486,15 @@ class question_engine_upgrade_question_loader {
             return null;
         }
 
+        if (empty($question->defaultmark)) {
+            if (!empty($question->defaultgrade)) {
+                $question->defaultmark = $question->defaultgrade;
+            } else {
+                $question->defaultmark = 0;
+            }
+            unset($question->defaultgrade);
+        }
+
         if (!array_key_exists($question->qtype, $QTYPES)) {
             $this->logger->log_assumption("Dealing with question id {$question->id}
                     that is of an unknown type {$question->qtype}.");
@@ -581,6 +590,7 @@ abstract class qbehaviour_converter {
     public function supply_missing_qa() {
         $this->initialise_qa();
         $this->qa->timemodified = $this->attempt->timestart;
+        $this->sequencenumber = 0;
         $this->add_step($this->create_missing_first_step());
         return $this->qa;
     }
