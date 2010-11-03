@@ -112,18 +112,26 @@ class question_engine_attempt_upgrader {
         $outof = count($quizids);
         $this->logger = new question_engine_assumption_logger();
 
+        $success = true;
         foreach ($quizids as $quizid => $notused) {
             $this->print_progress($done, $outof, $quizid);
 
             $quiz = get_record('quiz', 'id', $quizid);
-            $this->update_all_attemtps_at_quiz($quiz);
+            $success = $success && $this->update_all_attemtps_at_quiz($quiz);
+            if (!$success) {
+                return false;
+            }
 
             $done += 1;
         }
 
         $this->print_progress($outof, $outof, 'All done!');
         $this->logger = null;
-        return true;
+        return $success;
+    }
+
+    public function get_attemtps_where($quizid) {
+        return "quiz = {$quizid} AND preview = 0 AND needsupgradetonewqe = 1";
     }
 
     public function update_all_attemtps_at_quiz($quiz) {
@@ -134,39 +142,42 @@ class question_engine_attempt_upgrader {
 
         begin_sql();
 
-        $quizattemptsrs = get_recordset_select('quiz_attempts',
-                "quiz = {$quiz->id} AND preview = 0", 'uniqueid');
+        $where = $this->get_attemtps_where($quiz->id);
+
+        $quizattemptsrs = get_recordset_select('quiz_attempts', $where, 'uniqueid');
         $questionsessionsrs = get_recordset_sql("
                 SELECT *
                 FROM {$CFG->prefix}question_sessions
-                WHERE attemptid IN (SELECT uniqueid FROM {$CFG->prefix}quiz_attempts
-                    WHERE quiz = {$quiz->id} AND preview = 0)
+                WHERE attemptid IN (
+                    SELECT uniqueid FROM {$CFG->prefix}quiz_attempts WHERE $where)
                 ORDER BY attemptid, questionid
         ");
 
         $questionsstatesrs = get_recordset_sql("
                 SELECT *
                 FROM {$CFG->prefix}question_states
-                WHERE attempt IN (SELECT uniqueid FROM {$CFG->prefix}quiz_attempts
-                    WHERE quiz = {$quiz->id} AND preview = 0)
+                WHERE attempt IN (
+                    SELECT uniqueid FROM {$CFG->prefix}quiz_attempts WHERE $where)
                 ORDER BY attempt, question, seq_number, id
         ");
 
-        while ($attempt = rs_fetch_next_record($quizattemptsrs)) {
-            while ($qsession = $this->get_next_question_session($attempt, $questionsessionsrs)) {
-                $question = $this->questionloader->load_question($qsession->questionid);
-                $qstates = $this->get_question_states($attempt, $question, $questionsstatesrs);
-                $this->convert_attempt($quiz, $attempt, $question, $qsession, $qstates);
-            }
+        $success = $quizattemptsrs && $questionsessionsrs && $questionsstatesrs;
+        while ($success && ($attempt = rs_fetch_next_record($quizattemptsrs))) {
+            $success = $success && $this->convert_quiz_attempt(
+                    $quiz, $attempt, $questionsessionsrs, $questionsstatesrs);
         }
 
         rs_close($quizattemptsrs);
         rs_close($questionsessionsrs);
         rs_close($questionsstatesrs);
 
-        commit_sql();
+        if ($success) {
+            commit_sql();
+        } else {
+            rollback_sql();
+        }
 
-        return false; // Signal failure, since no work was acutally done.
+        return $success;
     }
 
     protected function convert_quiz_attempt($quiz, $attempt, $questionsessionsrs, $questionsstatesrs) {
@@ -190,8 +201,7 @@ class question_engine_attempt_upgrader {
             // Somehow, all the question attempt data for this quiz attempt
             // was lost. (This seems to have happened on labspace.)
             // Delete the corresponding quiz attempt.
-            $this->delete_quiz_attempt($attempt->uniqueid);
-            return;
+            return $this->delete_quiz_attempt($attempt->uniqueid);
         }
 
         $questionorder = array();
@@ -212,16 +222,20 @@ class question_engine_attempt_upgrader {
             }
         }
 
-        $this->save_usage($quiz->preferredbehaviour, $attempt, $qas, $quiz->questions);
+        return $this->save_usage($quiz->preferredbehaviour, $attempt, $qas, $quiz->questions);
     }
 
     protected function save_usage($preferredbehaviour, $attempt, $qas, $quizlayout) {
         $missing = array();
+        $success = true;
 
         $layout = explode(',', $attempt->layout);
         $questionkeys = array_combine(array_values($layout), array_keys($layout));
 
-        $this->set_quba_preferred_behaviour($attempt->uniqueid, $preferredbehaviour);
+        $success = $success && $this->set_quba_preferred_behaviour($attempt->uniqueid, $preferredbehaviour);
+        if (!$success) {
+            return false;
+        }
 
         $i = 0;
         foreach (explode(',', $quizlayout) as $questionid) {
@@ -238,43 +252,57 @@ class question_engine_attempt_upgrader {
             $qa = $qas[$questionid];
             $qa->questionusageid = $attempt->uniqueid;
             $qa->slot = $i;
-            $this->insert_record('question_attempts', $qa);
+            $success = $success && $this->insert_record('question_attempts', $qa);
+            if (!$success) {
+                return false;
+            }
             $layout[$questionkeys[$questionid]] = $qa->slot;
 
             foreach ($qa->steps as $step) {
                 $step->questionattemptid = $qa->id;
-                $this->insert_record('question_attempt_steps', $step);
+                $success = $success && $this->insert_record('question_attempt_steps', $step);
+                if (!$success) {
+                    return false;
+                }
 
                 foreach ($step->data as $name => $value) {
                     $datum = new stdClass();
                     $datum->attemptstepid = $step->id;
                     $datum->name = $name;
                     $datum->value = $value;
-                    $this->insert_record('question_attempt_step_data', $datum, false);
+                    $success = $success && $this->insert_record(
+                            'question_attempt_step_data', $datum, false);
                 }
             }
         }
 
-        $this->set_quiz_attempt_layout($attempt->uniqueid, implode(',', $layout));
+        $success = $success && $this->set_quiz_attempt_layout($attempt->uniqueid, implode(',', $layout));
 
         if ($missing) {
             notify("Question sessions for questions " .
                     implode(', ', $missing) .
                     " were missing when upgrading question usage {$attempt->uniqueid}.");
         }
+
+        return $success;
     }
 
     protected function set_quba_preferred_behaviour($qubaid, $preferredbehaviour) {
-        set_field('question_usages', 'preferredbehaviour', $preferredbehaviour, 'id', $qubaid);
+        return set_field('question_usages', 'preferredbehaviour', $preferredbehaviour, 'id', $qubaid);
     }
 
     protected function set_quiz_attempt_layout($qubaid, $layout) {
-        set_field('quiz_attempts', 'layout', $layout, 'uniqueid', $qubaid);
+        $success = true;
+        $success = $success && set_field('quiz_attempts', 'layout', $layout, 'uniqueid', $qubaid);
+        $success = $success && set_field('quiz_attempts', 'needsupgradetonewqe', 0, 'uniqueid', $qubaid);
+        return $success;
     }
 
     protected function delete_quiz_attempt($qubaid) {
-        delete_records('quiz_attempts', 'uniqueid', $qubaid);
-        delete_records('question_attempts', 'id', $qubaid);
+        $success = true;
+        $success = $success && delete_records('quiz_attempts', 'uniqueid', $qubaid);
+        $success = $success && delete_records('question_attempts', 'id', $qubaid);
+        return $success;
     }
 
     protected function escape_fields($record) {
@@ -290,6 +318,7 @@ class question_engine_attempt_upgrader {
         if ($saveid) {
             $record->id = $newid;
         }
+        return $newid;
     }
 
     public function load_question($questionid, $quizid = null) {

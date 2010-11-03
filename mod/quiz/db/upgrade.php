@@ -1069,21 +1069,40 @@ function xmldb_quiz_upgrade($oldversion=0) {
         upgrade_mod_savepoint($result, 2008000510, 'quiz');
     }
 
-    commit_sql();
+    if ($result && $oldversion < 2008000511) {
+        // Define field needsupgradetonewqe to be added to quiz_attempts
+        $table = new XMLDBTable('quiz_attempts');
+        $field = new XMLDBField('needsupgradetonewqe');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '3', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'preview');
 
-    if ($result) {
-        set_field('modules', 'version', 2008000510, 'name', 'quiz');
+        // Launch add field needsupgradetonewqe
+        if (!field_exists($table, $field)) {
+            $result = $result && add_field($table, $field);
+        }
+
+        $result = $result && set_field_select('quiz_attempts', 'needsupgradetonewqe', 1, '', '');
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000511, 'quiz');
     }
 
-    if ($result && $oldversion < 2008000511) {
+    commit_sql();
+
+    if ($oldversion < 2008000511) {
+        if ($result) {
+            set_field('modules', 'version', 2008000511, 'name', 'quiz');
+        }
+    }
+
+    if ($result && $oldversion < 2008000512) {
         $table = new XMLDBTable('question_states');
         if (table_exists($table)) {
             // First delete all data from preview attempts.
-            delete_records_select('question_states',
+            $result = $result && delete_records_select('question_states',
                     "attempt IN (SELECT uniqueid FROM {$CFG->prefix}quiz_attempts WHERE preview = 1)");
-            delete_records_select('question_sessions',
+            $result = $result && delete_records_select('question_sessions',
                     "attemptid IN (SELECT uniqueid FROM {$CFG->prefix}quiz_attempts WHERE preview = 1)");
-            delete_records('quiz_attempts', 'preview', 1);
+            $result = $result && delete_records('quiz_attempts', 'preview', 1);
 
             // Now update all the old attempt data.
             $db->debug = false;
@@ -1099,10 +1118,25 @@ function xmldb_quiz_upgrade($oldversion=0) {
         }
 
         // quiz savepoint reached
-        upgrade_mod_savepoint($result, 2008000511, 'quiz');
+        upgrade_mod_savepoint($result, 2008000512, 'quiz');
     }
 
     begin_sql();
+
+    if ($result && $oldversion < 2008000512) {
+        // Define field needsupgradetonewqe to be dropped from quiz_attempts
+        $table = new XMLDBTable('quiz_attempts');
+        $field = new XMLDBField('needsupgradetonewqe');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '3', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'preview');
+
+        // Launch drop of field needsupgradetonewqe
+        if (field_exists($table, $field)) {
+            $result = $result && drop_field($table, $field);
+        }
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000512, 'quiz');
+    }
 
     if ($result && $oldversion < 2008000512) {
 
