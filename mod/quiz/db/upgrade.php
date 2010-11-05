@@ -1124,21 +1124,6 @@ function xmldb_quiz_upgrade($oldversion=0) {
     begin_sql();
 
     if ($result && $oldversion < 2008000512) {
-        // Define field needsupgradetonewqe to be dropped from quiz_attempts
-        $table = new XMLDBTable('quiz_attempts');
-        $field = new XMLDBField('needsupgradetonewqe');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '3', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'preview');
-
-        // Launch drop of field needsupgradetonewqe
-        if (field_exists($table, $field)) {
-            $result = $result && drop_field($table, $field);
-        }
-
-        // quiz savepoint reached
-        upgrade_mod_savepoint($result, 2008000512, 'quiz');
-    }
-
-    if ($result && $oldversion < 2008000512) {
 
         // Define key questionid (foreign) to be added to question_hints
         $table = new XMLDBTable('question_hints');
@@ -1269,6 +1254,22 @@ For now, comment out deleting the old data, until we are sure the upgrade works.
     }
 
 */
+
+    if ($result && $oldversion < 2008000518) {
+        // Define field needsupgradetonewqe to be added to quiz_attempts
+        $table = new XMLDBTable('quiz_attempts');
+        $field = new XMLDBField('needsupgradetonewqe');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '3', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'preview');
+
+        // Launch add field needsupgradetonewqe
+        if (!field_exists($table, $field)) {
+            $result = $result && add_field($table, $field);
+        }
+
+        // quiz savepoint reached
+        upgrade_mod_savepoint($result, 2008000518, 'quiz');
+    }
+
     commit_sql();
 
     return $result;

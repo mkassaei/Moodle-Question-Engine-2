@@ -1252,7 +1252,6 @@ function quiz_check_safe_browser() {
     return strpos($_SERVER['HTTP_USER_AGENT'], "SEB") !== false;
 }
 
-
 /**
  * An extension of question_display_options that includes the extra options used
  * by the quiz.

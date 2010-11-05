@@ -98,8 +98,37 @@ class question_engine_attempt_upgrader {
         set_time_limit(300);
     }
 
+    protected function table_exists($tablename) {
+        global $db;
+        $metatables = $db->MetaTables();
+        $metatables = array_flip($metatables);
+        $metatables = array_change_key_case($metatables, CASE_LOWER);
+        return array_key_exists($tablename, $metatables);
+    }
+
     protected function get_quiz_ids() {
-        return get_records_menu('quiz', '', '', 'id', 'id,1');
+        global $CFG;
+        if ($this->table_exists('vl_v_crs_version_pres')) {
+            $quizmoduleid = get_field('modules', 'id', 'name', 'quiz');
+
+            return get_records_sql_menu("
+                SELECT quiz.id,1
+
+                FROM {$CFG->prefix}quiz quiz
+                JOIN {$CFG->prefix}course_modules cm ON cm.module = {$quizmoduleid}
+                        AND cm.instance = quiz.id
+                JOIN {$CFG->prefix}course c ON quiz.course = c.id
+                LEFT JOIN vl_v_crs_version_pres v ON v.vle_course_short_name = c.shortname
+                        AND v.vle_control_course = 'Y'
+
+                WHERE cm.idnumber <> ''
+                   OR v.vle_student_close_date IS NULL
+                   OR (v.vle_student_close_date > '2010-12-01' AND c.shortname <> 'MU123-10B')
+            ");
+
+        } else {
+            return get_records_menu('quiz', '', '', 'id', 'id,1');
+        }
     }
 
     public function convert_all_quiz_attempts() {
