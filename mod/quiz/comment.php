@@ -57,7 +57,9 @@ print_heading(format_string($attemptobj->get_question_name($slot)));
 // Process any data that was submitted.
 if ((data_submitted()) && confirm_sesskey()) {
     if (optional_param('submit', false, PARAM_BOOL)) {
+        begin_sql();
         $attemptobj->process_all_actions(time());
+        commit_sql();
         notify(get_string('changessaved'), 'notifysuccess');
         print_js_call('window.opener.location.reload', array());
         close_window(2);

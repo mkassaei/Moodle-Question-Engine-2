@@ -165,6 +165,7 @@ if (!($quiz->attemptonlast && $lastattempt)) {
 }
 
 // Save the attempt in the database.
+begin_sql();
 question_engine::save_questions_usage_by_activity($quba);
 $attempt->uniqueid = $quba->get_id();
 if (!$attempt->id = insert_record('quiz_attempts', $attempt)) {
@@ -179,6 +180,7 @@ if ($attempt->preview) {
     add_to_log($course->id, 'quiz', 'attempt', 'review.php?attempt=' . $attempt->id,
             $quizobj->get_quizid(), $quizobj->get_cmid());
 }
+commit_sql();
 
 // Redirect to the attempt page.
 redirect($quizobj->attempt_url($attempt->id));

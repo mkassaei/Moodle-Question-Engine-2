@@ -206,7 +206,9 @@ function question_preview_action_url($questionid, $qubaid,
  */
 function restart_preview($previewid, $questionid, $displayoptions) {
     if ($previewid) {
+        begin_sql();
         question_engine::delete_questions_usage_by_activity($previewid);
+        commit_sql();
     }
     redirect(question_preview_url($questionid, $displayoptions->behaviour, $displayoptions->maxmark, $displayoptions));
 }
