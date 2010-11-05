@@ -829,6 +829,7 @@ table.message_search_results td {
     background: #FFF3BF;
 }
 .que.multichoice .answer .specificfeedback * {
+    display: inline;
     background: #FFF3BF;
 }
 .que .comment {

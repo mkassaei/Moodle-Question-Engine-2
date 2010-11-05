@@ -8,6 +8,7 @@
     padding: 0 0.7em;
     background: #FFF3BF;
 }
-.que.multichoice .answer .specificfeedback * {
+.que.oumultiresponse .answer .specificfeedback * {
+    display: inline;
     background: #FFF3BF;
 }
