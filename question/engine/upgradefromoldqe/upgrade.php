@@ -993,8 +993,20 @@ class qbehaviour_interactive_converter extends qbehaviour_converter {
         parent::process0($step, $state);
     }
 
+    protected function process2($step, $state) {
+        if ($this->finishstate) {
+            $this->logger->log_assumption("Ignoring bogus save after submit, and before try again, in interactive attempt at question {$state->question} (question session {$this->qsession->id})");
+            return;
+        }
+        parent::process2($step, $state);
+    }
+
     protected function process3($step, $state) {
-        return;
+        if ($state->id == $this->qsession->newgraded) {
+            return $this->process6($step, $state);
+        } else {
+            return;
+        }
     }
 
     protected function process6($step, $state) {
