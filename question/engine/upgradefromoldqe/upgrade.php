@@ -1580,6 +1580,7 @@ class qtype_match_updater extends qtype_updater {
 
         foreach ($this->stemorder as $i => $key) {
             if (empty($choices[$key])) {
+                $data['sub' . $i] = 0;
                 continue;
             }
             $choice = $this->lookup_choice($choices[$key]);
