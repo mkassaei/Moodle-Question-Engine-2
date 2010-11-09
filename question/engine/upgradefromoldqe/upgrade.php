@@ -1254,9 +1254,9 @@ class qtype_multichoice_updater extends qtype_updater {
 
     public function set_data_elements_for_step($state, &$data) {
         $responses = $this->explode_answer($state->answer);
-        $flippedorder = array_combine(array_values($this->order), array_keys($this->order));
         if ($this->question->options->single) {
             if (is_numeric($responses)) {
+                $flippedorder = array_combine(array_values($this->order), array_keys($this->order));
                 if (array_key_exists($responses, $flippedorder)) {
                     $data['answer'] = $flippedorder[$responses];
                 } else {
@@ -1265,13 +1265,12 @@ class qtype_multichoice_updater extends qtype_updater {
             }
 
         } else {
-            if (!empty($responses)) {
-                $responses = explode(',', $responses);
-                $bits = array();
-                foreach ($responses as $response) {
-                    if (array_key_exists($response, $flippedorder)) {
-                        $data['choice' . $flippedorder[$response]] = 1;
-                    }
+            $responses = explode(',', $responses);
+            foreach ($this->order as $key => $ansid) {
+                if (in_array($ansid, $responses)) {
+                    $data['choice' . $key] = 1;
+                } else {
+                    $data['choice' . $key] = 0;
                 }
             }
         }
@@ -1674,10 +1673,12 @@ class qtype_oumultiresponse_updater extends qtype_updater {
         list($order, $responses) = $this->parse_response($state->answer);
         $order = explode(',', $order);
 
-        $flippedorder = array_combine(array_values($order), array_keys($order));
-
-        foreach ($responses as $response) {
-            $data['choice' . $flippedorder[$response]] = 1;
+        foreach ($order as $key => $ans) {
+            if (in_array($ans, $responses)) {
+                $data['choice' . $key] = 1;
+            } else {
+                $data['choice' . $key] = 0;
+            }
         }
     }
 }
