@@ -1680,7 +1680,7 @@ class qtype_ddwtos_updater extends qtype_updater {
 
     public function question_summary() {
         $this->choices = array();
-        $choiceindexmap= array();
+        $choiceindexmap = array();
 
         // Store the choices in arrays by group.
         $i = 1;
@@ -1769,21 +1769,23 @@ class qtype_ddwtos_updater extends qtype_updater {
         $choices = $this->explode_answer($state->answer);
 
         $answers = array();
-        foreach ($choices as $place => $choice) {
-            list($group, $choicetext, $choiceindex) = $this->choiceindexmap[$choice];
-            $answers[$place] = $this->choices[$this->places[$place]][$choiceindex];
+        $allblank = true;
+        foreach ($this->places as $place => $group) {
+            if (array_key_exists($place, $choices) && $choices[$place]) {
+                list($notused, $choicetext, $choiceindex) =
+                        $this->choiceindexmap[$choices[$place]];
+                $answers[$place] = $choicetext;
+            } else {
+                $answers[$place] = '';
+            }
         }
-        if ($answers) {
-            return $this->make_summary($answers);
-        } else {
-            return null;
-        }
+        return $this->make_summary($answers);
     }
 
     public function was_answered($state) {
         $choices = $this->explode_answer($state->answer);
         foreach ($choices as $choice) {
-            if ($choice !== '') {
+            if ($choice) {
                 return true;
             }
         }
@@ -1817,12 +1819,15 @@ class qtype_ddwtos_updater extends qtype_updater {
     public function set_data_elements_for_step($state, &$data) {
         $choices = $this->explode_answer($state->answer);
 
-        foreach ($choices as $place => $choice) {
-            if (!array_key_exists($choice, $this->choiceindexmap)) {
-                continue;
+        foreach ($this->places as $place => $group) {
+            if (array_key_exists($place, $choices) &&
+                    array_key_exists($choices[$place], $this->choiceindexmap)) {
+                list($notused, $choicetext, $choiceindex) =
+                        $this->choiceindexmap[$choices[$place]];
+                $data['p' . $place] = $this->shuffleorders[$this->places[$place]][$choiceindex] + 1;
+            } else {
+                $data['p' . $place] = 0;
             }
-            list($group, $choicetext, $choiceindex) = $this->choiceindexmap[$choice];
-            $data['p' . $place] = $this->shuffleorders[$group][$choiceindex] + 1;
         }
     }
 }
