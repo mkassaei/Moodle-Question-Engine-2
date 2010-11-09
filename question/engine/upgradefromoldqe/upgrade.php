@@ -1628,7 +1628,7 @@ class qtype_oumultiresponse_updater extends qtype_updater {
             foreach ($bits as $bit) {
                 if (strpos($bit, 'h')) {
                     list($choice, $history) = explode('h', $bit);
-                    if (substr($history, 0, 1) === '1') {
+                    if (substr($history, -1) === '1') {
                         $responses[] = $choice;
                     }
                 } else {
