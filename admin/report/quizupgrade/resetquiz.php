@@ -17,7 +17,7 @@
 
 
 /**
- * Script to upgrade the attempts at a particular quiz, after confirmation.
+ * Script to reset the attempts at a particular quiz, after confirmation.
  *
  * @package report_quizupgrade
  * @copyright 2010 The Open University
@@ -35,7 +35,7 @@ $confirmed = optional_param('confirmed', false, PARAM_BOOL);
 require_login();
 require_capability('moodle/site:config', get_context_instance(CONTEXT_SYSTEM));
 
-$quizsummary = report_quizupgrade_get_quiz($quizid);
+$quizsummary = report_quizupgrade_get_resettable_quiz($quizid);
 if (!$quizsummary) {
     print_error('invalidquizid', 'report_quizupgrade', report_quizupgrade_url('index.php'));
 }
@@ -46,15 +46,13 @@ admin_externalpage_setup('reportquizupgrade');
 if ($confirmed && data_submitted() && confirm_sesskey()) {
     // Actually do the conversion.
     admin_externalpage_print_header();
-    print_heading(get_string('upgradingquizattempts', 'report_quizupgrade', $quizsummary));
+    print_heading(get_string('resettingquizattempts', 'report_quizupgrade', $quizsummary));
 
-    $upgrader = new report_quizupgrade_attempt_upgrader($quizsummary->id, $quizsummary->numtoconvert);
-    $upgrader->convert_all_quiz_attempts();
+    $upgrader = new report_quizupgrade_attempt_upgrader($quizsummary->id, $quizsummary->resettableattempts);
+    $upgrader->reset_all_resettable_attempts();
 
-    print_heading(get_string('conversioncomplete', 'report_quizupgrade'));
-    echo '<p><a href="' . $CFG->wwwroot . '/mod/quiz/report.php?q=' . $quizsummary->id .
-            '">' . get_string('gotoquizreport', 'report_quizupgrade') . '</a></p>';
-    print_continue(report_quizupgrade_url('index.php'));
+    print_heading(get_string('resetcomplete', 'report_quizupgrade'));
+    print_continue(report_quizupgrade_url('resetindex.php'));
 
     admin_externalpage_print_footer();
     exit;
@@ -64,9 +62,9 @@ if ($confirmed && data_submitted() && confirm_sesskey()) {
 admin_externalpage_print_header();
 print_heading(get_string('areyousure', 'report_quizupgrade'));
 
-$message = get_string('areyousuremessage', 'report_quizupgrade', $quizsummary);
+$message = get_string('areyousureresetmessage', 'report_quizupgrade', $quizsummary);
 $params = array('quizid' => $quizsummary->id, 'confirmed' => 1, 'sesskey' => sesskey());
-notice_yesno($message, report_quizupgrade_url('convertquiz.php'),
-        report_quizupgrade_url('index.php'), $params, null, 'post', 'get');
+notice_yesno($message, report_quizupgrade_url('resetquiz.php'),
+        report_quizupgrade_url('resetindex.php'), $params, null, 'post', 'get');
 
 admin_externalpage_print_footer();

@@ -17,12 +17,8 @@
 
 
 /**
- * Ad-hoc quiz upgrade report.
- *
- * Allows the attempt data for quizzes that were not upgraded during the main
- * upgrade to be upgraded at any time.
- *
- * This screen lists all the quizzes that still need to be upgraded.
+ * Ad-hoc quiz upgrade report. This screen lists quizzes with attempts that can
+ * be reset.
  *
  * @package report_quizupgrade
  * @copyright 2010 The Open University
@@ -41,13 +37,13 @@ require_capability('moodle/site:config', get_context_instance(CONTEXT_SYSTEM));
 admin_externalpage_setup('reportquizupgrade');
 admin_externalpage_print_header();
 
-$quizzes = report_quizupgrade_get_upgradable_quizzes();
+$quizzes = report_quizupgrade_get_resettable_quizzes();
 
 if (empty($quizzes)) {
-    print_heading(get_string('alreadydone', 'report_quizupgrade'));
+    print_heading(get_string('none'));
 
 } else {
-    print_heading(get_string('quizzeswithunconverted', 'report_quizupgrade'));
+    print_heading(get_string('quizzesthatcanbereset', 'report_quizupgrade'));
     print_box(get_string('intro', 'report_quizupgrade'));
 
     $table = new stdClass;
@@ -55,7 +51,7 @@ if (empty($quizzes)) {
         get_string('quizid', 'report_quizupgrade'),
         get_string('course'),
         get_string('modulename', 'quiz'),
-        get_string('attemptstoconvert', 'report_quizupgrade'),
+        get_string('convertedattempts', 'report_quizupgrade'),
         get_string('actions', 'report_quizupgrade'),
     );
 
@@ -66,16 +62,17 @@ if (empty($quizzes)) {
                     '">' . format_string($quiz->shortname) . '</a>',
             '<a href="' . $CFG->wwwroot . '/mod/quiz/view.php?q=' . $quiz->id .
                     '">' . format_string($quiz->name) . '</a>',
-            $quiz->numtoconvert,
-            '<a href="' . report_quizupgrade_url('convertquiz.php?quizid=' . $quiz->id) .
-                    '">' . get_string('convertattempts', 'report_quizupgrade') . '</a>',
+            $quiz->convertedattempts,
+            '<a href="' . $CFG->wwwroot . '/' . $CFG->admin .
+                    '/report/quizupgrade/resetquiz.php?quizid=' . $quiz->id .
+                    '">' . get_string('resetattempts', 'report_quizupgrade') . '</a>',
         );
     }
 
     print_table($table);
 }
 
-echo '<p><a href="' . report_quizupgrade_url('resetindex.php') . '">' .
-        get_string('gotoresetlink', 'report_quizupgrade') . '</a></p>';
+echo '<p><a href="' . report_quizupgrade_url('index.php') . '">' .
+        get_string('gotoindex', 'report_quizupgrade') . '</a></p>';
 
 admin_externalpage_print_footer();
