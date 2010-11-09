@@ -898,6 +898,12 @@ class qbehaviour_opaque_converter extends qbehaviour_converter {
             throw new coding_exception("Two finish states found for opaque question session {$this->qsession->id}.");
         }
 
+        if (array_key_exists('-_actionSummary', $step->data) &&
+                $step->data['-_actionSummary'] == '[Not completed]') {
+            $this->finish_up();
+            return;
+        }
+
         if ($this->question->maxmark > 0) {
             $step->fraction = $state->grade / $this->question->maxmark;
             $step->state = $this->graded_state_for_fraction($step->fraction);
@@ -913,7 +919,21 @@ class qbehaviour_opaque_converter extends qbehaviour_converter {
     }
 
     protected function process8($step, $state) {
-        return $this->process6($step, $state);
+        $this->process6($step, $state);
+    }
+
+    protected function finish_up() {
+        if ($this->finishstate || !$this->attempt->timefinish) {
+            return;
+        }
+
+        $state = end($this->qstates);
+        $step = $this->make_step($state);
+        $step->data = array('-finish' => 1);
+        $step->state = 'gaveup';
+        $this->qa->responsesummary = '[Not completed]';
+        $this->finishstate = $state;
+        $this->add_step($step);
     }
 }
 
@@ -1862,12 +1882,16 @@ class qtype_opaque_updater extends qtype_updater {
     public function set_first_step_data_elements($state, &$data) {
         $responses = $this->explode_answer($state->answer);
         foreach ($responses as $name => $value) {
-            $data[$name] = $value;
+            if ($name == '__randomseed') {
+                $data['-_randomseed'] = $value;
+            } else {
+                $data[$name] = $value;
+            }
         }
     }
 
     public function supply_missing_first_step_data(&$data) {
-        $data['__randomseed'] = rand();
+        $data['-_randomseed'] = rand();
     }
 
     public function set_data_elements_for_step($state, &$data) {
