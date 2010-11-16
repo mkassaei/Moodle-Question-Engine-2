@@ -160,6 +160,37 @@
     }
     mtrace('Finished blocks');
 
+    mtrace("Starting quiz reports");
+    if ($reports = get_records_select('quiz_reports', "cron > 0 AND (($timenow - lastcron) > cron)")) {
+        foreach ($reports as $report) {
+            $cronfile = "$CFG->dirroot/mod/quiz/report/$report->name/cron.php";
+            if (file_exists($cronfile)) {
+                include_once($cronfile);
+                $cron_function = 'quiz_report_'.$report->name."_cron";
+                if (function_exists($cron_function)) {
+                    mtrace("Processing quiz report cron function $cron_function ...", '');
+                    mtrace(' started '.date('H:i:s'));
+                    $pre_dbqueries = null;
+                    if (!empty($PERF->dbqueries)) {
+                        $pre_dbqueries = $PERF->dbqueries;
+                        $pre_time      = microtime(true);
+                    }
+                    if ($cron_function()) {
+                        if (!set_field('quiz_report', 'lastcron', $timenow, 'id', $report->id)) {
+                            mtrace("Error: could not update timestamp for $report->name");
+                        }
+                    }
+                    if (isset($pre_dbqueries)) {
+                        mtrace("... used " . ($PERF->dbqueries - $pre_dbqueries) . " dbqueries");
+                        mtrace("... used " . round(microtime(true) - $pre_time, 2) . " seconds");
+                    }
+                    mtrace('done.');
+                }
+            }
+        }
+    }
+    mtrace("Finished quiz reports");
+
     mtrace('Starting admin reports');
     // Admin reports do not have a database table that lists them. Instead a
     // report includes cron.php with function report_reportname_cron() if it wishes
