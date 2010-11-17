@@ -136,17 +136,19 @@
             } else {
                 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 
-                define('QUIZ_OLD_IMMEDIATELY', 0x3c003f);
-                define('QUIZ_OLD_OPEN',        0x3c00fc0);
-                define('QUIZ_OLD_CLOSED',      0x3c03f000);
-
-                define('QUIZ_OLD_RESPONSES',       1*0x1041); // Show responses
-                define('QUIZ_OLD_SCORES',          2*0x1041); // Show scores
-                define('QUIZ_OLD_FEEDBACK',        4*0x1041); // Show question feedback
-                define('QUIZ_OLD_ANSWERS',         8*0x1041); // Show correct answers
-                define('QUIZ_OLD_SOLUTIONS',      16*0x1041); // Show solutions
-                define('QUIZ_OLD_GENERALFEEDBACK',32*0x1041); // Show question general feedback
-                define('QUIZ_OLD_OVERALLFEEDBACK', 1*0x4440000); // Show quiz overall feedback
+                if (!defined('QUIZ_OLD_IMMEDIATELY')) {
+                    define('QUIZ_OLD_IMMEDIATELY', 0x3c003f);
+                    define('QUIZ_OLD_OPEN',        0x3c00fc0);
+                    define('QUIZ_OLD_CLOSED',      0x3c03f000);
+    
+                    define('QUIZ_OLD_RESPONSES',       1*0x1041); // Show responses
+                    define('QUIZ_OLD_SCORES',          2*0x1041); // Show scores
+                    define('QUIZ_OLD_FEEDBACK',        4*0x1041); // Show question feedback
+                    define('QUIZ_OLD_ANSWERS',         8*0x1041); // Show correct answers
+                    define('QUIZ_OLD_SOLUTIONS',      16*0x1041); // Show solutions
+                    define('QUIZ_OLD_GENERALFEEDBACK',32*0x1041); // Show question general feedback
+                    define('QUIZ_OLD_OVERALLFEEDBACK', 1*0x4440000); // Show quiz overall feedback
+                }
 
                 $oldreview = backup_todb($info['MOD']['#']['REVIEW']['0']['#']);
                 // Old-style ackup.

@@ -405,7 +405,7 @@ class qtype_ddwtos extends question_type {
                 fwrite ($bf,full_tag("CORRECTFEEDBACK",$level+1,false,$ddws->correctfeedback));
                 fwrite ($bf,full_tag("PARTIALLYCORRECTFEEDBACK",$level+1,false,$ddws->partiallycorrectfeedback));
                 fwrite ($bf,full_tag("INCORRECTFEEDBACK",$level+1,false,$ddws->incorrectfeedback));
-                fwrite ($bf,full_tag("SHOWNUMCORRECT",$level+1,false,$ddws->correctresponsesfeedback));
+                fwrite ($bf,full_tag("SHOWNUMCORRECT",$level+1,false,$ddws->shownumcorrect));
                 $status = fwrite ($bf,end_tag("DDWORDSSENTENCES",$level,true));
             }
 

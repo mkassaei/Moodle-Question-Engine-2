@@ -347,7 +347,7 @@ class qtype_match extends question_type {
             $match->shownumcorrect = backup_todb($mat_opt['#']['SHOWNUMCORRECT']['0']['#']);
         } else if (array_key_exists('CORRECTRESPONSESFEEDBACK', $mat_opt['#'])) {
             // Backwards compatibility.
-            $mat_opt = backup_todb($mat_opt['#']['CORRECTRESPONSESFEEDBACK']['0']['#']);
+            $match->shownumcorrect = backup_todb($mat_opt['#']['CORRECTRESPONSESFEEDBACK']['0']['#']);
         } else {
             $match->shownumcorrect = 0;
         }
