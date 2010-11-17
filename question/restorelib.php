@@ -531,14 +531,38 @@
         $status = true;
         $count = 0;
         foreach ($hints as $hint_info) {
-            // Copy the data from the XML to the DB.
-            $hint = new stdClass;
-            $hint->questionid = $new_question_id;
-            $hint->hint = backup_todb($hint_info['#']['HINT_TEXT']['0']['#']);
-            $hint->shownumcorrect = backup_todb($hint_info['#']['SHOWNUMCORRECT']['0']['#']);
-            $hint->clearwrong = backup_todb($hint_info['#']['CLEARWRONG']['0']['#']);
-            $hint->options = backup_todb($hint_info['#']['OPTIONS']['0']['#']);
-            $status = $status && insert_record('question_hints', $hint, false);
+            if (isset($hint_info['#']['REST'])) {
+                // Backwards compatibility.
+                $hintoptions = backup_todb($hint_info['#']['REST']['0']['#']);
+                if ($hintoptions) {
+                    $hintoptions = unserialize($hintoptions);
+                } else {
+                    $hintoptions = array(0, 0);
+                }
+                $numoptions = count($hintoptions);
+
+                $hint = new stdClass;
+                $hint->questionid = $new_question_id;
+                $hint->hint = backup_todb($hint_info['#']['HINT_TEXT']['0']['#']);
+                $hint->shownumcorrect = $hintoptions[0];
+                $hint->clearwrong = $hintoptions[$numoptions - 1];
+                if ($numoptions == 3) {
+                    $hint->options = $hintoptions[1];
+                } else {
+                    $hint->options = 0;
+                }
+                $status = $status && insert_record('question_hints', $hint, false);
+
+            } else {
+                // Copy the data from the XML to the DB.
+                $hint = new stdClass;
+                $hint->questionid = $new_question_id;
+                $hint->hint = backup_todb($hint_info['#']['HINT_TEXT']['0']['#']);
+                $hint->shownumcorrect = backup_todb($hint_info['#']['SHOWNUMCORRECT']['0']['#']);
+                $hint->clearwrong = backup_todb($hint_info['#']['CLEARWRONG']['0']['#']);
+                $hint->options = backup_todb($hint_info['#']['OPTIONS']['0']['#']);
+                $status = $status && insert_record('question_hints', $hint, false);
+            }
 
             //Do some output
             if (($count++ % 50) == 0 && !defined('RESTORE_SILENTLY')) {

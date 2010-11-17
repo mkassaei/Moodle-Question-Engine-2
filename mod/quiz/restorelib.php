@@ -88,9 +88,9 @@
             $quiz->delay2 = isset($info['MOD']['#']['DELAY2']['0']['#'])?backup_todb($info['MOD']['#']['DELAY2']['0']['#']):'';
 
             if (array_key_exists('QUESTIONDECIMALPOINTS', $info['MOD']['#'])) {
-                $quiz->decimalpoints = backup_todb($info['MOD']['#']['QUESTIONDECIMALPOINTS']['0']['#']);
+                $quiz->questiondecimalpoints = backup_todb($info['MOD']['#']['QUESTIONDECIMALPOINTS']['0']['#']);
             } else {
-                $quiz->decimalpoints = -1;
+                $quiz->questiondecimalpoints = -1;
             }
 
             if (array_key_exists('SHOWUSERPICTURE', $info['MOD']['#'])) {
@@ -123,7 +123,7 @@
                 }
             }
 
-            if (array_key_exists('REVIEWATTEMPTS', $info['MOD']['#'])) {
+            if (array_key_exists('REVIEWATTEMPT', $info['MOD']['#'])) {
                 // Backup from the new question engine.
                 $quiz->reviewattempt = backup_todb($info['MOD']['#']['REVIEWATTEMPT']['0']['#']);
                 $quiz->reviewcorrectness = backup_todb($info['MOD']['#']['REVIEWCORRECTNESS']['0']['#']);

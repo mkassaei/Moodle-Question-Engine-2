@@ -406,6 +406,7 @@ function quiz_update_grades($quiz=null, $userid=0, $nullifnone=true) {
  */
 function quiz_grade_item_update($quiz, $grades=NULL) {
     global $CFG;
+    require_once($CFG->dirroot . '/mod/quiz/locallib.php');
     if (!function_exists('grade_update')) { //workaround for buggy PHP versions
         require_once($CFG->libdir.'/gradelib.php');
     }
