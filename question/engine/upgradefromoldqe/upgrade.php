@@ -1522,6 +1522,10 @@ class qtype_match_updater extends qtype_updater {
 
     public function response_summary($state) {
         $choices = $this->explode_answer($state->answer);
+        if (empty($choices)) {
+            return null;
+        }
+
         $pairs = array();
         foreach ($choices as $stemid => $choicekey) {
             if (array_key_exists($stemid, $this->stems) && $choices[$stemid]) {
@@ -1536,10 +1540,11 @@ class qtype_match_updater extends qtype_updater {
                 }
             }
         }
+
         if ($pairs) {
             return $this->make_summary($pairs);
         } else {
-            return null;
+            return '';
         }
     }
 
