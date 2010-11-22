@@ -128,7 +128,7 @@ abstract class question_engine {
      */
     public static function questions_in_use(array $questionids) {
         $dm = new question_engine_data_mapper();
-        $dm->questions_in_use($questionids);
+        return $dm->questions_in_use($questionids);
     }
 
     /**
