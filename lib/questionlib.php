@@ -690,7 +690,7 @@ function question_preload_questions($questionids, $extrafields = '', $join = '')
 
     // Load the questions
     if (!$questions = get_records_sql($sql)) {
-        return 'Could not load questions.';
+        return array();
     }
 
     foreach ($questions as $question) {
