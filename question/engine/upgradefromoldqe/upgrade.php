@@ -1773,10 +1773,16 @@ class qtype_ddwtos_updater extends qtype_updater {
 
     protected function make_summary($choices) {
         $answers = array();
+        $allblank = true;
         foreach ($choices as $group => $ans) {
             $answers[] = '{' . $ans . '}';
+            $allblank = $allblank && ($ans === '');
         }
-        return implode(' ', $answers);
+        if ($allblank) {
+            return '';
+        } else {
+            return implode(' ', $answers);
+        }
     }
 
     public function response_summary($state) {
