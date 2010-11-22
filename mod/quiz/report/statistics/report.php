@@ -408,8 +408,8 @@ class quiz_statistics_report extends quiz_default_report {
                     'allattemptsavg' => 'summarks_as_percentage',
                     'median' => 'summarks_as_percentage',
                     'standarddeviation' => 'summarks_as_percentage',
-                    'skewness' => 'number',
-                    'kurtosis' => 'number',
+                    'skewness' => 'number_format',
+                    'kurtosis' => 'number_format',
                     'cic' => 'number_format_percent',
                     'errorratio' => 'number_format_percent',
                     'standarderror' => 'summarks_as_percentage');
@@ -446,7 +446,8 @@ class quiz_statistics_report extends quiz_default_report {
                     $formattedvalue = quiz_format_grade($quiz, $value) . '%';
                     break;
                 case 'number_format':
-                    $formattedvalue = quiz_format_grade($quiz, $value);
+                    // + 2 decimal places, since not a percentage, and we want the same number of sig figs.
+                    $formattedvalue = format_float($value, $quiz->decimalpoints + 2);
                     break;
                 case 'number':
                     $formattedvalue = $value + 0;
