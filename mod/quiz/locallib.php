@@ -438,13 +438,15 @@ function quiz_update_all_attempt_sumgrades($quiz) {
 /**
  * The quiz grade is the score that student's results are marked out of. When it
  * changes, the corresponding data in quiz_grades and quiz_feedback needs to be
- * rescaled.
+ * rescaled. After calling this function, you probably need to call
+ * quiz_update_all_attempt_sumgrades, quiz_update_all_final_grades and
+ * quiz_update_grades.
  *
  * @param float $newgrade the new maximum grade for the quiz.
  * @param object $quiz the quiz we are updating. Passed by reference so its grade field can be updated too.
  * @return boolean indicating success or failure.
  */
-function quiz_set_grade($newgrade, &$quiz) {
+function quiz_set_grade($newgrade, $quiz) {
     // This is potentially expensive, so only do it if necessary.
     if (abs($quiz->grade - $newgrade) < 1e-7) {
         // Nothing to do.
@@ -479,10 +481,6 @@ function quiz_set_grade($newgrade, &$quiz) {
                 WHERE quizid = $quiz->id
         ", false);
     }
-
-    // update grade item and send all grades to gradebook
-    quiz_grade_item_update($quiz);
-    quiz_update_grades($quiz);
 
     if ($success) {
         return commit_sql();

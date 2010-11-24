@@ -147,10 +147,6 @@
 
 
 /// Now, check for commands on this page and modify variables as necessary
-    // If any edit action makes a sifnificant change to the structure of the quiz, then we
-    // will need to delete all preview attempts.
-    $significantchangemade = false;
-
     if (($up = optional_param('up', false, PARAM_INT)) !== false and confirm_sesskey()) { /// Move the given question up a slot
         $questions = explode(",", $quiz->questions);
         if ($up > 0 and isset($questions[$up])) {
@@ -166,7 +162,7 @@
             if (!set_field('quiz', 'questions', $quiz->questions, 'id', $quiz->id)) {
                 error('Could not save question list');
             }
-            $significantchangemade = true;
+            quiz_delete_previews($quiz);
         }
     }
 
@@ -183,13 +179,14 @@
             if (!set_field('quiz', 'questions', $quiz->questions, 'id', $quiz->id)) {
                 error('Could not save question list');
             }
-            $significantchangemade = true;
+            quiz_delete_previews($quiz);
         }
     }
 
     if (($addquestion = optional_param('addquestion', 0, PARAM_INT)) and confirm_sesskey()) { /// Add a single question to the current quiz
         quiz_add_quiz_question($addquestion, $quiz);
-        $significantchangemade = true;
+        quiz_delete_previews($quiz);
+        quiz_update_sumgrades($quiz);
     }
 
     if (optional_param('add', false, PARAM_BOOL) and confirm_sesskey()) { /// Add selected questions to the current quiz
@@ -200,7 +197,8 @@
                 quiz_add_quiz_question($key, $quiz);
             }
         }
-        $significantchangemade = true;
+        quiz_delete_previews($quiz);
+        quiz_update_sumgrades($quiz);
     }
 
     if (optional_param('addrandom', false, PARAM_BOOL) and confirm_sesskey()) { /// Add random questions to the quiz
@@ -249,7 +247,8 @@
                 quiz_add_quiz_question($question->id, $quiz);
             }
         }
-        $significantchangemade = true;
+        quiz_delete_previews($quiz);
+        quiz_update_sumgrades($quiz);
     }
 
     if (optional_param('repaginate', false, PARAM_BOOL) and confirm_sesskey()) { /// Re-paginate the quiz
@@ -264,11 +263,12 @@
         if (!set_field('quiz', 'questions', $quiz->questions, 'id', $quiz->id)) {
             error('Could not save layout');
         }
-        $significantchangemade = true;
+        quiz_delete_previews($quiz);
     }
     if (($delete = optional_param('delete', false, PARAM_INT)) !== false and confirm_sesskey()) { /// Remove a question from the quiz
         quiz_delete_quiz_question($delete, $quiz);
-        $significantchangemade = true;
+        quiz_delete_previews($quiz);
+        quiz_update_sumgrades($quiz);
     }
 
     if (optional_param('savechanges', false, PARAM_BOOL) and confirm_sesskey()) {
@@ -321,18 +321,6 @@
         if ($maxgrade >= 0) {
             if (!quiz_set_grade($maxgrade, $quiz)) {
                 error('Could not set a new maximum grade for the quiz');
-            }
-        }
-        $significantchangemade = true;
-    }
-
-/// Delete any teacher preview attempts if the quiz has been modified
-    if ($significantchangemade) {
-        $previewattempts = get_records_select('quiz_attempts',
-                'quiz = ' . $quiz->id . ' AND preview = 1');
-        if ($previewattempts) {
-            foreach ($previewattempts as $attempt) {
-                quiz_delete_attempt($attempt, $quiz);
             }
         }
 
