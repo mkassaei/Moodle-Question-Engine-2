@@ -1036,7 +1036,7 @@ class qbehaviour_interactive_converter extends qbehaviour_converter {
 
         if ($this->question->maxmark > 0) {
             $step->fraction = $state->grade / $this->question->maxmark;
-            $step->state = $this->graded_state_for_fraction($step->fraction);
+            $step->state = $this->graded_state_for_fraction($state->raw_grade / $this->question->maxmark);
         } else {
             $step->state = 'finished';
         }
