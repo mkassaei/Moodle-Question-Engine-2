@@ -130,6 +130,15 @@ class quiz_responses_report extends quiz_attempt_report {
 
         $table->is_downloading($download, get_string('reportresponses', 'quiz_responses'),
                 "$COURSE->shortname " . format_string($quiz->name, true));
+// ou-specific begins 11236
+        if ($table->is_downloading()) {
+            if (empty($CFG->extramemorylimit)) {
+                raise_memory_limit('128M');
+            } else {
+                raise_memory_limit($CFG->extramemorylimit);
+            }
+        }
+// ou-specific ends 11236
 
         if (!$table->is_downloading()) {
             // Only print headers if not asked to download data

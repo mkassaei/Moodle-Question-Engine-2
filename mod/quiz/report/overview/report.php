@@ -119,6 +119,15 @@ class quiz_overview_report extends quiz_attempt_report {
                 $displayoptions, $this->context);
         $table->is_downloading($download, get_string('reportoverview','quiz'),
                     "$COURSE->shortname ".format_string($quiz->name,true));
+// ou-specific begins 11236
+        if ($table->is_downloading()) {
+            if (empty($CFG->extramemorylimit)) {
+                raise_memory_limit('128M');
+            } else {
+                raise_memory_limit($CFG->extramemorylimit);
+            }
+        }
+// ou-specific ends 11236
 
         // Process actions.
         if (empty($currentgroup) || $groupstudents) {
