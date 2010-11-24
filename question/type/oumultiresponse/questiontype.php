@@ -25,7 +25,6 @@
  */
 
 
-require_once($CFG->libdir . '/questionlib.php');
 require_once($CFG->dirroot . '/question/engine/lib.php');
 require_once($CFG->dirroot . '/question/format/xml/format.php');
 
@@ -549,7 +548,7 @@ class qtype_oumultiresponse_hint extends question_hint_with_parts {
      * @return question_hint_with_parts
      */
     public static function load_from_record($row) {
-        return new question_hint_with_parts($row->hint, $row->shownumcorrect,
+        return new qtype_oumultiresponse_hint($row->hint, $row->shownumcorrect,
                 $row->clearwrong, !empty($row->options));
     }
 

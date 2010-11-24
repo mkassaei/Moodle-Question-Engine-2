@@ -41,6 +41,9 @@ require_once($CFG->dirroot . '/question/type/oumultiresponse/questiontype.php');
  */
 
 class qtype_oumultiresponse_test extends UnitTestCase {
+    /**
+     * @var qtype_oumultiresponse
+     */
     private $qtype;
 
     public function setUp() {
@@ -58,6 +61,20 @@ class qtype_oumultiresponse_test extends UnitTestCase {
 
     public function test_name() {
         $this->assertEqual($this->qtype->name(), 'oumultiresponse');
+    }
+
+    public function test_initialise_question_instance() {
+        $qdata = qtype_oumultiresponse_test_helper::get_question_data();
+        $expectedq = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_four();
+        $qdata->stamp = $expectedq->stamp;
+        $qdata->version = $expectedq->version;
+        $qdata->timecreated = $expectedq->timecreated;
+        $qdata->timemodified = $expectedq->timemodified;
+
+        $question = $this->qtype->make_question($qdata);
+
+
+        $this->assertEqual($expectedq, $question);
     }
 
     public function test_can_analyse_responses() {
@@ -310,43 +327,13 @@ class qtype_oumultiresponse_test extends UnitTestCase {
     }
 
     public function test_xml_export() {
-        $qdata = new stdClass;
-        $qdata->id = 123;
-        $qdata->qtype = 'oumultiresponse';
-        $qdata->name = 'OU multiple response question';
-        $qdata->questiontext = 'Which are the odd numbers?';
-        $qdata->questiontextformat = FORMAT_HTML;
-        $qdata->generalfeedback = 'General feedback.';
+        $qdata = qtype_oumultiresponse_test_helper::get_question_data();
         $qdata->defaultmark = 6;
-        $qdata->length = 1;
-        $qdata->penalty = 0.3333333;
-        $qdata->hidden = 0;
-
-        $qdata->options->shuffleanswers = 1;
-        $qdata->options->answernumbering = '123';
-        $qdata->options->correctfeedback = 'Well done.';
-        $qdata->options->partiallycorrectfeedback = 'Not entirely.';
-        $qdata->options->shownumcorrect = false;
-        $qdata->options->incorrectfeedback = 'Completely wrong!';
-
-        $qdata->options->answers = array(
-            new question_answer('One', 1, 'Specific feedback to correct answer.'),
-            new question_answer('Two', 0, 'Specific feedback to wrong answer.'),
-            new question_answer('Three', 1, 'Specific feedback to correct answer.'),
-            new question_answer('Four', 0, 'Specific feedback to wrong answer.'),
-        );
-
-        $qdata->hints = array(
-            new question_hint_with_parts('Try again.', true, false),
-            new question_hint_with_parts('Hint 2.', true, true),
-        );
-        $qdata->hints[0]->options = 0;
-        $qdata->hints[1]->options = 1;
 
         $exporter = new qformat_xml();
         $xml = $exporter->writequestion($qdata);
 
-        $expectedxml = '<!-- question: 123  -->
+        $expectedxml = '<!-- question: 0  -->
   <question type="oumultiresponse">
     <name>
       <text>OU multiple response question</text>
@@ -355,7 +342,7 @@ class qtype_oumultiresponse_test extends UnitTestCase {
       <text>Which are the odd numbers?</text>
     </questiontext>
     <generalfeedback>
-      <text>General feedback.</text>
+      <text>The odd numbers are One and Three.</text>
     </generalfeedback>
     <defaultgrade>6</defaultgrade>
     <penalty>0.3333333</penalty>
@@ -363,40 +350,41 @@ class qtype_oumultiresponse_test extends UnitTestCase {
     <shuffleanswers>true</shuffleanswers>
     <answernumbering>123</answernumbering>
     <correctfeedback>
-      <text>Well done.</text>
+      <text>Well done!</text>
     </correctfeedback>
     <partiallycorrectfeedback>
-      <text>Not entirely.</text>
+      <text>Parts, but only parts, of your response are correct.</text>
     </partiallycorrectfeedback>
     <incorrectfeedback>
-      <text>Completely wrong!</text>
+      <text>That is not right at all.</text>
     </incorrectfeedback>
+    <shownumcorrect/>
     <answer fraction="100">
       <text>One</text>
       <feedback>
-        <text>Specific feedback to correct answer.</text>
+        <text>One is odd.</text>
       </feedback>
     </answer>
     <answer fraction="0">
       <text>Two</text>
       <feedback>
-        <text>Specific feedback to wrong answer.</text>
+        <text>Two is even.</text>
       </feedback>
     </answer>
     <answer fraction="100">
       <text>Three</text>
       <feedback>
-        <text>Specific feedback to correct answer.</text>
+        <text>Three is odd.</text>
       </feedback>
     </answer>
     <answer fraction="0">
       <text>Four</text>
       <feedback>
-        <text>Specific feedback to wrong answer.</text>
+        <text>Four is even.</text>
       </feedback>
     </answer>
     <hint>
-      <text>Try again.</text>
+      <text>Hint 1.</text>
       <shownumcorrect/>
     </hint>
     <hint>

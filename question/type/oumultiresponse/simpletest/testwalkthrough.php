@@ -37,7 +37,7 @@ class qtype_oumultiresponse_walkthrough_test extends qbehaviour_walkthrough_test
 
         // Create a multichoice single question.
         $mc = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_four();
-        $mc->shufflechoices = false;
+        $mc->shuffleanswers = false;
         $this->start_attempt_at_question($mc, 'interactive', 3);
 
         // Check the initial state.
@@ -184,7 +184,7 @@ class qtype_oumultiresponse_walkthrough_test extends qbehaviour_walkthrough_test
             new qtype_oumultiresponse_hint('Hint 1', true, true, true),
             new qtype_oumultiresponse_hint('Hint 2', true, true, true),
         );
-        $mc->shufflechoices = false;
+        $mc->shuffleanswers = false;
         $this->start_attempt_at_question($mc, 'interactive', 3);
 
         // Check the initial state.
@@ -236,7 +236,7 @@ class qtype_oumultiresponse_walkthrough_test extends qbehaviour_walkthrough_test
             new qtype_oumultiresponse_hint('Hint 1', true, true, true),
             new qtype_oumultiresponse_hint('Hint 2', true, true, true),
         );
-        $mc->shufflechoices = false;
+        $mc->shuffleanswers = false;
         $this->start_attempt_at_question($mc, 'interactive', 3);
 
         // Check the initial state.

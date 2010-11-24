@@ -36,6 +36,7 @@ require_once(dirname(__FILE__) . '/../type/questionbase.php');
 require_once(dirname(__FILE__) . '/../type/rendererbase.php');
 require_once(dirname(__FILE__) . '/../behaviour/behaviourbase.php');
 require_once(dirname(__FILE__) . '/../behaviour/rendererbase.php');
+require_once($CFG->libdir . '/questionlib.php');
 
 
 /**
