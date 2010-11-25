@@ -327,7 +327,8 @@
         quiz_update_sumgrades($quiz);
         quiz_update_all_attempt_sumgrades($quiz);
         quiz_update_all_final_grades($quiz);
-        quiz_update_grades($quiz);
+        quiz_update_grades($quiz, 0, true, true);
+        redirect($thispageurl->out(false));
     }
 
     question_showbank_actions($thispageurl, $cm);
