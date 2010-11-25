@@ -127,9 +127,10 @@ class quiz_responses_report extends quiz_attempt_report {
 
         $table = new quiz_report_responses_table($quiz , $qmsubselect, $groupstudents,
                 $students, $questions, $candelete, $reporturl, $displayoptions);
-
-        $table->is_downloading($download, get_string('reportresponses', 'quiz_responses'),
-                "$COURSE->shortname " . format_string($quiz->name, true));
+        $filename = quiz_report_download_filename(get_string('responsesfilename', 'quiz_responses'),
+                $course->shortname, $quiz->name);
+        $table->is_downloading($download, $filename,
+                $COURSE->shortname . ' ' . format_string($quiz->name, true));
 // ou-specific begins 11236
         if ($table->is_downloading()) {
             if (empty($CFG->extramemorylimit)) {

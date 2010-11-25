@@ -106,7 +106,12 @@ class quiz_statistics_report extends quiz_default_report {
 
         // Set up the main table.
         $this->table = new quiz_report_statistics_table();
-        $filename = $course->shortname . '-' . format_string($quiz->name, true);
+        if ($everything) {
+            $report = get_string('completestatsfilename', 'quiz_statistics');
+        } else {
+            $report = get_string('questionstatsfilename', 'quiz_statistics');
+        }
+        $filename = quiz_report_download_filename($report, $course->shortname, $quiz->name);
         $this->table->is_downloading($download, $filename, get_string('quizstructureanalysis', 'quiz_statistics'));
 
         // Print the page header stuff (if not downloading.

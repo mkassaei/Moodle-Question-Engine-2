@@ -8,6 +8,7 @@ $string['reportresponses'] = 'Responses';
 $string['responses'] = 'Responses';
 $string['responsesreport'] = 'Responses report';
 $string['responsesdownload'] = 'Responses download';
+$string['responsesfilename'] = 'responses';
 $string['responsesoptions'] = 'Responses options';
 $string['responsestitle'] = 'Responses';
 $string['responsex'] = 'Response {$a}';

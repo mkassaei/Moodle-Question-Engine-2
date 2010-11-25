@@ -70,3 +70,6 @@ $string['backtoquizreport'] = 'Back to main statistics report page.';
 $string['analysisofresponsesfor'] = 'Analysis of responses for $a.';
 $string['downloadeverything'] = 'Download full report as';
 $string['negcovar'] ='Negative covariance of grade with total attempt grade';
+
+$string['completestatsfilename'] = 'completestats';
+$string['questionstatsfilename'] = 'questionstats';

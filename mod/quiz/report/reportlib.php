@@ -334,3 +334,16 @@ function quiz_report_list($context) {
     }
     return $reportlist;
 }
+
+/**
+ * Create a filename for use when downloading data from a quiz report. It is
+ * expected that this will be passed to flexible_table::is_downloading, which
+ * cleans the filename of bad characters and adds the file extension.
+ * @param string $report the type of report.
+ * @param string $courseshortname the course shortname.
+ * @param string $quizname the quiz name.
+ * @return string the filename.
+ */
+function quiz_report_download_filename($report, $courseshortname, $quizname) {
+    return $courseshortname . '-' . format_string($quizname, true) . '-' . $report;
+}
