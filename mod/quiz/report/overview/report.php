@@ -337,7 +337,7 @@ class quiz_overview_report extends quiz_attempt_report {
      *
      * @param object $attempt the quiz attempt to regrade.
      * @param boolean $dryrun if true, do a pretend regrade, otherwise do it for real.
-     * @param array $slots if null, regrade all questoins, otherwise, just regrade
+     * @param array $slots if null, regrade all questions, otherwise, just regrade
      *      the quetsions with those slots.
      */
     protected function regrade_attempt($attempt, $dryrun = false, $slots = null) {
@@ -349,11 +349,12 @@ class quiz_overview_report extends quiz_attempt_report {
             $slots = $quba->get_question_numbers();
         }
 
+        $finished = $attempt->timefinish > 0;
         foreach ($slots as $slot) {
             $qqr = new stdClass;
             $qqr->oldfraction = $quba->get_question_fraction($slot);
 
-            $quba->regrade_question($slot);
+            $quba->regrade_question($slot, $finished);
 
             $qqr->newfraction = $quba->get_question_fraction($slot);
 

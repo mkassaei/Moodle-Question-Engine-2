@@ -1118,9 +1118,11 @@ class question_usage_by_activity {
      * Regrade a question in this usage. This replays the sequence of submitted
      * actions to recompute the outcomes.
      * @param integer $slot the number used to identify this question within this usage.
-     * @param $newmaxmark (optional) if given, will change the max mark while regrading.
+     * @param boolean $finished whether the question attempt should be forced to be finished
+     *      after the regrade, or whether it may still be in progress (default false).
+     * @param number $newmaxmark (optional) if given, will change the max mark while regrading.
      */
-    public function regrade_question($slot, $newmaxmark = null) {
+    public function regrade_question($slot, $finished = false, $newmaxmark = null) {
         $oldqa = $this->get_question_attempt($slot);
         if (is_null($newmaxmark)) {
             $newmaxmark = $oldqa->get_max_mark();
@@ -1131,7 +1133,7 @@ class question_usage_by_activity {
         $newqa = new question_attempt($oldqa->get_question(), $oldqa->get_usage_id(),
                 $this->observer, $newmaxmark);
         $newqa->set_database_id($oldqa->get_database_id());
-        $newqa->regrade($oldqa);
+        $newqa->regrade($oldqa, $finished);
 
         $this->questionattempts[$slot] = $newqa;
         $this->observer->notify_attempt_modified($newqa);
@@ -1139,10 +1141,12 @@ class question_usage_by_activity {
 
     /**
      * Regrade all the questions in this usage (without changing their max mark).
+     * @param boolean $finished whether each question should be forced to be finished
+     *      after the regrade, or whether it may still be in progress (default false).
      */
-    public function regrade_all_questions() {
+    public function regrade_all_questions($finished = false) {
         foreach ($this->questionattempts as $slot => $notused) {
-            $this->regrade_question($slot);
+            $this->regrade_question($slot, $finished);
         }
     }
 
@@ -2043,8 +2047,10 @@ class question_attempt {
      * Perform a regrade. This replays all the actions from $oldqa into this
      * attempt.
      * @param question_attempt $oldqa the attempt to regrade.
+     * @param boolean $finished whether the question attempt should be forced to be finished
+     *      after the regrade, or whether it may still be in progress (default false).
      */
-    public function regrade(question_attempt $oldqa) {
+    public function regrade(question_attempt $oldqa, $finished) {
         $first = true;
         foreach ($oldqa->get_step_iterator() as $step) {
             if ($first) {
@@ -2055,6 +2061,9 @@ class question_attempt {
                 $this->process_action($step->get_submitted_data(),
                         $step->get_timecreated(), $step->get_user_id());
             }
+        }
+        if ($finished) {
+            $this->finish();
         }
     }
 
@@ -2536,7 +2545,7 @@ class question_attempt_step {
 
     /**
      * Get all the submitted data, but not the cached data. behaviour
-     * variables have the ! at the start of their name. This is only really
+     * variables have the - at the start of their name. This is only really
      * intended for use by {@link question_attempt::regrade()}, it should not
      * be considered part of the public API.
      * @param array name => value pairs.

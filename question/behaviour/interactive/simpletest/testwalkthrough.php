@@ -398,4 +398,73 @@ class qbehaviour_interactive_walkthrough_test extends qbehaviour_walkthrough_tes
                 $this->get_tries_remaining_expectation(2),
                 $this->get_no_hint_visible_expectation());
     }
+
+    public function test_interactive_regrade_changing_num_tries_leaving_open() {
+        // Create a multichoice multiple question.
+        $q = test_question_maker::make_a_shortanswer_question();
+        $q->hints = array(
+            new question_hint_with_parts('This is the first hint.', true, true),
+            new question_hint_with_parts('This is the second hint.', true, true),
+        );
+        $this->start_attempt_at_question($q, 'interactive', 3);
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_tries_remaining_expectation(3));
+
+        // Submit the right answer.
+        $this->process_submission(array('answer' => 'frog', '-submit' => 1));
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedright);
+        $this->check_current_mark(3);
+
+        // Now change the quiestion so that answer is only partially right, and regrade.
+        $q->answers[0]->fraction = 0.6666667;
+        $q->answers[1]->fraction = 1;
+
+        $this->quba->regrade_all_questions(false);
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+    }
+
+    public function test_interactive_regrade_changing_num_tries_finished() {
+        // Create a multichoice multiple question.
+        $q = test_question_maker::make_a_shortanswer_question();
+        $q->hints = array(
+            new question_hint_with_parts('This is the first hint.', true, true),
+            new question_hint_with_parts('This is the second hint.', true, true),
+        );
+        $this->start_attempt_at_question($q, 'interactive', 3);
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_tries_remaining_expectation(3));
+
+        // Submit the right answer.
+        $this->process_submission(array('answer' => 'frog', '-submit' => 1));
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedright);
+        $this->check_current_mark(3);
+
+        // Now change the quiestion so that answer is only partially right, and regrade.
+        $q->answers[0]->fraction = 0.6666667;
+        $q->answers[1]->fraction = 1;
+
+        $this->quba->regrade_all_questions(true);
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedpartial);
+        // TODO I don't think 1 is the right fraction here. However, it is what
+        // you get attempting a question like this without regrading being involved,
+        // and I am currently interested in testing regrading here. 
+        $this->check_current_mark(1);
+    }
 }
