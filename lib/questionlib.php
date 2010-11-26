@@ -239,10 +239,9 @@ function get_grade_options() {
     $gradeoptions = array();
     foreach ($grades as $grade) {
         $percentage = 100 * $grade;
-        $neggrade = -$grade;
-        $gradeoptions["$grade"] = "$percentage %";
-        $gradeoptionsfull["$grade"] = "$percentage %";
-        $gradeoptionsfull["$neggrade"] = -$percentage." %";
+        $gradeoptions["$grade"] = $percentage . '%';
+        $gradeoptionsfull["$grade"] = $percentage . '%';
+        $gradeoptionsfull['' . (-$grade)] = (-$percentage) . '%';
     }
     $gradeoptionsfull["0"] = $gradeoptions["0"] = get_string("none");
 
