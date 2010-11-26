@@ -494,6 +494,7 @@ function quiz_grade_item_update($quiz, $grades=NULL, $progressoutput=false) {
     notify('Updating quiz grades. This may take some time.');
     for ($done = 0; $done < $total; $done += QUIZ_GRADE_UPDATE_CHUNK_SIZE) {
         print_progress($done, $total);
+        flush();
         $nextchunk = array_slice($grades, $done, QUIZ_GRADE_UPDATE_CHUNK_SIZE, true);
         $ok = $ok && grade_update('mod/quiz', $quiz->course, 'mod', 'quiz', $quiz->id, 0, $nextchunk, $params);
     }

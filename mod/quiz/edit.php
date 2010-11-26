@@ -272,19 +272,24 @@
     }
 
     if (optional_param('savechanges', false, PARAM_BOOL) and confirm_sesskey()) {
-    /// We need to save the new ordering (if given) and the new grades
+        // This can be quite slow. Do some output to prevent browser time-outs.
+        print_header(get_string('saving', 'quiz'));
+
+        // We need to save the new ordering (if given) and the new grades
         $oldquestions = explode(",", $quiz->questions); // the questions in the old order
         $questions = array(); // for questions in the new order
         $rawgrades = (array) data_submitted();
         unset($quiz->grades);
         foreach ($rawgrades as $key => $value) {
-        /// Parse input for question -> grades
+            // Parse input for question -> grades
             if (preg_match('!^q([0-9]+)$!', $key, $matches)) {
                 $key = $matches[1];
                 $quiz->grades[$key] = clean_param($value, PARAM_INTEGER);
+                notify(get_string('savingnewgradeforquestion', 'quiz', $key), 'notifysuccess');
+                flush();
                 quiz_update_question_instance($quiz->grades[$key], $key, $quiz);
 
-            /// Parse input for ordering info
+            // Parse input for ordering info
             } else if (preg_match('!^o([0-9]+)$!', $key, $matches)) {
                 $key = $matches[1];
                 // Make sure two questions don't overwrite each other. If we get a second
@@ -319,16 +324,27 @@
         // If rescaling is required save the new maximum
         $maxgrade = optional_param('maxgrade', -1, PARAM_INTEGER);
         if ($maxgrade >= 0) {
+            notify(get_string('savingnewmaximumgrade', 'quiz'), 'notifysuccess');
+            flush();
             if (!quiz_set_grade($maxgrade, $quiz)) {
                 error('Could not set a new maximum grade for the quiz');
             }
         }
-
         quiz_update_sumgrades($quiz);
+
+        notify(get_string('updatingatttemptgrades', 'quiz'), 'notifysuccess');
+        flush();
         quiz_update_all_attempt_sumgrades($quiz);
+
+        notify(get_string('updatingfinalgrades', 'quiz'), 'notifysuccess');
+        flush();
         quiz_update_all_final_grades($quiz);
+
+        notify(get_string('updatingthegradebook', 'quiz'), 'notifysuccess');
+        flush();
         quiz_update_grades($quiz, 0, true, true);
-        redirect($thispageurl->out(false));
+
+        redirect($thispageurl->out(false), get_string('changessaved'));
     }
 
     question_showbank_actions($thispageurl, $cm);
