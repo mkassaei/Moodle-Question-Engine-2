@@ -770,7 +770,11 @@ ORDER BY
         return "SELECT SUM(qa.maxmark * qas.fraction)
             FROM {$CFG->prefix}question_attempts qa
             JOIN (
-                SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
+                SELECT summarks_qa.id AS questionattemptid, MAX(summarks_qas.id) AS latestid
+                FROM {$CFG->prefix}question_attempt_steps summarks_qas
+                JOIN {$CFG->prefix}question_attempts summarks_qa ON summarks_qa.id = summarks_qas.questionattemptid
+                WHERE summarks_qa.questionusageid = $qubaid
+                GROUP BY summarks_qa.id
             ) lateststepid ON lateststepid.questionattemptid = qa.id
             JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
             WHERE qa.questionusageid = $qubaid
