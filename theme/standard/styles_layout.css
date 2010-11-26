@@ -4151,6 +4151,10 @@ table.quizreviewsummary td.cell {
   text-align: center;
   vertical-align: middle;
 }
+#quiznavigation .qnbutton span {
+    cursor: pointer;
+    cursor: hand;
+}
 #quiznavigation .qnbutton .trafficlight,
 #quiznavigation .qnbutton .thispageholder {
     display: block;
