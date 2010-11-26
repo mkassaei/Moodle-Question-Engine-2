@@ -137,4 +137,39 @@ class qtype_oumultiresponse_test_helper {
 
         return $qdata;
     }
+
+    /**
+     * @return qtype_oumultiresponse_question
+     */
+    public static function make_an_oumultiresponse_two_of_five() {
+        question_bank::load_question_definition_classes('oumultiresponse');
+        $mc = new qtype_oumultiresponse_question();
+
+        test_question_maker::initialise_a_question($mc);
+
+        $mc->name = 'OU multiple response three of five';
+        $mc->questiontext = 'The answer is A, B and C';
+        $mc->generalfeedback = '';
+        $mc->qtype = question_bank::get_qtype('oumultiresponse');
+
+        $mc->shuffleanswers = false;
+        $mc->answernumbering = 'none';
+
+        test_question_maker::set_standard_combined_feedback_fields($mc);
+
+        $mc->answers = array(
+            13 => new question_answer('A', 1, ''),
+            14 => new question_answer('B', 1, ''),
+            15 => new question_answer('C', 0, ''),
+            16 => new question_answer('D', 0, ''),
+            17 => new question_answer('E', 0, ''),
+        );
+
+        $mc->hints = array(
+            new qtype_oumultiresponse_hint('Hint 1.', true, false, false),
+            new qtype_oumultiresponse_hint('Hint 2.', true, true, true),
+        );
+
+        return $mc;
+    }
 }

@@ -340,4 +340,92 @@ class qtype_oumultiresponse_walkthrough_test extends qbehaviour_walkthrough_test
                 $this->get_no_hint_visible_expectation(),
                 new PatternExpectation('/' . preg_quote(get_string('selectmulti', 'qtype_multichoice'), '/') . '/'));
     }
+
+    public function test_interactive_bug_11263() {
+
+        // Create a multichoice single question.
+        $mc = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_five();
+        $mc->penalty = 1;
+        $this->start_attempt_at_question($mc, 'interactive', 3);
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_tries_remaining_expectation(3));
+
+        // Submit a wrong answer.
+        $this->process_submission(array(
+            'choice0' => '0',
+            'choice1' => '0',
+            'choice2' => '0',
+            'choice3' => '1',
+            'choice4' => '1',
+            '-submit' => '1'
+        ));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+
+        // Try again.
+        $this->process_submission(array(
+            'choice0' => '0',
+            'choice1' => '0',
+            'choice2' => '0',
+            'choice3' => '1',
+            'choice4' => '1',
+            '-tryagain' => '1'
+        ));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_tries_remaining_expectation(2));
+
+        // Submit a wrong answer again.
+        $this->process_submission(array(
+            'choice0' => '0',
+            'choice1' => '0',
+            'choice2' => '0',
+            'choice3' => '1',
+            'choice4' => '1',
+            '-submit' => '1'
+        ));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+
+        // Try again - clears wrong.
+        $this->process_submission(array(
+            'choice0' => '0',
+            'choice1' => '0',
+            'choice2' => '0',
+            'choice3' => '0',
+            'choice4' => '0',
+            '-tryagain' => '1'
+        ));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_tries_remaining_expectation(1));
+
+        // Submit one right choice.
+        $this->process_submission(array(
+            'choice0' => '1',
+            'choice1' => '0',
+            'choice2' => '0',
+            'choice3' => '0',
+            'choice4' => '0',
+            '-submit' => '1'
+        ));
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedpartial);
+        $this->check_current_mark(0);
+    }
 }
