@@ -181,6 +181,7 @@ echo '</div></div>';
 // Finish the form
 echo '</div>';
 echo "</form>\n";
+print_js_call('quiz_fix_ie_flag_markers');
 
 echo '<div class="clearer"></div>';
 use_html_editor();

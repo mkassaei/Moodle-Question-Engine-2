@@ -264,6 +264,7 @@ if ($options->flags == question_display_options::EDITABLE) {
             "</div>\n" .
             "\n</div></form>\n";
     print_js_call('question_flag_changer.init_flag_save_form', array('savingflagssubmit'));
+    print_js_call('quiz_fix_ie_flag_markers');
 }
 
 // Print a link to the next page.
