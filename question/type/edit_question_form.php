@@ -332,7 +332,6 @@ class question_edit_form extends moodleform {
         }
         $mform->addElement('select', 'penalty', get_string('penaltyforeachincorrecttry', 'question'),
                 $penaltyoptions);
-        $mform->setType('penalty', PARAM_NUMBER);
         $mform->addRule('penalty', null, 'required', null, 'client');
         $mform->setHelpButton('penalty', array('penalty', get_string('penaltyforeachincorrecttry', 'question'), 'question'));
         $mform->setDefault('penalty', 0.3333333);
