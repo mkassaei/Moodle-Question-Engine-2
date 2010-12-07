@@ -120,6 +120,9 @@ if (!($quiz->attemptonlast && $lastattempt)) {
     // Add them all to the $quba.
     $idstonumbers = array();
     foreach ($quizobj->get_questions() as $i => $questiondata) {
+        if (!$quiz->shuffleanswers) {
+            $questiondata->options->shuffleanswers = false;
+        }
         $question = question_bank::make_question($questiondata);
         $idstonumbers[$i] = $quba->add_question($question, $questiondata->maxmark);
     }
