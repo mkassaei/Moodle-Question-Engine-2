@@ -211,7 +211,7 @@ function quiz_get_best_grade($quiz, $userid) {
  * @return boolean whether this is a graded quiz.
  */
 function quiz_has_grades($quiz) {
-    return $quiz->grade != 0 && $quiz->sumgrades != 0;
+    return $quiz->grade >= 0.000005 && $quiz->sumgrades >= 0.000005;
 }
 
 function quiz_user_outline($course, $user, $mod, $quiz) {

@@ -352,7 +352,7 @@ function quiz_get_all_question_grades($quiz) {
 function quiz_rescale_grade($rawgrade, $quiz, $format = true) {
     if (is_null($rawgrade)) {
         $grade = null;
-    } else if ($quiz->sumgrades) {
+    } else if ($quiz->sumgrades >= 0.000005) {
         $grade = $rawgrade * $quiz->grade / $quiz->sumgrades;
     } else {
         $grade = 0;
@@ -418,6 +418,9 @@ function quiz_update_sumgrades($quiz) {
             WHERE id = $quiz->id";
     execute_sql($sql, false);
     $quiz->sumgrades = get_field('quiz', 'sumgrades', 'id', $quiz->id);
+    if ($quiz->sumgrades < 0.000005) {
+        quiz_set_grade(0, $quiz);
+    }
 }
 
 function quiz_update_all_attempt_sumgrades($quiz) {
@@ -642,8 +645,13 @@ function quiz_update_all_final_grades($quiz) {
             break;
     }
 
+    if ($quiz->sumgrades >= 0.000005) {
+        $finalgrade = $select . ' * ' . ($quiz->grade / $quiz->sumgrades);
+    } else {
+        $finalgrade = '0';
+    }
     $finalgradesubquery = "
-            SELECT quiza.userid, $select * $quiz->grade / $quiz->sumgrades AS newgrade
+            SELECT quiza.userid, $finalgrade AS newgrade
             FROM {$CFG->prefix}quiz_attempts quiza
             $join
             WHERE
