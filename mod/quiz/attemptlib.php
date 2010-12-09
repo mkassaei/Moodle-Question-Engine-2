@@ -1061,8 +1061,9 @@ abstract class quiz_nav_panel_base {
         $html = '<div class="qn_buttons">' . "\n";
         foreach ($this->attemptobj->get_question_numbers() as $slot) {
             $qa = $this->attemptobj->get_question_attempt($slot);
+            $showcorrectness = $this->options->correctness && $qa->has_marks();
             $html .= $this->get_question_button($qa, $qa->get_question()->_number,
-                    $this->options->correctness) . "\n" .
+                    $showcorrectness) . "\n" .
                     $this->get_button_update_script($qa) . "\n";
         }
         $html .= "</div>\n";

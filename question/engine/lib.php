@@ -1667,6 +1667,12 @@ class question_attempt {
         return $this->get_last_step()->get_fraction();
     }
 
+    /** @return boolean whether this question attempt has a non-zero maximum mark. */
+    public function has_marks() {
+        // Since grades are stored in the database as NUMBER(12,7).
+        return $this->maxmark >= 0.00000005;
+    }
+
     /**
      * @return number the current mark for this question.
      * {@link get_fraction()} * {@link get_max_mark()}.

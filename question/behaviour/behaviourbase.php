@@ -138,6 +138,10 @@ abstract class question_behaviour {
      * the properties of this object - objects are passed by referece.
      */
     public function adjust_display_options(question_display_options $options) {
+        if (!$this->qa->has_marks()) {
+            $options->correctness = false;
+            $options->numpartscorrect = false;
+        }
         if ($this->qa->get_state()->is_finished()) {
             $options->readonly = true;
             $options->numpartscorrect = $options->numpartscorrect &&

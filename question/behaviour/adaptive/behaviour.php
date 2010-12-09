@@ -52,13 +52,10 @@ class qbehaviour_adaptive extends question_behaviour_with_save {
     }
 
     public function adjust_display_options(question_display_options $options) {
-        if ($this->qa->get_state()->is_finished()) {
-            $options->readonly = true;
-        } else {
-            $options->hide_all_feedback();
-            if ($this->qa->get_last_behaviour_var('_try')) {
-                $options->feedback = true;
-            }
+        parent::adjust_display_options($options);
+        if (!$this->qa->get_state()->is_finished() &&
+                $this->qa->get_last_behaviour_var('_try')) {
+            $options->feedback = true;
         }
     }
 
