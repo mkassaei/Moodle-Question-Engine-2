@@ -293,10 +293,8 @@ SELECT
     qas.userid
 
 FROM {$qubaids->from_question_attempts('qa')}
-JOIN (
-    SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
-) lateststepid ON lateststepid.questionattemptid = qa.id
-JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
+JOIN {$CFG->prefix}question_attempt_steps qas ON
+        qas.id = {$this->latest_step_for_qa_subquery()}
 
 WHERE
     {$qubaids->where()} AND
@@ -338,10 +336,8 @@ SELECT
     COUNT(1) AS numattempts
 
 FROM {$qubaids->from_question_attempts('qa')}
-JOIN (
-    SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
-) lateststepid ON lateststepid.questionattemptid = qa.id
-JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
+JOIN {$CFG->prefix}question_attempt_steps qas ON
+        qas.id = {$this->latest_step_for_qa_subquery()}
 JOIN {$CFG->prefix}question q ON q.id = qa.questionid
 
 WHERE
@@ -445,10 +441,8 @@ SELECT
     1
 
 FROM {$qubaids->from_question_attempts('qa')}
-JOIN (
-    SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
-) lateststepid ON lateststepid.questionattemptid = qa.id
-JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
+JOIN {$CFG->prefix}question_attempt_steps qas ON
+        qas.id = {$this->latest_step_for_qa_subquery()}
 JOIN {$CFG->prefix}question q ON q.id = qa.questionid
 
 WHERE
@@ -509,10 +503,8 @@ SELECT
     COUNT(1) AS numaveraged
 
 FROM {$qubaids->from_question_attempts('qa')}
-JOIN (
-    SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
-) lateststepid ON lateststepid.questionattemptid = qa.id
-JOIN {$CFG->prefix}question_attempt_steps qas ON qas.id = lateststepid.latestid
+JOIN {$CFG->prefix}question_attempt_steps qas ON
+        qas.id = {$this->latest_step_for_qa_subquery()}
 
 WHERE
     {$qubaids->where()}
@@ -805,11 +797,18 @@ ORDER BY
                     {$alias}qas.userid
 
                 FROM {$CFG->prefix}question_attempts {$alias}qa
-                JOIN (
-                    SELECT questionattemptid, MAX(id) AS latestid FROM {$CFG->prefix}question_attempt_steps GROUP BY questionattemptid
-                ) {$alias}lateststepid ON {$alias}lateststepid.questionattemptid = {$alias}qa.id
-                JOIN {$CFG->prefix}question_attempt_steps {$alias}qas ON {$alias}qas.id = {$alias}lateststepid.latestid
+                JOIN {$CFG->prefix}question_attempt_steps {$alias}qas ON
+                        {$alias}qas.id = {$this->latest_step_for_qa_subquery($alias . 'qa.id')}
             ) $alias";
+    }
+
+    protected function latest_step_for_qa_subquery($questionattemptid = 'qa.id') {
+        global $CFG;
+        return "(
+                SELECT MAX(id)
+                FROM {$CFG->prefix}question_attempt_steps
+                WHERE questionattemptid = $questionattemptid
+            )";
     }
 
     /**
