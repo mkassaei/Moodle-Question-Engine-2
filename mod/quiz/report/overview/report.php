@@ -89,6 +89,13 @@ class quiz_overview_report extends quiz_attempt_report {
         }
 
         $this->validate_common_options($attemptsmode, $pagesize, $course, $currentgroup);
+        $displayoptions = array();
+        $displayoptions['attemptsmode'] = $attemptsmode;
+        $displayoptions['qmfilter'] = $qmfilter;
+        $displayoptions['regradefilter'] = $regradefilter;
+
+        $mform->set_data($displayoptions + array('detailedmarks' => $detailedmarks, 'pagesize' => $pagesize));
+
         if (!$this->should_show_grades($quiz)) {
             $detailedmarks = 0;
         }
@@ -97,11 +104,6 @@ class quiz_overview_report extends quiz_attempt_report {
         // if the user has permissions and if the report mode is showing attempts.
         $candelete = has_capability('mod/quiz:deleteattempts', $this->context)
                 && ($attemptsmode != QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH_NO);
-
-        $displayoptions = array();
-        $displayoptions['attemptsmode'] = $attemptsmode;
-        $displayoptions['qmfilter'] = $qmfilter;
-        $displayoptions['regradefilter'] = $regradefilter;
 
         if ($attemptsmode == QUIZ_REPORT_ATTEMPTS_ALL) {
             $allowed = array();
@@ -199,7 +201,6 @@ class quiz_overview_report extends quiz_attempt_report {
 
         if (!$table->is_downloading()) {
             // Print display options
-            $mform->set_data($displayoptions + compact('detailedmarks', 'pagesize'));
             $mform->display();
         }
 
