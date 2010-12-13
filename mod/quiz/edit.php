@@ -284,7 +284,7 @@
             // Parse input for question -> grades
             if (preg_match('!^q([0-9]+)$!', $key, $matches)) {
                 $key = $matches[1];
-                $quiz->grades[$key] = clean_param($value, PARAM_INTEGER);
+                $quiz->grades[$key] = clean_param($value, PARAM_NUMBER);
                 notify(get_string('savingnewgradeforquestion', 'quiz', $key), 'notifysuccess');
                 flush();
                 quiz_update_question_instance($quiz->grades[$key], $key, $quiz);
