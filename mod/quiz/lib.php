@@ -360,7 +360,7 @@ function quiz_format_question_grade($quiz, $grade) {
  * @param object $quiz null means all quizs
  * @param int $userid specific user only, 0 mean all
  */
-function quiz_update_grades($quiz=null, $userid=0, $nullifnone=true, $progressoutput=false) {
+function quiz_update_grades($quiz=null, $userid=0, $nullifnone=true) {
     global $CFG;
     if (!function_exists('grade_update')) { //workaround for buggy PHP versions
         require_once($CFG->libdir.'/gradelib.php');
@@ -368,7 +368,7 @@ function quiz_update_grades($quiz=null, $userid=0, $nullifnone=true, $progressou
 
     if ($quiz != null) {
         if ($grades = quiz_get_user_grades($quiz, $userid)) {
-            quiz_grade_item_update($quiz, $grades, $progressoutput);
+            quiz_grade_item_update($quiz, $grades);
 
         } else if ($userid and $nullifnone) {
             $grade = new object();
@@ -387,7 +387,7 @@ function quiz_update_grades($quiz=null, $userid=0, $nullifnone=true, $progressou
         if ($rs = get_recordset_sql($sql)) {
             while ($quiz = rs_fetch_next_record($rs)) {
                 if ($quiz->grade != 0) {
-                    quiz_update_grades($quiz, 0, false, $progressoutput);
+                    quiz_update_grades($quiz, 0, false);
                 } else {
                     quiz_grade_item_update($quiz);
                 }
@@ -404,7 +404,7 @@ function quiz_update_grades($quiz=null, $userid=0, $nullifnone=true, $progressou
  * @param mixed optional array/object of grade(s); 'reset' means reset grades in gradebook
  * @return int 0 if ok, error code otherwise
  */
-function quiz_grade_item_update($quiz, $grades=NULL, $progressoutput=false) {
+function quiz_grade_item_update($quiz, $grades=NULL) {
     global $CFG;
     require_once($CFG->dirroot . '/mod/quiz/locallib.php');
     if (!function_exists('grade_update')) { //workaround for buggy PHP versions
@@ -479,27 +479,7 @@ function quiz_grade_item_update($quiz, $grades=NULL, $progressoutput=false) {
         }
     }
 
-    if (!defined('QUIZ_GRADE_UPDATE_CHUNK_SIZE')) {
-        define('QUIZ_GRADE_UPDATE_CHUNK_SIZE', 20);
-    }
-
-    $total = count($grades);
-    if (!$progressoutput || $total < QUIZ_GRADE_UPDATE_CHUNK_SIZE) {
-        return grade_update('mod/quiz', $quiz->course, 'mod', 'quiz', $quiz->id, 0, $grades, $params);
-    }
-
-    require_once($CFG->libdir . '/adminlib.php');
-    $done = 0;
-    $ok = true;
-    notify('Updating quiz grades. This may take some time.');
-    for ($done = 0; $done < $total; $done += QUIZ_GRADE_UPDATE_CHUNK_SIZE) {
-        print_progress($done, $total);
-        flush();
-        $nextchunk = array_slice($grades, $done, QUIZ_GRADE_UPDATE_CHUNK_SIZE, true);
-        $ok = $ok && grade_update('mod/quiz', $quiz->course, 'mod', 'quiz', $quiz->id, 0, $nextchunk, $params);
-    }
-    print_progress($total, $total);
-    return $ok;
+    return grade_update('mod/quiz', $quiz->course, 'mod', 'quiz', $quiz->id, 0, $grades, $params);
 }
 
 /**

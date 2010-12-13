@@ -342,7 +342,7 @@
 
         notify(get_string('updatingthegradebook', 'quiz'), 'notifysuccess');
         flush();
-        quiz_update_grades($quiz, 0, true, true);
+        quiz_update_grades($quiz, 0, true);
 
         redirect($thispageurl->out(false), get_string('changessaved'));
     }
