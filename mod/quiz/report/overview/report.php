@@ -106,6 +106,9 @@ class quiz_overview_report extends quiz_attempt_report {
                 && ($attemptsmode != QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH_NO);
 
         if ($attemptsmode == QUIZ_REPORT_ATTEMPTS_ALL) {
+            // This option is only available to users who can access all groups in
+            // groups mode, so setting allowed to empty (which means all quiz attempts
+            // are accessible, is not a security porblem.
             $allowed = array();
         }
 
@@ -138,7 +141,7 @@ class quiz_overview_report extends quiz_attempt_report {
             if (optional_param('delete', 0, PARAM_BOOL) && confirm_sesskey()) {
                 if ($attemptids = optional_param('attemptid', array(), PARAM_INT)) {
                     require_capability('mod/quiz:deleteattempts', $this->context);
-                    $this->delete_selected_attempts($quiz, $cm, $attemptids, $groupstudents);
+                    $this->delete_selected_attempts($quiz, $cm, $attemptids, $allowed);
                     redirect($reporturl->out(false, $displayoptions));
                 }
 
