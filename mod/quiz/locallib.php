@@ -260,7 +260,7 @@ function quiz_questions_on_page($layout, $page) {
  *                        So 5,2,0,3,0 means questions 5 and 2 on page 1 and question 3 on page 2
  */
 function quiz_questions_in_quiz($layout) {
-    return str_replace(',0', '', $layout);
+    return str_replace(',0', '', quiz_clean_layout($layout));
 }
 
 /**
@@ -1029,7 +1029,8 @@ function quiz_get_combined_reviewoptions($quiz, $attempts) {
  * @return $string the cleaned-up layout
  */
 function quiz_clean_layout($layout, $removeemptypages = false) {
-    // Remove duplicate "," (or triple, or...)
+    // Remove repeated ','s. This can happen when a restore fails to find the right
+    // id to relink to.
     $layout = preg_replace('/,{2,}/', ',', trim($layout, ','));
 
     // Remove duplicate question ids

@@ -182,13 +182,7 @@ function quiz_print_question_list($quiz, $pageurl, $allowdelete=true, $showbreak
     $strtype = get_string("type", "quiz");
     $strpreview = get_string("preview", "quiz");
 
-    if (!$quiz->questions) {
-        echo "<p class=\"quizquestionlistcontrols\">";
-        print_string("noquestions", "quiz");
-        echo "</p>";
-        return 0;
-    }
-
+    $quiz->questions = quiz_clean_layout($quiz->questions, true);
     if (!$questions = get_records_sql("SELECT q.*,c.contextid
                               FROM {$CFG->prefix}question q,
                                    {$CFG->prefix}question_categories c
