@@ -478,6 +478,12 @@ class question_engine_attempt_upgrader {
             $qstates[$i]->answer = $realanswer;
         }
 
+        if (empty($newquestionid)) {
+            // This attempt only had broken states. Set a fake $newquestionid to
+            // prevent a null DB error later.
+            $newquestionid = 0;
+        }
+
         $newquestion = $this->load_question($newquestionid);
         $newquestion->maxmark = $maxmark;
         return array($newquestion, $qstates);
