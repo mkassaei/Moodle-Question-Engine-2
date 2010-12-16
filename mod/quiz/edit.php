@@ -322,7 +322,7 @@
         }
 
         // If rescaling is required save the new maximum
-        $maxgrade = optional_param('maxgrade', -1, PARAM_INTEGER);
+        $maxgrade = optional_param('maxgrade', -1, PARAM_NUMBER);
         if ($maxgrade >= 0) {
             notify(get_string('savingnewmaximumgrade', 'quiz'), 'notifysuccess');
             flush();
