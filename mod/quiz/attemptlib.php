@@ -743,6 +743,13 @@ class quiz_attempt {
 
     // URLs related to this attempt ========================================================
     /**
+     * @return string quiz view url.
+     */
+    public function view_url() {
+        return $this->quizobj->view_url();
+    }
+
+    /**
      * @return string the URL of this quiz's edit page. Needs to be POSTed to with a cmid parameter.
      */
     public function start_attempt_url() {
