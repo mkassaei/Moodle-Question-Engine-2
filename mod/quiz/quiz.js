@@ -185,7 +185,7 @@ function quiz_fix_ie_flag_markers() {
     }
 
     var flaggedlinks = YAHOO.util.Dom.getElementsByClassName('flagged', 'a', 'quiznavigation');
-    if (!flaggedlinks) {
+    if (flaggedlinks == false) {
         return;
     }
 
