@@ -64,7 +64,7 @@ if ($attemptobj->is_finished()) {
 $accessmanager = $attemptobj->get_access_manager(time());
 $messages = $accessmanager->prevent_access();
 if (!$attemptobj->is_preview_user() && $messages) {
-    print_error('attempterror', 'quiz', $quizobj->view_url(),
+    print_error('attempterror', 'quiz', $attemptobj->view_url(),
             $accessmanager->print_messages($messages, true));
 }
 $accessmanager->do_password_check($attemptobj->is_preview_user());
