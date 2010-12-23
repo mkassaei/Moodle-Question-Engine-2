@@ -41,7 +41,7 @@ class qtype_truefalse_question extends question_graded_automatically {
     }
 
     public function get_correct_response() {
-        return array('answer' => $this->rightanswer);
+        return array('answer' => (int) $this->rightanswer);
     }
 
     public function summarise_response(array $response) {

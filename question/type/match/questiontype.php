@@ -224,7 +224,6 @@ class qtype_match extends question_type {
             fwrite ($bf,full_tag("CORRECTFEEDBACK",$level+1,false,$matchoptions->correctfeedback));
             fwrite ($bf,full_tag("PARTIALLYCORRECTFEEDBACK",$level+1,false,$matchoptions->partiallycorrectfeedback));
             fwrite ($bf,full_tag("INCORRECTFEEDBACK",$level+1,false,$matchoptions->incorrectfeedback));
-            fwrite ($bf,full_tag("ANSWERNUMBERING",$level+1,false,$matchoptions->answernumbering));
             fwrite ($bf,full_tag("SHOWNUMCORRECT",$level+1,false,$matchoptions->shownumcorrect));
             fwrite ($bf,end_tag("MATCHOPTIONS",$level,true));
         }
@@ -320,6 +319,9 @@ class qtype_match extends question_type {
 
         if (isset($info['#']['MATCHOPTIONS']['0'])) {
             $mat_opt = $info['#']['MATCHOPTIONS']['0'];
+        } else if (isset($info['#']['MATCH_DEFINITIONS']['0'])) {
+            // Backwards compatibility.
+            $mat_opt = $info['#']['MATCH_DEFINITIONS']['0']['#']['MATCH_DEFINITION']['0'];
         } else {
             $mat_opt = array('#' => array());
         }
@@ -341,7 +343,14 @@ class qtype_match extends question_type {
         } else {
             $match->incorrectfeedback = '';
         }
-        $match->shownumcorrect = isset($mat_opt['#']['SHOWNUMCORRECT']['0']['#'])?backup_todb($mat_opt['#']['SHOWNUMCORRECT']['0']['#']):0;
+        if (array_key_exists('SHOWNUMCORRECT', $mat_opt['#'])) {
+            $match->shownumcorrect = backup_todb($mat_opt['#']['SHOWNUMCORRECT']['0']['#']);
+        } else if (array_key_exists('CORRECTRESPONSESFEEDBACK', $mat_opt['#'])) {
+            // Backwards compatibility.
+            $match->shownumcorrect = backup_todb($mat_opt['#']['CORRECTRESPONSESFEEDBACK']['0']['#']);
+        } else {
+            $match->shownumcorrect = 0;
+        }
 
         //The structure is equal to the db, so insert the question_match_sub
         $newid = insert_record('question_match', $match);

@@ -45,6 +45,7 @@ $finishattempt = optional_param('finishattempt', 0, PARAM_BOOL);
 $timeup = optional_param('timeup', 0, PARAM_BOOL); // True if form was submitted by timer.
 $scrollpos = optional_param('scrollpos', '', PARAM_RAW);
 
+begin_sql();
 $attemptobj = quiz_attempt::create($attemptid);
 
 /// Set $nexturl now.
@@ -102,6 +103,7 @@ if (!$finishattempt) {
         print_error('submissionoutofsequencefriendlymessage', 'question',
                 $attemptobj->attempt_url(0, $thispage));
     }
+    commit_sql();
     redirect($nexturl);
 }
 
@@ -120,4 +122,5 @@ $accessmanager = $attemptobj->get_access_manager($timenow);
 $accessmanager->clear_password_access();
 
 /// Send the user to the review page.
+commit_sql();
 redirect($attemptobj->review_url());

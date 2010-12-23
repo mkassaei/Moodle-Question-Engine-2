@@ -68,17 +68,28 @@ class qbehaviour_interactive extends question_behaviour_with_save {
     }
 
     public function adjust_display_options(question_display_options $options) {
-        $specificfeedback = $options->feedback;
+        // We only need different behaviour in try again states.
+        if (!$this->is_try_again_state()) {
+            parent::adjust_display_options($options);
+            return;
+        }
+
+        // Let the hint adjust the options.
+        $hint = $this->get_applicable_hint();
+        if (!is_null($hint)) {
+            $hint->adjust_display_options($options);
+        }
+
+        // Now call the base class method, but protect some fields from being overwritten.
+        $save = clone($options);
         parent::adjust_display_options($options);
-        if ($this->is_try_again_state()) {
-            if (!$options->readonly) {
-                $options->readonly = self::READONLY_EXCEPT_TRY_AGAIN;
-            }
-            $hint = $this->get_applicable_hint();
-            if (!is_null($hint)) {
-                $hint->adjust_display_options($options);
-            }
-            $options->feedback = $specificfeedback;
+        $options->feedback = $save->feedback;
+        $options->numpartscorrect = $save->numpartscorrect;
+
+        // In a try-again state, everything except the try again button
+        // Should be read-only. This is a mild hack to achieve this.
+        if (!$options->readonly) {
+            $options->readonly = self::READONLY_EXCEPT_TRY_AGAIN;
         }
     }
 

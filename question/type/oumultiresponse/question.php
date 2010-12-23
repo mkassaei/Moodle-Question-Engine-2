@@ -152,7 +152,7 @@ class qtype_oumultiresponse_question extends qtype_multichoice_multi_question
             $num2s = strpos($string . '0', '0');
             if ($num2s > 0) {
                 $num2s += $triesnotused;
-                $scores[] = 1 / $numright * (1 - $penalty * ($questionnumtries - $num2s));
+                $scores[] = max(0, 1 / $numright * (1 - $penalty * ($questionnumtries - $num2s)));
             } else {
                 $scores[] = 0;
             }

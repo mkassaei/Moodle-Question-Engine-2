@@ -106,7 +106,12 @@ class quiz_statistics_report extends quiz_default_report {
 
         // Set up the main table.
         $this->table = new quiz_report_statistics_table();
-        $filename = $course->shortname . '-' . format_string($quiz->name, true);
+        if ($everything) {
+            $report = get_string('completestatsfilename', 'quiz_statistics');
+        } else {
+            $report = get_string('questionstatsfilename', 'quiz_statistics');
+        }
+        $filename = quiz_report_download_filename($report, $course->shortname, $quiz->name);
         $this->table->is_downloading($download, $filename, get_string('quizstructureanalysis', 'quiz_statistics'));
 
         // Print the page header stuff (if not downloading.
@@ -310,7 +315,9 @@ class quiz_statistics_report extends quiz_default_report {
         }
 
         $qtable = new quiz_report_statistics_question_table($question->id);
-        if (!$qtable->is_downloading()) {
+        $exportclass = $this->table->export_class_instance();
+        $qtable->export_class_instance($exportclass);
+        if (!$this->table->is_downloading()) {
             // Output an appropriate title.
             print_heading(get_string('analysisofresponses', 'quiz_statistics'));
 
@@ -325,8 +332,6 @@ class quiz_statistics_report extends quiz_default_report {
             }
 
             // Set up the table.
-            $exportclass = $this->table->export_class_instance();
-            $qtable->export_class_instance($exportclass);
             $exportclass->start_table($questiontabletitle);
         }
 
@@ -408,8 +413,8 @@ class quiz_statistics_report extends quiz_default_report {
                     'allattemptsavg' => 'summarks_as_percentage',
                     'median' => 'summarks_as_percentage',
                     'standarddeviation' => 'summarks_as_percentage',
-                    'skewness' => 'number',
-                    'kurtosis' => 'number',
+                    'skewness' => 'number_format',
+                    'kurtosis' => 'number_format',
                     'cic' => 'number_format_percent',
                     'errorratio' => 'number_format_percent',
                     'standarderror' => 'summarks_as_percentage');
@@ -446,7 +451,8 @@ class quiz_statistics_report extends quiz_default_report {
                     $formattedvalue = quiz_format_grade($quiz, $value) . '%';
                     break;
                 case 'number_format':
-                    $formattedvalue = quiz_format_grade($quiz, $value);
+                    // + 2 decimal places, since not a percentage, and we want the same number of sig figs.
+                    $formattedvalue = format_float($value, $quiz->decimalpoints + 2);
                     break;
                 case 'number':
                     $formattedvalue = $value + 0;

@@ -48,11 +48,12 @@ class question_edit_truefalse_form extends question_edit_form {
                                 array('course' => $this->coursefilesid));
         $mform->setType('feedbackfalse', PARAM_RAW);
 
-        $this->add_interactive_settings();
+        $mform->addElement('header', 'multitriesheader', get_string('settingsformultipletries', 'question'));
 
-        // Fix penalty factor at 1.
-        $mform->setDefault('penalty', 1);
-        $mform->freeze('penalty');
+        $mform->addElement('hidden', 'penalty', 1);
+
+        $mform->addElement('static', 'penaltymessage', get_string('penaltyforeachincorrecttry', 'question'), 1);
+        $mform->setHelpButton('penaltymessage', array('penalty', get_string('penaltyforeachincorrecttry', 'question'), 'question'));
     }
 
     public function set_data($question) {

@@ -68,7 +68,7 @@ class qbehaviour_informationitem extends question_behaviour {
         }
     }
 
-    public function get_state_string() {
+    public function get_state_string($showcorrectness) {
         return '';
     }
 

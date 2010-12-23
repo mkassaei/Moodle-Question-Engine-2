@@ -89,6 +89,13 @@ class quiz_overview_report extends quiz_attempt_report {
         }
 
         $this->validate_common_options($attemptsmode, $pagesize, $course, $currentgroup);
+        $displayoptions = array();
+        $displayoptions['attemptsmode'] = $attemptsmode;
+        $displayoptions['qmfilter'] = $qmfilter;
+        $displayoptions['regradefilter'] = $regradefilter;
+
+        $mform->set_data($displayoptions + array('detailedmarks' => $detailedmarks, 'pagesize' => $pagesize));
+
         if (!$this->should_show_grades($quiz)) {
             $detailedmarks = 0;
         }
@@ -98,12 +105,10 @@ class quiz_overview_report extends quiz_attempt_report {
         $candelete = has_capability('mod/quiz:deleteattempts', $this->context)
                 && ($attemptsmode != QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH_NO);
 
-        $displayoptions = array();
-        $displayoptions['attemptsmode'] = $attemptsmode;
-        $displayoptions['qmfilter'] = $qmfilter;
-        $displayoptions['regradefilter'] = $regradefilter;
-
         if ($attemptsmode == QUIZ_REPORT_ATTEMPTS_ALL) {
+            // This option is only available to users who can access all groups in
+            // groups mode, so setting allowed to empty (which means all quiz attempts
+            // are accessible, is not a security porblem.
             $allowed = array();
         }
 
@@ -117,15 +122,26 @@ class quiz_overview_report extends quiz_attempt_report {
         $table = new quiz_report_overview_table($quiz , $qmsubselect, $groupstudents,
                 $students, $detailedmarks, $questions, $candelete, $reporturl,
                 $displayoptions, $this->context);
-        $table->is_downloading($download, get_string('reportoverview','quiz'),
-                    "$COURSE->shortname ".format_string($quiz->name,true));
+        $filename = quiz_report_download_filename(get_string('overviewfilename', 'quiz_overview'),
+                $course->shortname, $quiz->name);
+        $table->is_downloading($download, $filename,
+                $COURSE->shortname . ' ' . format_string($quiz->name, true));
+// ou-specific begins 11236
+        if ($table->is_downloading()) {
+            if (empty($CFG->extramemorylimit)) {
+                raise_memory_limit('128M');
+            } else {
+                raise_memory_limit($CFG->extramemorylimit);
+            }
+        }
+// ou-specific ends 11236
 
         // Process actions.
         if (empty($currentgroup) || $groupstudents) {
             if (optional_param('delete', 0, PARAM_BOOL) && confirm_sesskey()) {
                 if ($attemptids = optional_param('attemptid', array(), PARAM_INT)) {
                     require_capability('mod/quiz:deleteattempts', $this->context);
-                    $this->delete_selected_attempts($quiz, $cm, $attemptids, $groupstudents);
+                    $this->delete_selected_attempts($quiz, $cm, $attemptids, $allowed);
                     redirect($reporturl->out(false, $displayoptions));
                 }
 
@@ -188,7 +204,6 @@ class quiz_overview_report extends quiz_attempt_report {
 
         if (!$table->is_downloading()) {
             // Print display options
-            $mform->set_data($displayoptions + compact('detailedmarks', 'pagesize'));
             $mform->display();
         }
 
@@ -326,7 +341,7 @@ class quiz_overview_report extends quiz_attempt_report {
      *
      * @param object $attempt the quiz attempt to regrade.
      * @param boolean $dryrun if true, do a pretend regrade, otherwise do it for real.
-     * @param array $slots if null, regrade all questoins, otherwise, just regrade
+     * @param array $slots if null, regrade all questions, otherwise, just regrade
      *      the quetsions with those slots.
      */
     protected function regrade_attempt($attempt, $dryrun = false, $slots = null) {
@@ -338,11 +353,12 @@ class quiz_overview_report extends quiz_attempt_report {
             $slots = $quba->get_question_numbers();
         }
 
+        $finished = $attempt->timefinish > 0;
         foreach ($slots as $slot) {
             $qqr = new stdClass;
             $qqr->oldfraction = $quba->get_question_fraction($slot);
 
-            $quba->regrade_question($slot);
+            $quba->regrade_question($slot, $finished);
 
             $qqr->newfraction = $quba->get_question_fraction($slot);
 

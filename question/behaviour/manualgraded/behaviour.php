@@ -44,13 +44,14 @@ class qbehaviour_manualgraded extends question_behaviour_with_save {
     }
 
     public function adjust_display_options(question_display_options $options) {
-        if ($this->qa->get_state()->is_finished()) {
-            $options->readonly = true;
-            $options->feedback = question_display_options::HIDDEN;
-            $options->rightanswer = question_display_options::HIDDEN;
+        parent::adjust_display_options($options);
 
-        } else {
+        if ($this->qa->get_state()->is_finished()) {
+            // Hide all feedback except genfeedback and manualcomment.
+            $save = clone($options);
             $options->hide_all_feedback();
+            $options->generalfeedback = $save->generalfeedback;
+            $options->manualcomment = $save->manualcomment;
         }
     }
 

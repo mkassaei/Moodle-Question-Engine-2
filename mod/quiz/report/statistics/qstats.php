@@ -176,7 +176,7 @@ class quiz_statistics_question_stats {
         foreach ($this->subquestions as $qid => $subquestion) {
             $subquestion->_stats = $subquestionstats[$qid];
             $subquestion->maxmark = $subquestion->_stats->maxmark;
-            $subquestion->randomguessscore = $this->get_random_guess_score($subquestion);
+            $subquestion->_stats->randomguessscore = $this->get_random_guess_score($subquestion);
 
             $this->initial_question_walker($subquestion->_stats);
 

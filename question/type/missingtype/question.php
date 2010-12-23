@@ -61,6 +61,10 @@ class qtype_missingtype_question extends question_definition implements question
         return true;
     }
 
+    public function get_right_answer_summary() {
+        return '';
+    }
+
     public function summarise_response(array $response) {
         return null;
     }
@@ -70,7 +74,6 @@ class qtype_missingtype_question extends question_definition implements question
     }
 
     public function init_first_step(question_attempt_step $step) {
-        throw new Exception('This question is of a type that is not installed on your system. Cannot start an attempt at it.');
     }
 
     public function grade_response(array $response) {

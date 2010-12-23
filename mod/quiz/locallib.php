@@ -260,7 +260,7 @@ function quiz_questions_on_page($layout, $page) {
  *                        So 5,2,0,3,0 means questions 5 and 2 on page 1 and question 3 on page 2
  */
 function quiz_questions_in_quiz($layout) {
-    return str_replace(',0', '', $layout);
+    return str_replace(',0', '', quiz_clean_layout($layout));
 }
 
 /**
@@ -352,7 +352,7 @@ function quiz_get_all_question_grades($quiz) {
 function quiz_rescale_grade($rawgrade, $quiz, $format = true) {
     if (is_null($rawgrade)) {
         $grade = null;
-    } else if ($quiz->sumgrades) {
+    } else if ($quiz->sumgrades >= 0.000005) {
         $grade = $rawgrade * $quiz->grade / $quiz->sumgrades;
     } else {
         $grade = 0;
@@ -418,6 +418,9 @@ function quiz_update_sumgrades($quiz) {
             WHERE id = $quiz->id";
     execute_sql($sql, false);
     $quiz->sumgrades = get_field('quiz', 'sumgrades', 'id', $quiz->id);
+    if ($quiz->sumgrades < 0.000005) {
+        quiz_set_grade(0, $quiz);
+    }
 }
 
 function quiz_update_all_attempt_sumgrades($quiz) {
@@ -438,13 +441,15 @@ function quiz_update_all_attempt_sumgrades($quiz) {
 /**
  * The quiz grade is the score that student's results are marked out of. When it
  * changes, the corresponding data in quiz_grades and quiz_feedback needs to be
- * rescaled.
+ * rescaled. After calling this function, you probably need to call
+ * quiz_update_all_attempt_sumgrades, quiz_update_all_final_grades and
+ * quiz_update_grades.
  *
  * @param float $newgrade the new maximum grade for the quiz.
  * @param object $quiz the quiz we are updating. Passed by reference so its grade field can be updated too.
  * @return boolean indicating success or failure.
  */
-function quiz_set_grade($newgrade, &$quiz) {
+function quiz_set_grade($newgrade, $quiz) {
     // This is potentially expensive, so only do it if necessary.
     if (abs($quiz->grade - $newgrade) < 1e-7) {
         // Nothing to do.
@@ -479,10 +484,6 @@ function quiz_set_grade($newgrade, &$quiz) {
                 WHERE quizid = $quiz->id
         ", false);
     }
-
-    // update grade item and send all grades to gradebook
-    quiz_grade_item_update($quiz);
-    quiz_update_grades($quiz);
 
     if ($success) {
         return commit_sql();
@@ -615,13 +616,17 @@ function quiz_update_all_final_grades($quiz) {
 
     switch ($quiz->grademethod) {
         case QUIZ_ATTEMPTFIRST:
-            $select = 'quiza.sumgrades';
+            // Becuase of the where clause, there will only be one row, but we
+            // must still use an aggregate function.
+            $select = 'MAX(quiza.sumgrades)';
             $join = $firstlastattemptjoin;
             $where = 'quiza.attempt = first_last_attempts.firstattempt AND';
             break;
 
         case QUIZ_ATTEMPTLAST:
-            $select = 'quiza.sumgrades';
+            // Becuase of the where clause, there will only be one row, but we
+            // must still use an aggregate function.
+            $select = 'MAX(quiza.sumgrades)';
             $join = $firstlastattemptjoin;
             $where = 'quiza.attempt = first_last_attempts.lastattempt AND';
             break;
@@ -640,8 +645,13 @@ function quiz_update_all_final_grades($quiz) {
             break;
     }
 
+    if ($quiz->sumgrades >= 0.000005) {
+        $finalgrade = $select . ' * ' . ($quiz->grade / $quiz->sumgrades);
+    } else {
+        $finalgrade = '0';
+    }
     $finalgradesubquery = "
-            SELECT quiza.userid, $select * $quiz->grade / $quiz->sumgrades AS newgrade
+            SELECT quiza.userid, $finalgrade AS newgrade
             FROM {$CFG->prefix}quiz_attempts quiza
             $join
             WHERE
@@ -1019,7 +1029,8 @@ function quiz_get_combined_reviewoptions($quiz, $attempts) {
  * @return $string the cleaned-up layout
  */
 function quiz_clean_layout($layout, $removeemptypages = false) {
-    // Remove duplicate "," (or triple, or...)
+    // Remove repeated ','s. This can happen when a restore fails to find the right
+    // id to relink to.
     $layout = preg_replace('/,{2,}/', ',', trim($layout, ','));
 
     // Remove duplicate question ids
@@ -1252,7 +1263,6 @@ function quiz_check_safe_browser() {
     return strpos($_SERVER['HTTP_USER_AGENT'], "SEB") !== false;
 }
 
-
 /**
  * An extension of question_display_options that includes the extra options used
  * by the quiz.
@@ -1300,6 +1310,8 @@ class mod_quiz_display_options extends question_display_options {
         $options->generalfeedback = self::extract($quiz->reviewgeneralfeedback, $when);
         $options->rightanswer = self::extract($quiz->reviewrightanswer, $when);
         $options->overallfeedback = self::extract($quiz->reviewoverallfeedback, $when);
+
+        $options->numpartscorrect = $options->feedback;
 
         if ($quiz->questiondecimalpoints != -1) {
             $options->markdp = $quiz->questiondecimalpoints;

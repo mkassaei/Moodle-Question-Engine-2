@@ -626,4 +626,55 @@ class qtype_ddwtos_walkthrough_test extends qbehaviour_walkthrough_test_base {
                 $this->get_tries_remaining_expectation(2),
                 $this->get_no_hint_visible_expectation());
     }
+
+    public function test_display_of_right_answer_when_shuffled() {
+
+        // Create a drag-and-drop question.
+        $dd = qtype_ddwtos_test_helper::make_a_ddwtos_question();
+        $this->start_attempt_at_question($dd, 'deferredfeedback', 3);
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, false),
+                $this->get_contains_drop_box_expectation('p2', 2, false),
+                $this->get_contains_drop_box_expectation('p3', 3, false),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', '0'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', '0'),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', '0'),
+                $this->get_does_not_contain_feedback_expectation());
+
+        // Save a partial answer.
+        $this->process_submission($dd->get_correct_response());
+
+        // Verify.
+        $this->check_current_state(question_state::$complete);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, false),
+                $this->get_contains_drop_box_expectation('p2', 2, false),
+                $this->get_contains_drop_box_expectation('p3', 3, false),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p1', $dd->get_right_choice_for(1)),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p2', $dd->get_right_choice_for(2)),
+                $this->get_contains_hidden_expectation($this->quba->get_field_prefix($this->slot) . 'p3', $dd->get_right_choice_for(3)),
+                $this->get_does_not_contain_correctness_expectation(),
+                $this->get_does_not_contain_feedback_expectation());
+
+        // Finish the attempt.
+        $this->quba->finish_all_questions();
+
+        // Verify.
+        $this->displayoptions->rightanswer = question_display_options::VISIBLE;
+        $this->assertEqual('{quick} {fox} {lazy}', $dd->get_right_answer_summary());
+        $this->check_current_state(question_state::$gradedright);
+        $this->check_current_mark(3);
+        $this->check_current_output(
+                $this->get_contains_drop_box_expectation('p1', 1, true, 'correct'),
+                $this->get_contains_drop_box_expectation('p2', 2, true, 'correct'),
+                $this->get_contains_drop_box_expectation('p3', 3, true, 'correct'),
+                $this->get_contains_correct_expectation(),
+                new PatternExpectation('/' . preg_quote('The [quick] brown [fox] jumped over the [lazy] dog.') . '/'));
+
+    }
 }

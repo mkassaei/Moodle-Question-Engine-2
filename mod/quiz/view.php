@@ -142,8 +142,9 @@ if (has_capability('mod/quiz:viewreports', $context)) {
 
 // Guests can't do a quiz, so offer them a choice of logging in or going back.
 if (isguestuser()) {
+    $loginurl = $CFG->httpswwwroot . '/login/index.php';
     notice_yesno('<p>' . get_string('guestsno', 'quiz') . "</p>\n\n<p>" .
-            get_string('liketologin') . "</p>\n", get_login_url(), get_referer(false));
+            get_string('liketologin') . "</p>\n", $loginurl, get_referer(false));
     finish_page($course);
 }
 

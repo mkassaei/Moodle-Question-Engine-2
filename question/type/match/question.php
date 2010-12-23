@@ -125,7 +125,8 @@ class qtype_match_question extends question_graded_automatically_with_countback 
 
     public function clear_wrong_from_response(array $response) {
         foreach ($this->stemorder as $key => $stemid) {
-            if ($response[$this->field($key)] != $this->get_right_choice_for($stemid)) {
+            if (!array_key_exists($this->field($key), $response) ||
+                    $response[$this->field($key)] != $this->get_right_choice_for($stemid)) {
                 $response[$this->field($key)] = 0;
             }
         }

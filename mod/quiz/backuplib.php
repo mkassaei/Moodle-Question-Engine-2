@@ -245,14 +245,15 @@
         fwrite ($bf,full_tag("MODTYPE",4,false,"quiz"));
         fwrite ($bf,full_tag("NAME",4,false,$quiz->name));
         fwrite ($bf,full_tag("INTRO",4,false,$quiz->intro));
+        fwrite ($bf,full_tag("INTROFORMAT",4,false,$quiz->introformat));
         fwrite ($bf,full_tag("TIMEOPEN",4,false,$quiz->timeopen));
         fwrite ($bf,full_tag("TIMECLOSE",4,false,$quiz->timeclose));
-        fwrite ($bf,full_tag("OPTIONFLAGS",4,false,$quiz->optionflags));
-        fwrite ($bf,full_tag("PENALTYSCHEME",4,false,$quiz->penaltyscheme));
+        fwrite ($bf,full_tag("PREFERREDBEHAVIOUR",4,false,$quiz->preferredbehaviour));
         fwrite ($bf,full_tag("ATTEMPTS_NUMBER",4,false,$quiz->attempts));
         fwrite ($bf,full_tag("ATTEMPTONLAST",4,false,$quiz->attemptonlast));
         fwrite ($bf,full_tag("GRADEMETHOD",4,false,$quiz->grademethod));
         fwrite ($bf,full_tag("DECIMALPOINTS",4,false,$quiz->decimalpoints));
+        fwrite ($bf,full_tag("QUESTIONDECIMALPOINTS",4,false,$quiz->questiondecimalpoints));
         fwrite ($bf,full_tag("REVIEWATTEMPT",4,false,$quiz->reviewattempt));
         fwrite ($bf,full_tag("REVIEWCORRECTNESS",4,false,$quiz->reviewcorrectness));
         fwrite ($bf,full_tag("REVIEWMARKS",4,false,$quiz->reviewmarks));
@@ -268,12 +269,13 @@
         fwrite ($bf,full_tag("GRADE",4,false,$quiz->grade));
         fwrite ($bf,full_tag("TIMECREATED",4,false,$quiz->timecreated));
         fwrite ($bf,full_tag("TIMEMODIFIED",4,false,$quiz->timemodified));
-        fwrite ($bf,full_tag("TIMELIMIT",4,false,$quiz->timelimit));
+        fwrite ($bf,full_tag("TIMELIMITSECS",4,false,$quiz->timelimit));
         fwrite ($bf,full_tag("PASSWORD",4,false,$quiz->password));
         fwrite ($bf,full_tag("SUBNET",4,false,$quiz->subnet));
         fwrite ($bf,full_tag("POPUP",4,false,$quiz->popup));
         fwrite ($bf,full_tag("DELAY1",4,false,$quiz->delay1));
         fwrite ($bf,full_tag("DELAY2",4,false,$quiz->delay2));
+        fwrite ($bf,full_tag("SHOWUSERPICTURE",4,false,$quiz->showuserpicture));
         //Now we print to xml question_instances (Course Level)
         $status = backup_quiz_question_instances($bf,$preferences,$quiz->id);
         //Now we print to xml quiz_feedback (Course Level)

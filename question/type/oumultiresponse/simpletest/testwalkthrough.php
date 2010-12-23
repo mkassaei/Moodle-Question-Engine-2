@@ -37,7 +37,7 @@ class qtype_oumultiresponse_walkthrough_test extends qbehaviour_walkthrough_test
 
         // Create a multichoice single question.
         $mc = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_four();
-        $mc->shufflechoices = false;
+        $mc->shuffleanswers = false;
         $this->start_attempt_at_question($mc, 'interactive', 3);
 
         // Check the initial state.
@@ -184,7 +184,7 @@ class qtype_oumultiresponse_walkthrough_test extends qbehaviour_walkthrough_test
             new qtype_oumultiresponse_hint('Hint 1', true, true, true),
             new qtype_oumultiresponse_hint('Hint 2', true, true, true),
         );
-        $mc->shufflechoices = false;
+        $mc->shuffleanswers = false;
         $this->start_attempt_at_question($mc, 'interactive', 3);
 
         // Check the initial state.
@@ -236,7 +236,7 @@ class qtype_oumultiresponse_walkthrough_test extends qbehaviour_walkthrough_test
             new qtype_oumultiresponse_hint('Hint 1', true, true, true),
             new qtype_oumultiresponse_hint('Hint 2', true, true, true),
         );
-        $mc->shufflechoices = false;
+        $mc->shuffleanswers = false;
         $this->start_attempt_at_question($mc, 'interactive', 3);
 
         // Check the initial state.
@@ -339,5 +339,163 @@ class qtype_oumultiresponse_walkthrough_test extends qbehaviour_walkthrough_test
                 $this->get_tries_remaining_expectation(1),
                 $this->get_no_hint_visible_expectation(),
                 new PatternExpectation('/' . preg_quote(get_string('selectmulti', 'qtype_multichoice'), '/') . '/'));
+    }
+
+    public function test_interactive_bug_11263() {
+
+        // Create a multichoice single question.
+        $mc = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_five();
+        $mc->penalty = 1;
+        $this->start_attempt_at_question($mc, 'interactive', 3);
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_tries_remaining_expectation(3));
+
+        // Submit a wrong answer.
+        $this->process_submission(array(
+            'choice0' => '0',
+            'choice1' => '0',
+            'choice2' => '0',
+            'choice3' => '1',
+            'choice4' => '1',
+            '-submit' => '1'
+        ));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+
+        // Try again.
+        $this->process_submission(array(
+            'choice0' => '0',
+            'choice1' => '0',
+            'choice2' => '0',
+            'choice3' => '1',
+            'choice4' => '1',
+            '-tryagain' => '1'
+        ));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_tries_remaining_expectation(2));
+
+        // Submit a wrong answer again.
+        $this->process_submission(array(
+            'choice0' => '0',
+            'choice1' => '0',
+            'choice2' => '0',
+            'choice3' => '1',
+            'choice4' => '1',
+            '-submit' => '1'
+        ));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+
+        // Try again - clears wrong.
+        $this->process_submission(array(
+            'choice0' => '0',
+            'choice1' => '0',
+            'choice2' => '0',
+            'choice3' => '0',
+            'choice4' => '0',
+            '-tryagain' => '1'
+        ));
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_tries_remaining_expectation(1));
+
+        // Submit one right choice.
+        $this->process_submission(array(
+            'choice0' => '1',
+            'choice1' => '0',
+            'choice2' => '0',
+            'choice3' => '0',
+            'choice4' => '0',
+            '-submit' => '1'
+        ));
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedpartial);
+        $this->check_current_mark(0);
+    }
+
+    public function test_interactive_regrade_changing_num_tries_leaving_open() {
+        // Create a multichoice multiple question.
+        $q = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_five();
+        $this->start_attempt_at_question($q, 'interactive', 3);
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_tries_remaining_expectation(3));
+
+        // Submit the right answer.
+        $this->process_submission(array(
+            'choice0' => '1',
+            'choice1' => '1',
+            'choice2' => '0',
+            'choice3' => '0',
+            'choice4' => '0',
+            '-submit' => '1'
+        ));
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedright);
+        $this->check_current_mark(3);
+
+        // Now change the quiestion so that answer is only partially right, and regrade.
+        $q->answers[15]->fraction = 1;
+
+        $this->quba->regrade_all_questions(false);
+
+        // Verify.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+    }
+
+    public function test_interactive_regrade_changing_num_tries_finished() {
+        // Create a multichoice multiple question.
+        $q = qtype_oumultiresponse_test_helper::make_an_oumultiresponse_two_of_five();
+        $this->start_attempt_at_question($q, 'interactive', 3);
+
+        // Check the initial state.
+        $this->check_current_state(question_state::$todo);
+        $this->check_current_mark(null);
+        $this->check_current_output(
+                $this->get_tries_remaining_expectation(3));
+
+        // Submit the right answer.
+        $this->process_submission(array(
+            'choice0' => '1',
+            'choice1' => '1',
+            'choice2' => '0',
+            'choice3' => '0',
+            'choice4' => '0',
+            '-submit' => '1'
+        ));
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedright);
+        $this->check_current_mark(3);
+
+        // Now change the quiestion so that answer is only partially right, and regrade.
+        $q->answers[15]->fraction = 1;
+
+        $this->quba->regrade_all_questions(true);
+
+        // Verify.
+        $this->check_current_state(question_state::$gradedpartial);
+        $this->check_current_mark(2);
     }
 }

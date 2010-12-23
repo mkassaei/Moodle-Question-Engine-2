@@ -90,7 +90,7 @@ class qbehaviour_manualgraded_walkthrough_test extends qbehaviour_walkthrough_te
                 new PatternExpectation('/' . preg_quote('Not good enough!') . '/'));
 
         // Now change the max mark for the question and regrade.
-        $this->quba->regrade_question($this->slot, 1);
+        $this->quba->regrade_question($this->slot, true, 1);
 
         // Verify.
         $this->check_current_state(question_state::$mangrright);

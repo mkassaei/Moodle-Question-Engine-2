@@ -62,7 +62,13 @@ class qtype_truefalse_question_test extends UnitTestCase {
     public function test_get_correct_response() {
         $question = test_question_maker::make_a_truefalse_question();
 
-        $this->assertEqual(array('answer' => 1),
+        // true
+        $this->assertIdentical(array('answer' => 1),
+                $question->get_correct_response());
+
+        // false
+        $question->rightanswer = false;
+        $this->assertIdentical(array('answer' => 0),
                 $question->get_correct_response());
     }
 

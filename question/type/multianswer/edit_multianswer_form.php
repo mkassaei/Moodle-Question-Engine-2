@@ -64,7 +64,7 @@ class question_edit_multianswer_form extends question_edit_form {
     }
 
             $mform->addElement('static', 'sub_'.$sub."_".'defaultgrade', get_string('defaultgrade', 'quiz'));
-            $mform->setDefault('sub_'.$sub."_".'defaultgrade',$this->questiondisplay->options->questions[$sub]->defaultgrade);
+            $mform->setDefault('sub_'.$sub."_".'defaultgrade',$this->questiondisplay->options->questions[$sub]->defaultmark);
 
                 if ($this->questiondisplay->options->questions[$sub]->qtype =='shortanswer'   ) {
                     $mform->addElement('static', 'sub_'.$sub."_".'usecase', get_string('casesensitive', 'quiz'));
@@ -99,7 +99,7 @@ class question_edit_multianswer_form extends question_edit_form {
                 // The old way of restoring the definitions is kept to gradually
                 // update all multianswer questions
                 if (empty($wrapped->questiontext)) {
-                    $parsableanswerdef = '{' . $wrapped->defaultgrade . ':';
+                    $parsableanswerdef = '{' . $wrapped->defaultmark . ':';
                     switch ($wrapped->qtype) {
                         case 'multichoice':
                             $parsableanswerdef .= 'MULTICHOICE:';

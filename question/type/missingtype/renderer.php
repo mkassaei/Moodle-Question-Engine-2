@@ -33,10 +33,4 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_missingtype_renderer extends qtype_renderer {
-    public function formulation_and_controls(question_attempt $qa,
-            question_display_options $options) {
-        return html_writer::tag('div', get_string('missingqtypewarning', 'qtype_missingtype'),
-                array('class' => 'warning missingqtypewarning')) .
-                parent::formulation_and_controls($qa, $options);
-    }
 }

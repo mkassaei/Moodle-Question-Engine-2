@@ -147,10 +147,6 @@
 
 
 /// Now, check for commands on this page and modify variables as necessary
-    // If any edit action makes a sifnificant change to the structure of the quiz, then we
-    // will need to delete all preview attempts.
-    $significantchangemade = false;
-
     if (($up = optional_param('up', false, PARAM_INT)) !== false and confirm_sesskey()) { /// Move the given question up a slot
         $questions = explode(",", $quiz->questions);
         if ($up > 0 and isset($questions[$up])) {
@@ -166,7 +162,7 @@
             if (!set_field('quiz', 'questions', $quiz->questions, 'id', $quiz->id)) {
                 error('Could not save question list');
             }
-            $significantchangemade = true;
+            quiz_delete_previews($quiz);
         }
     }
 
@@ -183,13 +179,14 @@
             if (!set_field('quiz', 'questions', $quiz->questions, 'id', $quiz->id)) {
                 error('Could not save question list');
             }
-            $significantchangemade = true;
+            quiz_delete_previews($quiz);
         }
     }
 
     if (($addquestion = optional_param('addquestion', 0, PARAM_INT)) and confirm_sesskey()) { /// Add a single question to the current quiz
         quiz_add_quiz_question($addquestion, $quiz);
-        $significantchangemade = true;
+        quiz_delete_previews($quiz);
+        quiz_update_sumgrades($quiz);
     }
 
     if (optional_param('add', false, PARAM_BOOL) and confirm_sesskey()) { /// Add selected questions to the current quiz
@@ -200,7 +197,8 @@
                 quiz_add_quiz_question($key, $quiz);
             }
         }
-        $significantchangemade = true;
+        quiz_delete_previews($quiz);
+        quiz_update_sumgrades($quiz);
     }
 
     if (optional_param('addrandom', false, PARAM_BOOL) and confirm_sesskey()) { /// Add random questions to the quiz
@@ -249,7 +247,8 @@
                 quiz_add_quiz_question($question->id, $quiz);
             }
         }
-        $significantchangemade = true;
+        quiz_delete_previews($quiz);
+        quiz_update_sumgrades($quiz);
     }
 
     if (optional_param('repaginate', false, PARAM_BOOL) and confirm_sesskey()) { /// Re-paginate the quiz
@@ -264,27 +263,33 @@
         if (!set_field('quiz', 'questions', $quiz->questions, 'id', $quiz->id)) {
             error('Could not save layout');
         }
-        $significantchangemade = true;
+        quiz_delete_previews($quiz);
     }
     if (($delete = optional_param('delete', false, PARAM_INT)) !== false and confirm_sesskey()) { /// Remove a question from the quiz
         quiz_delete_quiz_question($delete, $quiz);
-        $significantchangemade = true;
+        quiz_delete_previews($quiz);
+        quiz_update_sumgrades($quiz);
     }
 
     if (optional_param('savechanges', false, PARAM_BOOL) and confirm_sesskey()) {
-    /// We need to save the new ordering (if given) and the new grades
+        // This can be quite slow. Do some output to prevent browser time-outs.
+        print_header(get_string('saving', 'quiz'));
+
+        // We need to save the new ordering (if given) and the new grades
         $oldquestions = explode(",", $quiz->questions); // the questions in the old order
         $questions = array(); // for questions in the new order
         $rawgrades = (array) data_submitted();
         unset($quiz->grades);
         foreach ($rawgrades as $key => $value) {
-        /// Parse input for question -> grades
+            // Parse input for question -> grades
             if (preg_match('!^q([0-9]+)$!', $key, $matches)) {
                 $key = $matches[1];
-                $quiz->grades[$key] = clean_param($value, PARAM_INTEGER);
+                $quiz->grades[$key] = clean_param($value, PARAM_NUMBER);
+                notify(get_string('savingnewgradeforquestion', 'quiz', $key), 'notifysuccess');
+                flush();
                 quiz_update_question_instance($quiz->grades[$key], $key, $quiz);
 
-            /// Parse input for ordering info
+            // Parse input for ordering info
             } else if (preg_match('!^o([0-9]+)$!', $key, $matches)) {
                 $key = $matches[1];
                 // Make sure two questions don't overwrite each other. If we get a second
@@ -319,27 +324,27 @@
         // If rescaling is required save the new maximum
         $maxgrade = optional_param('maxgrade', -1, PARAM_INTEGER);
         if ($maxgrade >= 0) {
+            notify(get_string('savingnewmaximumgrade', 'quiz'), 'notifysuccess');
+            flush();
             if (!quiz_set_grade($maxgrade, $quiz)) {
                 error('Could not set a new maximum grade for the quiz');
             }
         }
-        $significantchangemade = true;
-    }
-
-/// Delete any teacher preview attempts if the quiz has been modified
-    if ($significantchangemade) {
-        $previewattempts = get_records_select('quiz_attempts',
-                'quiz = ' . $quiz->id . ' AND preview = 1');
-        if ($previewattempts) {
-            foreach ($previewattempts as $attempt) {
-                quiz_delete_attempt($attempt, $quiz);
-            }
-        }
-
         quiz_update_sumgrades($quiz);
+
+        notify(get_string('updatingatttemptgrades', 'quiz'), 'notifysuccess');
+        flush();
         quiz_update_all_attempt_sumgrades($quiz);
+
+        notify(get_string('updatingfinalgrades', 'quiz'), 'notifysuccess');
+        flush();
         quiz_update_all_final_grades($quiz);
-        quiz_update_grades($quiz);
+
+        notify(get_string('updatingthegradebook', 'quiz'), 'notifysuccess');
+        flush();
+        quiz_update_grades($quiz, 0, true);
+
+        redirect($thispageurl->out(false), get_string('changessaved'));
     }
 
     question_showbank_actions($thispageurl, $cm);

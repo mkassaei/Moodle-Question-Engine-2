@@ -323,9 +323,11 @@ abstract class quiz_attempt_report extends quiz_default_report {
      * this quiz are not deleted.
      * @param object $cm the course_module object.
      * @param array $attemptids the list of attempt ids to delete.
-     * @param array $groupstudents if this 
+     * @param array $allowed This list of userids that are visible in the report.
+     *      Users can only delete attempts that they are allowed to see in the report.
+     *      Empty means all users.
      */
-    protected function delete_selected_attempts($quiz, $cm, $attemptids, $allowed, $groupstudents) {
+    protected function delete_selected_attempts($quiz, $cm, $attemptids, $allowed) {
         foreach ($attemptids as $attemptid) {
             $attempt = get_record('quiz_attempts', 'id', $attemptid);
             if (!$attempt || $attempt->quiz != $quiz->id || $attempt->preview != 0) {
@@ -334,10 +336,6 @@ abstract class quiz_attempt_report extends quiz_default_report {
             }
             if ($allowed && !array_key_exists($attempt->userid, $allowed)) {
                 // Ensure the attempt belongs to a student included in the report. If not skip.
-                continue;
-            }
-            if ($groupstudents && !array_key_exists($attempt->userid, $groupstudents)) {
-                // Additional check in groups mode.
                 continue;
             }
             add_to_log($quiz->course, 'quiz', 'delete attempt', 'report.php?id=' . $cm->id,

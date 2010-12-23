@@ -481,10 +481,13 @@ img.iconkbhelp {
 /*Accessibility: text 'seen' by screen readers but not visual users. Fixed for RTL languages, example Farsi. */
 .accesshide {
   position:absolute;
-  top:-100000px;
-  left:10px;
+  left:-10000px;
   font-weight:normal;
   font-size:1em;
+}
+.dir-rtl .accesshide {
+  right:-10000px;
+  left:auto;
 }
 
 .invisiblefieldset {
@@ -4080,6 +4083,47 @@ table.quizreviewsummary td.cell {
 .gradetheselink {
     font-size: 0.8em;
 }
+#mod-quiz-grading table#grading
+{
+  width: 80%;
+  margin: auto;
+}
+
+#mod-quiz-grading table#grading
+{
+  margin: 20px auto;
+}
+
+#mod-quiz-grading table#grading .header,
+#mod-quiz-grading table#grading .cell
+{
+  padding: 4px;
+}
+
+#mod-quiz-grading table#grading .header .commands
+{
+  display: inline;
+}
+
+#mod-quiz-grading table#grading .picture
+{
+  width: 40px;
+}
+
+#mod-quiz-grading table#grading td
+{
+  border-left-width: 1px;
+  border-right-width: 1px;
+  border-left-style: solid;
+  border-right-style: solid;
+  vertical-align: bottom;
+}
+#manualgradingform.mform br {
+  clear: none;
+}
+#manualgradingform.mform .clearfix:after {
+  clear: none;
+}
 
 .mod-quiz .gradingdetails {
   font-size: small;
@@ -4106,6 +4150,10 @@ table.quizreviewsummary td.cell {
   background: #eee no-repeat top right;
   text-align: center;
   vertical-align: middle;
+}
+#quiznavigation .qnbutton span {
+    cursor: pointer;
+    cursor: hand;
 }
 #quiznavigation .qnbutton .trafficlight,
 #quiznavigation .qnbutton .thispageholder {

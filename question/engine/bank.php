@@ -82,7 +82,7 @@ abstract class question_bank {
      * @return string the human_readable name of this question type, from the language pack.
      */
     public static function get_qtype_name($qtypename) {
-        return $this->get_qtype($qtypename)->menu_name();
+        return self::get_qtype($qtypename)->menu_name();
     }
 
     /**

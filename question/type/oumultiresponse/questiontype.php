@@ -25,7 +25,6 @@
  */
 
 
-require_once($CFG->libdir . '/questionlib.php');
 require_once($CFG->dirroot . '/question/engine/lib.php');
 require_once($CFG->dirroot . '/question/format/xml/format.php');
 
@@ -362,7 +361,6 @@ class qtype_oumultiresponse extends question_type {
             //Now, build the question_oumultiresponse record structure
             $oumultiresponse = new stdClass;
             $oumultiresponse->questionid = $new_question_id;
-            $oumultiresponse->answernumbering = isset($mul_info['#']['ANSWERNUMBERING']['0']['#'])?backup_todb($mul_info['#']['ANSWERNUMBERING']['0']['#']):'';
             $oumultiresponse->shuffleanswers = isset($mul_info['#']['SHUFFLEANSWERS']['0']['#'])?backup_todb($mul_info['#']['SHUFFLEANSWERS']['0']['#']):'';
             if (array_key_exists("CORRECTFEEDBACK", $mul_info['#'])) {
                 $oumultiresponse->correctfeedback = backup_todb($mul_info['#']['CORRECTFEEDBACK']['0']['#']);
@@ -379,7 +377,21 @@ class qtype_oumultiresponse extends question_type {
             } else {
                 $oumultiresponse->incorrectfeedback = '';
             }
-            $oumultiresponse->shownumcorrect = isset($mat_opt['#']['SHOWNUMCORRECT']['0']['#'])?backup_todb($mat_opt['#']['SHOWNUMCORRECT']['0']['#']):1;
+            if (array_key_exists("ANSWERNUMBERING", $mul_info['#'])) {
+                $oumultiresponse->answernumbering = backup_todb($mul_info['#']['ANSWERNUMBERING']['0']['#']);
+                if ($oumultiresponse->answernumbering == 'III') {
+                    $oumultiresponse->answernumbering == 'IIII';
+                }
+            } else {
+                $oumultiresponse->answernumbering = 'abc';
+            }
+            if (array_key_exists('SHOWNUMCORRECT', $mul_info['#'])) {
+                $oumultiresponse->shownumcorrect = backup_todb($mul_info['#']['SHOWNUMCORRECT']['0']['#']);
+            } else if (array_key_exists('CORRECTRESPONSESFEEDBACK', $mul_info['#'])) {
+                $oumultiresponse->shownumcorrect = backup_todb($mul_info['#']['CORRECTRESPONSESFEEDBACK']['0']['#']);
+            } else {
+                $oumultiresponse->shownumcorrect = 0;
+            }
 
             $status = insert_record('question_oumultiresponse', $oumultiresponse);
         }
@@ -536,7 +548,7 @@ class qtype_oumultiresponse_hint extends question_hint_with_parts {
      * @return question_hint_with_parts
      */
     public static function load_from_record($row) {
-        return new question_hint_with_parts($row->hint, $row->shownumcorrect,
+        return new qtype_oumultiresponse_hint($row->hint, $row->shownumcorrect,
                 $row->clearwrong, !empty($row->options));
     }
 

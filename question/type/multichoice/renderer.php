@@ -86,15 +86,26 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
             } else {
                 unset($inputattributes['checked']);
             }
-            $radiobuttons[] = html_writer::empty_tag('input', $inputattributes) .
+            $hidden = '';
+            if (!$options->readonly && $this->get_input_type() == 'checkbox') {
+                $hidden = html_writer::empty_tag('input', array(
+                    'type' => 'hidden',
+                    'name' => $inputattributes['name'],
+                    'value' => 0,
+                ));
+            }
+            $radiobuttons[] = $hidden . html_writer::empty_tag('input', $inputattributes) .
                     html_writer::tag('label', $this->number_in_style($value, $question->answernumbering) .
                         $question->format_text($ans->answer), array('for' => $inputattributes['id']));
 
             // $options->suppresschoicefeedback is a hack specific to the
             // oumultiresponse question type. It would be good to refactor to
             // avoid refering to it here.
-            if ($options->feedback && empty($options->suppresschoicefeedback) && $isselected) {
-                $feedback[] = "<span class='que specificfeedback'>" . $question->format_text($ans->feedback) . '</span>';
+            if ($options->feedback && empty($options->suppresschoicefeedback) &&
+                    $isselected && trim($ans->feedback)) {
+                $feedback[] = html_writer::tag('div',
+                        $question->format_text($ans->feedback),
+                        array('class' => 'specificfeedback'));
             } else {
                 $feedback[] = '';
             }

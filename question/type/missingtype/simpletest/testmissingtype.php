@@ -54,17 +54,6 @@ class qtype_missing_test extends UnitTestCase {
         return $questiondata;
     }
 
-    public function test_missing_cannot_start() {
-        $quba = question_engine::make_questions_usage_by_activity('unit_test',
-                get_context_instance(CONTEXT_SYSTEM));
-
-        $q = new qtype_missingtype_question();
-        $quba->set_preferred_behaviour('deferredfeedback');
-        $quba->add_question($q, 1);
-        $this->expectException();
-        $quba->start_all_questions();
-    }
-
     public function test_cannot_grade() {
         $q = new qtype_missingtype_question();
         $this->expectException();
@@ -85,7 +74,10 @@ class qtype_missing_test extends UnitTestCase {
         $questiondata = $this->get_unknown_questiondata();
         $q = question_bank::make_question($questiondata);
         $this->assertIsA($q, 'qtype_missingtype_question');
-        $this->assertEqual($q->questiontext, $questiondata->questiontext);
+        $this->assertEqual($q->questiontext, html_writer::tag('div',
+                get_string('missingqtypewarning', 'qtype_missingtype'),
+                array('class' => 'warning missingqtypewarning')) .
+                $questiondata->questiontext);
     }
 
     public function test_render_missing() {
@@ -100,7 +92,7 @@ class qtype_missing_test extends UnitTestCase {
 
         $output = $qa->render(new question_display_options(), '1');
 
-        $this->assertPattern('/' . preg_quote($qa->get_question()->questiontext) . '/', $output);
+        $this->assertPattern('/' . preg_quote($qa->get_question()->questiontext, '/') . '/', $output);
         $this->assertPattern('/' . preg_quote(get_string('missingqtypewarning', 'qtype_missingtype')) . '/', $output);
         $this->assert(new ContainsTagWithAttribute('div', 'class', 'warning missingqtypewarning'), $output);
     }

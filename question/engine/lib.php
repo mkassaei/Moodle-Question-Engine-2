@@ -36,6 +36,7 @@ require_once(dirname(__FILE__) . '/../type/questionbase.php');
 require_once(dirname(__FILE__) . '/../type/rendererbase.php');
 require_once(dirname(__FILE__) . '/../behaviour/behaviourbase.php');
 require_once(dirname(__FILE__) . '/../behaviour/rendererbase.php');
+require_once($CFG->libdir . '/questionlib.php');
 
 
 /**
@@ -128,7 +129,7 @@ abstract class question_engine {
      */
     public static function questions_in_use(array $questionids) {
         $dm = new question_engine_data_mapper();
-        $dm->questions_in_use($questionids);
+        return $dm->questions_in_use($questionids);
     }
 
     /**
@@ -1117,9 +1118,11 @@ class question_usage_by_activity {
      * Regrade a question in this usage. This replays the sequence of submitted
      * actions to recompute the outcomes.
      * @param integer $slot the number used to identify this question within this usage.
-     * @param $newmaxmark (optional) if given, will change the max mark while regrading.
+     * @param boolean $finished whether the question attempt should be forced to be finished
+     *      after the regrade, or whether it may still be in progress (default false).
+     * @param number $newmaxmark (optional) if given, will change the max mark while regrading.
      */
-    public function regrade_question($slot, $newmaxmark = null) {
+    public function regrade_question($slot, $finished = false, $newmaxmark = null) {
         $oldqa = $this->get_question_attempt($slot);
         if (is_null($newmaxmark)) {
             $newmaxmark = $oldqa->get_max_mark();
@@ -1130,7 +1133,7 @@ class question_usage_by_activity {
         $newqa = new question_attempt($oldqa->get_question(), $oldqa->get_usage_id(),
                 $this->observer, $newmaxmark);
         $newqa->set_database_id($oldqa->get_database_id());
-        $newqa->regrade($oldqa);
+        $newqa->regrade($oldqa, $finished);
 
         $this->questionattempts[$slot] = $newqa;
         $this->observer->notify_attempt_modified($newqa);
@@ -1138,10 +1141,12 @@ class question_usage_by_activity {
 
     /**
      * Regrade all the questions in this usage (without changing their max mark).
+     * @param boolean $finished whether each question should be forced to be finished
+     *      after the regrade, or whether it may still be in progress (default false).
      */
-    public function regrade_all_questions() {
+    public function regrade_all_questions($finished = false) {
         foreach ($this->questionattempts as $slot => $notused) {
-            $this->regrade_question($slot);
+            $this->regrade_question($slot, $finished);
         }
     }
 
@@ -1662,6 +1667,12 @@ class question_attempt {
         return $this->get_last_step()->get_fraction();
     }
 
+    /** @return boolean whether this question attempt has a non-zero maximum mark. */
+    public function has_marks() {
+        // Since grades are stored in the database as NUMBER(12,7).
+        return $this->maxmark >= 0.00000005;
+    }
+
     /**
      * @return number the current mark for this question.
      * {@link get_fraction()} * {@link get_max_mark()}.
@@ -1839,6 +1850,8 @@ class question_attempt {
         $this->add_step($firststep);
 
         // Record questionline and correct answer.
+        // TODO we should only really do this for new attempts, not when called
+        // via load_from_records.
         $this->questionsummary = $this->behaviour->get_question_summary();
         $this->rightanswer = $this->behaviour->get_right_answer_summary();
     }
@@ -2040,8 +2053,10 @@ class question_attempt {
      * Perform a regrade. This replays all the actions from $oldqa into this
      * attempt.
      * @param question_attempt $oldqa the attempt to regrade.
+     * @param boolean $finished whether the question attempt should be forced to be finished
+     *      after the regrade, or whether it may still be in progress (default false).
      */
-    public function regrade(question_attempt $oldqa) {
+    public function regrade(question_attempt $oldqa, $finished) {
         $first = true;
         foreach ($oldqa->get_step_iterator() as $step) {
             if ($first) {
@@ -2052,6 +2067,9 @@ class question_attempt {
                 $this->process_action($step->get_submitted_data(),
                         $step->get_timecreated(), $step->get_user_id());
             }
+        }
+        if ($finished) {
+            $this->finish();
         }
     }
 
@@ -2125,7 +2143,14 @@ class question_attempt {
             }
         }
 
-        $question = question_bank::load_question($record->questionid);
+        try {
+            $question = question_bank::load_question($record->questionid);
+        } catch (Exception $e) {
+            // The question must have been deleted somehow. Create a missing
+            // question to use in its place.
+            $question = question_bank::get_qtype('missingtype')->make_deleted_instance(
+                    $record->questionid, $record->maxmark + 0);
+        }
 
         $qa = new question_attempt($question, $record->questionusageid, null, $record->maxmark + 0);
         $qa->set_database_id($record->questionattemptid);
@@ -2526,7 +2551,7 @@ class question_attempt_step {
 
     /**
      * Get all the submitted data, but not the cached data. behaviour
-     * variables have the ! at the start of their name. This is only really
+     * variables have the - at the start of their name. This is only really
      * intended for use by {@link question_attempt::regrade()}, it should not
      * be considered part of the public API.
      * @param array name => value pairs.

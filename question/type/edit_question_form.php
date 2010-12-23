@@ -313,11 +313,27 @@ class question_edit_form extends moodleform {
 
         $mform->addElement('header', 'multitriesheader', get_string('settingsformultipletries', 'question'));
 
-        $mform->addElement('text', 'penalty', get_string('penaltyforeachincorrecttry', 'question'),
-                array('size' => 3));
-        $mform->setType('penalty', PARAM_NUMBER);
+        $penalties = array(
+            1.0000000,
+            0.5000000,
+            0.3333333,
+            0.2500000,
+            0.2000000,
+            0.1000000,
+            0.0000000
+        );
+        if (!empty($this->question->penalty) && !in_array($this->question->penalty, $penalties)) {
+            $penalties[] = $this->question->penalty;
+            sort($penalties);
+        }
+        $penaltyoptions = array();
+        foreach ($penalties as $penalty) {
+            $penaltyoptions["$penalty"] = (100 * $penalty) . '%';
+        }
+        $mform->addElement('select', 'penalty', get_string('penaltyforeachincorrecttry', 'question'),
+                $penaltyoptions);
         $mform->addRule('penalty', null, 'required', null, 'client');
-        $mform->setHelpButton('penalty', array('penalty', get_string('penalty', 'question'), 'question'));
+        $mform->setHelpButton('penalty', array('penalty', get_string('penaltyforeachincorrecttry', 'question'), 'question'));
         $mform->setDefault('penalty', 0.3333333);
 
         if (isset($this->question->hints)) {

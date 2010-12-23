@@ -174,6 +174,28 @@ function quiz_hide_nav_warning() {
     warning.parentNode.removeChild(warning);
 }
 
+/**
+ * In internet explorere 7, the first flag marker in the quiz navigation was not
+ * showing up when you first navigated to a page (but it did show up if you
+ * reloaded the page). Anyway, this hack seems to fix it.
+ */
+function quiz_fix_ie_flag_markers() {
+    if (!YAHOO.util.Dom.hasClass(document.body, 'ie7')) {
+        return;
+    }
+
+    var flaggedlinks = YAHOO.util.Dom.getElementsByClassName('flagged', 'a', 'quiznavigation');
+    if (!flaggedlinks) {
+        return;
+    }
+
+    YAHOO.util.Event.addListener(window, 'load', function() {
+        setTimeout(function() {
+            flaggedlinks[0].stateupdater.flag_state_changed(true);
+        }, 10);
+    });
+}
+
 function quiz_nav_button_clicked(e) {
     if (YAHOO.util.Dom.hasClass(this, 'thispage')) {
         return;

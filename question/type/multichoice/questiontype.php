@@ -31,7 +31,7 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_multichoice extends question_type {
-    protected function has_html_answers() {
+    public function has_html_answers() {
         return true;
     }
 
@@ -340,10 +340,17 @@ class qtype_multichoice extends question_type {
             }
             if (array_key_exists("ANSWERNUMBERING", $mul_info['#'])) {
                 $multichoice->answernumbering = backup_todb($mul_info['#']['ANSWERNUMBERING']['0']['#']);
+                if ($multichoice->answernumbering == 'III') {
+                    $multichoice->answernumbering = 'IIII';
+                }
             } else {
                 $multichoice->answernumbering = 'abc';
             }
-            $multichoice->shownumcorrect = isset($mul_info['#']['SHOWNUMCORRECT']['0']['#'])?backup_todb($mul_info['#']['SHOWNUMCORRECT']['0']['#']):0;
+            if (array_key_exists('SHOWNUMCORRECT', $mul_info['#'])) {
+                $multichoice->shownumcorrect = backup_todb($mul_info['#']['SHOWNUMCORRECT']['0']['#']);
+            } else {
+                $multichoice->shownumcorrect = 0;
+            }
 
             //We have to recode the answers field (a list of answers id)
             //Extracts answer id from sequence

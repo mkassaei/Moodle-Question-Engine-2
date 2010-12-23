@@ -205,6 +205,9 @@
                 fwrite ($bf,full_tag("MODIFIEDBY",$level + 2,false,$question->modifiedby));
                 // Backup question type specific data
                 $status = $status && $QTYPES[$question->qtype]->backup($bf,$preferences,$question->id, $level + 2);
+
+                $status = $status && backup_question_hints($bf, $preferences, $question->id, $level + 2);
+
                 //End question
                 $status = $status && fwrite ($bf,end_tag("QUESTION",$level + 1,true));
                 //Do some output
@@ -220,6 +223,27 @@
             //Write end tag
             $status = $status && fwrite ($bf,end_tag("QUESTIONS",$level,true));
         }
+        return $status;
+    }
+
+    function question_backup_hints($bf, $preferences, $questionid, $level = 6) {
+        $hints = get_records('question_hints', 'questionid', $questionid, 'id');
+        if (!$hints) {
+            return true;
+        }
+
+        $status = true;
+        $status = $status && fwrite($bf, start_tag("HINTS", $level, true));
+        foreach ($hints as $hint) {
+            $status = $status && fwrite($bf, start_tag("HINT", $level + 1, true));
+            $status = $status && fwrite($bf, full_tag("HINT_TEXT", $level + 2, false, $hint->hint));
+            $status = $status && fwrite($bf, full_tag("SHOWNUMCORRECT", $level + 2, false, $hint->shownumcorrect));
+            $status = $status && fwrite($bf, full_tag("CLEARWRONG", $level + 2, false, $hint->clearwrong));
+            $status = $status && fwrite($bf, full_tag("OPTIONS", $level + 2, false, $hint->options));
+            $status = $status && fwrite($bf, end_tag("HINT", $level + 1, true));
+        }
+        $status = $status && fwrite($bf, end_tag("HINTS", $level, true));
+
         return $status;
     }
 

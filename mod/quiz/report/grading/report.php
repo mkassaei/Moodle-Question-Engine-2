@@ -483,12 +483,14 @@ END;
         $qubaids = clean_param(explode(',', $qubaids), PARAM_INT);
         $attempts = $this->load_attempts_by_usage_ids($qubaids);
 
+        begin_sql();
         foreach ($qubaids as $qubaid) {
             $attempt = $attempts[$qubaid];
             $quba = question_engine::load_questions_usage_by_activity($qubaid);
             $attemptobj = new quiz_attempt($attempt, $this->quiz, $this->cm, $this->course);
             $attemptobj->process_all_actions(time());
         }
+        commit_sql();
     }
 
     /**

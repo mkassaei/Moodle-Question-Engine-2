@@ -101,7 +101,9 @@ $ALLOWED_TAGS =
  */
 $ALLOWED_PROTOCOLS = array('http', 'https', 'ftp', 'news', 'mailto', 'rtsp', 'teamspeak', 'gopher', 'mms',
                            'color', 'callto', 'cursor', 'text-align', 'font-size', 'font-weight', 'font-style', 'font-family',
-                           'border', 'margin', 'padding', 'background', 'background-color', 'text-decoration');   // CSS as well to get through kses
+                           'border', 'border-bottom', 'border-left', 'border-top', 'border-right', 'margin', 'margin-bottom', 'margin-left', 'margin-top', 'margin-right',
+                           'padding', 'padding-bottom', 'padding-left', 'padding-top', 'padding-right', 'vertical-align',
+                           'background', 'background-color', 'text-decoration');   // CSS as well to get through kses
 
 
 /// Functions
@@ -2024,6 +2026,7 @@ function clean_text($text, $format=FORMAT_MOODLE) {
             /// Fix non standard entity notations
                 $text = preg_replace('/&#0*([0-9]+);?/', "&#\\1;", $text);
                 $text = preg_replace('/&#x0*([0-9a-fA-F]+);?/', "&#x\\1;", $text);
+                $text = preg_replace('[\x00-\x08\x0b-\x0c\x0e-\x1f]', '', $text);
 
             /// Remove tags that are not allowed
                 $text = strip_tags($text, $ALLOWED_TAGS);
@@ -2055,23 +2058,51 @@ function purify_html($text) {
 
     // this can not be done only once because we sometimes need to reset the cache
     $cachedir = $CFG->dataroot.'/cache/htmlpurifier';
-    $status = check_dir_exists($cachedir, true, true);
+    check_dir_exists($cachedir);
 
     static $purifier = false;
-    static $config;
     if ($purifier === false) {
         require_once $CFG->libdir.'/htmlpurifier/HTMLPurifier.safe-includes.php';
         $config = HTMLPurifier_Config::createDefault();
-        $config->set('Output.Newline', "\n");
+
+        $config->set('HTML.DefinitionID', 'moodlehtml');
+        $config->set('HTML.DefinitionRev', 1);
+        $config->set('Cache.SerializerPath', $cachedir);
+        //$config->set('Cache.SerializerPermission', $CFG->directorypermissions); // it would be nice to get this upstream
+        $config->set('Core.NormalizeNewlines', false);
         $config->set('Core.ConvertDocumentToFragment', true);
         $config->set('Core.Encoding', 'UTF-8');
         $config->set('HTML.Doctype', 'XHTML 1.0 Transitional');
-        $config->set('Cache.SerializerPath', $cachedir);
-        $config->set('URI.AllowedSchemes', array('http'=>1, 'https'=>1, 'ftp'=>1, 'irc'=>1, 'nntp'=>1, 'news'=>1, 'rtsp'=>1, 'teamspeak'=>1, 'gopher'=>1, 'mms'=>1));
+        $config->set('URI.AllowedSchemes', array('http'=>true, 'https'=>true, 'ftp'=>true, 'irc'=>true, 'nntp'=>true, 'news'=>true, 'rtsp'=>true, 'teamspeak'=>true, 'gopher'=>true, 'mms'=>true));
         $config->set('Attr.AllowedFrameTargets', array('_blank'));
+
+        if (!empty($CFG->allowobjectembed)) {
+            $config->set('HTML.SafeObject', true);
+            $config->set('Output.FlashCompat', true);
+            $config->set('HTML.SafeEmbed', true);
+        }
+
+        $def = $config->getHTMLDefinition(true);
+        $def->addElement('nolink', 'Block', 'Flow', array());                       // skip our filters inside
+        $def->addElement('tex', 'Inline', 'Inline', array());                       // tex syntax, equivalent to $$xx$$
+        $def->addElement('algebra', 'Inline', 'Inline', array());                   // algebra syntax, equivalent to @@xx@@
+        $def->addElement('lang', 'Block', 'Flow', array(), array('lang'=>'CDATA')); // old anf future style multilang - only our hacked lang attribute
+        $def->addAttribute('span', 'xxxlang', 'CDATA');                             // current problematic multilang
+
         $purifier = new HTMLPurifier($config);
     }
-    return $purifier->purify($text);
+
+    $multilang = (strpos($text, 'class="multilang"') !== false);
+
+    if ($multilang) {
+        $text = preg_replace('/<span(\s+lang="([a-zA-Z0-9_-]+)"|\s+class="multilang"){2}\s*>/', '<span xxxlang="${2}">', $text);
+    }
+    $text = $purifier->purify($text);
+    if ($multilang) {
+        $text = preg_replace('/<span xxxlang="([a-zA-Z0-9_-]+)">/', '<span lang="${1}" class="multilang">', $text);
+    }
+
+    return $text;
 }
 
 /**

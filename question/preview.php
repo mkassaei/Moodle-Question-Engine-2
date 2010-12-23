@@ -78,7 +78,9 @@ if ($previewid) {
     $quba->set_preferred_behaviour($options->behaviour);
     $slot = $quba->add_question($question, $options->maxmark);
     $quba->start_all_questions();
+    begin_sql();
     question_engine::save_questions_usage_by_activity($quba);
+    commit_sql();
 
     $SESSION->question_previews[$quba->get_id()] = true;
 }
@@ -107,7 +109,9 @@ if (data_submitted() && confirm_sesskey()) {
     } else if (optional_param('fill', null, PARAM_BOOL)) {
         $correctresponse = $quba->get_correct_response($slot);
         $quba->process_action($slot, $correctresponse);
+        begin_sql();
         question_engine::save_questions_usage_by_activity($quba);
+        commit_sql();
         redirect($actionurl);
 
     } else if (optional_param('finish', null, PARAM_BOOL)) {
@@ -117,7 +121,9 @@ if (data_submitted() && confirm_sesskey()) {
             print_error('submissionoutofsequencefriendlymessage', 'question', $actionurl);
         }
         $quba->finish_all_questions();
+        begin_sql();
         question_engine::save_questions_usage_by_activity($quba);
+        commit_sql();
         redirect($actionurl);
 
     } else {
@@ -126,7 +132,9 @@ if (data_submitted() && confirm_sesskey()) {
         } catch (question_out_of_sequence_exception $e){
             print_error('submissionoutofsequencefriendlymessage', 'question', $actionurl);
         }
+        begin_sql();
         question_engine::save_questions_usage_by_activity($quba);
+        commit_sql();
         $scrollpos = optional_param('scrollpos', '', PARAM_RAW);
         if ($scrollpos !== '') {
             $actionurl .= '&scrollpos=' . ((int) $scrollpos);
