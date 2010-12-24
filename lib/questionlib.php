@@ -317,7 +317,7 @@ function question_category_in_use($categoryid, $recursive = false) {
 
     // Look at each question in the category
     if ($questions = get_records('question', 'category', $categoryid)) {
-        if (questions_in_use($questions)) {
+        if (questions_in_use(array_keys($questions))) {
             return true;
         }
     }
